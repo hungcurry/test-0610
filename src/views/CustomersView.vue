@@ -46,8 +46,10 @@ import { useRouter } from 'vue-router'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import ApiFunc from '@/components/ApiFunc'
 import msi from '@/assets/msi_style'
-import {  ElMessageBox } from 'element-plus'
+import {  ElMessageBox, ElMessage } from 'element-plus'
+import { useMStore } from "../stores/m_cloud"
 
+const MStore = useMStore();
 
 const router = useRouter()
 const MsiApi = ApiFunc()
@@ -129,15 +131,18 @@ const addUser = async (action, visible) => {
   dialogFormVisible.value = visible
 
   if (action === 'confirm') {
-    let sendData = {'first_name' : newUser.first_name, 'last_name' : newUser.last_name, 'email' : newUser.email, 'password': newUser.password} 
+    let sendData = {'first_name' : newUser.first_name, 'last_name' : newUser.last_name,
+     'email' : newUser.email, 'password': newUser.password, company:MStore.permission.company.name} 
     
-    ElMessageBox.confirm('確定要建立?','Warning', {confirmButtonText: 'OK', cancelButtonText: 'Cancel', type: 'warning'})
+    ElMessageBox.confirm('Do you want to create?','Warning', {confirmButtonText: 'OK', cancelButtonText: 'Cancel', type: 'warning'})
     .then(async () => {
       isLoading.value = true
-      await MsiApi.register_member(sendData)
+      let res = await MsiApi.register_member(sendData)
+      ElMessage(res.data.message)
       isLoading.value = false
       let queryData = { "database":"CPO", "collection":"UserData", "query": {}}
       await MongoQurey(queryData)
+      
     })
     .catch((e)=>{
       console.log(e)

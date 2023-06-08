@@ -13,7 +13,6 @@ import CustomersView from '@/views/CustomersView.vue'
 import CustomersDetailView from '@/views/CustomersDetailView.vue'
 import AdministratorView from '@/views/AdministratorView.vue'
 import OcpiSessionView from '@/views/OcpiSessionView.vue'
-import LogView from '@/views/LogView.vue'
 import PaymentHistoryView from '@/views/PaymentHistoryView.vue'
 import CompanyView from '@/views/CompanyView.vue'
 import EvseDetailView from '@/views/EvseDetailView.vue'
@@ -22,7 +21,6 @@ import TariffDetailView from '@/views/TariffDetailView.vue'
 import EvseEditView from '@/views/EvseEditView.vue'
 import SoftwareInfoView from '@/views/SoftwareInfoView.vue'
 import OcppErrorView from '@/views/OcppErrorView.vue'
-import IssueView from '@/views/IssueView.vue'
 import TestView from '@/views/TestView.vue'
 import ParkingView from '@/views/ParkingView.vue'
 
@@ -88,11 +86,6 @@ const router = createRouter({
           component: OcpiSessionView
         },
         {
-          path: 'log',
-          name: 'log',
-          component: LogView
-        },
-        {
           path: 'stationEdit',
           name: 'stationEdit',
           component: StationEditView
@@ -132,12 +125,6 @@ const router = createRouter({
           name: 'ocppError',
           component: OcppErrorView,
           meta: { title: 'ocppError' }
-        },
-        {
-          path: 'issueReport',
-          name: 'issueReport',
-          component: IssueView,
-          meta: { title: 'issueReport' }
         },
         {
           path: 'test',

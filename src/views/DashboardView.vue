@@ -37,14 +37,15 @@
       <div class="evse-notification">
         <el-col >
           <el-card shadow="always">
-            <p class="evse-notification-title">Notification</p>
+            <p class="evse-notification-title">Offline / Error EVSE</p>
             <div class="evse-notification-container">
-              <p >Hello, Welcome to MSI m-Cloud System</p>
-          </div>
+              <p v-for="(value, key) in error_evse" :key="key" > 
+                {{ key + '(' + value + ')\n' }}<br>
+              </p>
+            </div>
           </el-card>
         </el-col>
       </div>
-
     </div>
 
     <div class="analysis-container">
@@ -176,14 +177,8 @@ const router = useRouter()
 
 const MsiApi = ApiFunc()
 const income = ref(0)
-const select_country = ref('')
-const select_city = ref('')
-const select_station = ref('')
 
-const country_options = [ { value: 'Option1', label: 'Option1', }, { value: 'Option2', label: 'Option2', }]
-const city_options = [ { value: 'Option1', label: 'Option1', }, { value: 'Option2', label: 'Option2', }]
-const station_options = [ { value: 'Option3', label: 'Option3', }, { value: 'Option4', label: 'Option4', }]
-
+const error_evse = reactive({})
 const ref_payment_chart = ref()
 const ref_location_type = ref()
 const ref_power_time = ref()
@@ -203,7 +198,7 @@ const goto_payment = () => {
 
 const payment_method_option = {
   tooltip: { trigger: 'axis', axisPointer: { type: 'shadow'} },
-  legend: {y:'bottom',x:'left'}, grid: { left: '5%', right: '0%', bottom: '10%', containLabel: true},
+  legend: { y:'bottom',x:'left'}, grid: { left: '5%', right: '0%', bottom: '10%', containLabel: true},
   xAxis: { type: 'value', boundaryGap: [0, 0.01]},
   yAxis: { type: 'category', data: ['Others', 'Free','RFID', 'Credit Card']},
   series: [ { type: 'bar', barWidth:'20%', data: [ 0, 0, 0, 0], color: "#92a9c4"},
@@ -275,8 +270,49 @@ onMounted( async() => {
     else if (response.data.result[i].status === 'CHARGING') {
       status_obj.Charging++
     }
-    status_obj.total = status_obj.Available + status_obj.Offline +status_obj.Charging
+    else if (response.data.result[i].status === 'OUTOFORDER') {
+      status_obj.Error++
+    }
+    status_obj.total = status_obj.Available + status_obj.Offline + status_obj.Charging + status_obj.Error
   }
+
+
+
+  queryData = { "database":"OCPI", "collection":"Location", "pipelines": [
+  { "$project": {"_id": 0, "evses": 1, "name": 1 }}]}
+  response = await MsiApi.mongoAggregate(queryData)
+  let locationData = response.data.result
+  queryData = { "database":"OCPI", "collection":"EVSE", "pipelines": [
+  { $match: { $or:[ {"status": { "$eq":'UNKNOWN'}}, {"status": { "$eq":'OUTOFORDER'}} ]}},
+  { "$project": {"_id": 1} }]}
+
+  response = await MsiApi.mongoAggregate(queryData)
+  let EvseData = response.data.result
+
+  for (let i = 0; i < EvseData.length; i++) {
+    for (let j = 0; j < locationData.length; j++) {
+      for (let k = 0 ; k < locationData[j]?.evses?.length; k++) {
+        if (EvseData[i]._id === locationData[j].evses[k]) {
+          EvseData[i].locationName = locationData[j].name
+          break
+        }
+      }
+      if (EvseData[i].locationName)
+        break
+    }
+  }
+  
+  for (let i = 0; i < EvseData.length; i++) {
+    const item = EvseData[i];
+    const name = item.locationName;
+    if (error_evse[name]) {
+      error_evse[name] += 1;
+    } else {
+      error_evse[name] = 1;
+    }
+  }
+
+
 
   queryData = { "database":"CPO", "collection":"PaymentHistory", "pipelines": [
   { "$project": {"_id": 0, "price": 1, "paymethod.method": 1 }}]}
@@ -313,7 +349,6 @@ onMounted( async() => {
   ]
   }
   response = await MsiApi.mongoAggregate(queryData)
-  console.log(response)
   if (response?.data?.result?.length !== 0)
     visitor.value = response?.data?.result?.[0]?.guestCount
 
@@ -374,20 +409,6 @@ onMounted( async() => {
   parking_time.hr = parseInt(parking_time.min / 60)
   parking_time.min = parseInt(parking_time.min % 60)
 
-  // console.log(parking_time)
-  // totalkwh.value = response.data.result[0].totalkwh
-
-  function success(position) {
-    const lat = position.coords.latitude.toFixed(8);
-    const lon = position.coords.longitude.toFixed(8);
-    console.log(lat , lon)
-  }
-
-  function error(err) {
-      console.log(err);
-  }
-  navigator.geolocation.getCurrentPosition(success, error)
-
   let ret_chart = null
   let chart_inst = null
 
@@ -400,17 +421,12 @@ onMounted( async() => {
   ret_chart = ref_location_type.value
 
   queryData = { "database":"OCPI", "collection":"Location", "pipelines": [
-      { "$project": {"_id": 0,  "facilities": 1 }}
+      { "$project": {"_id": 0}}
     ]
   }
 
   response = await MsiApi.mongoAggregate(queryData)
-  
-  console.log(response)
-
-  
   station_count.value =   response?.data?.result?.length
-  console.log(station_count.value)
 
   let facilities = { hotel:0, restaurant:0, mall:0, super_market:0, fuel_station:0, parking_lot:0, others:0 }
 
@@ -559,9 +575,6 @@ queryData = { "database":"OCPI", "collection":"Session", "pipelines": [
   {
     use_power_time_obj.date1.power += response.data.result[i].kwh
   }
-  console.log(use_power_time_obj)
-
-  console.log(power_times_option)
   power_times_option.series[0].data[0] = parseInt(use_power_time_obj.date7.power)
   power_times_option.series[0].data[1] = parseInt(use_power_time_obj.date6.power)
   power_times_option.series[0].data[2] = parseInt(use_power_time_obj.date5.power)
@@ -712,11 +725,14 @@ queryData = { "database":"OCPI", "collection":"Session", "pipelines": [
         font-size: 22px;
       }
       .evse-notification-container{
-        display: flex;
-        flex-direction: row;
+        height: 100px;
+        overflow: auto;
+        // display: flex;
+        // flex-direction: row;
         p{
-          text-align: center;
-          font-size: 30px;
+          // text-align: center;
+          margin: 5px;
+          font-size: 20px;
           color: #983636;
         }
       }

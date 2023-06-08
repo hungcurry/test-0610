@@ -28,7 +28,7 @@
         <!-- <el-button class="add-charger" @click="addCharger"> Add Charger </el-button> -->
 
         <el-button v-if="editMode === true" class="edit" @click="updateSW"> Update SW </el-button>
-        <el-button v-if="editMode === true" class="edit" @click="updateFW " disabled> Update FW </el-button>
+        <!-- <el-button v-if="editMode === true" class="edit" @click="updateFW " disabled> Update FW </el-button> -->
         <el-button v-if="editMode === true" class="edit" @click="evseReset('soft') " disabled> Soft Reset </el-button>
         <el-button v-if="editMode === true" class="edit" @click="evseReset('hard') " disabled> Hard Reset </el-button>
 
@@ -49,7 +49,7 @@
               <p class="available" v-if="scope.row.status === 'AVAILABLE'"> {{ "●" + scope.row.status }}</p>
               <p class="charging" v-else-if="scope.row.status === 'CHARGING'"> {{ "●" + scope.row.status }}</p>
               <p class="offline" v-else-if="scope.row.status === 'UNKNOWN' "> {{ "●" + scope.row.status }}</p>
-              <p class="error" v-else-if="scope.row.status === 'ERROR' || scope.row.status === 'OUTOFORDER'"> {{ "●" + scope.row.status }}</p>
+              <p class="error" v-else-if="scope.row.status === 'OUTOFORDER'"> {{ "●" + scope.row.status }}</p>
             </template>
             
           </el-table-column>
@@ -111,7 +111,6 @@ const StationData = reactive([])
 onMounted( async () => {
   let jsonData = { "database":"OCPI", "collection":"Location", "query": { "id": { "UUID" : station_id} }}
   let response = await MsiApi.mongoQuery(jsonData)
-  console.log(response)
   StationData.length = 0
   Object.assign(StationData, response.data.all[0])
   StationData.latitude_str = StationData.coordinates.latitude
@@ -119,7 +118,6 @@ onMounted( async () => {
   StationDetailEvseData.length = 0 
   Object.assign(StationDetailEvseData, StationData.evses)
   for (let i = 0; i < StationData.evses.length; i++) {
-    console.log(StationData.evses[i].connectors[0])
     if (StationData.evses[i].connectors[0].standard === 'IEC_62196_T1') 
       StationDetailEvseData[i].type_str = 'Type 1'
     else if (StationData.evses[i].connectors[0].standard === 'IEC_62196_T2')
@@ -128,7 +126,6 @@ onMounted( async () => {
     StationDetailEvseData[i].type_str = StationData.evses[i].connectors[0].standard
   }
   StationData.img_str = StationData?.images?.[0]?.url
-  
 })
 
 </script>

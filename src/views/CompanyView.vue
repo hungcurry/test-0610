@@ -168,10 +168,9 @@ const editCompany = async (action) => {
         ElMessage.error('Oops, Name required.')
         return
       }
-      ElMessageBox.confirm('確定要建立?','Warning', {confirmButtonText: 'OK', cancelButtonText: 'Cancel', type: 'warning'})
+      ElMessageBox.confirm('Do you want to create?','Warning', {confirmButtonText: 'OK', cancelButtonText: 'Cancel', type: 'warning'})
       .then(async () => {
         let res = await MsiApi.setCollectionData('post', 'cpo', sendData)
-        console.log(res)
         if (res.status === 201) {
           let queryData = { "database":"CPO", "collection":"CompanyInformation", "query": {}}
           await MongoQurey(queryData)
@@ -189,7 +188,7 @@ const editCompany = async (action) => {
                         city:companyData.city, detail:companyData.detail, remark:companyData.remark,
                         invoice:companyData.invoice, payment:companyData.payment
                       }
-      ElMessageBox.confirm('確定要修改?','Warning', {confirmButtonText: 'OK', cancelButtonText: 'Cancel', type: 'warning'})
+      ElMessageBox.confirm('Do you want to modify?','Warning', {confirmButtonText: 'OK', cancelButtonText: 'Cancel', type: 'warning'})
       .then(async () => {
         let res = await MsiApi.setCollectionData('patch', 'cpo', sendData)
         if (res.status === 200) {
@@ -203,7 +202,7 @@ const editCompany = async (action) => {
     }
     else if (action === 'delete') {
       let sendData = { class : 'CompanyInformation', pk : companyData._id }
-      ElMessageBox.confirm('確定要刪除?','Warning', {confirmButtonText: 'OK', cancelButtonText: 'Cancel', type: 'warning'})
+      ElMessageBox.confirm('Do you want to delete?','Warning', {confirmButtonText: 'OK', cancelButtonText: 'Cancel', type: 'warning'})
       .then(async () => {
         let res = await MsiApi.setCollectionData('delete', 'cpo', sendData)
         if (res.status === 200) {

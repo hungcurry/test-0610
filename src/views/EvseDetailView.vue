@@ -5,7 +5,7 @@
       <p class="location-addr">{{ locationData.country + ' ' + locationData.city + locationData.address }}</p>
       <el-button class="delete" @click="deleteEvse"> Delete </el-button>
       <el-button class="edit" @click="edit"> Edit </el-button>
-      <el-button class="log" @click="log" disabled> Log </el-button>
+      <!-- <el-button class="log" @click="log" disabled> Log </el-button> -->
       <div class="evse-detail-header-container">
         <p class="evse-id" > {{evseData.evse_id}}</p>
         <p class="status available" v-if="evseData.status === 'AVAILABLE'"> {{ "●" + evseData.status }}</p>
@@ -38,10 +38,10 @@
               <p class="evse-info-title">Charger Label</p>
               <p class="evse-info-value">{{evseData.physical_reference}}</p>
             </div> -->
-            <div class="evse-info-item">
+            <!-- <div class="evse-info-item">
               <p class="evse-info-title">Note / Description</p>
               <p class="evse-info-value">{{evseData.description}} </p>
-            </div>            
+            </div>             -->
             <div class="evse-info-item">
               <p class="evse-info-title">Last Updated</p>
               <p class="evse-info-value">{{evseData.last_updated}}</p>
@@ -179,7 +179,7 @@ const log = () => {
 }
 
 const deleteEvse = () => {
-  ElMessageBox.confirm('確定要刪除?','Warning', {confirmButtonText: 'OK', cancelButtonText: 'Cancel', type: 'warning'})
+  ElMessageBox.confirm('Do you want to delete?','Warning', {confirmButtonText: 'OK', cancelButtonText: 'Cancel', type: 'warning'})
   .then(async () => {
     let sendData = { 'class' : 'EVSE', 'id' : evseId }
     console.log(await MsiApi.setCollectionData('delete', 'ocpi', sendData))
@@ -192,12 +192,10 @@ const deleteEvse = () => {
       console.log(await MsiApi.setCollectionData('delete', 'ocpi', sendData))
     }
     let evseArr = []
-    console.log(locationData)
     for (let i = 0; i < locationData?.evses?.length; i++) {
       if (locationData.evses[i].uid === evseId) {
         continue
       }
-      console.log(locationData.evses[i])
       evseArr.push(locationData.evses[i]._id)
     }
     let sendData1 = { 'class' : 'Location', 'id': locationData.id, 'evses' : evseArr}
@@ -209,7 +207,6 @@ const deleteEvse = () => {
 }
 
 const edit = () => {
-  console.log(locationData)
   router.push({ name: 'evseEdit', query: {station_id:locationData.id, evse_id:evseId} })
 }
 
@@ -233,28 +230,20 @@ onMounted( async () => {
   let queryData = { "database":"OCPI", "collection":"EVSE", "query": { "uid": {"UUID":evseId}}}
   let response = await MsiApi.mongoQuery(queryData)
   Object.assign(evseData, response.data.all[0]) 
-  console.log(response)
   
   queryData = { "database":"OCPI", "collection":"Connector", "query": { "_id": { "ObjectId" : evseData?.connectors?.[0]?._id}}}
   response = await MsiApi.mongoQuery(queryData)
-  console.log(response)
   Object.assign(connectorData, response.data.all[0]) 
-  console.log(evseData)
   queryData = { "database":"CPO", "collection":"ChargePointInfo", "query": { "evse": { "ObjectId" : evseData?._id}}}
   response = await MsiApi.mongoQuery(queryData)
-  console.log(response)
   Object.assign(chargePointInfoData, response.data.all[0])
-  console.log(chargePointInfoData?.hmi)
   if(chargePointInfoData.hmi !== '') {
-    queryData = { "database":"CPO", "collection":"HMIControlBoardInfo", "query": { "_id": { "ObjectId" : chargePointInfoData?.hmi}}}
-    
+    queryData = { "database":"CPO", "collection":"HMIControlBoardInfo", "query": { "_id": { "ObjectId" : chargePointInfoData?.hmi}}}    
     response = await MsiApi.mongoQuery(queryData)
-    console.log(response)
     Object.assign(hmiInfoData, response.data.all[0])
   }
   queryData = { "database":"OCPI", "collection":"Location", "query": {  "evses" : {"$in": [  {"ObjectId" : evseData?._id }]}  }}
   response = await MsiApi.mongoQuery(queryData)
-  console.log(response)
   if (response.data.all.length === 0) {
     if(locationData.name === undefined)
       locationData.name = ''
@@ -265,16 +254,12 @@ onMounted( async () => {
     if(locationData.address === undefined)
       locationData.address = ''
   }
-  else
+  else {
     Object.assign(locationData, response.data.all[0])
-  console.log(response)
-  console.log(connectorData)
+  }
   queryData = { "database":"OCPI", "collection":"Tariff", "query": { "id": { "UUID" : connectorData.tariff_ids[0]}}}
   response = await MsiApi.mongoQuery(queryData)
-  console.log(response)
-
   Object.assign(tariffData, response.data.all[0])
-  console.log(tariffData)
   tariffData.tariff_alt_text_str = tariffData.tariff_alt_text[0].text
   
   Object.assign(tariff_elements, tariffData.elements )

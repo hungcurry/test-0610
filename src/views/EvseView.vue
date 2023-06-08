@@ -3,8 +3,8 @@
     <el-button class="add-charger" @click="add_charger" > Add Charger</el-button>
     <el-button class="edit" @click="edit" > {{edit_button_str}}</el-button>
     <div class="tabs">
-    <el-tabs v-model="activeName">
-      <el-tab-pane label="Paired" name="first" >
+    <el-tabs v-model="activeName" >
+      <el-tab-pane label="Paired" name="1" >
         <div class="table">
           
         <el-table class="evse-table" :data="EvseConnectData" style="width: 95%; height:800px" stripe ref="checkTable"
@@ -18,22 +18,22 @@
                 <p class="available" v-if="scope.row.status === 'AVAILABLE'"> {{ "●" + scope.row.status }}</p>
                 <p class="charging" v-else-if="scope.row.status === 'CHARGING'"> {{ "●" + scope.row.status }}</p>
                 <p class="offline" v-else-if="scope.row.status === 'UNKNOWN' "> {{ "●" + scope.row.status }}</p>
-                <p class="error" v-else-if="scope.row.status === 'ERROR' || scope.row.status === 'OUTOFORDER' "> {{ "●" + scope.row.status }}</p>
+                <p class="error" v-else-if="scope.row.status === 'OUTOFORDER'"> {{ "●" + scope.row.status }}</p>
               </template>
           </el-table-column>
           <el-table-column prop="hmi_version" label="SW Ver." min-width="50"/>
-          <el-table-column prop="control_version" label="FW Ver." min-width="50"/>
+          <!-- <el-table-column prop="control_version" label="FW Ver." min-width="50"/> -->
           <el-table-column prop="" label="Latest SW" min-width="40">
           <template #default="scope">
             <p v-if="scope.row.hmi_version === `b'0.1.2.3'`"> {{ "V" }}</p>
           </template>
           </el-table-column>
-          <el-table-column prop="" label="Latest FW"  min-width="40">
+          <!-- <el-table-column prop="" label="Latest FW"  min-width="40">
       
           <template #default="scope">
             <p v-if="scope.row.control_version === `b'4.0.11'`"> {{ "V" }}</p>
           </template>
-          </el-table-column>
+          </el-table-column> -->
 
           <el-table-column prop="last_updated" label="Updated Time" min-width="70"/>
           <el-table-column v-if="editMode === false" prop="" label="" min-width="30">
@@ -46,9 +46,8 @@
         </el-table>
       </div>
       </el-tab-pane>
-      <el-tab-pane label="Unpaired" name="second">
+      <el-tab-pane label="Unpaired" name="2">
         <div class="table">
-          
           <el-table class="evse-table" :data="EvseUnConnectData" style="width: 95%; height:800px" stripe ref="checkTable"
           :cell-style=msi.tb_cell :header-cell-style=msi.tb_header_cell size="large" @selection-change="handleSelectionChange">
             <el-table-column prop="locationName" label="Location" min-width="80"/>
@@ -60,11 +59,11 @@
                   <p class="available" v-if="scope.row.status === 'AVAILABLE'"> {{ "●" + scope.row.status }}</p>
                   <p class="charging" v-else-if="scope.row.status === 'CHARGING'"> {{ "●" + scope.row.status }}</p>
                   <p class="offline" v-else-if="scope.row.status === 'UNKNOWN' "> {{ "●" + scope.row.status }}</p>
-                  <p class="error" v-else-if="scope.row.status === 'ERROR' || scope.row.status === 'OUTOFORDER'"> {{ "●" + scope.row.status }}</p>
+                  <p class="error" v-else-if="scope.row.status === 'OUTOFORDER'"> {{ "●" + scope.row.status }}</p>
                 </template>
             </el-table-column>
             <el-table-column prop="hmi_version" label="SW Ver." min-width="50"/>
-            <el-table-column prop="control_version" label="FW Ver." min-width="50"/>
+            <!-- <el-table-column prop="control_version" label="FW Ver." min-width="50"/> -->
             <el-table-column prop="" label="SW Latest" min-width="40">
             <template #default="scope">
               <p v-if="scope.row.hmi_version === `b'0.1.2.3.fix1'`"> {{ "V" }}</p>
@@ -80,22 +79,20 @@
             <el-table-column prop="last_updated" label="Updated Time" min-width="70"/>
             <el-table-column v-if="editMode === false" prop="" label="" min-width="30">
             <template #default="scope">
-                  <el-button @click="detail_info(scope.row)"> <font-awesome-icon icon="fa-solid fa-ellipsis" /> </el-button>
+              <el-button @click="detail_info(scope.row)"> <font-awesome-icon icon="fa-solid fa-ellipsis" /> </el-button>
             </template>
             </el-table-column>
-            <el-table-column v-else type="selection" min-width="30">
-            </el-table-column>
+            <el-table-column v-else type="selection" min-width="30"/>
           </el-table>
         </div>
       </el-tab-pane>
     </el-tabs>
-
   </div>
 
     <el-button v-if="editMode === true" class="update-button" @click="updateSW"> Update SW </el-button>
-    <el-button v-if="editMode === true" class="update-fw-button" @click="updateFW " disabled> Update FW </el-button>
-    <el-button v-if="editMode === true" class="soft-reset-button" @click="evseReset('soft') " disabled> Soft Reset </el-button>
-    <el-button v-if="editMode === true" class="hard-reset-button" @click="evseReset('hard') " disabled> Hard Reset </el-button>
+    <!-- <el-button v-if="editMode === true" class="update-fw-button" @click="updateFW " disabled> Update FW </el-button> -->
+    <el-button v-if="editMode === true" class="soft-reset-button" @click="evseReset('soft') "> Soft Reset </el-button>
+    <el-button v-if="editMode === true" class="hard-reset-button" @click="evseReset('hard') "> Hard Reset </el-button>
     <!-- <el-button v-if="editMode === true" class="log" @click="log" disabled> Log </el-button> -->
     
     <el-dialog v-model="sw_version_visable" title="Update SW">
@@ -115,26 +112,30 @@
 <script setup>
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { ref, reactive, onMounted} from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import ApiFunc from '@/components/ApiFunc'
 import msi from '@/assets/msi_style'
+
+const router = useRouter()
 const multipleSelection = ref([])
 const fwVersion = ref('')
 const sw_version_visable = ref (false)
 const updataEvseId = []
-const activeName = ref('first')
+const activeName = ref('1')
+const route = useRoute()
 // const path = 'https://dev-evse.com/data/hmi/release'
 
 const fwFile = [ 
   {"version":"0.1.1.8", "file":"MS-XP01_0E_LF_v5.15.32_2.0.0-full_230223-141305_97761a89.swu", "checksum":"97761a89"},
   {"version":"0.1.1.9", "file":"MS-XP01_0E_LF_v5.15.71_2.2.0-full_230309-085508_77763113.swu", "checksum":"77763113"},
-  {"version":"0.1.2.0", "file":"MS-XP01_0E_LF_v5.15.71_2.2.0-full_230322-164254_920187ca.swu", "checksum":"920187ca"},
+  {"version":"EXP012NMSI", "file":"https://storage.googleapis.com/msi-hmi/release/EXP012NMSI.0E001_full_230525-141355_c0342628.swu", "checksum":"920187ca"},
   {"version":"0.1.2.1", "file":"MS-XP01_0E_LF_v5.15.71_2.2.0-full_230413-125128_f7fac5ea.swu", "checksum":"f7fac5ea"},
   {"version":"0.1.2.2", "file":"MS-XP01_0E_LF_v5.15.71_2.2.0-full_230427-144456_806b77e3.swu", "checksum":"806b77e3"}
 ]
 
 const updateSW = () => {
   sw_version_visable.value = true
+  updataEvseId.length = 0
   for (let i = 0; i < multipleSelection.value.length; i++) {
     updataEvseId.push(multipleSelection.value[i].evse_id)
   }
@@ -143,16 +144,12 @@ const updateSW = () => {
   }
 }
 
-const updateFW = () => {
-
-}
-
-
 const updateConfirm = async () => {
   let sendData = { "evse_ids": updataEvseId, "location": fwVersion.value, "retrieveDate": "2022-10-27 12:12:12"}
 
   const response = await MsiApi.updateFw(sendData)
   if (response.status === 200) {
+    sw_version_visable.value = false
     console.log(response)
   }
   else {
@@ -164,7 +161,6 @@ const handleSelectionChange = (val) => {
   multipleSelection.value = val
 }
 
-const router = useRouter()
 const status_filter_item = [
                             { text:'AVAILABLE', value: 'AVAILABLE'}, 
                             { text:'CHARGING', value: 'CHARGING'}, 
@@ -172,11 +168,8 @@ const status_filter_item = [
                             { text:'ERROR', value: 'ERROR'}, 
                           ]
 
-
-
 const evseReset = (type) => {
-
-
+  updataEvseId.length = 0
   for (let i = 0; i < multipleSelection.value.length; i++) {
     updataEvseId.push(multipleSelection.value[i].evse_id)
   }
@@ -184,7 +177,6 @@ const evseReset = (type) => {
     return
   }
 
-  console.log(updataEvseId)
   if (confirm(' 我要 ' + type + ' Reset 了 ') === true) {
     const json = JSON.stringify({ evse_id: updataEvseId, reset_type: type })
     MsiApi.reset_evse(json)
@@ -203,11 +195,8 @@ const status_filter = (value, rowData) => {
 }
 
 const detail_info = async(detail) => {
-  console.log(detail._id)
-
   let queryData = { "database":"OCPI", "collection":"Location", "query": {  "evses" : {"$in": [  {"ObjectId" : detail._id }]}  }}
   let response = await MsiApi.mongoQuery(queryData)
-  console.log(response)
   router.push({ name: 'evseDetail', query: {station_id:response?.data?.all?.[0]?.id, evse_id:detail.uid} })
 }
 
@@ -235,6 +224,11 @@ const EvseConnectData = reactive([])
 const EvseUnConnectData = reactive([])
 
 onMounted( async() => {
+
+  if (route.query.page === 'unpaired') {
+    activeName.value = '2'
+  }
+
   let  queryData = { "database":"OCPI", "collection":"Location", "pipelines": [
   { "$project": {"_id": 0, "evses": 1, "name": 1 }}]}
   let  response = await MsiApi.mongoAggregate(queryData)

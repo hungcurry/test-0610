@@ -14,6 +14,7 @@
         <br><br>
         <button class="log-in"  @click="login()"> {{ $t('log_in') }} </button>
       </div>
+      <p class="version">Version: 0.1.1</p>
     <img class="logo" src="@/assets/img/login_msilogo.png">
     </div>
   </div>
@@ -193,6 +194,10 @@ onMounted( () => {
       height: 40px;
       margin-bottom: 20px;
     }
+  }
+  .version {
+    font-size: 30px;
+    color: #FFFFFF;
   }
 }
 </style>

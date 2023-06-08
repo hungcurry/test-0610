@@ -36,15 +36,15 @@ const isLoading = ref(false)
 const MsiApi = ApiFunc()
 const ocppErrorData = reactive([])
 const ocppErrorTabel = [    
-                        {label:'Level', value:'level', width:'5'}, 
-                        {label:'EVSE ID', value:'evse_id', width:'10'},
-                        {label:'Error Code', value:'ocpp_errorCode', width:'10'},
-                        {label:'Status', value:'ocpp_status', width:'6'},
-                        {label:'Vendor', value:'vendorId', width:'5'},
-                        {label:'VendorErrorCode', value:'vendorErrorCode', width:'10'},
-                        {label:'Created Time', value:'created_date',width:'12'},
-                        {label:'Read', value:'read',width:'5'},
-                        {label:'Operator', value:'',width:'15'},
+  {label:'EVSE ID', value:'evse_id', width:'10'},
+  {label:'Error Code', value:'ocpp_errorCode', width:'10'},
+  {label:'VendorErrorCode', value:'vendorErrorCode', width:'10'},
+  {label:'Created Time', value:'created_date',width:'12'},
+                        // {label:'Level', value:'level', width:'5'}, 
+                        // {label:'Status', value:'ocpp_status', width:'6'},
+                        // {label:'Vendor', value:'vendorId', width:'5'},
+                        // {label:'Read', value:'read',width:'5'},
+                        // {label:'Operator', value:'',width:'15'},
                         ]
 
 const read = async (row) => {
@@ -69,9 +69,7 @@ const getEVSEOCPPLogs = async() => {
 	}}
   isLoading.value = true
   let response = await MsiApi.mongoQuery(jsonData)
-
   if (response.status === 200) {
-    console.log(response)
     ocppErrorData.splice(0, ocppErrorData.length)
     Object.assign(ocppErrorData, response.data.all)
   }

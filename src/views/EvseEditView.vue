@@ -15,8 +15,8 @@
           <el-input v-model="evse_obj.floor_level"></el-input>
           <!-- <p>Charger Label</p>
           <el-input v-model="evse_obj.physical_reference"></el-input> -->
-          <p>Note</p>
-          <el-input v-model="evse_obj.directions" disabled></el-input>
+          <!-- <p>Note</p>
+          <el-input v-model="evse_obj.directions" disabled></el-input> -->
           
         </div>
         <div class="evse-edit-left-down">
@@ -43,7 +43,12 @@
           </div>  
           <div class="connector-item">
             <p class="connector-title">Max Amperage</p>
+            
             <p class="connector-value"> {{ connector_obj.max_amperage + 'A' }}</p>
+
+            <!-- <el-input v-model="connector_obj.max_amperage"></el-input>  -->
+            <!-- <span> A </span> -->
+            
           </div>  
           <div class="connector-item">
             <p class="connector-title">Max Electric Power</p>
@@ -133,7 +138,6 @@ const selectTariff = (select_id) =>{
     if (select_id === tariff_profile[i].id)
     Object.assign(selectTariffObj, tariff_profile[i])
   }
-  console.log(selectTariffObj)
 }
 
 const CancelEvseEdit = () => {
@@ -158,7 +162,7 @@ const SaveEvseEdit = async () => {
     }
 
     if (check_format_sucess === true) {
-      ElMessageBox.confirm('確定要建立?','Warning', {confirmButtonText: 'OK', cancelButtonText: 'Cancel', type: 'warning'})
+      ElMessageBox.confirm('Do you want to create?','Warning', {confirmButtonText: 'OK', cancelButtonText: 'Cancel', type: 'warning'})
       .then(async () => {
         let response = await MsiApi.setCollectionData('post', 'ocpi', connector_obj)
         if ( response.status !== 201) {
@@ -179,7 +183,7 @@ const SaveEvseEdit = async () => {
         response = await MsiApi.mongoQuery(queryData)
         station_evses.push(response.data.all[0]._id)
         if (response.status === 200) {
-          router.push({ name: 'evse'})
+          router.push({ name: 'evse', query:{page:'unpaired'}})
         }
       })
       .catch((e)=>{
@@ -191,7 +195,7 @@ const SaveEvseEdit = async () => {
     connector_obj.tariff_ids[0] = (select_profile.value)
     evse_obj.id = evse_obj.uid
 
-    ElMessageBox.confirm('確定要修改?','Warning', {confirmButtonText: 'OK', cancelButtonText: 'Cancel', type: 'warning'})
+    ElMessageBox.confirm('Do you want to modify?','Warning', {confirmButtonText: 'OK', cancelButtonText: 'Cancel', type: 'warning'})
       .then(async () => {
         await MsiApi.setCollectionData('patch', 'ocpi', connector_obj)
         await MsiApi.setCollectionData('patch', 'ocpi', evse_obj)
@@ -233,7 +237,6 @@ onMounted( async()=>{
       tariff_ids.push(connector_obj?.tariff_ids[i])
     }
     connector_obj.tariff_ids = tariff_ids
-    console.log(connector_obj)
   }
   queryData = { "database":"OCPI", "collection":"Location", "query": { "id": {"UUID":station_id} }}
   response = await MsiApi.mongoQuery(queryData)

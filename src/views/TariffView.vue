@@ -1,6 +1,6 @@
 <template>
   <div class="tariff">
-    <el-button class="add-tariff" @click="editTariff"> Add Rate </el-button>
+    <el-button class="add-tariff" @click="editTariff"> Add Rate Plan</el-button>
     <div class="tariff-list">
       <el-table :data="TariffData" style="width: 95%; height:95%" stripe ref="checkTable"
       :cell-style=msi.tb_cell :header-cell-style=msi.tb_header_cell size="large">
@@ -169,9 +169,7 @@ const copyTariff = (row) => {
 onMounted( async() => {
   let queryData = { "database":"OCPI", "collection":"Tariff", "query": {}}
   let response = await MsiApi.mongoQuery(queryData)
-  console.log(response)
   Object.assign(TariffData, response.data.all) 
-  console.log(TariffData)
   for (let i = 0; i < TariffData.length; i++) {
     TariffData[i].tariff_text = TariffData[i].tariff_alt_text[0].text
     TariffData[i].tariff_name = TariffData[i].energy_mix?.supplier_name

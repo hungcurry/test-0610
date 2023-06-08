@@ -11,11 +11,11 @@
             <el-tag type="danger"> {{scope.row.state_error_str}} </el-tag>
           </template>
 
-          <template #default="scope" v-else ="item.type === 'button' && item.value === 'detail'">
+          <template #default="scope" v-else-if="item.type === 'button' && item.value === 'detail'">
             <el-button @click="detail_info(scope.row)"> <font-awesome-icon icon="fa-solid fa-ellipsis" /> </el-button>
           </template>
 
-          <template #default="scope" v-else ="item.label === 'Type'">
+          <template #default="scope" v-else-if ="item.label === 'Type'">
             <img :src="scope.row.facilities_img">
           </template>
 
@@ -58,9 +58,9 @@
           View Details
         </button>
 
-        <button disabled class="add-btn">
+        <!-- <button disabled class="add-btn">
           Add Charger
-        </button>
+        </button> -->
       </div>
     </div>
   </div>
@@ -75,6 +75,14 @@ import { storeToRefs } from "pinia"
 import  msi_style  from '../assets/msi_style'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import MsiCommonApi from '@/components/ApiFunc'
+import parkingPng from '@/assets/img/station_list_type_parking.png'
+import hotelPng from '@/assets/img/station_list_type_hotel.png'
+import restaurantPng from '@/assets/img/station_list_type_restaurant.png'
+import cafePng from '@/assets/img/station_list_type_cafe.png'
+import airportPng from '@/assets/img/station_list_type_airport.png'
+import mallPng from '@/assets/img/station_list_type_mall.png'
+import fuelPng from '@/assets/img/station_list_type_fuel.png'
+
 
 const MStore = useMStore()
 const MsiApi = MsiCommonApi()
@@ -86,13 +94,11 @@ const display_mode = ref('Map Mode')
 const show_stataion_detail = ref(false)
 const publish_filter_item = [{ text:'TRUE', value: true}, { text:'FALSE', value: false}]
 const status_filter_item = [{ text:'AVAILABLE', value: 'AVAILABLE'}, { text:'CHARGING', value: 'CHARGING'}, 
-                            { text:'OFFLINE', value: 'OFFLINE'}, { text:'ERROR', value: 'ERROR'}]
+                            { text:'UNKNOWN', value: 'UNKNOWN'}, { text:'ERROR', value: 'ERROR'}]
 let map1 = null
 let mode = route.query.mode
 
 const status_filter = (value, rowData) => {
-  console.log(value, rowData)
-
   if (value === 'AVAILABLE') {
     if (rowData.state_available_str > 0)
     return rowData
@@ -101,11 +107,11 @@ const status_filter = (value, rowData) => {
     if (rowData.state_charging_str > 0)
     return rowData
   }
-  if (value === 'OFFLINE') {
+  if (value === 'UNKNOWN') {
     if (rowData.state_unknown_str > 0)
     return rowData
   }
-  if (value === 'ERROR') {
+  if (value === 'OUTOFORDER') {
     if (rowData.state_error_str > 0)
     return rowData
   }
@@ -173,19 +179,25 @@ const initMap = async () => {
 const setMarker = async () => {
   let image = null
   let currentInfoWindow = null;
+  
   for (let i = 0; i < LocationData.length; i++) {
-    if (LocationData[i].state_available_str > 0) {
-      image = 'https://dev-evse.com/data/common/pic/station_available.png'
+    console.log(LocationData[i])
+    if (LocationData[i].state_error_str > 0) {
+      image = 'https://storage.googleapis.com/msi-common/pic/station_error.png'
     }
-    else if (LocationData[i].state_available_str === 0 && LocationData[i].state_charging_str > 0 ) {
-      image = 'https://dev-evse.com/data/common/pic/station_charging.png'
+    else if (LocationData[i].state_unknown_str > 0) {
+      image = 'https://storage.googleapis.com/msi-common/pic/station_offline.png'
     }
-    else if (LocationData[i].state_available_str === 0 && LocationData[i].state_charging_str === 0 && LocationData[i].state_error_str === 0) {
-      image = 'https://dev-evse.com/data/common/pic/station_offline.png'
+    else if (LocationData[i].state_available_str === 0 && LocationData[i].state_charging_str > 0) {
+      image = 'https://storage.googleapis.com/msi-common/pic/station_charging.png'
+    }
+    else if (LocationData[i].state_available_str > 0 ) {
+      image = 'https://storage.googleapis.com/msi-common/pic/station_available.png'
     }
     else {
-      image = 'https://dev-evse.com/data/common/pic/station_error.png'
+      image = 'https://storage.googleapis.com/msi-common/pic/station_offline.png'
     }
+
     let marker = new google.maps.Marker({
       position: { lat: parseFloat(LocationData[i].coordinates.latitude), lng: parseFloat(LocationData[i].coordinates.longitude) },
       map: map1, icon: image
@@ -211,7 +223,6 @@ onBeforeRouteUpdate( async () => {
 
 const displayLayout = () => {
   mode = route.query.mode
-  console.log(mode)
   if (route.path === '/station' && (mode === 'map' || mode === undefined)) {
     header_left_component.value = 'station_map'
     display_mode.value = 'Map Mode'
@@ -229,9 +240,9 @@ const displayLayout = () => {
 }
 
 onMounted( async () => {
+
   let queryData = { "database":"OCPI", "collection":"Location", "query": {}}
   const response = await MsiApi.mongoQuery(queryData)
-  console.log(response)
   LocationData.length = 0
   Object.assign(LocationData, response.data.all)
   
@@ -245,6 +256,8 @@ onMounted( async () => {
         LocationData[i].state_charging_str += 1
       else if (LocationData[i].evses[j].status === "UNKNOWN")
         LocationData[i].state_unknown_str += 1
+      else if (LocationData[i].evses[j].status === "OUTOFORDER")
+        LocationData[i].state_error_str += 1
     }
     LocationData[i].facilities_str = LocationData[i].facilities?.[0]
 
@@ -253,25 +266,26 @@ onMounted( async () => {
       LocationData[i].parking_str = 'PARKING'
 
     if (LocationData[i].facilities_str === 'HOTEL') {
-      LocationData[i].facilities_img = '/src/assets/img/station_list_type_hotel.png'
+      
+      LocationData[i].facilities_img = hotelPng
     }
     else if (LocationData[i].facilities_str === 'RESTAURANT') {
-      LocationData[i].facilities_img = '/src/assets/img/station_list_type_restaurant.png'
+      LocationData[i].facilities_img = restaurantPng
     }
     else if (LocationData[i].facilities_str === 'CAFE') {
-      LocationData[i].facilities_img = '/src/assets/img/station_list_type_cafe.png'
+      LocationData[i].facilities_img = cafePng
     }    
     else if (LocationData[i].facilities_str === 'PARKING_LOT') {
-      LocationData[i].facilities_img = '/src/assets/img/station_list_type_parking.png'
+      LocationData[i].facilities_img = parkingPng
     }    
     else if (LocationData[i].facilities_str === 'AIRPORT') {
-      LocationData[i].facilities_img = '/src/assets/img/station_list_type_airport.png'
+      LocationData[i].facilities_img = airportPng
     } 
     else if (LocationData[i].facilities_str === 'MALL') {
-      LocationData[i].facilities_img = '/src/assets/img/station_list_type_mall.png.png'
+      LocationData[i].facilities_img = mallPng
     } 
     else if (LocationData[i].facilities_str === 'FUEL_STATION') {
-      LocationData[i].facilities_img = '/src/assets/img/station_list_type_fuel.png'
+      LocationData[i].facilities_img = fuelPng
     } 
   }
   if (route.path === '/station' && (route.query.mode === 'map' || route.query.mode ===  undefined)) {

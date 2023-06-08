@@ -1,16 +1,12 @@
 <template>
   <div>
-    <el-menu default-active="dashboard" class="el-menu-vertical-demo"
-    background-color="#212120" text-color="#fff" active-text-color="#ffd04b" router >
+    <el-menu default-active="dashboard" class="el-menu-vertical-demo" background-color="#212120" text-color="#fff" active-text-color="#ffd04b" router >
       <el-menu-item index="dashboard">
         <span>Dashboard</span>
       </el-menu-item>
-
-
-      <el-menu-item index="paymentHistory">
+      <el-menu-item v-if="userPermission !== 'EngineerUser'" index="paymentHistory">
         <span>Payment</span>
       </el-menu-item>
-
       <el-sub-menu index="station">
         <template #title>
           <span>Charger Management</span>
@@ -19,8 +15,6 @@
           <el-menu-item index="evse">By Charger</el-menu-item>
           <el-menu-item index="tariff" >Rate Plan</el-menu-item>
       </el-sub-menu>
-
-
       <el-sub-menu index="administrator" >
         <template #title>
           <span>Account Management</span>
@@ -29,65 +23,44 @@
           <el-menu-item v-if="company === 'MSI'" index="company" >Company / CPO </el-menu-item>
           <el-menu-item index="administrator"> m-Cloud Administrator</el-menu-item>
       </el-sub-menu>
-
       <el-sub-menu index="ocpiSession" >
         <template #title>
           <span>Log Monitor</span>
         </template>
           <el-menu-item index="ocpiSession">Charger Log</el-menu-item>
-          <!-- <el-menu-item index="log">Activity</el-menu-item> -->
           <el-menu-item index="ocppError"> OCPP Error </el-menu-item>
-          <!-- <el-menu-item index="issueReport"> Issue Report </el-menu-item> -->
       </el-sub-menu>
-
-      <el-menu-item index="softwareInfo">
+      <!-- <el-menu-item index="softwareInfo">
         <span>Software Info</span>
-      </el-menu-item>
-
+      </el-menu-item> -->
       <el-menu-item v-if="dev_member" index="parking">
         <span>Parking</span>
       </el-menu-item>
-
       <el-menu-item v-if="dev_member" index="test">
         <span>Test</span>
       </el-menu-item>
-
     </el-menu>
   </div>
-
 </template>
+
 <script setup>
 import { onMounted,ref } from 'vue'
 import { useMStore } from "../stores/m_cloud";
 import ApiFunc from '@/components/ApiFunc'
 const MStore = useMStore();
 const company = MStore?.permission?.company?.name
-const open_list = ref(["station"])
-
 const dev_member = ref(false)
-// import MsiCommonApi from '@/components/CommonFunc'
-// const MsiApi = MsiCommonApi()
-// const issueNumber = ref(0)
-// const ocppErrorNumber = ref(0)
+const MsiApi = ApiFunc()
 
+const userPermission = ref('')
 
-  onMounted( async () => {
-
-    const MsiApi = ApiFunc()
-    let res = await MsiApi.checkToken()
-
-
-    if(res.data.first_name === 'Steven' || res.data.first_name === 'Leo' || res.data.first_name === 'Frank') {
-      dev_member.value = true
-    }
-    
-    // let jsonData = { "database":"CPO", "collection":"IssueForm", "query": { 'read':false}}
-    // let response = await MsiApi.mongoQuery(jsonData)
-    // issueNumber.value = response.data.all.length
-
-    // jsonData = { "database":"CPO", "collection":"EVSEOCPPLogs", "query": { 'read':false}}
-    // response = await MsiApi.mongoQuery(jsonData)
-    // ocppErrorNumber.value = response.data.all.length
+onMounted( async () => {
+  let res = await MsiApi.checkToken()
+  console.log(res.data.permission.user.name)
+  userPermission.value = res.data.permission.user.name
+  if(res.data.first_name === 'Steven' || res.data.first_name === 'Leo' || res.data.first_name === 'Frank') {
+    dev_member.value = true
+  }
 })
 
 </script>
@@ -101,14 +74,13 @@ const dev_member = ref(false)
 }
 
 .el-menu {
-    width: 100%;
-    border-right: 0;
-    span{
-      font-size: 16px;
-    }
+  width: 100%;
+  border-right: 0;
+  span{
+    font-size: 16px;
   }
+}
 
 
 
-</style>>
-
+</style>
