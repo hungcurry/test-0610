@@ -152,7 +152,7 @@
           </div>
         </div>
 
-        <el-table :data="tariff_elements" style="width: 95%; height:400px" stripe ref="checkTable"
+        <el-table :data="tariff_elements" style="width: 95%; height:400px" stripe 
 					:cell-style=msi.tb_cell :header-cell-style=msi.tb_header_cell size="large">
           <el-table-column prop="price_components[0].type" label="type" min-width="50"/>
           <el-table-column prop="price_components[0].price" label="price" min-width="50"/>

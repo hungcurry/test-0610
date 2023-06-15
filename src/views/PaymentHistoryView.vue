@@ -11,7 +11,7 @@
     <div class="payment-list">
       <el-table :data="PaymentData" style="width: 95%; height:95%" stripe size="large" :cell-style=msi.tb_cell  :header-cell-style=msi.tb_header_cell	
       v-loading = "isLoading" >
-        <el-table-column label="Locations" align="center">
+        <el-table-column label="Station" align="center">
           <el-table-column prop="location_name" label="Name" min-width="80" align="center"/>
           <el-table-column prop="evse_id" label="EVSE ID" min-width="60" align="center"/>
         </el-table-column>
@@ -55,16 +55,12 @@ const defaultTime = ref([ new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0
 const defaultTime2 = [ new Date(2000, 1, 1, 0, 0, 0), new Date(2000, 2, 1, 23, 59, 59)] 
 const filters = [{ text:'CREDIT', value:'CREDIT'}, { text:'RFID', value:'RFID'}, {text:'APPLE PAY', value:'APPLE PAY'}, {text:'GOOGLEPAY', value:'GOOGLE PAY'}]
 
-const formatJson = (filterVal, jsonData) => {
-  return jsonData.map(v => filterVal.map(j => v[j]))
-}
-
 const download = () => {
-  const tHeader = ['Name', 'Address', 'EVSE ID', 'Time (sec)', 'Price', 'Car Num', 'Time', 'Energy', 'Price', 'Total Price', 'Method','Time']
-  const filterVal = ['location_name', 'location', 'evse_id', 'parking_time_str', 'parking_price_str', 'parking_car_num_str', 'charge_time_str',
-                      'charge_energy_str', 'charge_price_str', 'price', 'paymethod_str', 'created_date']
-  const tableData = PaymentData
-  const data = formatJson(filterVal, tableData)
+  const tHeader = [ 'Name', 'EVSE ID',  'Parking Use Time', ' Parking Price', 'Parking License Plate', 'Charge Use Time', 'Charge kWh', 'Charge Price', 
+                    'Total Price', 'Method', 'Created Date',]
+  const filterVal = [ 'location_name', 'evse_id', 'parking_time', 'parking_price_str', 'parking_car_num_str', 'charge_time', 'charge_energy_str', 
+                      'charge_price_str', 'price_str', 'paymethod_str', 'created_date_str']
+  const data = PaymentData.map(v => filterVal.map(j => v[j]))
   export_json_to_excel ({ header: tHeader, data: data, filename: 'PaymentHistory' })
 }
 

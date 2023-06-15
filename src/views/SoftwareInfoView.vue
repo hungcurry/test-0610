@@ -1,280 +1,200 @@
 <template>
   <div class="sw-info">
-    <!-- <div v-if="dev_member">
-
-    </div>
-    <div v-else>
-    <h1>FW Version</h1>
-    <div class="fw-container">
-    <p>now version  {{ version.xp011_bt }}</p> 
-    <el-input v-model="version.fw" autocomplete="off" />
-    <el-button class="add-user-btn" @click="modifyVersion(version.xp011_bt_id, version.fw)"> Modify FW Version </el-button>
-    </div>
-    <br>
-    <h1>EV Life Version</h1>
-    <div class="others-container">
-      <div class="ev-life-container">
-        <div class="fw-container">
-          <p>iOS    {{ version.ios }}</p> 
-          <el-input v-model="version.ios_new" autocomplete="off" />
-          <el-button class="add-user-btn" @click="modifyVersion(version.ios_id, version.ios_new)"> Modify iOS Version </el-button>
-          <p>iOS Beta  {{ version.ios_beta }}</p> 
-          <el-input v-model="version.ios_beta_new" autocomplete="off" />
-          <el-button class="add-user-btn" @click="modifyVersion(version.ios_beta_id, version.ios_beta_new)"> Modify iOS Beta Version </el-button>
-          <p>Android  {{ version.android }}</p> 
-          <el-input v-model="version.android_new" autocomplete="off" />
-          <el-button class="add-user-btn" @click="modifyVersion(version.android_id, version.android_new)"> Modify Android Version </el-button>
-          <p>Android Beta  {{ version.android_beta }}</p> 
-          <el-input v-model="version.android_beta_new" autocomplete="off" />
-          <el-button class="add-user-btn" @click="modifyVersion(version.android_beta_id, version.android_beta_new)"> Modify Android Beta Version </el-button>
-        </div>
-      </div>
-    </div>
-    </div> -->
-
-  
     <div class="sw">
-      <el-button class="add-tariff" @click="editSW"> Add SW </el-button>
-      <el-table :data="swData" style="width: 95%; height:300px" stripe ref="checkTable"
+      <el-button v-if="isMSI" class="add-tariff" @click="add('XP012')"> Add SW Release</el-button>
+      <br>
+      <span>{{ 'OTA SW Version :' + swData.version }}</span>
+      <el-table :data="swData.release_note" style="width: 95%; height:400px" stripe 
       :cell-style=msi.tb_cell :header-cell-style=msi.tb_header_cell size="large">
-        <el-table-column prop="version" label="Version" min-width="10"/>
-        <el-table-column prop="description" label="Description" min-width="60"/>
-        <el-table-column prop="update_time" label="Update Time" min-width="10"/>
-        
-        <el-table-column  prop="" label="" min-width="30">
-            <template #default="scope">
-              <el-button @click="detail_info(scope.row)"> <font-awesome-icon icon="fa-solid fa-ellipsis" /> </el-button>
-            </template>
+        <el-table-column prop="version" label="Version" min-width="5"/>
+        <el-table-column prop="description" label="description" min-width="15"/>
+        <el-table-column prop="update_time_str" label="Update Time" min-width="10"/>
+        <el-table-column v-if="isMSI" prop="" label="Release" min-width="5">
+          <template #default="scope">
+            <el-button @click="release(scope, 'XP012')"> Release </el-button>
+          </template>
+        </el-table-column>
+        <el-table-column v-if="isMSI" prop="" label="" min-width="5">
+          <template #default="scope">
+            <el-button @click="detail_info(scope, 'XP012')"> <font-awesome-icon icon="fa-solid fa-ellipsis" /> </el-button>
+          </template>
         </el-table-column>
       </el-table>
     </div>
-
-
     <br><br>
-
     <div class="fw">
-      <el-button class="add-tariff" @click="editSW"> Add FW </el-button>
-      <el-table :data="fwData" style="width: 95%; height:300px" stripe ref="checkTable"
+      <el-button v-if="isMSI" class="add-tariff" @click="add('XP011_BT')"> Add FW Release</el-button>
+      <br>
+      <span>{{ 'OTA FW Version :' + fwData.version }}</span>
+      <el-table :data="fwData.release_note" style="width: 95%; height:400px" stripe 
       :cell-style=msi.tb_cell :header-cell-style=msi.tb_header_cell size="large">
-        <el-table-column prop="version" label="Version" min-width="10"/>
-        <el-table-column prop="description" label="Description" min-width="60"/>
-        <el-table-column prop="update_time" label="Update Time" min-width="10"/>
-        
-        <el-table-column  prop="" label="" min-width="30">
+        <el-table-column prop="version" label="Version" min-width="5"/>
+        <el-table-column prop="description" label="description" min-width="15"/>
+        <el-table-column prop="update_time_str" label="Update Time" min-width="10"/>
+        <el-table-column v-if="isMSI" prop="" label="Release" min-width="5">
           <template #default="scope">
-            <el-button @click="detail_info(scope.row)"> <font-awesome-icon icon="fa-solid fa-ellipsis" /> </el-button>
+            <el-button @click="release(scope, 'XP011_BT')"> Release </el-button>
+          </template>
+        </el-table-column>
+        <el-table-column v-if="isMSI" prop="" label="" min-width="5">
+          <template #default="scope">
+            <el-button @click="detail_info(scope, 'XP011_BT')"> <font-awesome-icon icon="fa-solid fa-ellipsis" /> </el-button>
           </template>
         </el-table-column>
       </el-table>
     </div>
 
-    <el-dialog v-model="swVisible" title="SW" draggable>
-      <el-form :model="SW_Detail_Data">
+    <el-dialog v-model="swVisible" :title= dialog_title draggable>
+      <el-form :model="Detail_Data">
         <el-form-item label="Version" >
-          <el-input v-model="SW_Detail_Data.version" autocomplete="off" />
+          <el-input v-model="Detail_Data.version" autocomplete="off" />
+        </el-form-item>
+        <el-form-item label="File" >
+          <el-input v-model="Detail_Data.file" autocomplete="off" />
+        </el-form-item>
+
+        <el-form-item label="Download File" >
+          <el-button  @click="download_File">Download File</el-button>
         </el-form-item>
 
         <el-form-item label="Description" >
-          <el-input v-model="SW_Detail_Data.description" type="textarea" autocomplete="off" />
-          
+          <el-input v-model="Detail_Data.description" type="textarea" autocomplete="off" />
         </el-form-item>
-
+        <el-form-item label="Update time" >
+          <el-input v-model="Detail_Data.update_time_str" disabled autocomplete="off" />
+        </el-form-item>
       </el-form>
       <template #footer>
         <span class="dialog-footer">
-          <el-button @click="confirmSw('delete')">Delete</el-button>
-          <el-button @click="confirmSw('cancel')">Cancel</el-button>
-          <el-button type="primary" @click="confirmSw('confirm')">Confirm</el-button>
+          <el-button @click="confirm('cancel')">Cancel</el-button>
+          <el-button type="primary" @click="confirm('confirm')">Confirm</el-button>
         </span>
       </template>
     </el-dialog>
-
   </div>
 </template>
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import ApiFunc from '@/components/ApiFunc'
-
 import msi from '@/assets/msi_style'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-
-
-const swData = ref([])
-const fwData = ref([])
+import { useMStore } from "../stores/m_cloud"
+import moment from "moment"
+const MStore = useMStore()
+const isMSI = ref(false)
+const swData = reactive([])
+const fwData = reactive([])
 const MsiApi = ApiFunc()
 const swVisible = ref(false)
+const dialog_title = ref('')
+const Detail_Data = reactive([])
+const type = ref('')
+const index = ref('')
 
-const SW_Detail_Data = reactive([])
 
-const confirmSw = (mode) => {
-  if (mode === 'delete') {
+const download_File = () => {
+  const fileName = 'update_file'
+  const link = document.createElement('a')
+  link.href = Detail_Data.file
+  link.download = fileName
+  link.style.display = 'none'
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+}
 
-  }
-  else if (mode === 'cancel') {
-
+const confirm = async (mode) => {
+  if (mode === 'cancel') {
+    swVisible.value = false
   }
   else if (mode === 'confirm') {
+    let queryData = { "database":"CPO", "collection":"VersionControl", "query": {"type": type.value}}
+    let response = await MsiApi.mongoQuery(queryData)
+    if (response.data.all[0].release_note === undefined)
+      response.data.all[0].release_note = []
+    let send_release_note = response.data.all[0].release_note
+    if (index.value === -1) {
+      send_release_note.unshift({ version:Detail_Data.version, file:Detail_Data.file, description:Detail_Data.description, update_time: new Date()})
+    }
+    else {
+      send_release_note[index.value] = { version:Detail_Data.version, file:Detail_Data.file, description:Detail_Data.description, update_time: new Date()}
+    }
+    let sendData = { 'class' : 'VersionControl', 'pk': response.data.all[0]._id, 'release_note' : send_release_note}
+    console.log(await MsiApi.setCollectionData('patch', 'cpo', sendData))
+    swVisible.value = false
     
+    response = await MsiApi.mongoQuery(queryData)
+    if (type.value === 'XP012')  {
+      swData.length = 0
+      Object.assign(swData , response.data.all[0])
+      for (let i = 0; i < swData?.release_note?.length; i++) {
+        swData.release_note[i].update_time_str = (moment(swData.release_note[i].update_time).format("YYYY-MM-DD HH:mm:ss"))
+      }
+    }
+    else if(type.value === 'XP011_BT') {
+      fwData.length = 0
+      Object.assign(fwData, response.data.all[0])
+      for (let i = 0; i < fwData?.release_note?.length; i++) {
+        fwData.release_note[i].update_time_str = (moment(fwData.release_note[i].update_time).format("YYYY-MM-DD HH:mm:ss"))
+      }
+    }
   }
 }
 
-const editSW = () => {
+const add = (selectType) => {
+  Detail_Data.version = ''
+  Detail_Data.file = ''
+  Detail_Data.description = ''
+  Detail_Data.update_time_str = ''
+
+  dialog_title.value = selectType
   swVisible.value = true  
+  type.value = selectType
+  index.value = -1
 }
 
-// const activeName = ref('first')
+const detail_info = (scope,selectType) => {
+  swVisible.value = true
+  type.value = selectType
+  index.value = scope.$index
+  Detail_Data.version = scope.row.version
+  Detail_Data.file = scope.row.file
+  Detail_Data.description = scope.row.description
+  Detail_Data.update_time_str = scope.row.update_time_str
+}
 
-// const version = reactive({})
-
-// const modifyVersion = async(id, value) => {
-//   const now = new Date().toISOString()
-//   const formattedDate = now.split(".")[0]
-//   let sendData1 = { 'class' : 'VersionControl', 'pk': id, 'version' : value, 'release_date':formattedDate}
-//   await MsiApi.setCollectionData('patch', 'cpo', sendData1) 
-
-//   let queryData = { "database":"CPO", "collection":"VersionControl", "query": {}}
-
-//   let response = await MsiApi.mongoQuery(queryData)
-//   for(let i = 0; i < response.data.all.length; i++) {
-//     if (response.data.all[i].type === 'Android') {
-//       version.android = response.data.all[i].version
-//     }
-//     else if (response.data.all[i].type === 'iOS') {
-//       version.ios = response.data.all[i].version
-//     }
-//     else if (response.data.all[i].type === 'Android_Beta') {
-//       version.android_beta = response.data.all[i].version
-//     }
-//     else if (response.data.all[i].type === 'iOS_Beta') {
-//       version.ios_beta = response.data.all[i].version
-//     }
-//     else if (response.data.all[i].type === 'XP011_BT') {
-//       version.xp011_bt = response.data.all[i].version
-//     }
-//     else if (response.data.all[i].type === 'XP011_BT_Beta') {
-//       version.xp011_bt_beta = response.data.all[i].version
-//     }
-//   }
-// }
+const release = async (scope,selectType) => {
+  if (selectType === 'XP012')
+    swData.version = scope.row.version
+  else if (selectType === 'XP011_BT')
+    fwData.version = scope.row.version
+  let queryData = { "database":"CPO", "collection":"VersionControl", "query": {"type": selectType}}
+  let response = await MsiApi.mongoQuery(queryData)
+  let sendData = { 'class' : 'VersionControl', 'pk': response.data.all[0]._id, release_date: new Date(), version : scope.row.version}
+  console.log(await MsiApi.setCollectionData('patch', 'cpo', sendData))
+}
 
 onMounted( async() => {
-
-  let queryData = { "database":"CPO", "collection":"VersionControl", "query": {
-     "type": 'XP011_BT'
-  }}
+  let queryData = { "database":"CPO", "collection":"VersionControl", "query": { "type": 'XP011_BT' }}
   let response = await MsiApi.mongoQuery(queryData)
-  console.log(response)
-  
-  
+  Object.assign(fwData , response.data.all[0])
+  for (let i = 0; i < fwData?.release_note?.length; i++) {
+    fwData.release_note[i].update_time_str = (moment(fwData.release_note[i].update_time).format("YYYY-MM-DD HH:mm:ss"))
+  }
 
-  queryData = { "database":"CPO", "collection":"VersionControl", "query": {
-     "type": 'XP012'
-  }}
+  queryData = { "database":"CPO", "collection":"VersionControl", "query": { "type": 'XP012' }}
   response = await MsiApi.mongoQuery(queryData)
-  console.log(response)
-
-  // for (let i = 0; i < response.data.all.length; i++) {
-  //   if (response.data.all[i].type === 'Android') {
-  //     version.android = response.data.all[i].version
-  //     version.android_id = response.data.all[i]._id
-  //   }
-  //   else if (response.data.all[i].type === 'iOS'){
-  //     version.ios = response.data.all[i].version
-  //     version.ios_id = response.data.all[i]._id
-  //   }
-  //   else if (response.data.all[i].type === 'Android_Beta'){
-  //     version.android_beta = response.data.all[i].version
-  //     version.android_beta_id = response.data.all[i]._id
-  //   }
-  //   else if (response.data.all[i].type === 'iOS_Beta'){
-  //     version.ios_beta = response.data.all[i].version
-  //     version.ios_beta_id = response.data.all[i]._id
-  //   }
-  //   else if (response.data.all[i].type === 'XP011_BT'){
-  //     version.xp011_bt = response.data.all[i].version
-  //     version.xp011_bt_id = response.data.all[i]._id
-  //   }
-  //   else if (response.data.all[i].type === 'XP011_BT_Beta'){
-  //     version.xp011_bt_beta = response.data.all[i].version
-  //     version.xp011_bt_beta_id = response.data.all[i]._id
-  //   }
-    
-  // }
-
+  Object.assign(swData , response.data.all[0])
+  for (let i = 0; i < swData?.release_note?.length; i++) {
+    swData.release_note[i].update_time_str = (moment(swData.release_note[i].update_time).format("YYYY-MM-DD HH:mm:ss"))
+  }
+  if (MStore?.permission?.company?.name === 'MSI') 
+    isMSI.value = true
 })
-
-
-
-
-// detail [ {version: release: decription: file:}]
 
 </script>
 
 <style lang="scss" scoped>
 
-.wiki{
-    bottom: 120px;
-    right: 40px;
-    position: absolute;
-}
-.semver{
-    bottom: 40px;
-    right: 40px;
-    position: absolute;
-}
-.npm{
-    bottom: 80px;
-    right: 40px;
-    position: absolute;
-}
-.sw-info {
-  padding: 10px;
-}
-.ota-container
-{
-  display: flex;
-  flex-direction: row;
-}
-
-.others-container
-{
-  display: flex;
-  flex-direction: row;
-  gap:10px
-}
-
-.sw-container {
-  width: 500px;
-  margin-right: 20px;
-
-
-  .date {
-    p{
-      padding: 2px;
-      margin: 2px
-    }
-  }
-  .file-size {
-    p{
-      padding: 2px;
-      margin: 2px
-    }
-  }
-
-  .note{
-    p{
-      padding: 2px;
-      margin: 2px
-    }
-  }
-}
-.fw-container {
-  width: 400px;
-}
-
-
-:deep(.el-tabs__item){
-  font-size: 30px !important;
-}
 </style>

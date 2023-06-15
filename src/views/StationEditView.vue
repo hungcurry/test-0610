@@ -57,7 +57,7 @@
         <div class="v-line1"></div>
         <div class="left-down">
           <div class="left-down-title">
-            <p> Location </p>
+            <p> Station </p>
           </div>
           <div class="left-down-line1">
             <div>
@@ -229,7 +229,8 @@ const change_country_code = (item) => {
 
 const facilities_type = [{ value: 'HOTEL', label: 'Hotel' }, { value: 'RESTAURANT', label: 'Restaurant' },
 { value: 'MALL', label: 'Mall' }, { value: 'SUPERMARKET', label: 'Super Market' },
-{ value: 'TAXI_STAND', label: 'Public transportation' }, { value: 'FUEL_STATION', label: 'Fuel station' },
+// { value: 'TAXI_STAND', label: 'Public transportation' }, 
+// { value: 'FUEL_STATION', label: 'Fuel station' },
 { value: 'PARKING_LOT', label: 'Parking lot' }, { value: 'WIFI', label: 'Others' },
 ]
 
@@ -239,8 +240,9 @@ const taiwan_city = [
   { value: '基隆市', label: '基隆市' }, { value: '新竹市', label: '新竹市' }, { value: '嘉義市', label: '嘉義市' },
   { value: '新竹縣', label: '新竹縣' }, { value: '苗栗縣', label: '苗栗縣' }, { value: '彰化縣', label: '彰化縣' },
   { value: '南投縣', label: '南投縣' }, { value: '雲林縣', label: '雲林縣' }, { value: '嘉義縣', label: '嘉義縣' },
-  { value: '屏東縣', label: '屏東縣' }, { value: '宜蘭縣', label: '宜蘭縣' }, { value: '花蓮縣	', label: '花蓮縣' },
-  { value: '臺東縣', label: '臺東縣' }, { value: '澎湖縣', label: '澎湖縣' },
+  { value: '屏東縣', label: '屏東縣' }, { value: '宜蘭縣', label: '宜蘭縣' }, { value: '花蓮縣', label: '花蓮縣' },
+  { value: '臺東縣', label: '臺東縣' }, { value: '澎湖縣', label: '澎湖縣' }, { value: '金門縣', label: '金門縣' },
+  { value: '連江縣', label: '連江縣' },
 ]
 
 const country_list = [{ value: 'Germany', label: 'Germany', country_code: 'DE' }, { value: 'Japan', label: 'Japan', country_code: 'JP' },
@@ -282,7 +284,7 @@ const deleteStation = () => {
 
 const saveStation = async () => {
   let check_format_sucess = true
-  const coordinates = { latitude: StationData.latitude_str, longitude: StationData.longitude_str }
+  const coordinates = { latitude: parseFloat(StationData.latitude_str).toFixed(6), longitude: parseFloat(StationData.longitude_str).toFixed(6) }
   let sendData = {
     'class': 'Location', 'id': station_id,
     'name': StationData.name, 'facilities': [StationData.facilities_str],

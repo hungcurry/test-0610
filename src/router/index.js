@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import { useMStore } from "../stores/m_cloud";
+import { useMStore } from "../stores/m_cloud"
 import ApiFunc from '@/components/ApiFunc'
 import EmsLayout from '@/components/EmsLayout.vue'
 

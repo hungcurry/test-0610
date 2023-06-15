@@ -6,7 +6,7 @@
         <!-- <p>{{$t('account')}}</p> -->
         <p>Available</p>
         <img src="@/assets/img/station_charging.png">
-        <p>Charging / Full Charged</p>
+        <p>Charging</p>
         <img src="@/assets/img/station_offline.png">
         <p>Offline</p>
         <img src="@/assets/img/station_error.png">
@@ -83,13 +83,13 @@ const logOut = () => {
 }
 
 const resetPW = () => {
+  reset_password1.value = ''
+  reset_password2.value = ''
   reset_password_visible.value = true
 }
 
 const cancel_resetPW = () => {
   reset_password_visible.value = false
-  reset_password1.value = ''
-  reset_password2.value = ''
 }
 
 const confirm_PW = () => {

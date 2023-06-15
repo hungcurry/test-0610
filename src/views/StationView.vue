@@ -81,7 +81,7 @@ import restaurantPng from '@/assets/img/station_list_type_restaurant.png'
 import cafePng from '@/assets/img/station_list_type_cafe.png'
 import airportPng from '@/assets/img/station_list_type_airport.png'
 import mallPng from '@/assets/img/station_list_type_mall.png'
-import fuelPng from '@/assets/img/station_list_type_fuel.png'
+import trainPng from '@/assets/img/station_list_type_train.png'
 
 
 const MStore = useMStore()
@@ -284,9 +284,9 @@ onMounted( async () => {
     else if (LocationData[i].facilities_str === 'MALL') {
       LocationData[i].facilities_img = mallPng
     } 
-    else if (LocationData[i].facilities_str === 'FUEL_STATION') {
-      LocationData[i].facilities_img = fuelPng
-    } 
+    else {
+      LocationData[i].facilities_img = trainPng
+    }
   }
   if (route.path === '/station' && (route.query.mode === 'map' || route.query.mode ===  undefined)) {
     header_left_component.value = 'station_map'

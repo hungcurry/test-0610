@@ -1,6 +1,7 @@
 <template>
 
 	<div class="ocpp-error">
+    <p class="total-count"> {{ 'Total Count : ' + ocppErrorData.length  }}</p>
 		<div class="date-picker">
 			<el-date-picker v-model="select_time" type="datetimerange" start-placeholder="Start Date" end-placeholder="End Date" :default-time="defaultTime" @change="getEVSEOCPPLogs"/>
 		</div>
@@ -8,17 +9,61 @@
 
 		<div class="log-list">
 			<el-table :data="ocppErrorData" style="width: 95%; height:95%" stripe  :cell-style=msi.tb_cell  :header-cell-style=msi.tb_header_cell size="large" v-loading = "isLoading">
-				<el-table-column v-for="item in ocppErrorTabel" :key="item" :prop=item.value :label=item.label  :min-width=item.width :sortable="item.sortable">
-						<template #default="scope" v-if ="item.type === 'button'">
-							<el-button disabled @click="detail_info(scope.row)"> <font-awesome-icon icon="fa-solid fa-ellipsis" /> </el-button>
-						</template>
-						<template v-if="item.label === 'Operator'" #default="scope">
+				<!-- <el-table-column v-for="item in ocppErrorTabel" :key="item" :prop=item.value :label=item.label  :min-width=item.width :sortable="item.sortable"> -->
+          <el-table-column prop="evse_id" label="EVSE ID" min-width="10"/>
+          <el-table-column prop="ocpp_errorCode" label="Error Code" min-width="10"/>
+          <el-table-column prop="vendorErrorCode" label="VendorErrorCode" min-width="10">
+          <template #header>
+            <div class="custom-header">
+              <span>VendorErrorCode</span>
+              <el-button type="text" size="small" @click="handleButtonClick">?</el-button>
+            </div>
+          </template>
+
+
+          </el-table-column>
+
+          <el-table-column prop="created_date" label="Created Time" min-width="10"/>
+          
+						<!-- <template v-if="item.label === 'Operator'" #default="scope">
             <el-button type="primary" size="small" @click="read(scope.row)">Read</el-button>
             <el-button type="primary" size="small" @click="unread(scope.row)">Unread</el-button>
-          </template>
-					</el-table-column>
+          </template> -->
+					<!-- </el-table-column> -->
 			</el-table>
 		</div>
+
+    <el-dialog v-model="ErrorCodeVisible" title="Error Code List">
+      <p>-1 No communication with HMI</p>
+      <p>0 Pile state is abnormal</p>
+      <p>1 Initial setting fault</p>
+      <p>2 Initial Leakage current protection</p>
+      <p>3 High Leakage current protection</p>
+      <p>4 Low Leakage current protection</p>
+      <p>5 Ground Fault Protection by Delta type</p>
+      <p>6 Ground Fault Protection by Y type</p>
+      <p>8 Control pilot status is abnormal</p>
+      <p>9 UART RX data is oversize</p>
+      <p>10 UART buffer is not put many data</p>
+      <p>11 UART transmit is abnormal</p>
+      <p>12 UART checksum is abnormal</p>
+      <p>14 Fw update checksum is abnormal</p>
+      <p>15 Fw update size is abnormal</p>
+      <p>18 Relay detection is abnormal for non-charging L phase</p>
+      <p>19 Relay detection is abnormal for non-charging N phase</p>
+      <p>20 Relay detection is abnormal for charging L phase</p>
+      <p>21 Relay detection is abnormal for charging N phase</p>
+      <p>22 Over current protection</p>
+      <p>23 Under current Protection</p>
+      <p>24 Over Voltage Protection</p>
+      <p>25 Under Voltage Protection</p>
+      <p>26 Thermal is abnormal for system</p>
+      <p>27 Thermal is abnormal for relay</p>
+      <p>28 Thermal is abnormal for charging gun</p>
+      <p>33 Emergency button is triggered</p>
+      <p>64 Pile state is abnormal</p>
+    </el-dialog>
+
 	</div>
 
 </template>
@@ -35,6 +80,12 @@ const defaultTime = [new Date(2000, 1, 1, 0, 0, 0), new Date(2000, 1, 1, 23, 59,
 const isLoading = ref(false)
 const MsiApi = ApiFunc()
 const ocppErrorData = reactive([])
+const ErrorCodeVisible = ref(false)
+
+const handleButtonClick = () => {
+  ErrorCodeVisible.value = true
+}
+
 const ocppErrorTabel = [    
   {label:'EVSE ID', value:'evse_id', width:'10'},
   {label:'Error Code', value:'ocpp_errorCode', width:'10'},
@@ -47,31 +98,40 @@ const ocppErrorTabel = [
                         // {label:'Operator', value:'',width:'15'},
                         ]
 
-const read = async (row) => {
-  let sendData = { 'class' : 'EVSEOCPPLogs', 'pk': row._id, 'read' : true}
-  await MsiApi.setCollectionData('patch', 'cpo', sendData)
-  getEVSEOCPPLogs()
-}
+// const read = async (row) => {
+//   let sendData = { 'class' : 'EVSEOCPPLogs', 'pk': row._id, 'read' : true}
+//   await MsiApi.setCollectionData('patch', 'cpo', sendData)
+//   getEVSEOCPPLogs()
+// }
 
-const unread = async (row) => {
-  let sendData = { 'class' : 'EVSEOCPPLogs', 'pk': row._id, 'read' : false}
-  await MsiApi.setCollectionData('patch', 'cpo', sendData)
-  getEVSEOCPPLogs()
-}
+// const unread = async (row) => {
+//   let sendData = { 'class' : 'EVSEOCPPLogs', 'pk': row._id, 'read' : false}
+//   await MsiApi.setCollectionData('patch', 'cpo', sendData)
+//   getEVSEOCPPLogs()
+// }
 
 const getEVSEOCPPLogs = async() => {
-  let jsonData = { "database":"CPO", "collection":"EVSEOCPPLogs", "query": {
-		"$expr":{
-      "$and" : [ { "$gte" : [ "$created_date", { "$dateFromString": {"dateString": select_time.value[0]}}] },
-                 { "$lte" : [ "$created_date", { "$dateFromString": {"dateString": select_time.value[1]}}] }
-                ]
-    }
-	}}
+  
   isLoading.value = true
-  let response = await MsiApi.mongoQuery(jsonData)
+
+  let queryData = {
+    "database": "CPO", "collection": "EVSEOCPPLogs", "pipelines": [
+      {
+        "$match": {
+          "$expr": {
+            "$and": [
+              { "$gte": ["$created_date", { "$dateFromString": { "dateString": select_time.value[0] } }] },
+              { "$lte": ["$created_date", { "$dateFromString": { "dateString": select_time.value[1] } }] }]
+          }
+        }
+      },
+      { "$project": { "_id": 0, 'created_date': 1, 'evse_id': 1, 'ocpp_errorCode': 1, 'vendorErrorCode': 1} }
+    ]
+  }
+  let response = await MsiApi.mongoAggregate(queryData)
   if (response.status === 200) {
     ocppErrorData.splice(0, ocppErrorData.length)
-    Object.assign(ocppErrorData, response.data.all)
+    Object.assign(ocppErrorData, response.data.result)
   }
   else {
     console.log(response.data)
@@ -79,15 +139,10 @@ const getEVSEOCPPLogs = async() => {
   isLoading.value = false
 }
 
-const formatJson = (filterVal, jsonData) => {
-  return jsonData.map(v => filterVal.map(j => v[j]))
-}
-
 const download = () => {
-  const tHeader = ['level', 'evse_id', 'ocpp_errorCode', 'ocpp_status', 'vendorId', 'vendorErrorCode', 'created_date']
-  const tableData = ocppErrorData
-  const filterVal = ['level', 'evse_id', 'ocpp_errorCode', 'ocpp_status', 'vendorId', 'vendorErrorCode', 'created_date']
-  const data = formatJson(filterVal, tableData)
+  const tHeader = ['EVSE ID', 'Error Code', 'VendorErrorCode', 'Created Time']
+  const filterVal = ['evse_id', 'ocpp_errorCode', 'vendorErrorCode', 'created_date']
+  const data = ocppErrorData.map(v => filterVal.map(j => v[j]))
   export_json_to_excel ({ header: tHeader, data: data, filename: 'OCPP Error' })
 }
 
@@ -142,6 +197,11 @@ onUnmounted(() => {
     background-color: #000000DF;
     color:#FFFFFF;
     border-radius: 20px;
+  }
+  .total-count {
+    top: 40px;
+    left : 40px;
+    position: absolute;
   }
 }
 

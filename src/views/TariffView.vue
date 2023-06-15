@@ -2,8 +2,7 @@
   <div class="tariff">
     <el-button class="add-tariff" @click="editTariff"> Add Rate Plan</el-button>
     <div class="tariff-list">
-      <el-table :data="TariffData" style="width: 95%; height:95%" stripe ref="checkTable"
-      :cell-style=msi.tb_cell :header-cell-style=msi.tb_header_cell size="large">
+      <el-table :data="TariffData" style="width: 95%; height:95%" stripe :cell-style=msi.tb_cell :header-cell-style=msi.tb_header_cell size="large">
         <el-table-column prop="profile_name" label="Name" min-width="10"/>
         <el-table-column prop="tariff_text" label="Description" min-width="60"/>
         <el-table-column prop="min_price_str" label="Min Price" min-width="10"/>

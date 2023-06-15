@@ -30,9 +30,9 @@
           <el-menu-item index="ocpiSession">Charger Log</el-menu-item>
           <el-menu-item index="ocppError"> OCPP Error </el-menu-item>
       </el-sub-menu>
-      <!-- <el-menu-item index="softwareInfo">
+      <el-menu-item v-if="dev_member" index="softwareInfo">
         <span>Software Info</span>
-      </el-menu-item> -->
+      </el-menu-item>
       <el-menu-item v-if="dev_member" index="parking">
         <span>Parking</span>
       </el-menu-item>
@@ -56,8 +56,9 @@ const userPermission = ref('')
 
 onMounted( async () => {
   let res = await MsiApi.checkToken()
-  console.log(res.data.permission.user.name)
-  userPermission.value = res.data.permission.user.name
+  console.log(res.data.permission)
+  // console.log(res.data.permission.user.name)
+  userPermission.value = res?.data?.permission?.user?.name
   if(res.data.first_name === 'Steven' || res.data.first_name === 'Leo' || res.data.first_name === 'Frank') {
     dev_member.value = true
   }

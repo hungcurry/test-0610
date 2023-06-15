@@ -109,14 +109,15 @@ const UserTable = [{ label: 'First Name', value: 'first_name', width: '80' }, { 
 { label: '', value: 'detail', width: '80', type: 'button' }
 ]
 
-const setPermission = (test) => {
-  editAdminData.permission = test
+const setPermission = (permission_id) => {
+  editAdminData.permission_id = permission_id
 }
 
 const detail_info = (detail) => {
   EditAdminFormVisible.value = true
   editAdminData.length = 0
   Object.assign(editAdminData, UserData[detail.$index])
+  editAdminData.permission_id = editAdminData?.permission?.user
   if (editAdminData.permission.edit === 1) {
     editAdminData.permission_edit = true
   }
@@ -135,7 +136,7 @@ const editAdmin = async (action) => {
       class: 'AdminUserData', pk: editAdminData._id,
       first_name: editAdminData.first_name, last_name: editAdminData.last_name,
       email: editAdminData.email, phone: editAdminData.phone,
-      permission: { user: editAdminData.permission, edit: editAdminData.permission_edit, active: editAdminData.permission_active },
+      permission: { user: editAdminData.permission_id, edit: editAdminData.permission_edit, active: editAdminData.permission_active },
       dashboard: true
     }
     ElMessageBox.confirm('Do you want to modify?', 'Warning', { confirmButtonText: 'OK', cancelButtonText: 'Cancel', type: 'warning' })
@@ -254,11 +255,15 @@ const GetPermission = async () => {
 }
 
 const addAdminUser = async () => {
+  AddAdminData.first_name = ''
+  AddAdminData.last_name = ''
+  AddAdminData.email = ''
+  AddAdminData.phone = ''
   AddAdminFormVisible.value = true
 }
 
 onMounted(async () => {
-  GetPermission()
+  await GetPermission()
   let queryData = { "database": "CPO", "collection": "AdminUserData", "query": {} }
   console.log(await MongoQurey(queryData))
 })

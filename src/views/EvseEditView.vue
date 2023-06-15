@@ -5,8 +5,8 @@
       <div class="evse-edit-left">
 
         <div class="evse-edit-left-up">
-          <p class="title">Location</p>
-          <p>Station</p>
+          <p class="title">Station</p>
+          <p>Name</p>
           <el-input class="station-input" v-model="stationName" disabled></el-input>
           <p>EVSE ID</p>
           <el-input v-model="evse_obj.evse_id"></el-input>
@@ -20,13 +20,13 @@
           
         </div>
         <div class="evse-edit-left-down">
-          <p class="title">Charging Info</p> 
+          <p class="title">Connector Info</p> 
           <div class="connector-item">
             <p class="connector-title">Type</p>
             <p class="connector-value"> {{ connector_obj.standard }}</p>
           </div>  
           <div class="connector-item">
-            <p class="connector-title">ID</p>
+            <p class="connector-title">Connector ID</p>
             <p class="connector-value"> {{ connector_obj.id }}</p>
           </div>  
           <!-- <div class="connector-item">
@@ -83,7 +83,7 @@
         </div>
 
 
-        <el-table :data="selectTariffObj.elements" style="width: 95%; height:500px" stripe ref="checkTable"
+        <el-table :data="selectTariffObj.elements" style="width: 95%; height:500px" stripe 
         :cell-style=msi.tb_cell :header-cell-style=msi.tb_header_cell size="large">
           <el-table-column prop="price_components[0].type" label="type" min-width="50"/>
           <el-table-column prop="price_components[0].price" label="price" min-width="50"/>
@@ -198,7 +198,8 @@ const SaveEvseEdit = async () => {
     ElMessageBox.confirm('Do you want to modify?','Warning', {confirmButtonText: 'OK', cancelButtonText: 'Cancel', type: 'warning'})
       .then(async () => {
         await MsiApi.setCollectionData('patch', 'ocpi', connector_obj)
-        await MsiApi.setCollectionData('patch', 'ocpi', evse_obj)
+        let res = await MsiApi.setCollectionData('patch', 'ocpi', evse_obj)
+        ElMessage(res.data.message)
       })
       .catch((e)=>{
         console.log(e)

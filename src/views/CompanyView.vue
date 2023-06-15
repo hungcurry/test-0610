@@ -162,7 +162,8 @@ const editCompany = async (action) => {
       let sendData = {  class : 'CompanyInformation', name: companyData.name,
                         country:companyData.country, party_id:companyData.party_id,
                         city:companyData.city, detail:companyData.detail, remark:companyData.remark,
-                        invoice:companyData.invoice, payment:companyData.payment
+                        invoice:companyData.invoice, payment:companyData.payment,
+                        address:companyData.address, phone:companyData.phone
                       }
       if (sendData.name === undefined || sendData.name === '') {  
         ElMessage.error('Oops, Name required.')
@@ -186,7 +187,8 @@ const editCompany = async (action) => {
       let sendData = {  class : 'CompanyInformation', pk: companyData._id,name: companyData.name, 
                         country:companyData.country, party_id:companyData.party_id,
                         city:companyData.city, detail:companyData.detail, remark:companyData.remark,
-                        invoice:companyData.invoice, payment:companyData.payment
+                        invoice:companyData.invoice, payment:companyData.payment,
+                        address:companyData.address, phone:companyData.phone
                       }
       ElMessageBox.confirm('Do you want to modify?','Warning', {confirmButtonText: 'OK', cancelButtonText: 'Cancel', type: 'warning'})
       .then(async () => {

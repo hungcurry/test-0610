@@ -7,10 +7,10 @@
       <el-tab-pane label="Paired" name="1" >
         <div class="table">
           
-        <el-table class="evse-table" :data="EvseConnectData" style="width: 95%; height:800px" stripe ref="checkTable"
+        <el-table class="evse-table" :data="EvseConnectData" style="width: 95%; height:800px" stripe
         :cell-style=msi.tb_cell :header-cell-style=msi.tb_header_cell size="large" @selection-change="handleSelectionChange">
-          <el-table-column prop="locationName" label="Location" min-width="80"/>
-          <el-table-column prop="floor_level" label="Floor" min-width="30"/>
+          <el-table-column prop="locationName" label="Station" min-width="80"/>
+          <el-table-column prop="floor_level" label="Floor Level" min-width="30"/>
           <!-- <el-table-column prop="physical_reference" label="Charger Label" min-width="30"/> -->
           <el-table-column prop="evse_id" label="EVSE ID" min-width="80"/>
           <el-table-column prop="status" label="Status" min-width="60" :filters="status_filter_item" :filter-method="status_filter">
@@ -48,9 +48,9 @@
       </el-tab-pane>
       <el-tab-pane label="Unpaired" name="2">
         <div class="table">
-          <el-table class="evse-table" :data="EvseUnConnectData" style="width: 95%; height:800px" stripe ref="checkTable"
+          <el-table class="evse-table" :data="EvseUnConnectData" style="width: 95%; height:800px" stripe 
           :cell-style=msi.tb_cell :header-cell-style=msi.tb_header_cell size="large" @selection-change="handleSelectionChange">
-            <el-table-column prop="locationName" label="Location" min-width="80"/>
+            <el-table-column prop="locationName" label="Station" min-width="80"/>
             <el-table-column prop="floor_level" label="Floor" min-width="30"/>
             <!-- <el-table-column prop="physical_reference" label="Charger Label" min-width="30"/> -->
             <el-table-column prop="evse_id" label="EVSE ID" min-width="80"/>
@@ -96,9 +96,10 @@
     <!-- <el-button v-if="editMode === true" class="log" @click="log" disabled> Log </el-button> -->
     
     <el-dialog v-model="sw_version_visable" title="Update SW">
-      <el-select v-model="fwVersion" placeholder="Please select version">
+      <p>Now Version {{ fwVersion }}</p>
+      <!-- <el-select v-model="fwVersion" placeholder="Please select version">
         <el-option v-for="item in fwFile" :key="item.version" :label="item.version" :value="item.file"/>
-      </el-select>
+      </el-select> -->
       <template #footer>
         <span class="dialog-footer">
           <el-button @click="sw_version_visable = false">Cancel</el-button>
@@ -115,6 +116,7 @@ import { ref, reactive, onMounted} from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import ApiFunc from '@/components/ApiFunc'
 import msi from '@/assets/msi_style'
+import { ElMessage } from 'element-plus'
 
 const router = useRouter()
 const multipleSelection = ref([])
@@ -123,6 +125,7 @@ const sw_version_visable = ref (false)
 const updataEvseId = []
 const activeName = ref('1')
 const route = useRoute()
+const update_file = ref('')
 // const path = 'https://dev-evse.com/data/hmi/release'
 
 const fwFile = [ 
@@ -133,8 +136,15 @@ const fwFile = [
   {"version":"0.1.2.2", "file":"MS-XP01_0E_LF_v5.15.71_2.2.0-full_230427-144456_806b77e3.swu", "checksum":"806b77e3"}
 ]
 
-const updateSW = () => {
+const updateSW = async() => {
   sw_version_visable.value = true
+  let queryData = { "database":"CPO", "collection":"VersionControl", "query": { "type": 'XP012'}}
+  let response = await MsiApi.mongoQuery(queryData)
+  fwVersion.value = response.data.all[0].version
+  let release_note = response.data.all[0].release_note.find(obj => obj.version === fwVersion.value)
+  if (release_note) {
+    update_file.value = release_note.file
+  }
   updataEvseId.length = 0
   for (let i = 0; i < multipleSelection.value.length; i++) {
     updataEvseId.push(multipleSelection.value[i].evse_id)
@@ -145,8 +155,9 @@ const updateSW = () => {
 }
 
 const updateConfirm = async () => {
-  let sendData = { "evse_ids": updataEvseId, "location": fwVersion.value, "retrieveDate": "2022-10-27 12:12:12"}
-
+  let sendData = { "evse_ids": updataEvseId, "location": update_file.value, "retrieveDate": "2022-10-27 12:12:12"}
+  if (update_file.value === '')
+    ElMessage.error('File not found')
   const response = await MsiApi.updateFw(sendData)
   if (response.status === 200) {
     sw_version_visable.value = false
@@ -202,7 +213,7 @@ const detail_info = async(detail) => {
 
 
 const MsiApi = ApiFunc()
-const edit_button_str = ref('Edit')
+const edit_button_str = ref('Update or Restart')
 const editMode = ref(false)
 const add_charger = () => {
     router.push({ name: 'evseEdit' })
@@ -215,7 +226,7 @@ const edit = () => {
   }
   else {
     editMode.value = false
-    edit_button_str.value = 'Edit'
+    edit_button_str.value = 'Update or Restart'
   }
 }
 

@@ -59,7 +59,7 @@
       </el-tab-pane>
 
       <el-tab-pane label="Rate" name="two">
-        <el-table :data="tariff_elements" style="width: 95%; height:800px" stripe ref="checkTable" :cell-style=msi.tb_cell
+        <el-table :data="tariff_elements" style="width: 95%; height:800px" stripe :cell-style=msi.tb_cell
           :header-cell-style=msi.tb_header_cell size="large">
           <el-table-column prop="price_components[0].type" label="type" min-width="50" />
           <el-table-column prop="price_components[0].price" label="price" min-width="50" />
@@ -168,7 +168,6 @@ import { ElMessageBox, ElMessage } from 'element-plus'
 
 const printElement = () => {
   let week = ''
-  let end_time = ''
   let text_arr = []
   textarea_en.value = ''
   for (let i = 0; i < tariff_elements.length; i++) {
@@ -243,7 +242,7 @@ const day = [{ label: 'Mon.', value: 'MONDAY' }, { label: 'Tue.', value: 'TUESDA
 // const tariff_type_opeion = [{value:'AD_HOC_PAYMENT',label:'AD_HOC_PAYMENT'}]
 const tariff_currency_opeion = [{ value: 'TWD', label: 'TWD' }, { value: 'USD', label: 'USD' }, { value: 'JPY', label: 'JPY' }, { value: 'EUR', label: 'EUR' }]
 const tariff_country_code_opeion = [{ value: 'TW', label: 'TW' }, { value: 'US', label: 'US' }, { value: 'JP', label: 'JP' }, { value: 'DE', label: 'DE' }]
-const price_type_opeion = [{ value: 'ENERGY', label: 'CHARGE BY ENERGY' }, { value: 'TIME', label: 'CHARG BY TIME' }, { value: 'PARKING_TIME', label: 'PARKING' }]
+const price_type_opeion = [{ value: 'ENERGY', label: 'CHARGE BY ENERGY' }, { value: 'TIME', label: 'CHARGE BY TIME' }, { value: 'PARKING_TIME', label: 'PARKING' }]
 
 const textarea_en = ref('')
 const textarea_zh = ref('')
@@ -373,15 +372,6 @@ const addElement = (action) => {
     tariff_elements[modifyIndex.value].price_components = newObj1
     tariff_elements[modifyIndex.value].restrictions = newObj2
   }
-  tariff_element.price_components[0].type = ''
-  tariff_element.price_components[0].price = ''
-  tariff_element.price_components[0].vat = ''
-  tariff_element.price_components[0].step_size = 0
-  tariff_element.restrictions.start_time = '00:00'
-  tariff_element.restrictions.end_time = '00:00'
-  tariff_element.restrictions.min_duration = 0
-  tariff_element.restrictions.max_duration = 0
-  tariff_element.restrictions.day_of_week = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY']
 }
 
 onMounted(async () => {

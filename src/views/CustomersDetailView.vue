@@ -132,7 +132,7 @@
           <el-table :data="paymentData" style="width: 95%; height:900px" stripe :cell-style=msi.tb_cell
             :header-cell-style=msi.tb_header_cell size="large" v-loading="isLoading">
             <el-table-column prop="evse_id" label="EVSE ID" min-width="80" />
-            <el-table-column prop="location_name" label="Location Name" min-width="80" />
+            <el-table-column prop="location_name" label="Station Name" min-width="80" />
             <el-table-column prop="price" label="Price" min-width="80" />
             <el-table-column prop="currency" label="Currency" min-width="80" />
             <el-table-column prop="created_date" label="Created Time" min-width="80" />
@@ -267,6 +267,12 @@ const card_detail = (data) => {
 }
 
 const confirmRfid = async (confirm) => {
+
+  // const hex_pair= rfidData.rfid.match(/.{1,2}/g)
+  // const reversedHexPairs = hex_pair.reverse().map(pair => pair.split('').join(''));  
+  // const reversedHex = reversedHexPairs.join('');
+  // console.log(reversedHex)
+
   EditRfidFormVisible.value = false
   if (confirm === 'confirm') {
     if (modify_card_index.value === -1) {
@@ -370,7 +376,10 @@ onMounted(async () => {
   let PaymentDataAll = response.data.all
   userData.paylist = userData.binding_cards?.paylist
   userData.paylistArrObj = []
-  userData.evse_list_id = userData.evse_list?.[0]?.evseId
+  userData.evse_list_id = ''
+  for (let i = 0; i < userData.evse_list.length; i++) {
+    userData.evse_list_id += userData.evse_list?.[i]?.evseId + ' / '
+  }
   await GetPermission()
 
   for (let i = 0; i < user_type.length; i++) {

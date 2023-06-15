@@ -1,5 +1,6 @@
 <template>
   <div class="log">
+    <p class="total-count"> {{ 'Total Count : ' + OcpiSessionData.length  }}</p>
     <div class="date-picker">
       <el-date-picker v-model="select_time" type="datetimerange" start-placeholder="Start Date" end-placeholder="End Date" :default-time="defaultTime" @change="select_date"/>
     </div>
@@ -29,7 +30,7 @@ const now = new Date()
 const isLoading = ref(false)
 const OcpiSessionTable = [
   {label:'Status', value:'status', width:'60'}, 
-  {label:'Location', value:'location_str', width:'80'}, 
+  {label:'Station', value:'location_str', width:'80'}, 
   {label:'EVSE ID', value:'evse_str', width:'80'}, 
   {label:'kWh', value:'kwh', width:'80'}, 
   {label:'Pirce', value:'price_str', width:'80'}, 
@@ -39,15 +40,11 @@ const OcpiSessionTable = [
 
 const select_time = ref([ new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0), new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59)])
 const defaultTime = [new Date(2000, 1, 1, 0, 0, 0), new Date(2000, 1, 1, 23, 59, 59)]
-const formatJson = (filterVal, jsonData) => {
-  return jsonData.map(v => filterVal.map(j => v[j]))
-}
 
 const download = () => {
-  const tHeader = ['Status', 'Energy', 'Pirce', 'Start Time', 'End Time']
-  const tableData = OcpiSessionData
-  const filterVal = ['status', 'kwh', 'price_str', 'start_date_time', 'end_date_time']
-  const data = formatJson(filterVal, tableData)
+  const tHeader = ['Status','Station','EVSE ID', 'kWh', 'Pirce', 'Start Time', 'End Time']
+  const filterVal = ['status','location_str','evse_str', 'kwh', 'price_str', 'start_date_local_time', 'end_date_local_time']
+  const data = OcpiSessionData.map(v => filterVal.map(j => v[j]))
   export_json_to_excel ({ header: tHeader, data: data, filename: 'Charge Session' })
 }
 
@@ -73,8 +70,8 @@ const select_date = async () => {
   Object.assign(OcpiSessionData, res.data.result)
   
   for (let i = 0; i < OcpiSessionData.length; i++) {
-    OcpiSessionData[i].price_str = OcpiSessionData[i].total_cost.incl_vat
-    OcpiSessionData[i].location_str = OcpiSessionData[i].Location[0].name
+    OcpiSessionData[i].price_str = OcpiSessionData[i]?.total_cost?.incl_vat
+    OcpiSessionData[i].location_str = OcpiSessionData[i]?.Location[0]?.name
     OcpiSessionData[i].evse_str = OcpiSessionData?.[i]?.EVSE?.[0]?.evse_id
 
     let localStartTime =  new Date( (new Date(OcpiSessionData[i].start_date_time).getTime()) + ((MStore.timeZoneOffset ) * -60000))
@@ -100,13 +97,12 @@ onMounted( async() => {
   ]
   }
   isLoading.value = true
-  let res = await MsiApi.mongoAggregate(queryData)
+  let res = await MsiApi.mongoAggregate(queryData) 
   OcpiSessionData.length = 0
   Object.assign(OcpiSessionData, res.data.result)
-  
   for (let i = 0; i < OcpiSessionData.length; i++) {
-    OcpiSessionData[i].price_str = OcpiSessionData[i].total_cost.incl_vat
-    OcpiSessionData[i].location_str = OcpiSessionData[i].Location[0].name
+    OcpiSessionData[i].price_str = OcpiSessionData[i]?.total_cost?.incl_vat
+    OcpiSessionData[i].location_str = OcpiSessionData[i]?.Location?.[0]?.name
     OcpiSessionData[i].evse_str = OcpiSessionData[i]?.EVSE?.[0]?.evse_id
 
     let localStartTime =  new Date( (new Date(OcpiSessionData[i].start_date_time).getTime()) + ((MStore.timeZoneOffset ) * -60000))
@@ -159,6 +155,12 @@ onMounted( async() => {
     background-color: #000000DF;
     color:#FFFFFF;
     border-radius: 20px;
+  }
+
+  .total-count {
+    top: 40px;
+    left : 40px;
+    position: absolute;
   }
 }
 

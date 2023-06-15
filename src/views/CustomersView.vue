@@ -121,7 +121,9 @@ const MongoQurey = async (queryData) => {
   Object.assign(UserData, response.data.all)
   for (let i = 0; i < UserData.length; i++) {
     UserData[i].payment_length = UserData[i]?.payment_history?.length
-    UserData[i].evse_list_str = UserData[i]?.evse_list[0]?.evseId
+    UserData[i].evse_list_str = ''
+    for (let j = 0; j < UserData[i]?.evse_list?.length; j++)
+      UserData[i].evse_list_str += UserData[i]?.evse_list[j]?.evseId + ' / '
   }
   isLoading.value = false
   return response

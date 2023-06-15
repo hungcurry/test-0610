@@ -2,20 +2,20 @@
   <div class="login">
     <div class="container0">
       <div class="container">
-        <p class="title" > {{$t('m_cloud')}} </p>
-        <p class="account"> {{$t('account')}} </p>
+        <p class="title"> {{ $t('m_cloud') }} </p>
+        <p class="account"> {{ $t('account') }} </p>
         <input class="input-account" v-model="account">
-        <p class="password"> {{$t('password')}} </p>
+        <p class="password"> {{ $t('password') }} </p>
         <div class="pw-container">
           <input class="input-password" :type=pw_type v-model="password" @keyup.enter="login">
-          <img v-if="pw_type === 'text'" src="@/assets/img/login_visible_nor.png" @click="pwVisible()"/>
-          <img v-else src="@/assets/img/login_unvisible_nor.png" @click="pwVisible()"/>
+          <img v-if="pw_type === 'text'" src="@/assets/img/login_visible_nor.png" @click="pwVisible()" />
+          <img v-else src="@/assets/img/login_unvisible_nor.png" @click="pwVisible()" />
         </div>
         <br><br>
-        <button class="log-in"  @click="login()"> {{ $t('log_in') }} </button>
+        <button class="log-in" @click="login()"> {{ $t('log_in') }} </button>
       </div>
-      <p class="version">Version: 0.1.1</p>
-    <img class="logo" src="@/assets/img/login_msilogo.png">
+      <p class="version">Version: 0.1.2</p>
+      <img class="logo" src="@/assets/img/login_msilogo.png">
     </div>
   </div>
 </template>
@@ -44,12 +44,12 @@ const pwVisible = () => {
 }
 
 const login = async () => {
-  const response = await MsiApi.getToken({ email: account.value, password: password.value, expMethod:'6M', dashboard: true })
-  
+  const response = await MsiApi.getToken({ email: account.value, password: password.value, expMethod: '6M', dashboard: true })
+
   if (response.status === 200) {
     router.push({ name: 'dashboard' })
   }
-  else if (response.status === 400) {
+  else if (response.status === 400 || response.status === 404) {
     ElMessage.error('Oops, Account or Password Error.')
   }
   else {
@@ -57,7 +57,7 @@ const login = async () => {
   }
 }
 
-onMounted( () => {
+onMounted(() => {
 
   let targetTimezoneOffset = new Date().getTimezoneOffset()
   MStore.timeZoneOffset = targetTimezoneOffset
@@ -75,13 +75,14 @@ onMounted( () => {
 .login {
   width: 100%;
   height: 100%;
-  background-position:center;
+  background-position: center;
   background-size: cover;
   background-image: url("@/assets/img/login_bg.png");
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
+
   .container0 {
     width: 100%;
     height: 100%;
@@ -89,6 +90,7 @@ onMounted( () => {
     flex-direction: column;
     justify-content: center;
     align-items: center;
+
     .container {
       display: flex;
       flex-direction: column;
@@ -96,6 +98,7 @@ onMounted( () => {
       justify-content: center;
       width: 460px;
       height: 100%;
+
       .title {
         margin: 0 0 82px 0;
         // width: 340px;
@@ -103,6 +106,7 @@ onMounted( () => {
         font-size: 78px;
         color: #ffffff;
       }
+
       .account {
         display: flex;
         flex-direction: row;
@@ -113,6 +117,7 @@ onMounted( () => {
         font-size: 22px;
         color: #92a9c4;
       }
+
       .input-account {
         margin: 0 0 22px 0;
         border: 0px;
@@ -122,8 +127,9 @@ onMounted( () => {
         color: #ffffff;
         font-size: 22px;
         padding-left: 24px;
-        box-sizing :border-box;
+        box-sizing: border-box;
       }
+
       .password {
         display: flex;
         flex-direction: row;
@@ -139,38 +145,43 @@ onMounted( () => {
         position: relative;
         width: 460px;
         height: 46px;
+
         .input-password {
           margin: 0 0 6px 0;
           border: 0px;
           padding-left: 24px;
           width: 460px;
           height: 46px;
-          background-color: #000000C0 ;
+          background-color: #000000C0;
           color: #ffffff;
           font-size: 22px;
-          box-sizing :border-box;
+          box-sizing: border-box;
         }
-          img{
+
+        img {
           width: 32px;
           height: 32px;
           position: absolute;
           top: 7px;
-          right : 7px;
+          right: 7px;
         }
+
         .password-visible:checked {
           width: 32px;
           height: 32px;
           position: absolute;
           top: 7px;
-          right : 7px;
+          right: 7px;
         }
       }
+
       .forgot-container {
         display: flex;
         flex-direction: row;
         justify-content: right;
         width: 100%;
       }
+
       .forgot-password {
         margin: 6px 0 136px 0;
         background-color: transparent;
@@ -180,24 +191,26 @@ onMounted( () => {
         border-color: #92a9c4;
         font-size: 22px;
       }
+
       .log-in {
         width: 200px;
         height: 40px;
         border-radius: 20px;
-        background-color:#92a9c4;
+        background-color: #92a9c4;
         color: #FFFFFF;
         font-size: 22px;
       }
     }
+
     .logo {
       width: 200px;
       height: 40px;
       margin-bottom: 20px;
     }
   }
+
   .version {
     font-size: 30px;
     color: #FFFFFF;
   }
-}
-</style>
+}</style>
