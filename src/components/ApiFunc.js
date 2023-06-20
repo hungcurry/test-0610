@@ -5,7 +5,7 @@ let AuthToken = null
 let response = null
 let api1 = ''
 if (import.meta.env.VITE_API === undefined) {
-  api1 = 'api10/api'
+  api1 = 'api10/api2'
 }
 else {
   api1 = import.meta.env.VITE_API
@@ -117,8 +117,9 @@ export default function () {
   }
 
   const register_member = async (json) => {
-    AuthToken = VueCookies.get('AuthToken')
-    const response = await postJsonData(api1 + '/member/register', json, AuthToken)
+    // AuthToken = VueCookies.get('AuthToken')
+    // const response = await postJsonData(api1 + '/member/register', json, AuthToken)
+    const response = await postJsonData(api1 + '/member/register', json)
     return response
   }
 

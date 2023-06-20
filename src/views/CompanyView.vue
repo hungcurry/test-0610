@@ -50,11 +50,11 @@
       <el-form-item label="Phone" >
         <el-input v-model="companyData.phone" autocomplete="off" />
       </el-form-item>
-      <el-form-item label="Remark" >
+      <!-- <el-form-item label="Remark" >
         <el-input v-model="companyData.remark" autocomplete="off" />
-      </el-form-item>
-
-
+      </el-form-item> -->
+      <hr>
+<br>
       <el-form-item label="Invoice Hash IV" >
         <el-input v-model="companyData.invoice.hashIV" autocomplete="off" />
       </el-form-item>
@@ -64,9 +64,9 @@
       <el-form-item label="Invoice Merchant ID" >
         <el-input v-model="companyData.invoice.merchantId" autocomplete="off" />
       </el-form-item>
-      <el-form-item label="Invoice Owner" >
+      <!-- <el-form-item label="Invoice Owner" >
         <el-input v-model="companyData.invoice.owner" autocomplete="off" />
-      </el-form-item>
+      </el-form-item> -->
       <el-form-item label="Payment Hash IV" >
         <el-input v-model="companyData.payment.hashIV" autocomplete="off" />
       </el-form-item>
@@ -76,9 +76,9 @@
       <el-form-item label="Payment Merchant ID" >
         <el-input v-model="companyData.payment.merchantId" autocomplete="off" />
       </el-form-item>
-      <el-form-item label="Payment Owner" >
+      <!-- <el-form-item label="Payment Owner" >
         <el-input v-model="companyData.payment.owner" autocomplete="off" />
-      </el-form-item>
+      </el-form-item> -->
       
     </el-form>
     <template #footer>
@@ -99,8 +99,10 @@ import { ref, reactive, onMounted} from 'vue'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import ApiFunc from '@/components/ApiFunc'
 import msi from '@/assets/msi_style'
+import moment from "moment"
 import {  ElMessageBox,ElMessage } from 'element-plus'
-
+import { useMStore } from "../stores/m_cloud"
+const MStore = useMStore();
 const MsiApi = ApiFunc()
 const edit_mode = ref('create')
 const CompanyFormVisible = ref(false)
@@ -112,9 +114,9 @@ const UserTable = [ {label:'Name', value:'name', width:'80'},
 // {label:'Operator ID', value:'party_id', width:'60'}, 
                     {label:'Country', value:'country', width:'60'}, {label:'City', value:'city', width:'60'}, 
                     {label:'Address', value:'address', width:'80'}, {label:'Phone', value:'phone', width:'60'}, 
-                    {label:'Remark', value:'remark', width:'80'}, 
+                    // {label:'Remark', value:'remark', width:'80'}, 
                     // {label:'Tax ID', value:'taxID', width:'40'}, 
-                    {label:'Updated Date', value:'updated_date', width:'80'}, {label:'', value:'detail', width:'40', type:'button'}
+                    {label:'Updated Date', value:'updated_date_str', width:'80'}, {label:'', value:'detail', width:'40', type:'button'}
                   ]
   
 const AddCompany = () => {
@@ -135,11 +137,12 @@ const search = async () => {
   }
   else {
     queryData = { "database":"CPO", "collection":"CompanyInformation", "query": {
-      "$or" : [ {"name":{"$regex": input.value ,"$options":"$i"} } , {"party_id":{"$regex": input.value ,"$options":"$i"} } , 
-                {"country":{"$regex": input.value ,"$options":"$i"} } , {"city":{"$regex": input.value ,"$options":"$i"} } , 
-                {"address":{"$regex": input.value ,"$options":"$i"} } , {"phone":{"$regex": input.value ,"$options":"$i"} } , 
-                {"remark":{"$regex": input.value ,"$options":"$i"} } , {"taxID":{"$regex": input.value ,"$options":"$i"} } , 
-                {"updated_date":{"$regex": input.value ,"$options":"$i"} } , 
+      "$or" : [ {"name":{"$regex": input.value ,"$options":"i"} } , 
+                {"party_id":{"$regex": input.value ,"$options":"i"} } , 
+                {"country":{"$regex": input.value ,"$options":"i"} } , {"city":{"$regex": input.value ,"$options":"i"} } , 
+                {"address":{"$regex": input.value ,"$options":"i"} } , {"phone":{"$regex": input.value ,"$options":"i"} } , 
+                {"remark":{"$regex": input.value ,"$options":"i"} } , {"taxID":{"$regex": input.value ,"$options":"i"} } , 
+                {"updated_date_str":{"$regex": input.value ,"$options":"i"} } , 
               ]
     }}
   }
@@ -161,7 +164,8 @@ const editCompany = async (action) => {
     if (action === 'confirm') {
       let sendData = {  class : 'CompanyInformation', name: companyData.name,
                         country:companyData.country, party_id:companyData.party_id,
-                        city:companyData.city, detail:companyData.detail, remark:companyData.remark,
+                        city:companyData.city, detail:companyData.detail, 
+                        // remark:companyData.remark,
                         invoice:companyData.invoice, payment:companyData.payment,
                         address:companyData.address, phone:companyData.phone
                       }
@@ -186,7 +190,8 @@ const editCompany = async (action) => {
     if (action === 'confirm') {
       let sendData = {  class : 'CompanyInformation', pk: companyData._id,name: companyData.name, 
                         country:companyData.country, party_id:companyData.party_id,
-                        city:companyData.city, detail:companyData.detail, remark:companyData.remark,
+                        city:companyData.city, detail:companyData.detail, 
+                        // remark:companyData.remark,
                         invoice:companyData.invoice, payment:companyData.payment,
                         address:companyData.address, phone:companyData.phone
                       }
@@ -224,6 +229,10 @@ const MongoQurey = async (queryData) => {
   let response = await MsiApi.mongoQuery(queryData)
   UserData.length = 0
   Object.assign(UserData, response.data.all)
+  for (let i = 0; i < UserData.length; i++) { 
+    let localEndTime =  new Date( (new Date(UserData[i].updated_date).getTime()) + ((MStore.timeZoneOffset ) * -60000))
+    UserData[i].updated_date_str = (moment(localEndTime).format("YYYY-MM-DD HH:mm:ss"))
+  }
   isLoading.value = false
   return response
 }

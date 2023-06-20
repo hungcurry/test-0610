@@ -9,7 +9,6 @@
 
 		<div class="log-list">
 			<el-table :data="ocppErrorData" style="width: 95%; height:95%" stripe  :cell-style=msi.tb_cell  :header-cell-style=msi.tb_header_cell size="large" v-loading = "isLoading">
-				<!-- <el-table-column v-for="item in ocppErrorTabel" :key="item" :prop=item.value :label=item.label  :min-width=item.width :sortable="item.sortable"> -->
           <el-table-column prop="evse_id" label="EVSE ID" min-width="10"/>
           <el-table-column prop="ocpp_errorCode" label="Error Code" min-width="10"/>
           <el-table-column prop="vendorErrorCode" label="VendorErrorCode" min-width="10">
@@ -19,49 +18,35 @@
               <el-button type="text" size="small" @click="handleButtonClick">?</el-button>
             </div>
           </template>
-
-
           </el-table-column>
-
-          <el-table-column prop="created_date" label="Created Time" min-width="10"/>
-          
-						<!-- <template v-if="item.label === 'Operator'" #default="scope">
-            <el-button type="primary" size="small" @click="read(scope.row)">Read</el-button>
-            <el-button type="primary" size="small" @click="unread(scope.row)">Unread</el-button>
-          </template> -->
-					<!-- </el-table-column> -->
+          <el-table-column prop="created_date_str" label="Created Time" min-width="10"/>
 			</el-table>
 		</div>
 
     <el-dialog v-model="ErrorCodeVisible" title="Error Code List">
-      <p>-1 No communication with HMI</p>
-      <p>0 Pile state is abnormal</p>
-      <p>1 Initial setting fault</p>
-      <p>2 Initial Leakage current protection</p>
-      <p>3 High Leakage current protection</p>
-      <p>4 Low Leakage current protection</p>
-      <p>5 Ground Fault Protection by Delta type</p>
-      <p>6 Ground Fault Protection by Y type</p>
-      <p>8 Control pilot status is abnormal</p>
-      <p>9 UART RX data is oversize</p>
-      <p>10 UART buffer is not put many data</p>
-      <p>11 UART transmit is abnormal</p>
-      <p>12 UART checksum is abnormal</p>
-      <p>14 Fw update checksum is abnormal</p>
-      <p>15 Fw update size is abnormal</p>
-      <p>18 Relay detection is abnormal for non-charging L phase</p>
-      <p>19 Relay detection is abnormal for non-charging N phase</p>
-      <p>20 Relay detection is abnormal for charging L phase</p>
-      <p>21 Relay detection is abnormal for charging N phase</p>
-      <p>22 Over current protection</p>
-      <p>23 Under current Protection</p>
-      <p>24 Over Voltage Protection</p>
-      <p>25 Under Voltage Protection</p>
-      <p>26 Thermal is abnormal for system</p>
-      <p>27 Thermal is abnormal for relay</p>
-      <p>28 Thermal is abnormal for charging gun</p>
-      <p>33 Emergency button is triggered</p>
-      <p>64 Pile state is abnormal</p>
+      <p>-1  No communication between Charging board and HMI</p> 
+      <p>1  Initial setting  fault</p> 
+      <p>2  Initial Leakage current protection</p> 
+      <p>3  High Leakage current protection</p> 
+      <p>4  Low Leakage current protection</p> 
+      <p>5  Ground Fault Protection by Delta type</p> 
+      <p>6  Ground Fault Protection by Y type</p> 
+      <p>8  Control pilot status is abnormal</p> 
+      <p>14  Fw update checksum is abnormal</p> 
+      <p>15  Fw update size is abnormal</p> 
+      <p>18  Relay detection is abnormal for non-charging L phase</p> 
+      <p>19  Relay detection is abnormal for non-charging N phase</p> 
+      <p>20  Relay detection is abnormal for charging L phase</p> 
+      <p>21  Relay detection is abnormal for charging N phase</p> 
+      <p>22  Over current protection</p> 
+      <p>24  Over Voltage Protection</p> 
+      <p>25  Under Voltage Protection</p> 
+      <p>26  Thermal is abnormal for system</p> 
+      <p>27  Thermal is abnormal for relay</p> 
+      <p>28  Thermal is abnormal for charging gun</p> 
+      <p>33  Emergency button is triggered</p> 
+      <p>64  Pile state is abnormal</p> 
+      <p>159  Unexpected Discharging</p> 
     </el-dialog>
 
 	</div>
@@ -69,10 +54,13 @@
 </template>
 
 <script  setup>
-import { onMounted, onUnmounted, reactive, ref} from 'vue'
+import { onMounted, reactive, ref} from 'vue'
 import ApiFunc from '@/components/ApiFunc'
 import msi from '@/assets/msi_style'
 import  {export_json_to_excel}  from '@/components/Export2Excel'
+import { useMStore } from "../stores/m_cloud";
+import moment from "moment"
+const MStore = useMStore()
 
 const now = new Date()
 const select_time = ref([ new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0), new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59)])
@@ -98,17 +86,6 @@ const ocppErrorTabel = [
                         // {label:'Operator', value:'',width:'15'},
                         ]
 
-// const read = async (row) => {
-//   let sendData = { 'class' : 'EVSEOCPPLogs', 'pk': row._id, 'read' : true}
-//   await MsiApi.setCollectionData('patch', 'cpo', sendData)
-//   getEVSEOCPPLogs()
-// }
-
-// const unread = async (row) => {
-//   let sendData = { 'class' : 'EVSEOCPPLogs', 'pk': row._id, 'read' : false}
-//   await MsiApi.setCollectionData('patch', 'cpo', sendData)
-//   getEVSEOCPPLogs()
-// }
 
 const getEVSEOCPPLogs = async() => {
   
@@ -136,12 +113,21 @@ const getEVSEOCPPLogs = async() => {
   else {
     console.log(response.data)
   }
+  for (let i = 0; i < ocppErrorData.length; i++) {
+
+
+    let localEndTime =  new Date( (new Date(ocppErrorData[i].created_date).getTime()) + ((MStore.timeZoneOffset ) * -60000))
+    
+
+    ocppErrorData[i].created_date_str = (moment(localEndTime).format("YYYY-MM-DD HH:mm:ss"))
+  }
+
   isLoading.value = false
 }
 
 const download = () => {
   const tHeader = ['EVSE ID', 'Error Code', 'VendorErrorCode', 'Created Time']
-  const filterVal = ['evse_id', 'ocpp_errorCode', 'vendorErrorCode', 'created_date']
+  const filterVal = ['evse_id', 'ocpp_errorCode', 'vendorErrorCode', 'created_date_str']
   const data = ocppErrorData.map(v => filterVal.map(j => v[j]))
   export_json_to_excel ({ header: tHeader, data: data, filename: 'OCPP Error' })
 }
@@ -150,13 +136,7 @@ onMounted(() => {
   getEVSEOCPPLogs()
 })
 
-onUnmounted(() => {
-
-})
-
 </script>
-
-
 
 <style lang="scss">
 .ocpp-error {

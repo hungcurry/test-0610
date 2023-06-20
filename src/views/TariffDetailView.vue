@@ -1,7 +1,7 @@
 <template>
   <div class="tariff-detail">
     <div class="tariff-up">
-      <p>Rate Profile Detail</p>
+      <p>Rate Profile Details</p>
       <el-button class="add-tariff-element-btn" @click="ShowElementDialog('add')"> Add Rate </el-button>
     </div>
     <el-tabs v-model="activeName" class="demo-tabs">
@@ -104,8 +104,8 @@
           <p>Unit (Second)</p>
           <el-input-number v-model="tariff_element.price_components[0].step_size" :controls="false" />
           <p> {{ 'i.e. ' + (tariff_element.price_components[0].step_size / 60).toFixed(2) + ' Min ' +
-            (tariff_element.price_components[0].price / (3600 / tariff_element.price_components[0].step_size)).toFixed(2)
-            + ' Dollar ' }}</p>
+            (tariff_element.price_components[0].price / (3600 / tariff_element.price_components[0].step_size)).toFixed(2) 
+            + ' Dollar ' + 'excl Vat'}}</p>
         </div>
 
         <div v-else-if="tariff_element.price_components[0].type === 'PARKING_TIME'">
@@ -115,7 +115,7 @@
           <el-input-number v-model="tariff_element.price_components[0].step_size" :controls="false" />
           <p> {{ 'i.e. ' + (tariff_element.price_components[0].step_size / 60).toFixed(2) + ' Min ' +
             (tariff_element.price_components[0].price / (3600 / tariff_element.price_components[0].step_size)).toFixed(2)
-            + ' Dollar ' }}</p>
+            + ' Dollar ' + 'excl Vat'}}</p>
         </div>
 
         <p>Vat</p>
@@ -201,13 +201,13 @@ const printElement = () => {
     }
     else if (tariff_elements[i].price_components[0].type === 'TIME') {
       text_arr.push(i + 1 + '. ' + 'Charging' + '\n' + week + tariff_elements[i].restrictions.start_time + '~' + tariff_elements[i].restrictions.end_time + '\n'
-        + tariff_elements[i].price_components[0].step_size / 60 + ' Min '
+        + (tariff_elements[i].price_components[0].step_size / 60).toFixed(2) + ' Min '
         + (tariff_elements[i].price_components[0].price / (3600 / tariff_elements[i].price_components[0].step_size)).toFixed(2) + TariffData.currency + '\n')
     }
 
     else if (tariff_elements[i].price_components[0].type === 'PARKING_TIME') {
       text_arr.push(i + 1 + '. ' + 'Parking' + '\n' + week + tariff_elements[i].restrictions.start_time + ' ~ ' + tariff_elements[i].restrictions.end_time + '\n'
-        + tariff_elements[i].price_components[0].step_size / 60 + ' Min '
+        + (tariff_elements[i].price_components[0].step_size / 60).toFixed(2) + ' Min '
         + (tariff_elements[i].price_components[0].price / (3600 / tariff_elements[i].price_components[0].step_size)).toFixed(2) + TariffData.currency + '\n')
     }
     week = ''
@@ -272,12 +272,18 @@ const save_tariff = async () => {
   TariffData.type = 'AD_HOC_PAYMENT'
   TariffData.party_id = 'MSI'
   if (TariffData.elements.length === 0) {
+  //  await ElMessageBox.confirm('rate is empty, Do you want FREE ?', 'Warning', { confirmButtonText: 'OK', cancelButtonText: 'Cancel', type: 'warning' })
+  //     .then( () => {
     let day_of_week_arr = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY']
     let free_price = [{
       'price_components': [{ type: 'ENERGY', price: 0, vat: 5, step_size: 1 }],
       'restrictions': { start_time: '00:00', end_time: '23:59', max_duration: 0, min_duration: 0, day_of_week: day_of_week_arr }
     }]
     TariffData.elements = free_price
+  // })
+  // }
+  // if (TariffData.elements.length === 0) {
+  //   return
   }
   if (TariffData.min_price_str !== undefined && TariffData.min_price_str !== '') {
     TariffData.min_price = { excl_vat: parseInt(TariffData.min_price_str), incl_vat: parseInt(TariffData.min_price_str) }
@@ -287,7 +293,6 @@ const save_tariff = async () => {
   }
 
   MsiFunc.deleteEmptyKeys(TariffData)
-  // if (TariffData.elements)
   if (tariff_id) {
     ElMessageBox.confirm('Do you want to modify?', 'Warning', { confirmButtonText: 'OK', cancelButtonText: 'Cancel', type: 'warning' })
       .then(async () => {
@@ -369,8 +374,11 @@ const addElement = (action) => {
     tariff_elements.splice(modifyIndex.value, 1)
   }
   else if (action === 'cancel') {
+    if (modifyIndex.value !== 0) {
+    console.log(modifyIndex.value)
     tariff_elements[modifyIndex.value].price_components = newObj1
     tariff_elements[modifyIndex.value].restrictions = newObj2
+    }
   }
 }
 

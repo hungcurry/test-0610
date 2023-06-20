@@ -22,10 +22,10 @@
             <font-awesome-icon class="header-icon" icon="fa-regular fa-clock" />
             <span> EVSE Info</span>
             <br><br>
-            <div class="evse-info-item">
+            <!-- <div class="evse-info-item">
               <p class="evse-info-title">Charger ID</p>
               <p class="evse-info-value">{{ evseData.uid }}</p>
-            </div>
+            </div> -->
             <div class="evse-info-item">
               <p class="evse-info-title">EVSE ID</p>
               <p class="evse-info-value">{{evseData.evse_id}}</p>
@@ -44,7 +44,7 @@
             </div>             -->
             <div class="evse-info-item">
               <p class="evse-info-title">Last Updated</p>
-              <p class="evse-info-value">{{evseData.last_updated}}</p>
+              <p class="evse-info-value">{{evseData.last_updated_str}}</p>
             </div>
           </div >
           <div class="v-line">
@@ -54,10 +54,10 @@
             <span> Connector Info</span>
             <br>
             <br>
-            <div class="connector-item">
+            <!-- <div class="connector-item">
               <p class="connector-title">Connector ID</p>
               <p class="connector-value">{{ connectorData.id }} </p>
-            </div>   
+            </div>    -->
             <div class="connector-item">
               <p class="connector-title">Type</p>
               <p class="connector-value">{{ connectorData.standard }} </p>
@@ -80,7 +80,7 @@
             </div>   
             <div class="connector-item">
               <p class="connector-title">Last Updated</p>
-              <p class="connector-value">{{ connectorData.last_updated }} </p>
+              <p class="connector-value">{{ connectorData.last_updated_str }} </p>
             </div>   
           </div>
         </div>
@@ -174,9 +174,10 @@ import ApiFunc from '@/components/ApiFunc'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import {  ElMessageBox } from 'element-plus'
 import msi from '@/assets/msi_style'
-const log = () => {
+import { useMStore } from "../stores/m_cloud"
+import moment from "moment"
+const MStore = useMStore()
 
-}
 
 const deleteEvse = () => {
   ElMessageBox.confirm('Do you want to delete?','Warning', {confirmButtonText: 'OK', cancelButtonText: 'Cancel', type: 'warning'})
@@ -201,8 +202,8 @@ const deleteEvse = () => {
     let sendData1 = { 'class' : 'Location', 'id': locationData.id, 'evses' : evseArr}
     console.log(await MsiApi.setCollectionData('patch', 'ocpi', sendData1))
 
-
-    router.push({ name: 'stationDetail', query: {id:locationData.id} })
+    router.back(-1)
+    // router.push({ name: 'stationDetail', query: {id:locationData.id} })
   })
 }
 
@@ -230,10 +231,18 @@ onMounted( async () => {
   let queryData = { "database":"OCPI", "collection":"EVSE", "query": { "uid": {"UUID":evseId}}}
   let response = await MsiApi.mongoQuery(queryData)
   Object.assign(evseData, response.data.all[0]) 
+
+  let localEndTime =  new Date( (new Date(evseData.last_updated).getTime()) + ((MStore.timeZoneOffset ) * -60000))
+  evseData.last_updated_str = (moment(localEndTime).format("YYYY-MM-DD HH:mm:ss"))
+  
   
   queryData = { "database":"OCPI", "collection":"Connector", "query": { "_id": { "ObjectId" : evseData?.connectors?.[0]?._id}}}
   response = await MsiApi.mongoQuery(queryData)
   Object.assign(connectorData, response.data.all[0]) 
+
+  localEndTime =  new Date( (new Date(connectorData.last_updated).getTime()) + ((MStore.timeZoneOffset ) * -60000))
+  connectorData.last_updated_str = (moment(localEndTime).format("YYYY-MM-DD HH:mm:ss"))
+
   queryData = { "database":"CPO", "collection":"ChargePointInfo", "query": { "evse": { "ObjectId" : evseData?._id}}}
   response = await MsiApi.mongoQuery(queryData)
   Object.assign(chargePointInfoData, response.data.all[0])
@@ -306,7 +315,7 @@ onMounted( async () => {
     width: 220px;
     height: 40px;
     top: 150px;
-    right : 40px + 220px + 30px;
+    right : 40px;
     position: absolute;
     font-size: 18px;
     background-color: #000000DF;
@@ -317,7 +326,7 @@ onMounted( async () => {
     width: 220px;
     height: 40px;
     top: 150px;
-    right : 40px + 220px + 30px + 220px + 30px;
+    right : 40px + 220px + 30px;
     position: absolute;
     font-size: 18px;
     background-color: #000000DF;

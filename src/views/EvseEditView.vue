@@ -25,10 +25,10 @@
             <p class="connector-title">Type</p>
             <p class="connector-value"> {{ connector_obj.standard }}</p>
           </div>  
-          <div class="connector-item">
+          <!-- <div class="connector-item">
             <p class="connector-title">Connector ID</p>
             <p class="connector-value"> {{ connector_obj.id }}</p>
-          </div>  
+          </div>   -->
           <!-- <div class="connector-item">
             <p class="connector-title">Format</p>
             <p class="connector-value"> {{ connector_obj.format }}</p>
@@ -85,13 +85,13 @@
 
         <el-table :data="selectTariffObj.elements" style="width: 95%; height:500px" stripe 
         :cell-style=msi.tb_cell :header-cell-style=msi.tb_header_cell size="large">
-          <el-table-column prop="price_components[0].type" label="type" min-width="50"/>
-          <el-table-column prop="price_components[0].price" label="price" min-width="50"/>
-          <el-table-column prop="price_components[0].vat" label="vat" min-width="50"/>
+          <el-table-column prop="price_components[0].type" label="Type" min-width="50"/>
+          <el-table-column prop="price_components[0].price" label="Price" min-width="50"/>
+          <el-table-column prop="price_components[0].vat" label="Vat" min-width="50"/>
           <el-table-column prop="price_components[0].step_size" label="step_size" min-width="50"/>
-          <el-table-column prop="restrictions.start_time" label="start_time" min-width="50"/>
-          <el-table-column prop="restrictions.end_time" label="end_time" min-width="50"/>
-          <el-table-column prop="restrictions.day_of_week" label="day_of_week" min-width="50"/>
+          <el-table-column prop="restrictions.start_time" label="Start Time" min-width="50"/>
+          <el-table-column prop="restrictions.end_time" label="End Time" min-width="50"/>
+          <el-table-column prop="restrictions.day_of_week" label="Day Of Week" min-width="50"/>
         </el-table>
 
       </div>
@@ -200,6 +200,7 @@ const SaveEvseEdit = async () => {
         await MsiApi.setCollectionData('patch', 'ocpi', connector_obj)
         let res = await MsiApi.setCollectionData('patch', 'ocpi', evse_obj)
         ElMessage(res.data.message)
+        router.back(-1)
       })
       .catch((e)=>{
         console.log(e)

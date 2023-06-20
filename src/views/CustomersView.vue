@@ -48,6 +48,7 @@ import ApiFunc from '@/components/ApiFunc'
 import msi from '@/assets/msi_style'
 import {  ElMessageBox, ElMessage } from 'element-plus'
 import { useMStore } from "../stores/m_cloud"
+import moment from "moment"
 
 const MStore = useMStore();
 
@@ -63,7 +64,7 @@ const newUser = reactive({first_name:'', last_name:'', email:'', password:'msi32
 const UserTable = [
   {label:'First Name', value:'first_name', width:'40'}, {label:'Last Name', value:'last_name', width:'40'}, 
   {label:'Email', value:'email', width:'80'}, {label:'EVSE List', value:'evse_list_str', width:'40'}, 
-  {label:'Used Times', value:'payment_length', width:'30'}, {label:'Updated Date', value:'updated_date', width:'80'}, 
+  {label:'Used Times', value:'payment_length', width:'30'}, {label:'Updated Date', value:'updated_date_str', width:'80'}, 
   {label:'', value:'detail', width:'20', type:'button'}
 ]
 
@@ -104,10 +105,10 @@ const search = async () => {
   else {
     queryData = { "database":"CPO", "collection":"UserData", "query": {
       "$or" : [
-        {"first_name":{"$regex": input.value ,"$options":"$i"} } , 
-        {"last_name":{"$regex": input.value ,"$options":"$i"} } , 
-        {"email":{"$regex": input.value ,"$options":"$i"} } , 
-        {"updated_date":{"$regex": input.value ,"$options":"$i"} } , 
+        {"first_name":{"$regex": input.value ,"$options":"i"} } , 
+        {"last_name":{"$regex": input.value ,"$options":"i"} } , 
+        {"email":{"$regex": input.value ,"$options":"i"} } , 
+        {"updated_date":{"$regex": input.value ,"$options":"i"} } , 
       ]
     }}
   }
@@ -120,10 +121,13 @@ const MongoQurey = async (queryData) => {
   UserData.length = 0
   Object.assign(UserData, response.data.all)
   for (let i = 0; i < UserData.length; i++) {
+    let localEndTime =  new Date( (new Date(UserData[i].updated_date).getTime()) + ((MStore.timeZoneOffset ) * -60000))
+    UserData[i].updated_date_str = (moment(localEndTime).format("YYYY-MM-DD HH:mm:ss"))
     UserData[i].payment_length = UserData[i]?.payment_history?.length
     UserData[i].evse_list_str = ''
-    for (let j = 0; j < UserData[i]?.evse_list?.length; j++)
+    for (let j = 0; j < UserData[i]?.evse_list?.length; j++) {
       UserData[i].evse_list_str += UserData[i]?.evse_list[j]?.evseId + ' / '
+    }
   }
   isLoading.value = false
   return response
@@ -140,16 +144,22 @@ const addUser = async (action, visible) => {
     .then(async () => {
       isLoading.value = true
       let res = await MsiApi.register_member(sendData)
-      ElMessage(res.data.message)
+      console.log(res)
+      if (res.status === 200) {
+        ElMessage.error('email already exists')
+      }
+      else if (res.status === 201) {
+        let queryData = { "database":"CPO", "collection":"UserData", "query": {}}
+        await MongoQurey(queryData)
+      }
+      else { 
+        ElMessage.error(res.data.message)
+      }
       isLoading.value = false
-      let queryData = { "database":"CPO", "collection":"UserData", "query": {}}
-      await MongoQurey(queryData)
-      
     })
     .catch((e)=>{
-      console.log(e)
+      ElMessage.error(e)
     })
-    
   }
   newUser.first_name = newUser.last_name = newUser.email = ''
 }

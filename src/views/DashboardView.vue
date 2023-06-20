@@ -219,9 +219,9 @@ const goto_payment = () => {
 
 const payment_method_option = {
   tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
-  legend: { y: 'bottom', x: 'left' }, grid: { left: '5%', right: '0%', bottom: '10%', containLabel: true },
+  legend: { y: 'bottom', x: 'left' }, grid: { left: '2%', right: '3%', bottom: '10%', containLabel: true },
   xAxis: { type: 'value', boundaryGap: [0, 0.01] },
-  yAxis: { type: 'category', data: ['Others', 'Free', 'RFID', 'Credit Card'] },
+  yAxis: { type: 'category', data: ['SAMSUNG PAY', 'GOOGLE PAY', 'APPLE PAY', 'FREE', 'RFID', 'Credit Card'] },
   series: [{ type: 'bar', barWidth: '20%', data: [0, 0, 0, 0], color: "#92a9c4" },
     // { name: 'Parking', type: 'bar', barWidth:'20%', data: [19325, 23438, 31000], color: "#61a8d8" }
   ]
@@ -248,7 +248,7 @@ const location_type_option = {
 const power_times_option = {
   tooltip: { trigger: 'axis' },
   legend: { data: ['Power', 'Times'] },
-  grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
+  grid: { left: '2%', right: '5%', bottom: '3%', containLabel: true },
   xAxis: { type: 'category', boundaryGap: false, data: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] },
   yAxis: { type: 'value' },
   series: [{ name: 'Power', type: 'line', stack: 'Total', data: [120, 132, 101, 134, 90, 230, 210] },
@@ -271,7 +271,7 @@ const evse_status_option = reactive({
   }]
 })
 
-const payment_method_obj = reactive({ credit: 0, rfid: 0, free: 0, google: 0, others: 0 })
+const payment_method_obj = reactive({ credit: 0, rfid: 0, free: 0, googlepay: 0, applepay: 0, samsungpay: 0,  })
 const station_count = ref(0)
 onMounted(async () => {
 
@@ -338,15 +338,24 @@ onMounted(async () => {
     }
     else{
       if (EvseData[i].status === 'UNKNOWN')
-        error_evse.push({name:EvseData[i].locationName, id: EvseData[i].locationId, error_count:0 ,unknown_count:1, url: '/stationDetail?id=' + EvseData[i].locationId})
+        if (import.meta.env.VITE_BASE_URL !== undefined)
+          error_evse.push({name:EvseData[i].locationName, id: EvseData[i].locationId, error_count:0 ,unknown_count:1, url: import.meta.env.VITE_BASE_URL + '/stationDetail?id=' + EvseData[i].locationId})
+        else
+          error_evse.push({name:EvseData[i].locationName, id: EvseData[i].locationId, error_count:0 ,unknown_count:1, url: '/stationDetail?id=' + EvseData[i].locationId})
       else if (EvseData[i].status === 'OUTOFORDER')
-        error_evse.push({name:EvseData[i].locationName, id: EvseData[i].locationId, error_count:1 ,unknown_count:0, url: '/stationDetail?id=' + EvseData[i].locationId})        
+        if (import.meta.env.VITE_BASE_URL !== undefined)
+          error_evse.push({name:EvseData[i].locationName, id: EvseData[i].locationId, error_count:1 ,unknown_count:0, url: import.meta.env.VITE_BASE_URL + '/stationDetail?id=' + EvseData[i].locationId})        
+        else
+          error_evse.push({name:EvseData[i].locationName, id: EvseData[i].locationId, error_count:1 ,unknown_count:0, url: '/stationDetail?id=' + EvseData[i].locationId})        
     }
   }
   for(let i = 0; error_evse.length; i++) {
     if (error_evse[i].name === undefined) {
       error_evse[i].name = 'unpaired'
-      error_evse[i].url = '/evse?page=unpaired'
+      if (import.meta.env.VITE_BASE_URL !== undefined)
+        error_evse[i].url = import.meta.env.VITE_BASE_URL + '/evse?page=unpaired'
+      else 
+        error_evse[i].url = '/evse?page=unpaired'
       break
     }
   }
@@ -357,6 +366,9 @@ onMounted(async () => {
       RFID: [{ $match: { "paymethod.method": 'RFID' } }, { $count: "RFID" }],
       CREDIT: [{ $match: { "paymethod.method": 'CREDIT' } }, { $count: "CREDIT" }],
       FREE: [{ $match: { "paymethod.method": 'FREE' } }, { $count: "FREE" }],
+      APPLEPAY: [{ $match: { "paymethod.method": 'APPLEPAY' } }, { $count: "APPLEPAY" }],
+      SAMSUNGPAY: [{ $match: { "paymethod.method": 'SAMSUNGPAY' } }, { $count: "SAMSUNGPAY" }],
+      GOOGLEPAY: [{ $match: { "paymethod.method": 'GOOGLEPAY' } }, { $count: "GOOGLEPAY" }],
       totalCount: [{ $group: { _id: null, totalCount: { $sum: 1 } } }],
       income:[{ $group: { _id: null, income: { $sum: "$price" } } }]
     }
@@ -364,15 +376,19 @@ onMounted(async () => {
   response = await MsiApi.mongoAggregate(queryData)
   payment_method_obj.credit = response.data.result[0].CREDIT[0]?.CREDIT
   payment_method_obj.rfid = response.data.result[0].RFID[0]?.RFID
+  payment_method_obj.applepay = response.data.result[0].APPLEPAY[0]?.APPLEPAY
+  payment_method_obj.googlepay = response.data.result[0].GOOGLEPAY[0]?.GOOGLEPAY
+  payment_method_obj.samsungpay = response.data.result[0].SAMSUNGPAY[0]?.SAMSUNGPAY
   payment_method_obj.free = response.data.result[0].FREE[0]?.FREE
-  payment_method_obj.others = response.data.result[0].totalCount[0]?.totalCount - payment_method_obj.credit - payment_method_obj.rfid - payment_method_obj.free
+
+  // payment_method_obj.others = response.data.result[0].totalCount[0]?.totalCount - payment_method_obj.credit - payment_method_obj.rfid - payment_method_obj.free
   
   if (response.data.result[0].totalCount[0]?.totalCount - response.data.result[0].RFID[0]?.RFID - response.data.result[0].guestEmail[0]?.guestEmail)
     ev_life.value = response.data.result[0].totalCount[0]?.totalCount - response.data.result[0].RFID[0]?.RFID - response.data.result[0].guestEmail[0]?.guestEmail
   if (response.data.result[0].guestEmail[0]?.guestEmail)
     visitor.value = response.data.result[0].guestEmail[0]?.guestEmail
   if (response.data.result[0].RFID[0]?.RFID)
-  rfid.value = response.data.result[0].RFID[0]?.RFID
+    rfid.value = response.data.result[0].RFID[0]?.RFID
   if (response.data.result[0].income[0]?.income.toLocaleString())
     income.value = response.data.result[0].income[0]?.income.toLocaleString()
 
@@ -431,7 +447,7 @@ onMounted(async () => {
 
   ret_chart = ref_payment_chart.value
 
-  payment_method_option.series[0].data = [payment_method_obj.others, payment_method_obj.free, payment_method_obj.rfid, payment_method_obj.credit]
+  payment_method_option.series[0].data = [payment_method_obj.samsungpay,payment_method_obj.googlepay,payment_method_obj.applepay, payment_method_obj.free, payment_method_obj.rfid, payment_method_obj.credit]
   chart_inst = echarts.init(ret_chart)
   payment_method_option && chart_inst.setOption(payment_method_option)
 
@@ -651,13 +667,15 @@ onMounted(async () => {
   power_times_option.series[1].data[4] = use_power_time_obj.date3.times
   power_times_option.series[1].data[5] = use_power_time_obj.date2.times
   power_times_option.series[1].data[6] = use_power_time_obj.date1.times
-  power_times_option.xAxis.data[0] = date7.getDay()
-  power_times_option.xAxis.data[1] = date6.getDay()
-  power_times_option.xAxis.data[2] = date5.getDay()
-  power_times_option.xAxis.data[3] = date4.getDay()
-  power_times_option.xAxis.data[4] = date3.getDay()
-  power_times_option.xAxis.data[5] = date2.getDay()
-  power_times_option.xAxis.data[6] = date1.getDay()
+
+  power_times_option.xAxis.data[6] = new Date(date1).getMonth() + 1 + "/" + new Date(date1).getDate() + "(" + new Date(date1).toLocaleDateString('en-US', { weekday: 'short' }) + ".)"
+  power_times_option.xAxis.data[5] = new Date(date2).getMonth() + 1 + "/" + new Date(date2).getDate() + "(" + new Date(date2).toLocaleDateString('en-US', { weekday: 'short' }) + ".)"
+  power_times_option.xAxis.data[4] = new Date(date3).getMonth() + 1 + "/" + new Date(date3).getDate() + "(" + new Date(date3).toLocaleDateString('en-US', { weekday: 'short' }) + ".)"
+  power_times_option.xAxis.data[3] = new Date(date4).getMonth() + 1 + "/" + new Date(date4).getDate() + "(" + new Date(date4).toLocaleDateString('en-US', { weekday: 'short' }) + ".)"
+  power_times_option.xAxis.data[2] = new Date(date5).getMonth() + 1 + "/" + new Date(date5).getDate() + "(" + new Date(date5).toLocaleDateString('en-US', { weekday: 'short' }) + ".)"
+  power_times_option.xAxis.data[1] = new Date(date6).getMonth() + 1 + "/" + new Date(date6).getDate() + "(" + new Date(date6).toLocaleDateString('en-US', { weekday: 'short' }) + ".)"
+  power_times_option.xAxis.data[0] = new Date(date7).getMonth() + 1 + "/" + new Date(date7).getDate() + "(" + new Date(date7).toLocaleDateString('en-US', { weekday: 'short' }) + ".)"
+
 
   chart_inst = echarts.init(ret_chart)
   power_times_option && chart_inst.setOption(power_times_option)

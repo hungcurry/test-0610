@@ -34,6 +34,18 @@
         <el-form-item label="Phone">
           <el-input v-model="AddAdminData.phone" autocomplete="off" />
         </el-form-item>
+        <el-form-item label="Permission">
+          <el-select class="el-select" v-model="AddAdminData.permission_str" placeholder="Select" size="large"
+            @change="setPermission">
+            <el-option v-for="item in user_type" :key="item.value" :label="item.name" :value="item._id" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="Edit">
+          <el-switch v-model="AddAdminData.permission_edit" />
+        </el-form-item>
+        <el-form-item label="Active">
+          <el-switch v-model="AddAdminData.permission_active" />
+        </el-form-item>
       </el-form>
       <template #footer>
         <span class="dialog-footer">
@@ -91,6 +103,7 @@ import ApiFunc from '@/components/ApiFunc'
 import msi from '@/assets/msi_style'
 import { ElMessageBox, ElMessage } from 'element-plus'
 import { useMStore } from "../stores/m_cloud";
+import moment from "moment"
 const MStore = useMStore()
 const MsiApi = ApiFunc()
 const AddAdminFormVisible = ref(false)
@@ -105,18 +118,30 @@ const editAdminData = reactive([])
 const input = ref('')
 const UserTable = [{ label: 'First Name', value: 'first_name', width: '80' }, { label: 'Last Name', value: 'last_name', width: '80' },
 { label: 'Email', value: 'email', width: '80' }, { label: 'Phone', value: 'phone', width: '80' },
-{ label: 'Permission', value: 'permission_str', width: '80' }, { label: 'Updated Date', value: 'updated_date', width: '80' },
+{ label: 'Permission', value: 'permission_str', width: '80' }, { label: 'Updated Date', value: 'updated_date_str', width: '80' },
 { label: '', value: 'detail', width: '80', type: 'button' }
 ]
 
 const setPermission = (permission_id) => {
-  editAdminData.permission_id = permission_id
+  
+  console.log(permission_id)
+
+  if (AddAdminFormVisible.value === true) {
+    AddAdminData.permission_id = permission_id
+  }
+
+  else if (EditAdminFormVisible.value === true) {
+    editAdminData.permission_id = permission_id
+  }
+
+
 }
 
 const detail_info = (detail) => {
   EditAdminFormVisible.value = true
   editAdminData.length = 0
   Object.assign(editAdminData, UserData[detail.$index])
+  console.log(editAdminData?.permission?.user)
   editAdminData.permission_id = editAdminData?.permission?.user
   if (editAdminData.permission.edit === 1) {
     editAdminData.permission_edit = true
@@ -132,12 +157,13 @@ const editAdmin = async (action) => {
     if (editAdminData.permission_edit === true) {
       editAdminData.permission_edit = 1
     }
+    else 
+      editAdminData.permission_edit = 3
     let sendData = {
       class: 'AdminUserData', pk: editAdminData._id,
       first_name: editAdminData.first_name, last_name: editAdminData.last_name,
       email: editAdminData.email, phone: editAdminData.phone,
       permission: { user: editAdminData.permission_id, edit: editAdminData.permission_edit, active: editAdminData.permission_active },
-      dashboard: true
     }
     ElMessageBox.confirm('Do you want to modify?', 'Warning', { confirmButtonText: 'OK', cancelButtonText: 'Cancel', type: 'warning' })
       .then(async () => {
@@ -171,11 +197,14 @@ const editAdmin = async (action) => {
 }
 
 const AddAdmin = async (action, visable) => {
+
   AddAdminFormVisible.value = visable
   let check_format_sucess = true
   if (action === 'confirm') {
+    let edit = AddAdminData.edit ? 1 : 3
     let sendData = {
       first_name: AddAdminData.first_name, last_name: AddAdminData.last_name,
+      permission: AddAdminData.permission_id, edit: edit, active: AddAdminData.permission_active ,
       email: AddAdminData.email, phone: AddAdminData.phone, company: MStore.permission.company.name, password: "msi32345599", dashboard: true
     }
 
@@ -187,13 +216,15 @@ const AddAdmin = async (action, visable) => {
       ElMessage.error('Oops, First name required.')
       check_format_sucess = false
     }
-    if (AddAdminData.last_name === undefined || AddAdminData.last_name === '') {
-      ElMessage.error('Oops, Last name required.')
+    if (AddAdminData.permission_id === undefined || AddAdminData.permission_id === '') {
+      ElMessage.error('Oops, Permission name required.')
       check_format_sucess = false
     }
+
     if (check_format_sucess === true) {
       ElMessageBox.confirm('Do you want to create?', 'Warning', { confirmButtonText: 'OK', cancelButtonText: 'Cancel', type: 'warning' })
         .then(async () => {
+          console.log(sendData)
           let res = await MsiApi.register_member(sendData)
           if (res.status === 201) {
             GetPermission()
@@ -217,11 +248,10 @@ const search = async () => {
     queryData = {
       "database": "CPO", "collection": "CompanyInformation", "query": {
         "$or": [
-          { "name": { "$regex": input.value, "$options": "$i" } }, { "party_id": { "$regex": input.value, "$options": "$i" } },
-          { "country": { "$regex": input.value, "$options": "$i" } }, { "city": { "$regex": input.value, "$options": "$i" } },
-          { "address": { "$regex": input.value, "$options": "$i" } }, { "phone": { "$regex": input.value, "$options": "$i" } },
-          { "remark": { "$regex": input.value, "$options": "$i" } }, { "taxID": { "$regex": input.value, "$options": "$i" } },
-          { "updated_date": { "$regex": input.value, "$options": "$i" } },
+          { "name": { "$regex": input.value, "$options": "i" } }, { "party_id": { "$regex": input.value, "$options": "i" } },
+          { "country": { "$regex": input.value, "$options": "i" } }, { "city": { "$regex": input.value, "$options": "i" } },
+          { "address": { "$regex": input.value, "$options": "i" } }, { "phone": { "$regex": input.value, "$options": "i" } },
+          { "updated_date_str": { "$regex": input.value, "$options": "i" } },
         ]
       }
     }
@@ -235,6 +265,8 @@ const MongoQurey = async (queryData) => {
   UserData.length = 0
   Object.assign(UserData, response.data.all)
   for (let i = 0; i < UserData.length; i++) {
+    let localEndTime =  new Date( (new Date(UserData[i].updated_date).getTime()) + ((MStore.timeZoneOffset ) * -60000))
+    UserData[i].updated_date_str = (moment(localEndTime).format("YYYY-MM-DD HH:mm:ss"))
     for (let j = 0; j < user_type.length; j++) {
       if (UserData[i].permission.user === user_type[j]._id) {
         UserData[i].permission_str = user_type[j].name
@@ -248,6 +280,7 @@ const MongoQurey = async (queryData) => {
 const GetPermission = async () => {
   let queryData = { "database": "CPO", "collection": "UserPermission", "query": {} }
   let response = await MsiApi.mongoQuery(queryData)
+  console.log(response)
   user_type.length = 0
   const filteredArr = response.data.all.filter(item => item.name !== 'AnonymousUser' && item.name !== 'MemberUser'
     && item.name !== 'DeveloperUser' && item.name !== 'CustomerServiceUser')
@@ -259,6 +292,11 @@ const addAdminUser = async () => {
   AddAdminData.last_name = ''
   AddAdminData.email = ''
   AddAdminData.phone = ''
+
+  AddAdminData.permission_str = ''
+  AddAdminData.permission_edit = true
+  AddAdminData.permission_active = true 
+
   AddAdminFormVisible.value = true
 }
 

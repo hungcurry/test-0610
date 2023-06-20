@@ -29,33 +29,53 @@
 
         <el-button v-if="editMode === true" class="edit" @click="updateSW"> Update SW </el-button>
         <!-- <el-button v-if="editMode === true" class="edit" @click="updateFW " disabled> Update FW </el-button> -->
-        <el-button v-if="editMode === true" class="edit" @click="evseReset('soft') " disabled> Soft Reset </el-button>
-        <el-button v-if="editMode === true" class="edit" @click="evseReset('hard') " disabled> Hard Reset </el-button>
+        <el-button v-if="editMode === true" class="edit" @click="evseReset('soft') " > Soft Reset </el-button>
+        <el-button v-if="editMode === true" class="edit" @click="evseReset('hard') " > Hard Reset </el-button>
 
         <el-button class="edit" @click="edit_charger"> {{ edit_button_str }} </el-button>
       </div>
       <div class="list-container">
-        <!-- <img src="@/assets/img/station_type_evlist_J1772.png" >
-        <span class="type">J1772</span> -->
-
-        <el-table :data="StationDetailEvseData" style="width: 95%; height:95%" stripe :cell-style=msi_style.tb_cell :header-cell-style=msi_style.tb_header_cell size="large">
-          <el-table-column v-for = "item in StationDetailEvseTable" :key="item" :prop=item.value :label=item.label  :min-width=item.width :sortable="item.sortable">
-            
-            <template #default="scope" v-if = "item.type === 'button'">
-              <el-button @click="charger_detail(scope.row)"> <font-awesome-icon icon="fa-regular fa-pen-to-square" /> </el-button>
-            </template>
-
-            <template #default="scope" v-else-if = "item.label === 'Status'">
-              <p class="available" v-if="scope.row.status === 'AVAILABLE'"> {{ "●" + scope.row.status }}</p>
-              <p class="charging" v-else-if="scope.row.status === 'CHARGING'"> {{ "●" + scope.row.status }}</p>
-              <p class="offline" v-else-if="scope.row.status === 'UNKNOWN' "> {{ "●" + scope.row.status }}</p>
-              <p class="error" v-else-if="scope.row.status === 'OUTOFORDER'"> {{ "●" + scope.row.status }}</p>
-            </template>
-            
+        <el-table :data="StationDetailEvseData" style="width: 95%; height:95%" stripe :cell-style=msi_style.tb_cell :header-cell-style=msi_style.tb_header_cell size="large"
+        @selection-change="handleSelectionChange">
+          <el-table-column prop="evse_id" label="EVSE ID" min-width="50"/>
+          <el-table-column prop="floor_level" label="Floor Level" min-width="30"/>
+          <el-table-column prop="status" label="Status" min-width="60" >
+            <template #default="scope">
+                <p class="available" v-if="scope.row.status === 'AVAILABLE'"> {{ "●" + scope.row.status }}</p>
+                <p class="charging" v-else-if="scope.row.status === 'CHARGING'"> {{ "●" + scope.row.status }}</p>
+                <p class="offline" v-else-if="scope.row.status === 'UNKNOWN' "> {{ "●" + scope.row.status }}</p>
+                <p class="error" v-else-if="scope.row.status === 'OUTOFORDER'"> {{ "●" + scope.row.status }}</p>
+              </template>
           </el-table-column>
-      </el-table>
+          <el-table-column prop="type_str" label="Type" min-width="30"/>
+          <el-table-column prop="hmi_version" label="SW Ver." min-width="50"/>
+          <el-table-column prop="" label="Latest SW" min-width="40">
+          <template #default="scope">
+            <p v-if="scope.row.hmi_version === `b'0.1.2.3'`"> {{ "V" }}</p>
+          </template>
+          </el-table-column>
+
+          <el-table-column prop="last_updated_str" label="Updated Time" min-width="70"/>
+          <el-table-column v-if="editMode === false" prop="" label="" min-width="30">
+          <template #default="scope">
+                <el-button @click="charger_detail(scope.row)"> <font-awesome-icon icon="fa-solid fa-ellipsis" /> </el-button>
+          </template>
+          </el-table-column>
+          <el-table-column v-else type="selection" min-width="30">
+          </el-table-column>
+
+        </el-table>
       </div>
     </div>
+    <el-dialog v-model="sw_version_visable" title="Update SW">
+      <p>Now Version {{ fwVersion }}</p>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="sw_version_visable = false">Cancel</el-button>
+          <el-button type="primary" @click="updateConfirm()">Confirm</el-button>
+        </span>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -65,26 +85,95 @@ import { useRoute, useRouter } from 'vue-router'
 import ApiFunc from '@/components/ApiFunc'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import  msi_style  from '../assets/msi_style'
+import { ElMessage } from 'element-plus'
+import moment from "moment"
+import { useMStore } from "../stores/m_cloud"
+const MStore = useMStore()
 
 const route = useRoute()
 const router = useRouter()
 const MsiApi = ApiFunc()
 const editMode = ref(false)
 const station_id = route.query.id
+const updataEvseId = []
+const sw_version_visable = ref (false)
+const multipleSelection = ref([])
+const fwVersion = ref('')
+const update_file = ref('')
+
+const updateConfirm = async () => {
+  let sendData = { "evse_ids": updataEvseId, "location": update_file.value, "retrieveDate": "2022-10-27 12:12:12"}
+  if (update_file.value === '')
+    ElMessage.error('File not found')
+  const response = await MsiApi.updateFw(sendData)
+  if (response.status === 200) {
+    sw_version_visable.value = false
+    console.log(response)
+  }
+  else {
+    console.log(response)
+  }
+}
+
+const updateSW = async() => {
+  sw_version_visable.value = true
+  let queryData = { "database":"CPO", "collection":"VersionControl", "query": { "type": 'XP012'}}
+  let response = await MsiApi.mongoQuery(queryData)
+  fwVersion.value = response.data.all[0].version
+  let release_note = response.data.all[0].release_note.find(obj => obj.version === fwVersion.value)
+  if (release_note) {
+    update_file.value = release_note.file
+  }
+  updataEvseId.length = 0
+  for (let i = 0; i < multipleSelection.value.length; i++) {
+    updataEvseId.push(multipleSelection.value[i].evse_id)
+  }
+  if (updataEvseId.length === 0) {
+    return
+  }
+}
 
 const go_to_station_edit_page = () => {
   router.push({ name: 'stationEdit', query: {id:station_id} })
 }
 
-const edit_button_str = ref('Edit')
+const handleSelectionChange = (val) => {
+  multipleSelection.value = val
+}
+
+const edit_button_str = ref('Update or Restart')
 // const addCharger = (row) => {
 //   router.push({ name: 'evseEdit', query: {station_id:station_id, evse_id:row.uid} })
 // }
 
+const evseReset = (type) => {
+  console.log(updataEvseId)
+  updataEvseId.length = 0
+  for (let i = 0; i < multipleSelection.value.length; i++) {
+    updataEvseId.push(multipleSelection.value[i].evse_id)
+  }
+  if (updataEvseId.length === 0) {
+    return
+  }
+
+  if (confirm(' 我要 ' + type + ' Reset 了 ') === true) {
+    const json = JSON.stringify({ evse_id: updataEvseId, reset_type: type })
+    MsiApi.reset_evse(json)
+      .then(() => {
+        alert(type + ' Reset sucess ')
+      })
+      .catch((error) => {
+        alert(type + ' Reset fail ')
+        console.log(error)
+      })
+  }
+}
+
+
 const edit_charger = () => {
   if (editMode.value === true) {
     editMode.value = false
-    edit_button_str.value = 'Edit'    
+    edit_button_str.value = 'Update or Restart'    
   }
   else {
     editMode.value = true
@@ -96,15 +185,6 @@ const charger_detail = (row) => {
   router.push({ name: 'evseDetail', query: {station_id:station_id, evse_id:row.uid} })
 }
 
-const StationDetailEvseTable = [
-  {label:'EVSE ID', value:'evse_id', width:'80'}, 
-  {label:'Status', value:'status', width:'80'}, 
-  {label:'Floor Level', value:'floor_level', width:'80'}, 
-  {label:'Type', value:'type_str', width:'80'}, 
-  {label:'Last Used Time', value:'last_updated', width:'80'}, 
-  // {label:'Charger Label', value:'physical_reference', width:'80'}, 
-  {label:'', value:'detail', width:'20', type:'button'}
-]
 const StationDetailEvseData = reactive([])
 const StationData = reactive([])
 
@@ -123,14 +203,20 @@ onMounted( async () => {
     else if (StationData.evses[i].connectors[0].standard === 'IEC_62196_T2')
       StationDetailEvseData[i].type_str = 'Tyep 2'
     else 
-    StationDetailEvseData[i].type_str = StationData.evses[i].connectors[0].standard
+      StationDetailEvseData[i].type_str = StationData.evses[i].connectors[0].standard
+
+
+    let localEndTime =  new Date( (new Date(StationData.evses[i].last_updated).getTime()) + ((MStore.timeZoneOffset ) * -60000))
+    StationDetailEvseData[i].last_updated_str = (moment(localEndTime).format("YYYY-MM-DD HH:mm:ss"))
+
+    
   }
   StationData.img_str = StationData?.images?.[0]?.url
 })
 
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
 .station-detail {
   height: 100%;
   .station-info{
@@ -183,15 +269,34 @@ onMounted( async () => {
         border-radius: 20px;
       }
       .edit {
-        width: 160px;
-        height: 30px;
-        font-size: 22px;
+        width: 220px;
+        height: 40px;
+        font-size: 18px;
         border-radius: 20px;
+        background-color: #000000DF;
+        color:#FFFFFF;
       }
     }
   }
 }
-
+.el-checkbox {
+    // width: 20px;
+    // height: 20px;
+    .el-checkbox__input.is-checked{
+      .el-checkbox__inner{
+      background-color:#000000;
+    }
+    }
+    .el-checkbox__input {
+      // width: 20px;
+      // height: 20px;
+    .el-checkbox__inner{
+      width: 20px;
+      height: 20px;
+      border-color: #000000;
+    }
+    }
+  }
 
 .available{
         color: #76bbf4;

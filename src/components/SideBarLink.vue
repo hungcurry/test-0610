@@ -30,7 +30,7 @@
           <el-menu-item index="ocpiSession">Charger Log</el-menu-item>
           <el-menu-item index="ocppError"> OCPP Error </el-menu-item>
       </el-sub-menu>
-      <el-menu-item v-if="dev_member" index="softwareInfo">
+      <el-menu-item  index="softwareInfo">
         <span>Software Info</span>
       </el-menu-item>
       <el-menu-item v-if="dev_member" index="parking">

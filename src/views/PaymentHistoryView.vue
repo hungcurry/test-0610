@@ -22,7 +22,7 @@
           <el-table-column prop="parking_car_num_str" label="License Plate" min-width="40" align="center"/>
         </el-table-column>
         
-        <el-table-column  v-if="charging_visible" label="Charge" align="center">
+        <el-table-column  v-if="charging_visible" label="Charging" align="center">
           <el-table-column prop="charge_time" label="Used Time" min-width="40" align="center"/> 
           <el-table-column prop="charge_energy_str" label="kWh" min-width="30"  header-align="center" align="right"/>
           <el-table-column prop="charge_price_str" label="Price" min-width="30" header-align="center" align="right"/>
@@ -53,10 +53,12 @@ const charging_visible = ref (true)
 
 const defaultTime = ref([ new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0), new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59)])
 const defaultTime2 = [ new Date(2000, 1, 1, 0, 0, 0), new Date(2000, 2, 1, 23, 59, 59)] 
-const filters = [{ text:'CREDIT', value:'CREDIT'}, { text:'RFID', value:'RFID'}, {text:'APPLE PAY', value:'APPLE PAY'}, {text:'GOOGLEPAY', value:'GOOGLE PAY'}]
+const filters = [{ text:'CREDIT', value:'CREDIT'}, { text:'RFID', value:'RFID'}, { text:'FREE', value:'FREE'},
+                {text:'APPLE PAY', value:'APPLEPAY'}, {text:'GOOGLE PAY', value:'GOOGLEPAY'},{ text:'SAMSUNG PAY', value:'SAMSUNGPAY'},
+]
 
 const download = () => {
-  const tHeader = [ 'Name', 'EVSE ID',  'Parking Use Time', ' Parking Price', 'Parking License Plate', 'Charge Use Time', 'Charge kWh', 'Charge Price', 
+  const tHeader = [ 'Station Name', 'Station EVSE ID',  'Parking Used Time', ' Parking Price', 'Parking License Plate', 'Charge Used Time', 'Charge kWh', 'Charge Price', 
                     'Total Price', 'Method', 'Created Date',]
   const filterVal = [ 'location_name', 'evse_id', 'parking_time', 'parking_price_str', 'parking_car_num_str', 'charge_time', 'charge_energy_str', 
                       'charge_price_str', 'price_str', 'paymethod_str', 'created_date_str']

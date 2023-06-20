@@ -5,10 +5,10 @@
         <el-table-column v-for="item in LocationTable" :key="item" :prop=item.value :label=item.label  :min-width=item.width :sortable="item.sortable"
         :filters="item.filter" :filter-method="item.filter_method" >
           <template #default="scope" v-if ="item.label === 'Status'">
-            <el-tag > {{scope.row.state_available_str}} </el-tag>
-            <el-tag type="success"> {{scope.row.state_charging_str}} </el-tag>
-            <el-tag type="info"> {{scope.row.state_unknown_str}} </el-tag>
-            <el-tag type="danger"> {{scope.row.state_error_str}} </el-tag>
+            <el-tag effect="dark"> {{scope.row.state_available_str}} </el-tag>
+            <el-tag type="success" effect="dark"> {{scope.row.state_charging_str}} </el-tag>
+            <el-tag type="info" effect="dark"> {{scope.row.state_unknown_str}} </el-tag>
+            <el-tag type="danger" effect="dark"> {{scope.row.state_error_str}} </el-tag>
           </template>
 
           <template #default="scope" v-else-if="item.type === 'button' && item.value === 'detail'">
@@ -75,12 +75,15 @@ import { storeToRefs } from "pinia"
 import  msi_style  from '../assets/msi_style'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import MsiCommonApi from '@/components/ApiFunc'
-import parkingPng from '@/assets/img/station_list_type_parking.png'
+
 import hotelPng from '@/assets/img/station_list_type_hotel.png'
 import restaurantPng from '@/assets/img/station_list_type_restaurant.png'
+import mallPng from '@/assets/img/station_list_type_mall.png'
+
+import parkingPng from '@/assets/img/station_list_type_parking.png'
+
 import cafePng from '@/assets/img/station_list_type_cafe.png'
 import airportPng from '@/assets/img/station_list_type_airport.png'
-import mallPng from '@/assets/img/station_list_type_mall.png'
 import trainPng from '@/assets/img/station_list_type_train.png'
 
 
@@ -131,7 +134,7 @@ const LocationTable = [
                         // {label:'Operator ID', value:'party_id', width:'40', sortable:'sortable'},
                         {label:'Status', value:'', width:'80', filter:status_filter_item, filter_method:status_filter}, 
                         {label:'Publish', value:'publish', width:'60', filter:publish_filter_item, filter_method:publish_filter},
-                        {label:'Parking', value:'parking_str', width:'50'}, 
+                        // {label:'Parking', value:'parking_str', width:'50'}, 
                         {label:'', value:'detail', width:'40', type:'button'}
                       ]
 
@@ -261,29 +264,32 @@ onMounted( async () => {
     }
     LocationData[i].facilities_str = LocationData[i].facilities?.[0]
 
-    if (LocationData[i].parking_type === "PARKING_LOT")
-
-      LocationData[i].parking_str = 'PARKING'
+    // if (LocationData[i].parking_type === "PARKING_LOT")
+    //   LocationData[i].parking_str = 'PARKING'
 
     if (LocationData[i].facilities_str === 'HOTEL') {
-      
       LocationData[i].facilities_img = hotelPng
     }
     else if (LocationData[i].facilities_str === 'RESTAURANT') {
       LocationData[i].facilities_img = restaurantPng
     }
-    else if (LocationData[i].facilities_str === 'CAFE') {
-      LocationData[i].facilities_img = cafePng
-    }    
-    else if (LocationData[i].facilities_str === 'PARKING_LOT') {
-      LocationData[i].facilities_img = parkingPng
-    }    
-    else if (LocationData[i].facilities_str === 'AIRPORT') {
-      LocationData[i].facilities_img = airportPng
-    } 
     else if (LocationData[i].facilities_str === 'MALL') {
       LocationData[i].facilities_img = mallPng
     } 
+    else if (LocationData[i].facilities_str === 'SUPERMARKET') {
+      LocationData[i].facilities_img = mallPng
+    } 
+    else if (LocationData[i].facilities_str === 'PARKING_LOT') {
+      LocationData[i].facilities_img = parkingPng
+    }    
+    // else if (LocationData[i].facilities_str === 'CAFE') {
+    //   LocationData[i].facilities_img = cafePng
+    // }    
+
+    // else if (LocationData[i].facilities_str === 'AIRPORT') {
+    //   LocationData[i].facilities_img = airportPng
+    // } 
+
     else {
       LocationData[i].facilities_img = trainPng
     }
@@ -458,5 +464,8 @@ onUnmounted( () =>{
 .custom-info-window {
     font-size: 25px;
     font-weight:bold;
+  }
+  .el-tag {
+    margin-left: 10px;
   }
 </style>

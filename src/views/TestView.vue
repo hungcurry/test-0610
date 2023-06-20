@@ -231,7 +231,7 @@ onMounted(async () => {
 
 </script>
 
-<style lang='css'>
+<style lang='scss' scoped>
 h2 {
   margin: 0;
   font-size: 16px;

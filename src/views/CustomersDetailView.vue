@@ -48,11 +48,11 @@
 
                 <div class="customers-info-item">
                   <p class="customers-info-title">Updated Date</p>
-                  <p class="customers-info-value">{{ userData.updated_date }}</p>
+                  <p class="customers-info-value">{{ userData.updated_date_str }}</p>
                 </div>
                 <div class="customers-info-item">
                   <p class="customers-info-title">Created Date</p>
-                  <p class="customers-info-value">{{ userData.created_date }}</p>
+                  <p class="customers-info-value">{{ userData.created_date_str }}</p>
                 </div>
 
               </div>
@@ -106,8 +106,8 @@
               <div class="customers-general-info-header">
                 <font-awesome-icon icon="fa-regular fa-user" />
                 RFID
-                <el-button class="gear" @click="editRfid"><font-awesome-icon icon="fa-solid fa-gear" /> Add
-                  RFID</el-button>
+                <el-button class="gear" @click="editRfid"><font-awesome-icon icon="fa-solid fa-gear" />
+                   Add RFID</el-button>
               </div>
               <div class="rfid-detail">
                 <el-table :data="userData.rfids" style="width: 95%; height:95%" stripe :cell-style=msi.tb_cell
@@ -135,7 +135,7 @@
             <el-table-column prop="location_name" label="Station Name" min-width="80" />
             <el-table-column prop="price" label="Price" min-width="80" />
             <el-table-column prop="currency" label="Currency" min-width="80" />
-            <el-table-column prop="created_date" label="Created Time" min-width="80" />
+            <el-table-column prop="created_date_str" label="Created Time" min-width="80" />
           </el-table>
         </el-tab-pane>
       </el-tabs>
@@ -144,19 +144,19 @@
     <el-dialog v-model="EditCustomerFormVisible" title="Edit Customer" draggable>
       <el-form>
         <el-form-item label="First Name">
-          <el-input v-model="userData.first_name" autocomplete="off" />
+          <el-input v-model="userDataMod.first_name" autocomplete="off" />
         </el-form-item>
         <el-form-item label="Last Name">
-          <el-input v-model="userData.last_name" autocomplete="off" />
+          <el-input v-model="userDataMod.last_name" autocomplete="off" />
         </el-form-item>
         <el-form-item label="E-Mail">
-          <el-input v-model="userData.email" autocomplete="off" />
+          <el-input v-model="userDataMod.email" autocomplete="off" />
         </el-form-item>
         <el-form-item label="Phone">
-          <el-input v-model="userData.phone" autocomplete="off" />
+          <el-input v-model="userDataMod.phone" autocomplete="off" />
         </el-form-item>
         <el-form-item label="Permission">
-          <el-select class="el-select" v-model="userData.permission_str" placeholder="Select" size="large">
+          <el-select class="el-select" v-model="userDataMod.permission_str" placeholder="Select" size="large">
             <el-option v-for="item in user_type" :key="item.value" :label="item.name" :value="item.name" />
           </el-select>
         </el-form-item>
@@ -173,7 +173,7 @@
       </template>
     </el-dialog>
 
-    <el-dialog v-model="EditRfidFormVisible" title="Add RFID" draggable>
+    <el-dialog v-model="EditRfidFormVisible" :title=rfid_title draggable>
       <el-form>
         <el-form-item label="Number">
           <el-input v-model="rfidData.rfid" autocomplete="off" />
@@ -190,7 +190,7 @@
       </el-form>
       <template #footer>
         <span class="dialog-footer">
-          <el-button @click="confirmRfid('delete')">Delete</el-button>
+          <el-button v-if="modify_card_index!==-1" @click="confirmRfid('delete')">Delete</el-button>
           <el-button @click="confirmRfid('cancel')">Cancel</el-button>
           <el-button type="primary" @click="confirmRfid('confirm')"> Confirm</el-button>
         </span>
@@ -208,9 +208,9 @@
 
     <el-dialog v-model="BindingCardDialogVisible" title="Binding Card">
       <el-table :data="userData.paylistArrObj">
-        <el-table-column property="card6No" label="Card 6 " width="150" />
-        <el-table-column property="card4No" label="Card 4" width="200" />
-        <el-table-column property="expireDate" label="Expire Date" />
+        <el-table-column property="card_num" label="Card Num " width="150" />
+        <!-- <el-table-column property="card4No" label="Card 4" width="200" /> -->
+        <el-table-column property="expireDate" label="Expire Date(YYMM)" />
         <el-table-column property="bindingDate" label="Binding Date" />
       </el-table>
     </el-dialog>
@@ -225,7 +225,8 @@ import { useRoute, useRouter } from 'vue-router'
 import ApiFunc from '@/components/ApiFunc'
 import msi from '@/assets/msi_style'
 import { ElMessageBox, ElMessage } from 'element-plus'
-import { useMStore } from "../stores/m_cloud";
+import { useMStore } from "../stores/m_cloud"
+import moment from "moment"
 const MStore = useMStore();
 const company = MStore?.permission?.company?.name
 const MsiApi = ApiFunc()
@@ -238,11 +239,12 @@ const EditRfidFormVisible = ref(false)
 const BindingCardDialogVisible = ref(false)
 const DeviceDialogVisible = ref(false)
 const userData = reactive([])
+const userDataMod = reactive([])
 const paymentData = reactive([])
 const activeName = ref('first')
 const user_type = reactive([])
 const rfidData = reactive({ rfid: '', cash: 0, enable: true, nickname: '' })
-
+const rfid_title = ref('Add RFID')
 
 const clearEvseList = async () => {
   let sendData = { 'class': 'UserData', 'pk': userData._id, 'evse_list': [] }
@@ -258,6 +260,7 @@ const device_detail = () => {
 }
 
 const card_detail = (data) => {
+  rfid_title.value= 'Edit RFID'
   EditRfidFormVisible.value = true
   modify_card_index.value = data.$index
   rfidData.rfid = data.row.rfid
@@ -321,7 +324,14 @@ const GetPermission = async () => {
 
 const editRfid = () => {
   modify_card_index.value = -1
+  rfid_title.value= 'Add RFID'
   EditRfidFormVisible.value = true
+  rfidData.rfid = ''
+  rfidData.cash = ''
+  rfidData.nickname = ''
+  rfidData.enable = true
+
+  
 }
 
 const editUser = () => {
@@ -339,14 +349,20 @@ const editUserDialog = (action) => {
         permission_id = user_type[i]._id
       }
     }
-    let sendData = {
-      class: 'UserData', pk: userData._id,
-      first_name: userData.first_name, last_name: userData.last_name,
-      email: userData.email, phone: userData.phone,
-      permission: { user: permission_id, active: userData.permission.active },
-    }
+    
     ElMessageBox.confirm('Do you want to modify?', 'Warning', { confirmButtonText: 'OK', cancelButtonText: 'Cancel', type: 'warning' })
       .then(async () => {
+        userData.first_name = userDataMod.first_name
+        userData.last_name = userDataMod.last_name
+        userData.email = userDataMod.email 
+        userData.phone = userDataMod.phone 
+        userData.permission_str = userDataMod.permission_str
+        let sendData = {
+          class: 'UserData', pk: userData._id,
+          first_name: userData.first_name, last_name: userData.last_name,
+          email: userData.email, phone: userData.phone,
+          permission: { user: permission_id, active: userData.permission.active },
+        }
         console.log(await MsiApi.setCollectionData('patch', 'cpo', sendData))
       })
       .catch((e) => {
@@ -364,6 +380,13 @@ const editUserDialog = (action) => {
         console.log(e)
       })
   }
+  else if (action === 'cancel') {
+    userDataMod.first_name = userData.first_name
+    userDataMod.last_name = userData.last_name
+    userDataMod.email = userData.email
+    userDataMod.phone = userData.phone
+    userDataMod.permission_str = userData.permission_str
+  }
 }
 
 onMounted(async () => {
@@ -371,6 +394,11 @@ onMounted(async () => {
   let response = await MsiApi.mongoQuery(queryData)
 
   Object.assign(userData, response.data.all[0])
+
+  let localEndTime =  new Date( (new Date(userData.updated_date).getTime()) + ((MStore.timeZoneOffset ) * -60000))
+  userData.updated_date_str = (moment(localEndTime).format("YYYY-MM-DD HH:mm:ss"))
+  localEndTime =  new Date( (new Date(userData.created_date).getTime()) + ((MStore.timeZoneOffset ) * -60000))
+  userData.created_date_str =  (moment(localEndTime).format("YYYY-MM-DD HH:mm:ss"))
   queryData = { "database": "CPO", "collection": "PaymentHistory", "query": {} }
   response = await MsiApi.mongoQuery(queryData)
   let PaymentDataAll = response.data.all
@@ -386,10 +414,18 @@ onMounted(async () => {
     if (user_type[i]._id === userData.permission.user) {
       userData.permission_str = user_type[i].name
     }
-  }
+    }
+  userDataMod.first_name = userData.first_name
+  userDataMod.last_name = userData.last_name
+  userDataMod.email = userData.email
+  userDataMod.phone = userData.phone
+  userDataMod.permission_str = userData.permission_str
+
 
   for (let i = 0; i < userData?.paylist?.length; i++) {
     userData.paylistArrObj.push(JSON.parse(userData?.paylist?.[i].detail))
+    userData.paylistArrObj[i].card_num = userData.paylistArrObj[i].card6No + '******' +
+    userData.paylistArrObj[i].card4No
   }
 
 
@@ -405,6 +441,9 @@ onMounted(async () => {
   let charge_kwh = 0
   let parking_time_sec = 0
   for (let i = 0; i < paymentData.length; i++) {
+
+    localEndTime =  new Date( (new Date(paymentData[i].created_date).getTime()) + ((MStore.timeZoneOffset ) * -60000))
+    paymentData[i].created_date_str = (moment(localEndTime).format("YYYY-MM-DD HH:mm:ss"))
     paymentData.amount_str = paymentData.length
     cost_str += paymentData[i].price
     for (let j = 0; j < paymentData[i].operator_types.length; j++) {

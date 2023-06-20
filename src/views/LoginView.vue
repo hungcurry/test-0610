@@ -14,7 +14,7 @@
         <br><br>
         <button class="log-in" @click="login()"> {{ $t('log_in') }} </button>
       </div>
-      <p class="version">Version: 0.1.2</p>
+      <p class="version">Version: 0.1.3</p>
       <img class="logo" src="@/assets/img/login_msilogo.png">
     </div>
   </div>

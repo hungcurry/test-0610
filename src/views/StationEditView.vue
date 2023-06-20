@@ -47,9 +47,9 @@
               <el-input v-model="StationData.directions_str"></el-input> -->
               <br>
               <el-checkbox v-model="StationData.publish" label="Publish" size="large" />
-              <el-checkbox v-model="StationData.parking_type_enable" label="Parking Lot" size="large" />
-              <el-checkbox v-model="StationData.charging_when_closed" label="Charging when place is closed"
-                size="large" />
+              <!-- <el-checkbox v-model="StationData.parking_type_enable" label="Parking Lot" size="large" /> -->
+              <!-- <el-checkbox v-model="StationData.charging_when_closed" label="Charging when place is closed"
+                size="large" /> -->
             </div>
           </div>
 
@@ -79,11 +79,11 @@
             </div>
             <div>
               <p>Address </p>
-              <el-input v-model="StationData.address"></el-input>
+              <el-input v-model="StationData.address" placeholder="EX: 中和區立德街69號"></el-input>
             </div>
-            <!-- <div class="button-div">
+            <div class="button-div">
               <el-button class="button" @click="getCoordinates"> Get Coordinates </el-button>
-            </div> -->
+            </div>
           </div>
           <div class="left-down-line2">
             <div>
@@ -98,11 +98,11 @@
           <div class="left-down-line2">
             <div>
               <p>Latitude</p>
-              <el-input v-model="StationData.latitude_str"></el-input>
+              <el-input v-model="StationData.latitude_str" placeholder="EX: 25.007678"></el-input>
             </div>
             <div>
               <p>Longitude</p>
-              <el-input v-model="StationData.longitude_str"></el-input>
+              <el-input v-model="StationData.longitude_str" placeholder="EX: 121.487396"></el-input>
             </div>
 
             <div>
@@ -110,17 +110,17 @@
               <el-input v-model="StationData.time_zone"></el-input>
             </div>
 
-            <!-- <div class="button-div">
-              <el-button class="button" @click="getAddress"> Get Address </el-button>
+            <div class="button-div">
+              <!-- <el-button class="button" @click="getAddress"> Get Address </el-button> -->
               <el-button class="button" @click="getTimeZone"> Get Time Zone </el-button>
-            </div> -->
+            </div>
 
             <!-- <div>
               <p>Postal Code</p>
               <el-input v-model="StationData.postal_code"></el-input>
             </div> -->
           </div>
-          <!-- <p> {{ Coordinates2Addr }}</p> -->
+          <p> {{ Coordinates2Addr }}</p>
         </div>
       </div>
       <div class="v-line">
@@ -171,6 +171,9 @@
           </div>
         </div>
       </div> -->
+
+
+      
     </div>
     <div class="down">
       <el-button class="button" @click="deleteStation"> Delete </el-button>
@@ -366,6 +369,7 @@ const saveStation = async () => {
       sendData.station_id = uuidv4()
       ElMessageBox.confirm('Do you want to create?', 'Warning', { confirmButtonText: 'OK', cancelButtonText: 'Cancel', type: 'warning' })
         .then(async () => {
+          sendData.evses = []
           let response = await MsiApi.setCollectionData('post', 'ocpi', sendData)
           if (response.status === 201) { router.push({ name: 'station' }) }
           else { ElMessage.error(response.data.message) }
@@ -418,7 +422,7 @@ onMounted(async () => {
 
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
 .station-edit {
   height: 100%;
   width: 100%;
@@ -440,10 +444,10 @@ onMounted(async () => {
     height: 80%;
     display: flex;
     flex-direction: row;
-    gap: 4%;
+    gap: 3%;
 
     .left {
-      margin-left: 80px;
+      margin-left: 40px;
       width: 45%;
       height: 100%;
     }
@@ -451,7 +455,7 @@ onMounted(async () => {
     .left-up {
       display: flex;
       flex-direction: column;
-      height: 65%;
+      height: 50%;
 
       .left-up-main {
         display: flex;
@@ -569,6 +573,28 @@ onMounted(async () => {
     height: 10px;
   }
 
+  .el-checkbox {
+    // width: 20px;
+    // height: 20px;
+    .el-checkbox__input.is-checked{
+      .el-checkbox__inner{
+      background-color: rgb(86, 101, 117);
+    }
+    .el-checkbox__label{
+      border-color:  rgb(86, 101, 117);
+    }
+    }
+    .el-checkbox__input {
+      // width: 20px;
+      // height: 20px;
+    .el-checkbox__inner{
+      width: 20px;
+      height: 20px;
+      border-color:  rgb(86, 101, 117);
+    }
 
+    }
+
+  }
 }
 </style>

@@ -1,7 +1,7 @@
 <template>
   <div class="sw-info">
     <div class="sw">
-      <el-button v-if="isMSI" class="add-tariff" @click="add('XP012')"> Add SW Release</el-button>
+      <el-button class="release-btn" v-if="isMSI" @click="add('XP012')"> Add SW Release</el-button>
       <br>
       <span>{{ 'OTA SW Version :' + swData.version }}</span>
       <el-table :data="swData.release_note" style="width: 95%; height:400px" stripe 
@@ -23,7 +23,7 @@
     </div>
     <br><br>
     <div class="fw">
-      <el-button v-if="isMSI" class="add-tariff" @click="add('XP011_BT')"> Add FW Release</el-button>
+      <el-button class="release-btn" v-if="isMSI" @click="add('XP011_BT')"> Add FW Release</el-button>
       <br>
       <span>{{ 'OTA FW Version :' + fwData.version }}</span>
       <el-table :data="fwData.release_note" style="width: 95%; height:400px" stripe 
@@ -49,7 +49,7 @@
         <el-form-item label="Version" >
           <el-input v-model="Detail_Data.version" autocomplete="off" />
         </el-form-item>
-        <el-form-item label="File" >
+        <el-form-item label="File Path" >
           <el-input v-model="Detail_Data.file" autocomplete="off" />
         </el-form-item>
 
@@ -81,6 +81,7 @@ import msi from '@/assets/msi_style'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { useMStore } from "../stores/m_cloud"
 import moment from "moment"
+import { v4 as uuidv4 } from 'uuid'
 const MStore = useMStore()
 const isMSI = ref(false)
 const swData = reactive([])
@@ -111,19 +112,28 @@ const confirm = async (mode) => {
   else if (mode === 'confirm') {
     let queryData = { "database":"CPO", "collection":"VersionControl", "query": {"type": type.value}}
     let response = await MsiApi.mongoQuery(queryData)
-    if (response.data.all[0].release_note === undefined)
-      response.data.all[0].release_note = []
-    let send_release_note = response.data.all[0].release_note
-    if (index.value === -1) {
-      send_release_note.unshift({ version:Detail_Data.version, file:Detail_Data.file, description:Detail_Data.description, update_time: new Date()})
-    }
-    else {
-      send_release_note[index.value] = { version:Detail_Data.version, file:Detail_Data.file, description:Detail_Data.description, update_time: new Date()}
-    }
-    let sendData = { 'class' : 'VersionControl', 'pk': response.data.all[0]._id, 'release_note' : send_release_note}
-    console.log(await MsiApi.setCollectionData('patch', 'cpo', sendData))
+    if (response.data.all.length === 0) {
+    let sendData = { 'class' : 'VersionControl', 'pk': uuidv4(), 'type':type.value, 'version':Detail_Data.version,'release_date': new Date(), 
+                     'release_note' : [{ version:Detail_Data.version, file:Detail_Data.file, description:Detail_Data.description, update_time: new Date() }]
+  }
+    console.log(await MsiApi.setCollectionData('post', 'cpo', sendData))
     swVisible.value = false
-    
+      }
+    else {
+
+      if (response.data.all[0].release_note === undefined)
+        response.data.all[0].release_note = []
+      let send_release_note = response.data.all[0].release_note
+      if (index.value === -1) {
+        send_release_note.unshift({ version:Detail_Data.version, file:Detail_Data.file, description:Detail_Data.description, update_time: new Date()})
+      }
+      else {
+        send_release_note[index.value] = { version:Detail_Data.version, file:Detail_Data.file, description:Detail_Data.description, update_time: new Date()}
+      }
+      let sendData = { 'class' : 'VersionControl', 'pk': response.data.all[0]._id, 'release_note' : send_release_note, }
+      console.log(await MsiApi.setCollectionData('patch', 'cpo', sendData))
+      swVisible.value = false
+  }
     response = await MsiApi.mongoQuery(queryData)
     if (type.value === 'XP012')  {
       swData.length = 0
@@ -196,5 +206,7 @@ onMounted( async() => {
 </script>
 
 <style lang="scss" scoped>
-
+.release-btn {
+  align-items: center;
+}
 </style>

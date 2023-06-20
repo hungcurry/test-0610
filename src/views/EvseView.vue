@@ -1,6 +1,6 @@
 <template>
   <div class="evse">
-    <el-button class="add-charger" @click="add_charger" > Add Charger</el-button>
+    <el-button v-if="editMode === false" class="add-charger" @click="add_charger" > Add Charger</el-button>
     <el-button class="edit" @click="edit" > {{edit_button_str}}</el-button>
     <div class="tabs">
     <el-tabs v-model="activeName" >
@@ -35,7 +35,7 @@
           </template>
           </el-table-column> -->
 
-          <el-table-column prop="last_updated" label="Updated Time" min-width="70"/>
+          <el-table-column prop="last_updated_str" label="Updated Time" min-width="70"/>
           <el-table-column v-if="editMode === false" prop="" label="" min-width="30">
           <template #default="scope">
                 <el-button @click="detail_info(scope.row)"> <font-awesome-icon icon="fa-solid fa-ellipsis" /> </el-button>
@@ -51,7 +51,7 @@
           <el-table class="evse-table" :data="EvseUnConnectData" style="width: 95%; height:800px" stripe 
           :cell-style=msi.tb_cell :header-cell-style=msi.tb_header_cell size="large" @selection-change="handleSelectionChange">
             <el-table-column prop="locationName" label="Station" min-width="80"/>
-            <el-table-column prop="floor_level" label="Floor" min-width="30"/>
+            <el-table-column prop="floor_level" label="Floor Level" min-width="30"/>
             <!-- <el-table-column prop="physical_reference" label="Charger Label" min-width="30"/> -->
             <el-table-column prop="evse_id" label="EVSE ID" min-width="80"/>
             <el-table-column prop="status" label="Status" min-width="60" :filters="status_filter_item" :filter-method="status_filter">
@@ -64,19 +64,19 @@
             </el-table-column>
             <el-table-column prop="hmi_version" label="SW Ver." min-width="50"/>
             <!-- <el-table-column prop="control_version" label="FW Ver." min-width="50"/> -->
-            <el-table-column prop="" label="SW Latest" min-width="40">
+            <el-table-column prop="" label="Latest SW" min-width="40">
             <template #default="scope">
               <p v-if="scope.row.hmi_version === `b'0.1.2.3.fix1'`"> {{ "V" }}</p>
             </template>
             </el-table-column>
-            <el-table-column prop="" label="FW Latest" min-width="40">
+            <!-- <el-table-column prop="" label="FW Latest" min-width="40">
         
             <template #default="scope">
               <p v-if="scope.row.control_version === `b'4.0.12'`"> {{ "V" }}</p>
             </template>
-            </el-table-column>
+            </el-table-column> -->
   
-            <el-table-column prop="last_updated" label="Updated Time" min-width="70"/>
+            <el-table-column prop="last_updated_str" label="Updated Time" min-width="70"/>
             <el-table-column v-if="editMode === false" prop="" label="" min-width="30">
             <template #default="scope">
               <el-button @click="detail_info(scope.row)"> <font-awesome-icon icon="fa-solid fa-ellipsis" /> </el-button>
@@ -117,6 +117,9 @@ import { useRouter, useRoute } from 'vue-router'
 import ApiFunc from '@/components/ApiFunc'
 import msi from '@/assets/msi_style'
 import { ElMessage } from 'element-plus'
+import moment from "moment"
+import { useMStore } from "../stores/m_cloud"
+const MStore = useMStore()
 
 const router = useRouter()
 const multipleSelection = ref([])
@@ -252,7 +255,11 @@ onMounted( async() => {
   response = await MsiApi.mongoAggregate(queryData)
   EvseData.length = 0
 
-  Object.assign(EvseData, response.data.result)
+  Object.assign(EvseData, response.data.result) 
+  for (let i = 0 ; i < EvseData.length; i++ ) {
+  let localEndTime =  new Date( (new Date(EvseData[i].last_updated).getTime()) + ((MStore.timeZoneOffset ) * -60000))
+    EvseData[i].last_updated_str = (moment(localEndTime).format("YYYY-MM-DD HH:mm:ss"))
+  }
 
   for (let i = 0; i < EvseData.length; i++) {
     for (let j = 0; j < locationData.length; j++) {
@@ -303,7 +310,7 @@ onMounted( async() => {
 
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
 
 .evse {
   width: 100%;
@@ -421,6 +428,25 @@ onMounted( async() => {
     background-color: #000000DF;
     color:#FFFFFF;
     border-radius: 20px;
+  }
+
+  .el-checkbox {
+    // width: 20px;
+    // height: 20px;
+    .el-checkbox__input.is-checked{
+      .el-checkbox__inner{
+      background-color:#000000;
+    }
+    }
+    .el-checkbox__input {
+      // width: 20px;
+      // height: 20px;
+    .el-checkbox__inner{
+      width: 20px;
+      height: 20px;
+      border-color: #000000;
+    }
+    }
   }
 }
 :deep(.el-tabs__item){
