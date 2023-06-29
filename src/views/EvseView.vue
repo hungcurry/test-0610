@@ -452,4 +452,18 @@ onMounted( async() => {
 :deep(.el-tabs__item){
   font-size: 30px !important;
 }
+
+.available{
+        color: #76bbf4;
+}
+.charging{
+  color: #94eadb;
+}
+.offline{
+  color: #bcbcbc;
+}
+.error{
+  color: #ef8879;
+}
+
 </style>

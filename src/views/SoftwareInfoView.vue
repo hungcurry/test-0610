@@ -7,7 +7,7 @@
       <el-table :data="swData.release_note" style="width: 95%; height:400px" stripe 
       :cell-style=msi.tb_cell :header-cell-style=msi.tb_header_cell size="large">
         <el-table-column prop="version" label="Version" min-width="5"/>
-        <el-table-column prop="description" label="description" min-width="15"/>
+        <el-table-column prop="description" label="Description" min-width="15"/>
         <el-table-column prop="update_time_str" label="Update Time" min-width="10"/>
         <el-table-column v-if="isMSI" prop="" label="Release" min-width="5">
           <template #default="scope">
@@ -82,6 +82,7 @@ import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { useMStore } from "../stores/m_cloud"
 import moment from "moment"
 import { v4 as uuidv4 } from 'uuid'
+import {  ElMessage } from 'element-plus'
 const MStore = useMStore()
 const isMSI = ref(false)
 const swData = reactive([])
@@ -92,6 +93,7 @@ const dialog_title = ref('')
 const Detail_Data = reactive([])
 const type = ref('')
 const index = ref('')
+
 
 
 const download_File = () => {
@@ -106,47 +108,59 @@ const download_File = () => {
 }
 
 const confirm = async (mode) => {
+  let check_format_sucess = true
   if (mode === 'cancel') {
     swVisible.value = false
   }
   else if (mode === 'confirm') {
-    let queryData = { "database":"CPO", "collection":"VersionControl", "query": {"type": type.value}}
-    let response = await MsiApi.mongoQuery(queryData)
-    if (response.data.all.length === 0) {
-    let sendData = { 'class' : 'VersionControl', 'pk': uuidv4(), 'type':type.value, 'version':Detail_Data.version,'release_date': new Date(), 
-                     'release_note' : [{ version:Detail_Data.version, file:Detail_Data.file, description:Detail_Data.description, update_time: new Date() }]
-  }
-    console.log(await MsiApi.setCollectionData('post', 'cpo', sendData))
-    swVisible.value = false
-      }
-    else {
 
-      if (response.data.all[0].release_note === undefined)
-        response.data.all[0].release_note = []
-      let send_release_note = response.data.all[0].release_note
-      if (index.value === -1) {
-        send_release_note.unshift({ version:Detail_Data.version, file:Detail_Data.file, description:Detail_Data.description, update_time: new Date()})
+    if (Detail_Data.version === '' || Detail_Data.version === undefined) {
+      ElMessage.error('Oops, Version required.')
+      check_format_sucess = false
+    }
+    if (Detail_Data.file === '' || Detail_Data.file === undefined) {
+      ElMessage.error('Oops, file path required.')
+      check_format_sucess = false
+    }
+    if (check_format_sucess === true) {
+      let queryData = { "database":"CPO", "collection":"VersionControl", "query": {"type": type.value}}
+      let response = await MsiApi.mongoQuery(queryData)
+
+      if (response.data.all.length === 0) {
+        let sendData = { 'class' : 'VersionControl', 'pk': uuidv4(), 'type':type.value, 'version':Detail_Data.version,'release_date': new Date(), 
+                        'release_note' : [{ version:Detail_Data.version, file:Detail_Data.file, description:Detail_Data.description, update_time: new Date() }]
+        }
+        console.log(await MsiApi.setCollectionData('post', 'cpo', sendData))
+        swVisible.value = false
       }
       else {
-        send_release_note[index.value] = { version:Detail_Data.version, file:Detail_Data.file, description:Detail_Data.description, update_time: new Date()}
-      }
-      let sendData = { 'class' : 'VersionControl', 'pk': response.data.all[0]._id, 'release_note' : send_release_note, }
-      console.log(await MsiApi.setCollectionData('patch', 'cpo', sendData))
-      swVisible.value = false
-  }
-    response = await MsiApi.mongoQuery(queryData)
-    if (type.value === 'XP012')  {
-      swData.length = 0
-      Object.assign(swData , response.data.all[0])
-      for (let i = 0; i < swData?.release_note?.length; i++) {
-        swData.release_note[i].update_time_str = (moment(swData.release_note[i].update_time).format("YYYY-MM-DD HH:mm:ss"))
-      }
+        if (response.data.all[0].release_note === undefined)
+          response.data.all[0].release_note = []
+        let send_release_note = response.data.all[0].release_note
+        if (index.value === -1) {
+          send_release_note.unshift({ version:Detail_Data.version, file:Detail_Data.file, description:Detail_Data.description, update_time: new Date()})
+        }
+        else {
+          send_release_note[index.value] = { version:Detail_Data.version, file:Detail_Data.file, description:Detail_Data.description, update_time: new Date()}
+        }
+        let sendData = { 'class' : 'VersionControl', 'pk': response.data.all[0]._id, 'release_note' : send_release_note, }
+        console.log(await MsiApi.setCollectionData('patch', 'cpo', sendData))
+        swVisible.value = false
     }
-    else if(type.value === 'XP011_BT') {
-      fwData.length = 0
-      Object.assign(fwData, response.data.all[0])
-      for (let i = 0; i < fwData?.release_note?.length; i++) {
-        fwData.release_note[i].update_time_str = (moment(fwData.release_note[i].update_time).format("YYYY-MM-DD HH:mm:ss"))
+      response = await MsiApi.mongoQuery(queryData)
+      if (type.value === 'XP012')  {
+        swData.length = 0
+        Object.assign(swData , response.data.all[0])
+        for (let i = 0; i < swData?.release_note?.length; i++) {
+          swData.release_note[i].update_time_str = (moment(swData.release_note[i].update_time).format("YYYY-MM-DD HH:mm:ss"))
+        }
+      }
+      else if(type.value === 'XP011_BT') {
+        fwData.length = 0
+        Object.assign(fwData, response.data.all[0])
+        for (let i = 0; i < fwData?.release_note?.length; i++) {
+          fwData.release_note[i].update_time_str = (moment(fwData.release_note[i].update_time).format("YYYY-MM-DD HH:mm:ss"))
+        }
       }
     }
   }
@@ -158,7 +172,13 @@ const add = (selectType) => {
   Detail_Data.description = ''
   Detail_Data.update_time_str = ''
 
-  dialog_title.value = selectType
+  if (selectType === 'XP012') {
+    dialog_title.value = 'Add SW Release Note'
+  }
+  else if (selectType === 'XP011_BT') {
+    dialog_title.value = 'Add FW Release Note'
+  }
+
   swVisible.value = true  
   type.value = selectType
   index.value = -1

@@ -92,17 +92,13 @@ export default function () {
 
   const checkToken = async function () {
     AuthToken = VueCookies.get('AuthToken')
-    if (AuthToken === null)
-      return 0
-    else {
-      const response = await getJsonData(api1 + '/member/about', AuthToken)
-      if (response.status === 200) {
-        return response
-      }
-      else
-        return 0
+    const response = await getJsonData(api1 + '/member/about', AuthToken)
+    if (response.status === 200) {
+      return response
     }
-  }
+    else
+      return 0
+}
 
   const mongoQuery = async (json) => {
     AuthToken = VueCookies.get('AuthToken')
@@ -117,8 +113,6 @@ export default function () {
   }
 
   const register_member = async (json) => {
-    // AuthToken = VueCookies.get('AuthToken')
-    // const response = await postJsonData(api1 + '/member/register', json, AuthToken)
     const response = await postJsonData(api1 + '/member/register', json)
     return response
   }
@@ -159,8 +153,28 @@ export default function () {
     return response
   }
 
+  const bind_card = async () => {
+    AuthToken = VueCookies.get('AuthToken')
+    const response = await getJsonData(api1 + '/payment/newebpay/bindingCard', AuthToken)
+    return response
+  }
+
+  const search_bind_card = async () => {
+    AuthToken = VueCookies.get('AuthToken')
+    const response = await getJsonData(api1 + '/payment/searchBindingCards', AuthToken)
+    return response
+  }
+
+  const unregister_bind_card = async (json) => {
+    AuthToken = VueCookies.get('AuthToken')
+    const response = await delJsonData(api1 + '/payment/newebpay/unregisterBindingCard', json, AuthToken)
+    return response
+  }
+
+
   return {
       setCollectionData, getToken, checkToken, mongoQuery, mongoAggregate,
       register_member,  resetPW, reset_evse, updateFw, getTimeZone, getCoordinates, getAddress,
+      bind_card, search_bind_card, unregister_bind_card      
   }
 }

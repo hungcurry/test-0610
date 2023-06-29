@@ -1,10 +1,5 @@
 <template>
   <div class="customer">
-    <el-input class="search-input" v-model="input" placeholder="Please input" @keyup.enter.native="search">
-      <template #append>
-        <el-button :icon="Search" @click="search" />
-      </template>
-    </el-input>
 
     <el-button class="add-user-btn" @click="addAdminUser"> Add Admin </el-button>
 
@@ -96,7 +91,6 @@
 </template>
 
 <script setup>
-import { Search } from '@element-plus/icons-vue'
 import { ref, reactive, onMounted } from 'vue'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import ApiFunc from '@/components/ApiFunc'
@@ -115,7 +109,6 @@ const UserData = reactive([])
 const user_type = reactive([])
 const editAdminData = reactive([])
 
-const input = ref('')
 const UserTable = [{ label: 'First Name', value: 'first_name', width: '80' }, { label: 'Last Name', value: 'last_name', width: '80' },
 { label: 'Email', value: 'email', width: '80' }, { label: 'Phone', value: 'phone', width: '80' },
 { label: 'Permission', value: 'permission_str', width: '80' }, { label: 'Updated Date', value: 'updated_date_str', width: '80' },
@@ -231,6 +224,9 @@ const AddAdmin = async (action, visable) => {
             let queryData = { "database": "CPO", "collection": "AdminUserData", "query": {} }
             console.log(await MongoQurey(queryData))
           }
+          else if(res.status === 200) {
+            ElMessage.error('email already exists')
+          }
         })
         .catch((e) => {
           console.log(e)
@@ -239,42 +235,32 @@ const AddAdmin = async (action, visable) => {
   }
 }
 
-const search = async () => {
-  let queryData = null
-  if (input.value === '') {
-    queryData = { "database": "CPO", "collection": "CompanyInformation", "query": {} }
-  }
-  else {
-    queryData = {
-      "database": "CPO", "collection": "CompanyInformation", "query": {
-        "$or": [
-          { "name": { "$regex": input.value, "$options": "i" } }, { "party_id": { "$regex": input.value, "$options": "i" } },
-          { "country": { "$regex": input.value, "$options": "i" } }, { "city": { "$regex": input.value, "$options": "i" } },
-          { "address": { "$regex": input.value, "$options": "i" } }, { "phone": { "$regex": input.value, "$options": "i" } },
-          { "updated_date_str": { "$regex": input.value, "$options": "i" } },
-        ]
-      }
-    }
-  }
-  await MongoQurey(queryData)
-}
-
 const MongoQurey = async (queryData) => {
   isLoading.value = true
-  let response = await MsiApi.mongoQuery(queryData)
+  
+  queryData  = { "database": "CPO", "collection": "CompanyInformation", "pipelines": [ 
+    { $match:  { "name": { "$eq": MStore.permission.company.name } } }, { "$project": { "_id": 1} }
+  ]}
+  let res = await MsiApi.mongoAggregate(queryData)
+
+  queryData = { "database": "CPO", "collection": "AdminUserData", "pipelines": [
+                { $match: { "byCompany": { "$eq": { "ObjectId" : res.data.result[0]._id} } } }, 
+                { "$project": { "_id": 0, "hashed_password_1": 0,"hashed_password_2": 0,"salt": 0} }
+  ]}
+  res = (await MsiApi.mongoAggregate(queryData))
   UserData.length = 0
-  Object.assign(UserData, response.data.all)
+  Object.assign(UserData, res.data.result)
   for (let i = 0; i < UserData.length; i++) {
     let localEndTime =  new Date( (new Date(UserData[i].updated_date).getTime()) + ((MStore.timeZoneOffset ) * -60000))
     UserData[i].updated_date_str = (moment(localEndTime).format("YYYY-MM-DD HH:mm:ss"))
-    for (let j = 0; j < user_type.length; j++) {
+    for (let j = 0; j < user_type.length; j++) {     
       if (UserData[i].permission.user === user_type[j]._id) {
         UserData[i].permission_str = user_type[j].name
       }
     }
   }
   isLoading.value = false
-  return response
+  return res.data.result
 }
 
 const GetPermission = async () => {

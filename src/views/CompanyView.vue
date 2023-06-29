@@ -43,9 +43,9 @@
         <el-input v-model="companyData.address" autocomplete="off" />
       </el-form-item>
 
-      <!-- <el-form-item label="Tax " >
-        <el-input v-model="companyData.taxID" autocomplete="off" />
-      </el-form-item> -->
+      <el-form-item label="Tax" >
+        <el-input v-model="companyData.tax_id" autocomplete="off" />
+      </el-form-item>
 
       <el-form-item label="Phone" >
         <el-input v-model="companyData.phone" autocomplete="off" />
@@ -115,7 +115,7 @@ const UserTable = [ {label:'Name', value:'name', width:'80'},
                     {label:'Country', value:'country', width:'60'}, {label:'City', value:'city', width:'60'}, 
                     {label:'Address', value:'address', width:'80'}, {label:'Phone', value:'phone', width:'60'}, 
                     // {label:'Remark', value:'remark', width:'80'}, 
-                    // {label:'Tax ID', value:'taxID', width:'40'}, 
+                    {label:'Tax ID', value:'tax_id', width:'40'}, 
                     {label:'Updated Date', value:'updated_date_str', width:'80'}, {label:'', value:'detail', width:'40', type:'button'}
                   ]
   
@@ -138,10 +138,11 @@ const search = async () => {
   else {
     queryData = { "database":"CPO", "collection":"CompanyInformation", "query": {
       "$or" : [ {"name":{"$regex": input.value ,"$options":"i"} } , 
-                {"party_id":{"$regex": input.value ,"$options":"i"} } , 
+                // {"party_id":{"$regex": input.value ,"$options":"i"} } , 
                 {"country":{"$regex": input.value ,"$options":"i"} } , {"city":{"$regex": input.value ,"$options":"i"} } , 
                 {"address":{"$regex": input.value ,"$options":"i"} } , {"phone":{"$regex": input.value ,"$options":"i"} } , 
-                {"remark":{"$regex": input.value ,"$options":"i"} } , {"taxID":{"$regex": input.value ,"$options":"i"} } , 
+                // {"remark":{"$regex": input.value ,"$options":"i"} } , 
+                // {"tax_id":{"$regex": input.value ,"$options":"i"} } , 
                 {"updated_date_str":{"$regex": input.value ,"$options":"i"} } , 
               ]
     }}
@@ -159,7 +160,8 @@ const detail_info = (detail) => {
 
 const editCompany = async (action) => {
   CompanyFormVisible.value = false
-
+  companyData.invoice.owner = 'ezPay'
+  companyData.payment.owner = 'NewebPay'
   if (edit_mode.value === 'create') {
     if (action === 'confirm') {
       let sendData = {  class : 'CompanyInformation', name: companyData.name,
@@ -167,7 +169,8 @@ const editCompany = async (action) => {
                         city:companyData.city, detail:companyData.detail, 
                         // remark:companyData.remark,
                         invoice:companyData.invoice, payment:companyData.payment,
-                        address:companyData.address, phone:companyData.phone
+                        address:companyData.address, phone:companyData.phone,
+                        tax_id:companyData.tax_id
                       }
       if (sendData.name === undefined || sendData.name === '') {  
         ElMessage.error('Oops, Name required.')
@@ -193,7 +196,8 @@ const editCompany = async (action) => {
                         city:companyData.city, detail:companyData.detail, 
                         // remark:companyData.remark,
                         invoice:companyData.invoice, payment:companyData.payment,
-                        address:companyData.address, phone:companyData.phone
+                        address:companyData.address, phone:companyData.phone,
+                        tax_id:companyData.tax_id
                       }
       ElMessageBox.confirm('Do you want to modify?','Warning', {confirmButtonText: 'OK', cancelButtonText: 'Cancel', type: 'warning'})
       .then(async () => {

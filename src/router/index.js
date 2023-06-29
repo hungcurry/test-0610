@@ -23,6 +23,7 @@ import SoftwareInfoView from '@/views/SoftwareInfoView.vue'
 import OcppErrorView from '@/views/OcppErrorView.vue'
 import TestView from '@/views/TestView.vue'
 import ParkingView from '@/views/ParkingView.vue'
+import UserView from '@/views/UserView.vue'
 
 
 const router = createRouter({
@@ -42,6 +43,7 @@ const router = createRouter({
           path: 'dashboard',
           name: 'dashboard',
           component: DashboardView,
+          meta: { title: 'm-Cloud' }
         },
         {
           path: 'stationDetail',
@@ -123,8 +125,7 @@ const router = createRouter({
         {
           path: 'ocppError',
           name: 'ocppError',
-          component: OcppErrorView,
-          meta: { title: 'ocppError' }
+          component: OcppErrorView
         },
         {
           path: 'test',
@@ -136,41 +137,60 @@ const router = createRouter({
           name: 'parking',
           component: ParkingView
         },
+        {
+          path: 'user',
+          name: 'user',
+          component: UserView
+        },        
       ]
     }
   ]
 })
 
 router.beforeEach(async to => {
+
+  if (to.meta.title) {
+    document.title = to.meta.title
+  }
+  else {
+    document.title = "m-Cloud"
+  }
+
   if (to.fullPath === '/login') return
 
   const MStore = useMStore()
   const MsiApi = ApiFunc()
   if (MStore.timeZoneOffset === undefined) 
     MStore.timeZoneOffset = new Date().getTimezoneOffset()
-
-
   if (MStore.permission === undefined) {
     let res = await MsiApi.checkToken()
-    MStore.permission = res.data.permission
+    console.log(res)
+    if (res === 0) 
+      return '/login'  
+    else {
+      MStore.permission = res.data.permission
+      MStore.user_data.first_name = res.data.first_name
+      MStore.user_data.last_name = res.data.last_name
+      MStore.user_data.email = res.data.email
+    }
   }
-
 
   if (MStore.permission === 0) 
     return '/login'
-
-  let res = await MsiApi.checkToken()
-
 
   if (to.fullPath === '/company' && MStore.permission.company.name !== 'MSI' ) {
     return '/login'
   }
 
-  if (to.fullPath === '/parking' && res.data.first_name !== 'Steven' && res.data.first_name !== 'Leo' && res.data.first_name !== 'Frank') {
+  if (to.fullPath === '/parking' && MStore.user_data.first_name !== 'Steven' && MStore.user_data.first_name !== 'Leo' && MStore.user_data.first_name !== 'Frank') {
     return '/login'
   }
 
-  if (to.fullPath === '/test' && res.data.first_name !== 'Steven' && res.data.first_name !== 'Leo' && res.data.first_name !== 'Frank' ) {
+  if (to.fullPath === '/test' && MStore.user_data.first_name !== 'Steven' && MStore.user_data.first_name !== 'Leo' && MStore.user_data.first_name !== 'Frank' ) {
+    return '/login'
+  }
+
+  if (to.fullPath === '/user' && MStore.user_data.first_name !== 'Steven' && MStore.user_data.first_name !== 'Leo' && MStore.user_data.first_name !== 'Frank' ) {
     return '/login'
   }
 

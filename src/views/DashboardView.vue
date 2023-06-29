@@ -349,7 +349,7 @@ onMounted(async () => {
           error_evse.push({name:EvseData[i].locationName, id: EvseData[i].locationId, error_count:1 ,unknown_count:0, url: '/stationDetail?id=' + EvseData[i].locationId})        
     }
   }
-  for(let i = 0; error_evse.length; i++) {
+  for(let i = 0; i < error_evse.length; i++) {
     if (error_evse[i].name === undefined) {
       error_evse[i].name = 'unpaired'
       if (import.meta.env.VITE_BASE_URL !== undefined)

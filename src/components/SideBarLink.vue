@@ -4,7 +4,7 @@
       <el-menu-item index="dashboard">
         <span>Dashboard</span>
       </el-menu-item>
-      <el-menu-item v-if="userPermission !== 'EngineerUser'" index="paymentHistory">
+      <el-menu-item v-if="user === 'AdminUser'" index="paymentHistory">
         <span>Payment</span>
       </el-menu-item>
       <el-sub-menu index="station">
@@ -45,21 +45,14 @@
 
 <script setup>
 import { onMounted,ref } from 'vue'
-import { useMStore } from "../stores/m_cloud";
-import ApiFunc from '@/components/ApiFunc'
-const MStore = useMStore();
+import { useMStore } from "../stores/m_cloud"
+const MStore = useMStore()
 const company = MStore?.permission?.company?.name
+const user = MStore?.permission?.user?.name
 const dev_member = ref(false)
-const MsiApi = ApiFunc()
-
-const userPermission = ref('')
 
 onMounted( async () => {
-  let res = await MsiApi.checkToken()
-  console.log(res.data.permission)
-  // console.log(res.data.permission.user.name)
-  userPermission.value = res?.data?.permission?.user?.name
-  if(res.data.first_name === 'Steven' || res.data.first_name === 'Leo' || res.data.first_name === 'Frank') {
+  if (MStore.user_data.first_name === 'Steven' || MStore.user_data.first_name === 'Leo' || MStore.user_data.first_name === 'Frank') {
     dev_member.value = true
   }
 })

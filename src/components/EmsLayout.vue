@@ -6,6 +6,7 @@
         <header-layout :left_component="MStore.header_left_component" />
         <main-content />
       </div>
+      <p class="logout">{{ logoutTime }}</p>
     </div>
   </div>
 </template>
@@ -91,5 +92,13 @@ onUnmounted(() => {
 
     }
   }
+}
+.logout{
+  bottom: 10px;
+  left :10px ;
+  font-size: 10px;
+  position: absolute;
+  color: #c5cdd8;
+
 }
 </style>

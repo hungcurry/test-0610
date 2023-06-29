@@ -71,8 +71,12 @@
               <p class="connector-value">{{connectorData.power_type}} </p>
             </div>    -->
             <div class="connector-item">
-              <p class="connector-title">Max Voltage / Amperage</p>
-              <p class="connector-value">{{connectorData.max_voltage + ' V '+ ' / ' + connectorData.max_amperage + ' A '}}</p>
+              <p class="connector-title">Max Voltage</p>
+              <p class="connector-value">{{connectorData.max_voltage + ' V '}}</p>
+            </div>   
+            <div class="connector-item">
+              <p class="connector-title">Max Amperage</p>
+              <p class="connector-value">{{connectorData.max_amperage + ' A '}}</p>
             </div>   
             <div class="connector-item">
               <p class="connector-title">Max Electric Power</p>
@@ -146,7 +150,7 @@
           </div>
           <div class="tariff-container-header-right">
             <div class="tariff-itme">
-              <p class="tariff-title">Rate alt text</p>
+              <p class="tariff-title">Rate Alt Text</p>
               <p class="tariff-value1">{{ tariffData.tariff_alt_text_str}}</p>
             </div>
           </div>
@@ -154,13 +158,13 @@
 
         <el-table :data="tariff_elements" style="width: 95%; height:400px" stripe 
 					:cell-style=msi.tb_cell :header-cell-style=msi.tb_header_cell size="large">
-          <el-table-column prop="price_components[0].type" label="type" min-width="50"/>
-          <el-table-column prop="price_components[0].price" label="price" min-width="50"/>
-          <el-table-column prop="price_components[0].vat" label="vat" min-width="50"/>
-          <el-table-column prop="price_components[0].step_size" label="step_size" min-width="50"/>
-          <el-table-column prop="restrictions.start_time" label="start_time" min-width="50"/>
-          <el-table-column prop="restrictions.end_time" label="end_time" min-width="50"/>
-          <el-table-column prop="restrictions.day_of_week" label="day_of_week" min-width="50"/>
+          <el-table-column prop="price_components[0].type" label="Type" min-width="50"/>
+          <el-table-column prop="price_components[0].price" label="Price" min-width="50"/>
+          <el-table-column prop="price_components[0].vat" label="Vat" min-width="50"/>
+          <el-table-column prop="price_components[0].step_size" label="Step Size" min-width="50"/>
+          <el-table-column prop="restrictions.start_time" label="Start Time" min-width="50"/>
+          <el-table-column prop="restrictions.end_time" label="End Time" min-width="50"/>
+          <el-table-column prop="restrictions.day_of_week" label="Day Of Week" min-width="50"/>
         </el-table>
       </div>
     </div>

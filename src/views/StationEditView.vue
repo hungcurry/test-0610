@@ -176,7 +176,8 @@
       
     </div>
     <div class="down">
-      <el-button class="button" @click="deleteStation"> Delete </el-button>
+      <el-button class="button" v-if="station_id" @click="deleteStation"> Delete </el-button>
+      <el-button class="button" @click="backStation"> Cancel </el-button>
       <el-button class="button" @click="saveStation"> Save </el-button>
     </div>
   </div>
@@ -264,6 +265,10 @@ const change_all_time = () => {
 
 const change_all_week = () => {
   w1check.value = w2check.value = w3check.value = w4check.value = w5check.value = w6check.value = w7check.value = w0check.value
+}
+
+const backStation = () => {
+  router.back(-1)
 }
 
 const deleteStation = () => {
@@ -422,7 +427,7 @@ onMounted(async () => {
 
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss" >
 .station-edit {
   height: 100%;
   width: 100%;

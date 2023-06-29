@@ -335,7 +335,12 @@ const editRfid = () => {
 }
 
 const editUser = () => {
-  EditCustomerFormVisible.value = true
+  userDataMod.first_name = userData.first_name
+  userDataMod.last_name = userData.last_name
+  userDataMod.email = userData.email
+  userDataMod.phone = userData.phone
+  userDataMod.permission_str = userData.permission_str
+  EditCustomerFormVisible.value = true 
   GetPermission()
 }
 
@@ -414,12 +419,7 @@ onMounted(async () => {
     if (user_type[i]._id === userData.permission.user) {
       userData.permission_str = user_type[i].name
     }
-    }
-  userDataMod.first_name = userData.first_name
-  userDataMod.last_name = userData.last_name
-  userDataMod.email = userData.email
-  userDataMod.phone = userData.phone
-  userDataMod.permission_str = userData.permission_str
+  }
 
 
   for (let i = 0; i < userData?.paylist?.length; i++) {

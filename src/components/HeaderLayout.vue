@@ -34,6 +34,7 @@
           <el-dropdown-menu>
             <el-dropdown-item @click="logOut()">Log Out</el-dropdown-item>
             <el-dropdown-item @click="resetPW()">Reset Password</el-dropdown-item>
+            <!-- <el-dropdown-item @click="Personal_Info()">Personal Info</el-dropdown-item> -->
           </el-dropdown-menu>
         </template>
       </el-dropdown>
@@ -77,6 +78,10 @@ const reset_password2 = ref('')
 const English = () => { i18n.global.locale.value = 'en_us' }
 const Chinese = () => { i18n.global.locale.value = 'zh_tw' }
 
+
+const Personal_Info = () => {
+  router.push({ name: 'user' })
+}
 
 const logOut = () => {
   router.push({ name: 'login' })
