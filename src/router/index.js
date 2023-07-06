@@ -24,6 +24,7 @@ import OcppErrorView from '@/views/OcppErrorView.vue'
 import TestView from '@/views/TestView.vue'
 import ParkingView from '@/views/ParkingView.vue'
 import UserView from '@/views/UserView.vue'
+import ProgramView from '@/views/ProgramView.vue'
 
 
 const router = createRouter({
@@ -141,14 +142,19 @@ const router = createRouter({
           path: 'user',
           name: 'user',
           component: UserView
-        },        
+        },    
+        {
+          path: 'program',
+          name: 'program',
+          component: ProgramView
+        },       
       ]
     }
   ]
 })
 
 router.beforeEach(async to => {
-
+  
   if (to.meta.title) {
     document.title = to.meta.title
   }
@@ -164,7 +170,6 @@ router.beforeEach(async to => {
     MStore.timeZoneOffset = new Date().getTimezoneOffset()
   if (MStore.permission === undefined) {
     let res = await MsiApi.checkToken()
-    console.log(res)
     if (res === 0) 
       return '/login'  
     else {
@@ -177,20 +182,26 @@ router.beforeEach(async to => {
 
   if (MStore.permission === 0) 
     return '/login'
+  
+  let toPath = to.fullPath.toLowerCase()
 
-  if (to.fullPath === '/company' && MStore.permission.company.name !== 'MSI' ) {
+  if (toPath === '/company' && MStore.permission.company.name !== 'MSI' ) {
+    return '/login'
+  }
+  
+  if (toPath === '/program' && MStore.permission.company.name !== 'MSI' ) {
     return '/login'
   }
 
-  if (to.fullPath === '/parking' && MStore.user_data.first_name !== 'Steven' && MStore.user_data.first_name !== 'Leo' && MStore.user_data.first_name !== 'Frank') {
+  if (toPath === '/parking' && MStore.user_data.first_name !== 'Steven' && MStore.user_data.first_name !== 'Leo' && MStore.user_data.first_name !== 'Frank') {
     return '/login'
   }
 
-  if (to.fullPath === '/test' && MStore.user_data.first_name !== 'Steven' && MStore.user_data.first_name !== 'Leo' && MStore.user_data.first_name !== 'Frank' ) {
+  if (toPath === '/test' && MStore.user_data.first_name !== 'Steven' && MStore.user_data.first_name !== 'Leo' && MStore.user_data.first_name !== 'Frank' ) {
     return '/login'
   }
 
-  if (to.fullPath === '/user' && MStore.user_data.first_name !== 'Steven' && MStore.user_data.first_name !== 'Leo' && MStore.user_data.first_name !== 'Frank' ) {
+  if (toPath === '/user' && MStore.user_data.first_name !== 'Steven' && MStore.user_data.first_name !== 'Leo' && MStore.user_data.first_name !== 'Frank' ) {
     return '/login'
   }
 

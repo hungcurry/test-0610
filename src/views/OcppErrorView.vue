@@ -11,15 +11,18 @@
 			<el-table :data="ocppErrorData" style="width: 95%; height:95%" stripe  :cell-style=msi.tb_cell  :header-cell-style=msi.tb_header_cell size="large" v-loading = "isLoading">
           <el-table-column prop="evse_id" label="EVSE ID" min-width="10"/>
           <el-table-column prop="ocpp_errorCode" label="Error Code" min-width="10"/>
-          <el-table-column prop="vendorErrorCode" label="VendorErrorCode" min-width="10">
+          <el-table-column prop="vendorErrorCode" label="VendorErrorCode" min-width="10"/>
+          <!-- <el-table-column prop="level" label="Level" min-width="10"/> -->
+          <el-table-column prop="ocpp_firmware_status" label="OCPP FW Status" min-width="10"/>
+          <el-table-column prop="ocpp_status" label="OCPP Status" min-width="10">
           <template #header>
             <div class="custom-header">
-              <span>VendorErrorCode</span>
+              <span>OCPP Status</span>
               <el-button type="text" size="small" @click="handleButtonClick">?</el-button>
             </div>
           </template>
           </el-table-column>
-          <el-table-column prop="created_date_str" label="Created Time" min-width="10"/>
+          <el-table-column prop="created_date_str" label="Created Time" min-width="10" sortable='sortable' />
 			</el-table>
 		</div>
 
@@ -74,17 +77,17 @@ const handleButtonClick = () => {
   ErrorCodeVisible.value = true
 }
 
-const ocppErrorTabel = [    
-  {label:'EVSE ID', value:'evse_id', width:'10'},
-  {label:'Error Code', value:'ocpp_errorCode', width:'10'},
-  {label:'VendorErrorCode', value:'vendorErrorCode', width:'10'},
-  {label:'Created Time', value:'created_date',width:'12'},
-                        // {label:'Level', value:'level', width:'5'}, 
-                        // {label:'Status', value:'ocpp_status', width:'6'},
-                        // {label:'Vendor', value:'vendorId', width:'5'},
-                        // {label:'Read', value:'read',width:'5'},
-                        // {label:'Operator', value:'',width:'15'},
-                        ]
+// const ocppErrorTabel = [    
+//   {label:'EVSE ID', value:'evse_id', width:'10'},
+//   {label:'Error Code', value:'ocpp_errorCode', width:'10'},
+//   {label:'VendorErrorCode', value:'vendorErrorCode', width:'10'},
+//   {label:'Created Time', value:'created_date',width:'12'},
+//   // {label:'Level', value:'level', width:'5'}, 
+//   // {label:'Status', value:'ocpp_status', width:'6'},
+//   // {label:'Vendor', value:'vendorId', width:'5'},
+//   // {label:'Read', value:'read',width:'5'},
+//   // {label:'Operator', value:'',width:'15'},
+//   ]
 
 
 const getEVSEOCPPLogs = async() => {
@@ -102,10 +105,11 @@ const getEVSEOCPPLogs = async() => {
           }
         }
       },
-      { "$project": { "_id": 0, 'created_date': 1, 'evse_id': 1, 'ocpp_errorCode': 1, 'vendorErrorCode': 1} }
+      // { "$project": { "_id": 0, 'created_date': 1, 'evse_id': 1, 'ocpp_errorCode': 1, 'vendorErrorCode': 1} }
     ]
   }
   let response = await MsiApi.mongoAggregate(queryData)
+  console.log(response)
   if (response.status === 200) {
     ocppErrorData.splice(0, ocppErrorData.length)
     Object.assign(ocppErrorData, response.data.result)

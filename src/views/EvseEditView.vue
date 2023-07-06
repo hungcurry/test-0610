@@ -144,7 +144,7 @@ const CancelEvseEdit = () => {
   router.back(-1)
 }
 const SaveEvseEdit = async () => {
-  let check_format_sucess = true
+  let check_format_success = true
 
   if (evse_id === undefined) { 
     if(select_profile.value !== '')
@@ -153,15 +153,15 @@ const SaveEvseEdit = async () => {
     MsiFunc.deleteEmptyKeys(connector_obj)
     MsiFunc.deleteEmptyKeys(evse_obj)
     if (evse_obj.evse_id === undefined ) {
-      check_format_sucess = false
+      check_format_success = false
       ElMessage.error('Oops, EVSE ID required.')
     }
     if (connector_obj.tariff_ids[0] === undefined) {
-      check_format_sucess = false
+      check_format_success = false
       ElMessage.error('Oops, Rate Profile required.')
     }
 
-    if (check_format_sucess === true) {
+    if (check_format_success === true) {
       ElMessageBox.confirm('Do you want to create?','Warning', {confirmButtonText: 'OK', cancelButtonText: 'Cancel', type: 'warning'})
       .then(async () => {
         let response = await MsiApi.setCollectionData('post', 'ocpi', connector_obj)

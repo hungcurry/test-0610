@@ -291,7 +291,7 @@ const deleteStation = () => {
 }
 
 const saveStation = async () => {
-  let check_format_sucess = true
+  let check_format_success = true
   const coordinates = { latitude: parseFloat(StationData.latitude_str).toFixed(6), longitude: parseFloat(StationData.longitude_str).toFixed(6) }
   let sendData = {
     'class': 'Location', 'id': station_id,
@@ -314,7 +314,7 @@ const saveStation = async () => {
 
   if (StationData.address1 === undefined) {
     ElMessage.error('Oops, address en required.')
-    check_format_sucess = false
+    check_format_success = false
   }
   else {
     sendData.address += '\n' + StationData.address1
@@ -322,7 +322,7 @@ const saveStation = async () => {
 
   if (StationData.city1 === undefined) {
     ElMessage.error('Oops, city en required.')
-    check_format_sucess = false
+    check_format_success = false
   }
   else {
     sendData.city += '\n' + StationData.city1
@@ -332,44 +332,44 @@ const saveStation = async () => {
 
   if (sendData.country_code === undefined) {
     ElMessage.error('Oops, Country code required.')
-    check_format_sucess = false
+    check_format_success = false
   }
   if (sendData.name === undefined) {
     ElMessage.error('Oops, Name required.')
-    check_format_sucess = false
+    check_format_success = false
   }
   if (sendData.party_id === undefined) {
     ElMessage.error('Oops, Party ID required.')
-    check_format_sucess = false
+    check_format_success = false
   }
   if (sendData.publish === undefined) {
     sendData.publish = false
   }
   if (sendData.address === undefined) {
     ElMessage.error('Oops, Address required.')
-    check_format_sucess = false
+    check_format_success = false
   }
   if (sendData.city === undefined) {
     ElMessage.error('Oops, City required.')
-    check_format_sucess = false
+    check_format_success = false
   }
   if (sendData.country === undefined) {
     ElMessage.error('Oops, Country required.')
-    check_format_sucess = false
+    check_format_success = false
   }
   if (sendData.coordinates === undefined) {
     ElMessage.error('Oops, Coordinates required.')
-    check_format_sucess = false
+    check_format_success = false
   }
   if (sendData.facilities[0] === undefined) {
     ElMessage.error('Oops, facilities required.')
-    check_format_sucess = false
+    check_format_success = false
   }
   if (sendData.time_zone === undefined) {
     ElMessage.error('Oops, time zone required.')
-    check_format_sucess = false
+    check_format_success = false
   }
-  if (check_format_sucess === true) {
+  if (check_format_success === true) {
     if (station_id === undefined) {
       sendData.station_id = uuidv4()
       ElMessageBox.confirm('Do you want to create?', 'Warning', { confirmButtonText: 'OK', cancelButtonText: 'Cancel', type: 'warning' })

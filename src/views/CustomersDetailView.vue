@@ -93,7 +93,7 @@
                   <p class="real-time-info-value">{{ paymentData.amount_str }}</p>
                 </div>
                 <div class="real-time-info-item">
-                  <p class="real-time-info-title">Total Use Time</p>
+                  <p class="real-time-info-title">Total Charging Time</p>
                   <p class="real-time-info-value">{{ paymentData.charge_hr + ":" + paymentData.charge_min + ":" +
                     paymentData.charge_sec }}</p>
                 </div>
@@ -144,16 +144,16 @@
     <el-dialog v-model="EditCustomerFormVisible" title="Edit Customer" draggable>
       <el-form>
         <el-form-item label="First Name">
-          <el-input v-model="userDataMod.first_name" autocomplete="off" />
+          <el-input v-model="userDataMod.first_name" />
         </el-form-item>
         <el-form-item label="Last Name">
-          <el-input v-model="userDataMod.last_name" autocomplete="off" />
+          <el-input v-model="userDataMod.last_name" />
         </el-form-item>
         <el-form-item label="E-Mail">
-          <el-input v-model="userDataMod.email" autocomplete="off" />
+          <el-input v-model="userDataMod.email" />
         </el-form-item>
         <el-form-item label="Phone">
-          <el-input v-model="userDataMod.phone" autocomplete="off" />
+          <el-input v-model="userDataMod.phone" />
         </el-form-item>
         <el-form-item label="Permission">
           <el-select class="el-select" v-model="userDataMod.permission_str" placeholder="Select" size="large">
@@ -161,7 +161,7 @@
           </el-select>
         </el-form-item>
         <el-form-item label="Active">
-          <el-switch v-model="userData.permission.active" />
+          <el-switch v-model="userDataMod.permission_active_str" />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -176,13 +176,13 @@
     <el-dialog v-model="EditRfidFormVisible" :title=rfid_title draggable>
       <el-form>
         <el-form-item label="Number">
-          <el-input v-model="rfidData.rfid" autocomplete="off" />
+          <el-input v-model="rfidData.rfid" />
         </el-form-item>
         <el-form-item label="Cash">
-          <el-input v-model="rfidData.cash" autocomplete="off" />
+          <el-input v-model="rfidData.cash" />
         </el-form-item>
         <el-form-item label="Name">
-          <el-input v-model="rfidData.nickname" autocomplete="off" />
+          <el-input v-model="rfidData.nickname" />
         </el-form-item>
         <el-form-item label="Enable">
           <el-switch v-model="rfidData.enable" />
@@ -340,6 +340,7 @@ const editUser = () => {
   userDataMod.email = userData.email
   userDataMod.phone = userData.phone
   userDataMod.permission_str = userData.permission_str
+  userDataMod.permission_active_str = userData.permission.active
   EditCustomerFormVisible.value = true 
   GetPermission()
 }
@@ -350,25 +351,31 @@ const editUserDialog = (action) => {
   if (action === 'confirm') {
     let permission_id = ''
     for (let i = 0; i < user_type.length; i++) {
-      if (user_type[i].name === userData.permission_str) {
+      if (user_type[i].name === userDataMod.permission_str) {
         permission_id = user_type[i]._id
       }
     }
     
     ElMessageBox.confirm('Do you want to modify?', 'Warning', { confirmButtonText: 'OK', cancelButtonText: 'Cancel', type: 'warning' })
       .then(async () => {
-        userData.first_name = userDataMod.first_name
-        userData.last_name = userDataMod.last_name
-        userData.email = userDataMod.email 
-        userData.phone = userDataMod.phone 
-        userData.permission_str = userDataMod.permission_str
-        let sendData = {
-          class: 'UserData', pk: userData._id,
-          first_name: userData.first_name, last_name: userData.last_name,
-          email: userData.email, phone: userData.phone,
-          permission: { user: permission_id, active: userData.permission.active },
+        let sendData = { class: 'UserData', pk: userData._id, first_name: userDataMod.first_name, last_name: userDataMod.last_name,
+          email: userDataMod.email , phone: userDataMod.phone , permission: { user: permission_id, active: userDataMod.permission_active_str },
         }
-        console.log(await MsiApi.setCollectionData('patch', 'cpo', sendData))
+        let res = await MsiApi.setCollectionData('patch', 'cpo', sendData)
+        if (res.status === 200) {
+          let queryData = { "database": "CPO", "collection": "UserData", "query": { "_id": { "ObjectId": user_id } } }
+          let response = await MsiApi.mongoQuery(queryData)
+          userData.first_name = response.data.all[0]?.first_name
+          userData.last_name = response.data.all[0]?.last_name
+          userData.phone = response.data.all[0]?.phone
+          for (let i = 0; i < user_type.length; i++) {
+            if (user_type[i]._id === response.data.all[0].permission.user) {
+              userData.permission_str = user_type[i].name
+            }
+          }
+          let localEndTime =  new Date( (new Date(response.data.all[0].updated_date).getTime()) + ((MStore.timeZoneOffset ) * -60000))
+          userData.updated_date_str = (moment(localEndTime).format("YYYY-MM-DD HH:mm:ss"))
+        }
       })
       .catch((e) => {
         console.log(e)
@@ -397,9 +404,7 @@ const editUserDialog = (action) => {
 onMounted(async () => {
   let queryData = { "database": "CPO", "collection": "UserData", "query": { "_id": { "ObjectId": user_id } } }
   let response = await MsiApi.mongoQuery(queryData)
-
   Object.assign(userData, response.data.all[0])
-
   let localEndTime =  new Date( (new Date(userData.updated_date).getTime()) + ((MStore.timeZoneOffset ) * -60000))
   userData.updated_date_str = (moment(localEndTime).format("YYYY-MM-DD HH:mm:ss"))
   localEndTime =  new Date( (new Date(userData.created_date).getTime()) + ((MStore.timeZoneOffset ) * -60000))
@@ -421,13 +426,11 @@ onMounted(async () => {
     }
   }
 
-
   for (let i = 0; i < userData?.paylist?.length; i++) {
     userData.paylistArrObj.push(JSON.parse(userData?.paylist?.[i].detail))
     userData.paylistArrObj[i].card_num = userData.paylistArrObj[i].card6No + '******' +
     userData.paylistArrObj[i].card4No
   }
-
 
   for (let i = 0; i < userData?.payment_history?.length; i++) {
     for (let j = 0; j < PaymentDataAll.length; j++) {
@@ -439,9 +442,7 @@ onMounted(async () => {
   let cost_str = 0
   let charge_time_sec = 0
   let charge_kwh = 0
-  let parking_time_sec = 0
   for (let i = 0; i < paymentData.length; i++) {
-
     localEndTime =  new Date( (new Date(paymentData[i].created_date).getTime()) + ((MStore.timeZoneOffset ) * -60000))
     paymentData[i].created_date_str = (moment(localEndTime).format("YYYY-MM-DD HH:mm:ss"))
     paymentData.amount_str = paymentData.length
@@ -451,28 +452,13 @@ onMounted(async () => {
         charge_time_sec += paymentData[i].operator_types[j].time
         charge_kwh += paymentData[i].operator_types[j].kwh
       }
-      else {
-        parking_time_sec += paymentData[i].operator_types[j].time
-
-      }
     }
   }
   paymentData.cost_str = cost_str
-  paymentData.charge_time_sec = charge_time_sec
   paymentData.charge_kwh = charge_kwh
-  paymentData.parking_time_sec = parking_time_sec
-
-  paymentData.charge_hr = Math.floor(charge_time_sec / 3600)
-  paymentData.charge_min = Math.floor((charge_time_sec - (paymentData.charge_hr * 3600)) / 60)
-  paymentData.charge_sec = parseInt(charge_time_sec - (paymentData.charge_hr * 3600) - (paymentData.charge_min * 60))
-
-  if (paymentData.charge_hr < 10)
-    paymentData.charge_hr = '0' + paymentData.charge_hr
-  if (paymentData.charge_min < 10)
-    paymentData.charge_min = '0' + paymentData.charge_min
-  if (paymentData.charge_sec < 10)
-    paymentData.charge_sec = '0' + paymentData.charge_sec
-
+  paymentData.charge_hr = moment( {h:moment.duration(charge_time_sec, 'second').hours()}).format('HH')
+  paymentData.charge_min = moment( {m:moment.duration(charge_time_sec, 'second').minutes()}).format('mm')
+  paymentData.charge_sec = moment( {s:moment.duration(charge_time_sec, 'second').hours()}).format('ss')
 })
 
 </script>

@@ -42,10 +42,10 @@
       <el-dialog v-model="reset_password_visible" title="Reset Password" draggable>
         <el-form>
           <el-form-item label="New password">
-            <el-input v-model="reset_password1" autocomplete="off" />
+            <el-input v-model="reset_password1" />
           </el-form-item>
           <el-form-item label="New password again">
-            <el-input v-model="reset_password2" autocomplete="off" />
+            <el-input v-model="reset_password2" />
           </el-form-item>
         </el-form>
         <template #footer>

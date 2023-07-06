@@ -9,11 +9,11 @@
           
         <el-table class="evse-table" :data="EvseConnectData" style="width: 95%; height:800px" stripe
         :cell-style=msi.tb_cell :header-cell-style=msi.tb_header_cell size="large" @selection-change="handleSelectionChange">
-          <el-table-column prop="locationName" label="Station" min-width="80"/>
+          <el-table-column prop="locationName" label="Station" min-width="60"/>
           <el-table-column prop="floor_level" label="Floor Level" min-width="30"/>
           <!-- <el-table-column prop="physical_reference" label="Charger Label" min-width="30"/> -->
           <el-table-column prop="evse_id" label="EVSE ID" min-width="80"/>
-          <el-table-column prop="status" label="Status" min-width="60" :filters="status_filter_item" :filter-method="status_filter">
+          <el-table-column prop="status" label="Status" min-width="50" :filters="status_filter_item" :filter-method="status_filter">
             <template #default="scope">
                 <p class="available" v-if="scope.row.status === 'AVAILABLE'"> {{ "●" + scope.row.status }}</p>
                 <p class="charging" v-else-if="scope.row.status === 'CHARGING'"> {{ "●" + scope.row.status }}</p>
@@ -22,26 +22,19 @@
               </template>
           </el-table-column>
           <el-table-column prop="hmi_version" label="SW Ver." min-width="50"/>
-          <!-- <el-table-column prop="control_version" label="FW Ver." min-width="50"/> -->
-          <el-table-column prop="" label="Latest SW" min-width="40">
+          <el-table-column prop="" label="Latest SW" min-width="30">
           <template #default="scope">
-            <p v-if="scope.row.hmi_version === `b'0.1.2.3'`"> {{ "V" }}</p>
+            <p v-if="scope.row.hmi_version === swVersion"> {{ "V" }}</p>
           </template>
           </el-table-column>
-          <!-- <el-table-column prop="" label="Latest FW"  min-width="40">
-      
-          <template #default="scope">
-            <p v-if="scope.row.control_version === `b'4.0.11'`"> {{ "V" }}</p>
-          </template>
-          </el-table-column> -->
 
-          <el-table-column prop="last_updated_str" label="Updated Time" min-width="70"/>
+          <el-table-column prop="last_updated_str" label="Updated Time" min-width="50"/>
           <el-table-column v-if="editMode === false" prop="" label="" min-width="30">
           <template #default="scope">
                 <el-button @click="detail_info(scope.row)"> <font-awesome-icon icon="fa-solid fa-ellipsis" /> </el-button>
           </template>
           </el-table-column>
-          <el-table-column v-else type="selection" min-width="30">
+          <el-table-column v-else type="selection" min-width="10">
           </el-table-column>
         </el-table>
       </div>
@@ -63,26 +56,19 @@
                 </template>
             </el-table-column>
             <el-table-column prop="hmi_version" label="SW Ver." min-width="50"/>
-            <!-- <el-table-column prop="control_version" label="FW Ver." min-width="50"/> -->
-            <el-table-column prop="" label="Latest SW" min-width="40">
-            <template #default="scope">
-              <p v-if="scope.row.hmi_version === `b'0.1.2.3.fix1'`"> {{ "V" }}</p>
-            </template>
+            <el-table-column prop="" label="Latest SW" min-width="30">
+              <template #default="scope">
+                <p v-if="scope.row.hmi_version === swVersion"> {{ "V" }}</p>
+              </template>
             </el-table-column>
-            <!-- <el-table-column prop="" label="FW Latest" min-width="40">
-        
-            <template #default="scope">
-              <p v-if="scope.row.control_version === `b'4.0.12'`"> {{ "V" }}</p>
-            </template>
-            </el-table-column> -->
   
-            <el-table-column prop="last_updated_str" label="Updated Time" min-width="70"/>
+            <el-table-column prop="last_updated_str" label="Updated Time" min-width="50"/>
             <el-table-column v-if="editMode === false" prop="" label="" min-width="30">
-            <template #default="scope">
-              <el-button @click="detail_info(scope.row)"> <font-awesome-icon icon="fa-solid fa-ellipsis" /> </el-button>
-            </template>
+              <template #default="scope">
+                <el-button @click="detail_info(scope.row)"> <font-awesome-icon icon="fa-solid fa-ellipsis" /> </el-button>
+              </template>
             </el-table-column>
-            <el-table-column v-else type="selection" min-width="30"/>
+            <el-table-column v-else type="selection" min-width="10"/>
           </el-table>
         </div>
       </el-tab-pane>
@@ -90,16 +76,11 @@
   </div>
 
     <el-button v-if="editMode === true" class="update-button" @click="updateSW"> Update SW </el-button>
-    <!-- <el-button v-if="editMode === true" class="update-fw-button" @click="updateFW " disabled> Update FW </el-button> -->
     <el-button v-if="editMode === true" class="soft-reset-button" @click="evseReset('soft') "> Soft Reset </el-button>
     <el-button v-if="editMode === true" class="hard-reset-button" @click="evseReset('hard') "> Hard Reset </el-button>
-    <!-- <el-button v-if="editMode === true" class="log" @click="log" disabled> Log </el-button> -->
     
     <el-dialog v-model="sw_version_visable" title="Update SW">
-      <p>Now Version {{ fwVersion }}</p>
-      <!-- <el-select v-model="fwVersion" placeholder="Please select version">
-        <el-option v-for="item in fwFile" :key="item.version" :label="item.version" :value="item.file"/>
-      </el-select> -->
+      <p>Now Version {{ swVersion }}</p>
       <template #footer>
         <span class="dialog-footer">
           <el-button @click="sw_version_visable = false">Cancel</el-button>
@@ -123,28 +104,20 @@ const MStore = useMStore()
 
 const router = useRouter()
 const multipleSelection = ref([])
-const fwVersion = ref('')
+const swVersion = ref('')
 const sw_version_visable = ref (false)
 const updataEvseId = []
 const activeName = ref('1')
 const route = useRoute()
 const update_file = ref('')
-// const path = 'https://dev-evse.com/data/hmi/release'
-
-const fwFile = [ 
-  {"version":"0.1.1.8", "file":"MS-XP01_0E_LF_v5.15.32_2.0.0-full_230223-141305_97761a89.swu", "checksum":"97761a89"},
-  {"version":"0.1.1.9", "file":"MS-XP01_0E_LF_v5.15.71_2.2.0-full_230309-085508_77763113.swu", "checksum":"77763113"},
-  {"version":"EXP012NMSI", "file":"https://storage.googleapis.com/msi-hmi/release/EXP012NMSI.0E001_full_230525-141355_c0342628.swu", "checksum":"920187ca"},
-  {"version":"0.1.2.1", "file":"MS-XP01_0E_LF_v5.15.71_2.2.0-full_230413-125128_f7fac5ea.swu", "checksum":"f7fac5ea"},
-  {"version":"0.1.2.2", "file":"MS-XP01_0E_LF_v5.15.71_2.2.0-full_230427-144456_806b77e3.swu", "checksum":"806b77e3"}
-]
 
 const updateSW = async() => {
   sw_version_visable.value = true
   let queryData = { "database":"CPO", "collection":"VersionControl", "query": { "type": 'XP012'}}
   let response = await MsiApi.mongoQuery(queryData)
-  fwVersion.value = response.data.all[0].version
-  let release_note = response.data.all[0].release_note.find(obj => obj.version === fwVersion.value)
+  swVersion.value = response.data.all[0].version
+  console.log(swVersion.value)
+  let release_note = response.data.all[0].release_note.find(obj => obj.version === swVersion.value)
   if (release_note) {
     update_file.value = release_note.file
   }
@@ -195,7 +168,7 @@ const evseReset = (type) => {
     const json = JSON.stringify({ evse_id: updataEvseId, reset_type: type })
     MsiApi.reset_evse(json)
       .then(() => {
-        alert(type + ' Reset sucess ')
+        alert(type + ' Reset success ')
       })
       .catch((error) => {
         alert(type + ' Reset fail ')
@@ -243,9 +216,16 @@ onMounted( async() => {
     activeName.value = '2'
   }
 
-  let  queryData = { "database":"OCPI", "collection":"Location", "pipelines": [
+
+  let queryData = { "database":"CPO", "collection":"VersionControl", "query": { "type": 'XP012'}}
+  let response = await MsiApi.mongoQuery(queryData)
+  swVersion.value = response.data.all[0].version
+  console.log( swVersion.value)
+
+
+  queryData = { "database":"OCPI", "collection":"Location", "pipelines": [
   { "$project": {"_id": 0, "evses": 1, "name": 1 }}]}
-  let  response = await MsiApi.mongoAggregate(queryData)
+  response = await MsiApi.mongoAggregate(queryData)
   let  locationData = response.data.result
 
 
@@ -254,7 +234,6 @@ onMounted( async() => {
   }
   response = await MsiApi.mongoAggregate(queryData)
   EvseData.length = 0
-
   Object.assign(EvseData, response.data.result) 
   for (let i = 0 ; i < EvseData.length; i++ ) {
   let localEndTime =  new Date( (new Date(EvseData[i].last_updated).getTime()) + ((MStore.timeZoneOffset ) * -60000))

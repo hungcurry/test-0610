@@ -3,17 +3,18 @@
   <h1>Personal Info</h1>
   <el-form label-position="left" label-width="100px">
     <el-form-item label="First Name" >
-      <el-input v-model="first_name" autocomplete="off" style="width: 300px"/>
+      <el-input v-model="first_name" style="width: 300px"/>
     </el-form-item>
     <el-form-item label="Last Name" >
-      <el-input v-model="last_name" autocomplete="off" style="width: 300px"/>
+      <el-input v-model="last_name" style="width: 300px"/>
     </el-form-item>
     <el-form-item label="Email Name" >
-      <el-input v-model="email" autocomplete="off" style="width: 300px"/>
+      <el-input v-model="email" style="width: 300px"/>
     </el-form-item>
     <el-form-item label="Credit Card" >
-      <el-button v-if="CardData.length === 0" @click="add_card" style="width: 300px">  Add Card </el-button>
-      <el-button v-else @click="add_card" style="width: 300px" disabled>  Add Card </el-button>
+      <el-button v-if="companyData.name === 'MSI' " @click="add_card" style="width: 300px" disabled> Add Card </el-button>
+      <el-button v-else-if="CardData.length !== 0" @click="add_card" style="width: 300px" disabled> Add Card </el-button>
+      <el-button v-else @click="add_card" style="width: 300px"> Add Card </el-button>
     </el-form-item>
 
     <el-form-item label="Card List" >
@@ -28,8 +29,8 @@
     </el-form-item>
 
     <el-form-item label="Add Program" >
-      <el-button v-if="ProgramData.length > 0" @click="add_program" style="width: 300px" disabled>  Add Program </el-button>
-      <el-button v-else-if="CardData.length > 0" @click="add_program" style="width: 300px">  Add Program </el-button>
+      <el-button v-if="ProgramData.length > 0" @click="add_program" style="width: 300px" disabled> Add Program </el-button>
+      <el-button v-else-if="CardData.length > 0" @click="add_program" style="width: 300px"> Add Program </el-button>
       <el-button v-else @click="add_program" style="width: 300px" disabled>  Add Program </el-button>
     </el-form-item>
 
@@ -42,14 +43,13 @@
       <el-table-column prop="admin_user" label="CPO Account" min-width="80" />
       <el-table-column prop="price" label="Price" min-width="80" />
       <el-table-column>
-          <el-button @click="add_program"> <font-awesome-icon icon="fa-solid fa-ellipsis" />
-          </el-button>
+        <el-button @click="add_program" disabled v-if="companyData.name === 'MSI' "> <font-awesome-icon icon="fa-solid fa-ellipsis" /></el-button>
+          <el-button @click="add_program" v-else> <font-awesome-icon icon="fa-solid fa-ellipsis" /></el-button>
       </el-table-column>
 
     </el-table>
     </el-form-item>
   </el-form>
-
 
   <el-dialog v-model="ProgramVisible" title="Select Program">
     <el-table :data="program_plan" @current-change="handleCurrentChange" highlight-current-row>
@@ -78,19 +78,19 @@
       </el-table>
       <br>
       <el-form-item label="Title" >
-        <el-input v-model="companyData.name" autocomplete="off" style="width: 300px"/>
+        <el-input v-model="companyData.name" style="width: 300px"/>
       </el-form-item>
       <el-form-item label="Address" >
-        <el-input v-model="companyData.address_str" autocomplete="off" style="width: 300px"/>
+        <el-input v-model="companyData.address_str" style="width: 300px"/>
       </el-form-item>
       <el-form-item label="Phone" >
-        <el-input v-model="companyData.phone" autocomplete="off" style="width: 300px"/>
+        <el-input v-model="companyData.phone" style="width: 300px"/>
       </el-form-item>
       <el-form-item label="Tax" >
-        <el-input v-model="companyData.tax_id" autocomplete="off" style="width: 300px"/>
+        <el-input v-model="companyData.tax_id" style="width: 300px"/>
       </el-form-item>
       <el-form-item label="Email" >
-        <el-input v-model="companyData.email" autocomplete="off" style="width: 300px"/>
+        <el-input v-model="companyData.email" style="width: 300px"/>
       </el-form-item>
     </el-form>
     <template #footer>
@@ -127,6 +127,7 @@ let companyId = ''
 let upgrade_manager = {}
 let queryData = null
 let response = null
+let check_format_success = true
 const currentRow = ref()
 
 const cancelProgram = () => {
@@ -134,12 +135,35 @@ const cancelProgram = () => {
 }
 
 const subscribeProgram = async () => {
-  CheckProgramVisible.value = false
+    if (companyData.name === undefined || companyData.name === '') {
+    ElMessage.error('Oops, First name required.')
+    check_format_success = false
+  }
+  if (companyData.address_str === undefined || companyData.address_str === '') {
+    ElMessage.error('Oops, First name required.')
+    check_format_success = false
+  }
+  if (companyData.phone === undefined || companyData.phone === '') {
+    ElMessage.error('Oops, First name required.')
+    check_format_success = false
+  }
+  if (companyData.email === undefined || companyData.email === '') {
+    ElMessage.error('Oops, First name required.')
+    check_format_success = false
+  }
+  if (companyData.tax_id === undefined || companyData.tax_id === '') {
+    ElMessage.error('Oops, First name required.')
+    check_format_success = false
+  }
+  if (check_format_success === true) {
   let sendData = { 'class': 'CompanyInformation', 'pk': companyId, 'plan': select_plan[0]._id, 
             invoice_detail:{title:companyData.name, address: companyData.address_str, phone: companyData.phone, email:companyData.email}, 
             tax_id:companyData.tax_id }
-  // console.log(await MsiApi.setCollectionData('patch', 'cpo', sendData))
-  console.log(sendData)
+  console.log(await MsiApi.subscribe_plan(sendData))
+  sendData = {}
+  console.log(await MsiApi.auth_payment(sendData))
+  CheckProgramVisible.value = false
+  }
 }
 
 const cancelCheckProgram = () => {
@@ -193,6 +217,7 @@ onMounted( async () => {
   first_name.value = MStore.user_data.first_name
   last_name.value = MStore.user_data.last_name
   email.value = MStore.user_data.email
+  companyData.email = MStore.user_data.email
   companyData.name = MStore.permission.company.name
   companyData.address = MStore.permission.company.address
   companyData.city = MStore.permission.company.city
@@ -223,9 +248,18 @@ onMounted( async () => {
   else {
     ElMessage.error(response.data.message)
   }
-
-  queryData  = { "database": "CPO", "collection": "LimitPlan", "pipelines": [{ "$project": { "_id": 1, "connector":0} } ]}
+  if (companyData.name !== 'MSI') {
+    queryData  = { "database": "CPO", "collection": "LimitPlan", "pipelines": [
+    { $match: { "name": {"$ne": "MSI-Free"}} }, 
+    { "$project": { "_id": 1, "connector":0} } ]}
+  }
+  else {
+    queryData  = { "database": "CPO", "collection": "LimitPlan", "pipelines": [
+    { $match: { "name": {"$eq": "MSI-Free"}} },  
+    { "$project": { "_id": 1, "connector":0} } ]}
+  }
   response = await MsiApi.mongoAggregate(queryData)
+  
   if (response.status === 200) {
     Object.assign(program_plan, response.data.result )
     for (let i = 0; i < program_plan.length; i++ ) {

@@ -5,7 +5,7 @@ let AuthToken = null
 let response = null
 let api1 = ''
 if (import.meta.env.VITE_API === undefined) {
-  api1 = 'api10/api2'
+  api1 = 'api10/api'
 }
 else {
   api1 = import.meta.env.VITE_API
@@ -14,8 +14,12 @@ else {
 export default function () {
 
   const getJsonData = async function (path, Token) {
-    try {
+    if (Token === undefined) {
+      Token = {}
+      Token.headers = {}
       Token.headers['X-Client-From'] = 'm-Cloud'
+    }
+    try {
       response = await axios.get(path, Token)
       return response
     } catch (error) {
@@ -171,10 +175,21 @@ export default function () {
     return response
   }
 
+  const auth_payment = async (json) => {
+    AuthToken = VueCookies.get('AuthToken')
+    const response = await postJsonData(api1 + '/payment/newebpay/company/authPayment',json, AuthToken)
+    return response
+  }
+
+  const subscribe_plan = async (json) => {
+    AuthToken = VueCookies.get('AuthToken')
+    const response = await patchJsonData(api1 + '/cpo/company/subscribe/plan', json, AuthToken)
+    return response
+  }
 
   return {
       setCollectionData, getToken, checkToken, mongoQuery, mongoAggregate,
       register_member,  resetPW, reset_evse, updateFw, getTimeZone, getCoordinates, getAddress,
-      bind_card, search_bind_card, unregister_bind_card      
+      bind_card, search_bind_card, unregister_bind_card, auth_payment, subscribe_plan
   }
 }

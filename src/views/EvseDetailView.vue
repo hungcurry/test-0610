@@ -138,22 +138,22 @@
               <p class="tariff-value">{{ tariffData.profile_name }}</p>
             </div>
 
-            <!-- <div class="tariff-itme">
-              <p class="tariff-title">Type</p>
-              <p class="tariff-value">{{ tariffData.type }}</p>
-            </div> -->
+            <div class="tariff-itme">
+              <p class="tariff-title">Rate Alt Text</p>
+              <p class="tariff-value1">{{ tariffData.tariff_alt_text_str}}</p>
+            </div>
 
             <!-- <div class="tariff-itme">
               <p class="tariff-title">Rate alt url</p>
               <p class="tariff-value">{{ tariffData.tariff_alt_url }}</p>
             </div> -->
           </div>
-          <div class="tariff-container-header-right">
+          <!-- <div class="tariff-container-header-right">
             <div class="tariff-itme">
               <p class="tariff-title">Rate Alt Text</p>
               <p class="tariff-value1">{{ tariffData.tariff_alt_text_str}}</p>
             </div>
-          </div>
+          </div> -->
         </div>
 
         <el-table :data="tariff_elements" style="width: 95%; height:400px" stripe 
@@ -193,8 +193,8 @@ const deleteEvse = () => {
     console.log(await MsiApi.setCollectionData('delete', 'ocpi', sendData))
 
     if(chargePointInfoData.hmi !== '') { 
-      sendData = { 'class' : 'HMIControlBoardInfo', '_id' : chargePointInfoData.hmi }
-      console.log(await MsiApi.setCollectionData('delete', 'ocpi', sendData))
+      sendData = { 'class' : 'HMIControlBoardInfo', 'pk' : chargePointInfoData.hmi }
+      console.log(await MsiApi.setCollectionData('delete', 'cpo', sendData))
     }
     let evseArr = []
     for (let i = 0; i < locationData?.evses?.length; i++) {

@@ -1,7 +1,7 @@
 <template>
     <div class="customer">
 
-      <el-input class="search-input" v-model="input" placeholder="Please input" @keyup.enter.native="search">
+      <el-input class="search-input" v-model="input" placeholder="Please input" @keyup.enter="search">
         <template #append>
           <el-button :icon="Search" @click="search" />
         </template>
@@ -21,69 +21,69 @@
       </div>
     </div>
 
-    <el-dialog v-model="CompanyFormVisible" title="Company Info" draggable>
+    <el-dialog v-model="CompanyFormVisible" :title=company_title draggable>
     <el-form :model="companyData">
-      <el-form-item label="Company name" >
-        <el-input v-model="companyData.name" autocomplete="off" />
+      <el-form-item label="Company Name" >
+        <el-input v-model="companyData.name" />
       </el-form-item>
 
       <el-form-item label="Country" >
-        <el-input v-model="companyData.country" autocomplete="off" />
+        <el-input v-model="companyData.country" />
       </el-form-item>
 
       <!-- <el-form-item label="Operator ID" >
-        <el-input v-model="companyData.party_id" autocomplete="off" />
+        <el-input v-model="companyData.party_id" />
       </el-form-item> -->
 
       <el-form-item label="City" >
-        <el-input v-model="companyData.city" autocomplete="off" />
+        <el-input v-model="companyData.city" />
       </el-form-item>
 
       <el-form-item label="Address" >
-        <el-input v-model="companyData.address" autocomplete="off" />
+        <el-input v-model="companyData.address" />
       </el-form-item>
 
       <el-form-item label="Tax" >
-        <el-input v-model="companyData.tax_id" autocomplete="off" />
+        <el-input v-model="companyData.tax_id" />
       </el-form-item>
 
       <el-form-item label="Phone" >
-        <el-input v-model="companyData.phone" autocomplete="off" />
+        <el-input v-model="companyData.phone" />
       </el-form-item>
       <!-- <el-form-item label="Remark" >
-        <el-input v-model="companyData.remark" autocomplete="off" />
+        <el-input v-model="companyData.remark" />
       </el-form-item> -->
       <hr>
 <br>
       <el-form-item label="Invoice Hash IV" >
-        <el-input v-model="companyData.invoice.hashIV" autocomplete="off" />
+        <el-input v-model="companyData.invoice.hashIV" />
       </el-form-item>
       <el-form-item label="Invoice Hash Key" >
-        <el-input v-model="companyData.invoice.hashKey" autocomplete="off" />
+        <el-input v-model="companyData.invoice.hashKey" />
       </el-form-item>
       <el-form-item label="Invoice Merchant ID" >
-        <el-input v-model="companyData.invoice.merchantId" autocomplete="off" />
+        <el-input v-model="companyData.invoice.merchantId" />
       </el-form-item>
       <!-- <el-form-item label="Invoice Owner" >
-        <el-input v-model="companyData.invoice.owner" autocomplete="off" />
+        <el-input v-model="companyData.invoice.owner" />
       </el-form-item> -->
       <el-form-item label="Payment Hash IV" >
-        <el-input v-model="companyData.payment.hashIV" autocomplete="off" />
+        <el-input v-model="companyData.payment.hashIV" />
       </el-form-item>
       <el-form-item label="Payment Hash Key" >
-        <el-input v-model="companyData.payment.hashKey" autocomplete="off" />
+        <el-input v-model="companyData.payment.hashKey" />
       </el-form-item>
       <el-form-item label="Payment Merchant ID" >
-        <el-input v-model="companyData.payment.merchantId" autocomplete="off" />
+        <el-input v-model="companyData.payment.merchantId" />
       </el-form-item>
       <!-- <el-form-item label="Payment Owner" >
-        <el-input v-model="companyData.payment.owner" autocomplete="off" />
+        <el-input v-model="companyData.payment.owner" />
       </el-form-item> -->
       
     </el-form>
     <template #footer>
       <span class="dialog-footer">
-        <el-button @click="editCompany('delete')">Delete</el-button>
+        <el-button v-if=" edit_mode !== 'create'" @click="editCompany('delete')">Delete</el-button>
         <el-button @click="editCompany('cancel')">Cancel</el-button>
         <el-button type="primary" @click="editCompany('confirm')">
           Confirm
@@ -110,6 +110,7 @@ const UserData = reactive([])
 const input = ref('')
 const companyData = reactive([])
 const isLoading = ref(false)
+const company_title = ref('Add Company Info')
 const UserTable = [ {label:'Name', value:'name', width:'80'},  
 // {label:'Operator ID', value:'party_id', width:'60'}, 
                     {label:'Country', value:'country', width:'60'}, {label:'City', value:'city', width:'60'}, 
@@ -120,14 +121,13 @@ const UserTable = [ {label:'Name', value:'name', width:'80'},
                   ]
   
 const AddCompany = () => {
+  company_title.value = 'Add Company Info'
   for (let key in companyData)
     companyData[key] = ''
   CompanyFormVisible.value=true
   edit_mode.value = 'create'
-  // if (companyData.payment === undefined)
-    companyData.payment = {hashIV:'', hashKey:'', merchantId:'', owner:''}
-  // if (companyData.invoice === undefined)
-    companyData.invoice = {hashIV:'', hashKey:'', merchantId:'', owner:''}
+  companyData.payment = {hashIV:'', hashKey:'', merchantId:'', owner:''}
+  companyData.invoice = {hashIV:'', hashKey:'', merchantId:'', owner:''}
 }
 
 const search = async () => {
@@ -151,6 +151,7 @@ const search = async () => {
 }
 
 const detail_info = (detail) => {
+  company_title.value = 'Edit Company Info'
   edit_mode.value = 'edit'
   CompanyFormVisible.value = true
   for (let key in companyData)

@@ -1,6 +1,6 @@
 <template>
   <div class="customer">
-    <el-input class="search-input" v-model="input" placeholder="Please input" @keyup.enter.native="search">
+    <el-input class="search-input" v-model="input" placeholder="Please input" @keyup.enter="search">
       <template #append>
         <el-button :icon="Search" @click="search" />
       </template>
@@ -21,13 +21,13 @@
 
     <el-dialog v-model="dialogFormVisible" title="Add User" draggable>
       <p> First Name </p>
-        <el-input v-model="newUser.first_name" autocomplete="off" />
+        <el-input v-model="newUser.first_name" />
         <br><br>
         <p> Last Name </p>
-        <el-input v-model="newUser.last_name" autocomplete="off" />
+        <el-input v-model="newUser.last_name" />
         <br><br>
         <p> Email </p>
-        <el-input v-model="newUser.email" autocomplete="off" />
+        <el-input v-model="newUser.email" />
       <template #footer>
         <span class="dialog-footer">
           <el-button @click="addUser('cancel', false)">Cancel</el-button>

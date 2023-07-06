@@ -160,7 +160,7 @@ const evseReset = (type) => {
     const json = JSON.stringify({ evse_id: updataEvseId, reset_type: type })
     MsiApi.reset_evse(json)
       .then(() => {
-        alert(type + ' Reset sucess ')
+        alert(type + ' Reset success ')
       })
       .catch((error) => {
         alert(type + ' Reset fail ')

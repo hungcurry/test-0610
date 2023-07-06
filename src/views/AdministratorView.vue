@@ -18,16 +18,16 @@
     <el-dialog v-model="AddAdminFormVisible" title="Add Admin User" draggable>
       <el-form :model="AddAdminData">
         <el-form-item label="First Name">
-          <el-input v-model="AddAdminData.first_name" autocomplete="off" />
+          <el-input v-model="AddAdminData.first_name" />
         </el-form-item>
         <el-form-item label="Last Name">
-          <el-input v-model="AddAdminData.last_name" autocomplete="off" />
+          <el-input v-model="AddAdminData.last_name" />
         </el-form-item>
         <el-form-item label="E-Mail">
-          <el-input v-model="AddAdminData.email" autocomplete="off" />
+          <el-input v-model="AddAdminData.email" />
         </el-form-item>
         <el-form-item label="Phone">
-          <el-input v-model="AddAdminData.phone" autocomplete="off" />
+          <el-input v-model="AddAdminData.phone" />
         </el-form-item>
         <el-form-item label="Permission">
           <el-select class="el-select" v-model="AddAdminData.permission_str" placeholder="Select" size="large"
@@ -53,16 +53,16 @@
     <el-dialog v-model="EditAdminFormVisible" title="Edit Admin User" draggable>
       <el-form :model="editAdminData">
         <el-form-item label="First Name">
-          <el-input v-model="editAdminData.first_name" autocomplete="off" />
+          <el-input v-model="editAdminData.first_name" />
         </el-form-item>
         <el-form-item label="Last Name">
-          <el-input v-model="editAdminData.last_name" autocomplete="off" />
+          <el-input v-model="editAdminData.last_name" />
         </el-form-item>
         <el-form-item label="E-Mail">
-          <el-input v-model="editAdminData.email" autocomplete="off" />
+          <el-input v-model="editAdminData.email" />
         </el-form-item>
         <el-form-item label="Phone">
-          <el-input v-model="editAdminData.phone" autocomplete="off" />
+          <el-input v-model="editAdminData.phone" />
         </el-form-item>
         <el-form-item label="Permission">
           <el-select class="el-select" v-model="editAdminData.permission_str" placeholder="Select" size="large"
@@ -126,8 +126,6 @@ const setPermission = (permission_id) => {
   else if (EditAdminFormVisible.value === true) {
     editAdminData.permission_id = permission_id
   }
-
-
 }
 
 const detail_info = (detail) => {
@@ -147,11 +145,7 @@ const detail_info = (detail) => {
 const editAdmin = async (action) => {
   EditAdminFormVisible.value = false
   if (action === 'confirm') {
-    if (editAdminData.permission_edit === true) {
-      editAdminData.permission_edit = 1
-    }
-    else 
-      editAdminData.permission_edit = 3
+    editAdminData.permission_edit ? 1 : 3
     let sendData = {
       class: 'AdminUserData', pk: editAdminData._id,
       first_name: editAdminData.first_name, last_name: editAdminData.last_name,
@@ -192,9 +186,10 @@ const editAdmin = async (action) => {
 const AddAdmin = async (action, visable) => {
 
   AddAdminFormVisible.value = visable
-  let check_format_sucess = true
+  let check_format_success = true
   if (action === 'confirm') {
-    let edit = AddAdminData.edit ? 1 : 3
+    console.log(AddAdminData.permission_edit)
+    let edit = AddAdminData.permission_edit ? 1 : 3
     let sendData = {
       first_name: AddAdminData.first_name, last_name: AddAdminData.last_name,
       permission: AddAdminData.permission_id, edit: edit, active: AddAdminData.permission_active ,
@@ -203,21 +198,25 @@ const AddAdmin = async (action, visable) => {
 
     if (AddAdminData.email === undefined || AddAdminData.email === '') {
       ElMessage.error('Oops, Email required.')
-      check_format_sucess = false
+      check_format_success = false
     }
     if (AddAdminData.first_name === undefined || AddAdminData.first_name === '') {
       ElMessage.error('Oops, First name required.')
-      check_format_sucess = false
+      check_format_success = false
+    }
+    if (AddAdminData.first_name === undefined || AddAdminData.last_name === '') {
+      ElMessage.error('Oops, Last name required.')
+      check_format_success = false
     }
     if (AddAdminData.permission_id === undefined || AddAdminData.permission_id === '') {
       ElMessage.error('Oops, Permission name required.')
-      check_format_sucess = false
+      check_format_success = false
     }
 
-    if (check_format_sucess === true) {
+    if (check_format_success === true) {
       ElMessageBox.confirm('Do you want to create?', 'Warning', { confirmButtonText: 'OK', cancelButtonText: 'Cancel', type: 'warning' })
         .then(async () => {
-          console.log(sendData)
+          isLoading.value = true
           let res = await MsiApi.register_member(sendData)
           if (res.status === 201) {
             GetPermission()
@@ -233,6 +232,7 @@ const AddAdmin = async (action, visable) => {
         })
     }
   }
+  isLoading.value = false
 }
 
 const MongoQurey = async (queryData) => {
@@ -245,7 +245,7 @@ const MongoQurey = async (queryData) => {
 
   queryData = { "database": "CPO", "collection": "AdminUserData", "pipelines": [
                 { $match: { "byCompany": { "$eq": { "ObjectId" : res.data.result[0]._id} } } }, 
-                { "$project": { "_id": 0, "hashed_password_1": 0,"hashed_password_2": 0,"salt": 0} }
+                { "$project": {  "hashed_password_1": 0,"hashed_password_2": 0,"salt": 0} }
   ]}
   res = (await MsiApi.mongoAggregate(queryData))
   UserData.length = 0
@@ -266,7 +266,6 @@ const MongoQurey = async (queryData) => {
 const GetPermission = async () => {
   let queryData = { "database": "CPO", "collection": "UserPermission", "query": {} }
   let response = await MsiApi.mongoQuery(queryData)
-  console.log(response)
   user_type.length = 0
   const filteredArr = response.data.all.filter(item => item.name !== 'AnonymousUser' && item.name !== 'MemberUser'
     && item.name !== 'DeveloperUser' && item.name !== 'CustomerServiceUser')
@@ -278,11 +277,9 @@ const addAdminUser = async () => {
   AddAdminData.last_name = ''
   AddAdminData.email = ''
   AddAdminData.phone = ''
-
   AddAdminData.permission_str = ''
   AddAdminData.permission_edit = true
   AddAdminData.permission_active = true 
-
   AddAdminFormVisible.value = true
 }
 

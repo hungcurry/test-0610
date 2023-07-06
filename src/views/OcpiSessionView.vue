@@ -61,7 +61,7 @@ const select_date = async () => {
     },
     { "$lookup": {"from":'Location', "localField": "location_id", "foreignField": "id", "as":"Location"}},
     { "$lookup": {"from":'EVSE', "localField": "evse_uid", "foreignField": "uid", "as":"EVSE"}},
-    { "$project": { "status": 1,"total_cost": 1, "start_date_time": 1, "kwh": 1, "end_date_time": 1,"country_code":1,"currency":1,"Location.name":1, "EVSE.evse_id":1} },
+    { "$project": { "_id":0, "status": 1,"total_cost": 1, "start_date_time": 1, "kwh": 1, "end_date_time": 1,"Location.name":1, "EVSE.evse_id":1} },
   ]
   }
   isLoading.value = true
@@ -93,7 +93,7 @@ onMounted( async() => {
     },
     { "$lookup": {"from":'Location', "localField": "location_id", "foreignField": "id", "as":"Location"}},
     { "$lookup": {"from":'EVSE', "localField": "evse_uid", "foreignField": "uid", "as":"EVSE"}},
-    { "$project": { "status": 1,"total_cost": 1, "start_date_time": 1, "kwh": 1, "end_date_time": 1,"country_code":1,"currency":1,"Location.name":1, "EVSE.evse_id":1} },
+    { "$project": { "_id":0, "status": 1,"total_cost": 1, "start_date_time": 1, "kwh": 1, "end_date_time": 1,"Location.name":1, "EVSE.evse_id":1} },
   ]
   }
   isLoading.value = true

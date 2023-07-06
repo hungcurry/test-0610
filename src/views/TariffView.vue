@@ -38,22 +38,22 @@
         </el-select>
 
         <p>Vat</p>
-          <el-input v-model="vat" autocomplete="off" />
+          <el-input v-model="vat" />
         <p>Start Fee</p>
-        <el-input v-model="start_fee" autocomplete="off" />
+        <el-input v-model="start_fee" />
         <p>Charging Fee</p>
-          <el-input v-model="charging_fee" autocomplete="off" />
+          <el-input v-model="charging_fee" />
       </div>
 
       <div v-if="tariff_select === 'Parking'">
         <p>Vat</p>
-        <el-input v-model="charging_fee" autocomplete="off" />
+        <el-input v-model="charging_fee" />
         <p>Start Fee</p>
-        <el-input v-model="charging_fee" autocomplete="off" />
+        <el-input v-model="charging_fee" />
         <p>Parging Fee</p>
-        <el-input v-model="charging_fee" autocomplete="off" />
+        <el-input v-model="charging_fee" />
         <p>Max Fee</p>
-        <el-input v-model="charging_fee" autocomplete="off" />
+        <el-input v-model="charging_fee" />
       </div>
       <template #footer>
         <span class="dialog-footer">

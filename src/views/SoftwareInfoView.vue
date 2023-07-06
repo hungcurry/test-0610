@@ -1,12 +1,14 @@
 <template>
   <div class="sw-info">
     <div class="sw">
-      <el-button class="release-btn" v-if="isMSI" @click="add('XP012')"> Add SW Release</el-button>
       <br>
-      <span>{{ 'OTA SW Version :' + swData.version }}</span>
+      <div class="header-container"> 
+        <strong class="release-version">{{ 'OTA SW Version :' + swData.version }}</strong>
+        <el-button class="release-btn" v-if="isMSI" @click="add('XP012')"> Add SW Release</el-button>
+      </div>
       <el-table :data="swData.release_note" style="width: 95%; height:400px" stripe 
       :cell-style=msi.tb_cell :header-cell-style=msi.tb_header_cell size="large">
-        <el-table-column prop="version" label="Version" min-width="5"/>
+        <el-table-column prop="version" label="Version" min-width="10"/>
         <el-table-column prop="description" label="Description" min-width="15"/>
         <el-table-column prop="update_time_str" label="Update Time" min-width="10"/>
         <el-table-column v-if="isMSI" prop="" label="Release" min-width="5">
@@ -23,13 +25,14 @@
     </div>
     <br><br>
     <div class="fw">
-      <el-button class="release-btn" v-if="isMSI" @click="add('XP011_BT')"> Add FW Release</el-button>
-      <br>
-      <span>{{ 'OTA FW Version :' + fwData.version }}</span>
+      <div class="header-container">
+        <strong class="release-version">{{ 'OTA FW Version :' + fwData.version }}</strong>
+        <el-button class="release-btn" v-if="isMSI" @click="add('XP011_BT')"> Add FW Release</el-button>
+      </div>
       <el-table :data="fwData.release_note" style="width: 95%; height:400px" stripe 
       :cell-style=msi.tb_cell :header-cell-style=msi.tb_header_cell size="large">
-        <el-table-column prop="version" label="Version" min-width="5"/>
-        <el-table-column prop="description" label="description" min-width="15"/>
+        <el-table-column prop="version" label="Version" min-width="10"/>
+        <el-table-column prop="description" label="Description" min-width="15"/>
         <el-table-column prop="update_time_str" label="Update Time" min-width="10"/>
         <el-table-column v-if="isMSI" prop="" label="Release" min-width="5">
           <template #default="scope">
@@ -47,10 +50,10 @@
     <el-dialog v-model="swVisible" :title= dialog_title draggable>
       <el-form :model="Detail_Data">
         <el-form-item label="Version" >
-          <el-input v-model="Detail_Data.version" autocomplete="off" />
+          <el-input v-model="Detail_Data.version" />
         </el-form-item>
         <el-form-item label="File Path" >
-          <el-input v-model="Detail_Data.file" autocomplete="off" />
+          <el-input v-model="Detail_Data.file" />
         </el-form-item>
 
         <el-form-item label="Download File" >
@@ -58,10 +61,10 @@
         </el-form-item>
 
         <el-form-item label="Description" >
-          <el-input v-model="Detail_Data.description" type="textarea" autocomplete="off" />
+          <el-input v-model="Detail_Data.description" type="textarea" />
         </el-form-item>
         <el-form-item label="Update time" >
-          <el-input v-model="Detail_Data.update_time_str" disabled autocomplete="off" />
+          <el-input v-model="Detail_Data.update_time_str" disabled />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -108,7 +111,7 @@ const download_File = () => {
 }
 
 const confirm = async (mode) => {
-  let check_format_sucess = true
+  let check_format_success = true
   if (mode === 'cancel') {
     swVisible.value = false
   }
@@ -116,13 +119,13 @@ const confirm = async (mode) => {
 
     if (Detail_Data.version === '' || Detail_Data.version === undefined) {
       ElMessage.error('Oops, Version required.')
-      check_format_sucess = false
+      check_format_success = false
     }
     if (Detail_Data.file === '' || Detail_Data.file === undefined) {
       ElMessage.error('Oops, file path required.')
-      check_format_sucess = false
+      check_format_success = false
     }
-    if (check_format_sucess === true) {
+    if (check_format_success === true) {
       let queryData = { "database":"CPO", "collection":"VersionControl", "query": {"type": type.value}}
       let response = await MsiApi.mongoQuery(queryData)
 
@@ -227,6 +230,22 @@ onMounted( async() => {
 
 <style lang="scss" scoped>
 .release-btn {
-  align-items: center;
+    width: 220px;
+    height: 40px;
+    font-size: 18px;
+    background-color: #000000DF;
+    color:#FFFFFF;
+    border-radius: 20px;
+    margin-right: 100px;
 }
+.release-version{
+  font-size: 20px;
+  margin-left: 20px;
+}
+
+.header-container {
+  display: flex;
+  justify-content: space-between;
+}
+
 </style>

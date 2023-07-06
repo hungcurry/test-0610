@@ -79,11 +79,7 @@ import MsiCommonApi from '@/components/ApiFunc'
 import hotelPng from '@/assets/img/station_list_type_hotel.png'
 import restaurantPng from '@/assets/img/station_list_type_restaurant.png'
 import mallPng from '@/assets/img/station_list_type_mall.png'
-
 import parkingPng from '@/assets/img/station_list_type_parking.png'
-
-import cafePng from '@/assets/img/station_list_type_cafe.png'
-import airportPng from '@/assets/img/station_list_type_airport.png'
 import trainPng from '@/assets/img/station_list_type_train.png'
 
 
@@ -95,7 +91,7 @@ const router = useRouter()
 const stationMap = ref()
 const display_mode = ref('Map Mode')
 const show_stataion_detail = ref(false)
-const publish_filter_item = [{ text:'TRUE', value: true}, { text:'FALSE', value: false}]
+const publish_filter_item = [{ text:'true', value: true}, { text:'false', value: false}]
 const status_filter_item = [{ text:'AVAILABLE', value: 'AVAILABLE'}, { text:'CHARGING', value: 'CHARGING'}, 
                             { text:'UNKNOWN', value: 'UNKNOWN'}, { text:'ERROR', value: 'ERROR'}]
 let map1 = null
@@ -126,14 +122,14 @@ const publish_filter = (value, rowData) => {
 
 const LocationData = reactive([])
 const LocationTable = [ 
-                        {label:'Type', value:'facilities', width:'40'}, 
-                        {label:'Name', value:'name', width:'120', sortable:'sortable'},
-                        {label:'Country', value:'country', width:'60', sortable:'sortable'}, 
+                        {label:'Type', value:'facilities', width:'25'}, 
+                        {label:'Name', value:'name', width:'100', sortable:'sortable'},
+                        {label:'Country', value:'country', width:'40', sortable:'sortable'}, 
                         {label:'City', value:'city', width:'60', sortable:'sortable'},
                         {label:'Address', value:'address', width:'80', sortable:'sortable'}, 
                         // {label:'Operator ID', value:'party_id', width:'40', sortable:'sortable'},
-                        {label:'Status', value:'', width:'80', filter:status_filter_item, filter_method:status_filter}, 
-                        {label:'Publish', value:'publish', width:'60', filter:publish_filter_item, filter_method:publish_filter},
+                        {label:'Status', value:'', width:'60', filter:status_filter_item, filter_method:status_filter}, 
+                        {label:'Publish', value:'publish', width:'30', filter:publish_filter_item, filter_method:publish_filter},
                         // {label:'Parking', value:'parking_str', width:'50'}, 
                         {label:'', value:'detail', width:'40', type:'button'}
                       ]
@@ -184,7 +180,6 @@ const setMarker = async () => {
   let currentInfoWindow = null;
   
   for (let i = 0; i < LocationData.length; i++) {
-    console.log(LocationData[i])
     if (LocationData[i].state_error_str > 0) {
       image = 'https://storage.googleapis.com/msi-common/pic/station_error.png'
     }
@@ -248,7 +243,7 @@ onMounted( async () => {
   const response = await MsiApi.mongoQuery(queryData)
   LocationData.length = 0
   Object.assign(LocationData, response.data.all)
-  
+  console.log(LocationData)
   for (let i = 0; i < LocationData.length; i++) {
     LocationData[i].state_available_str = LocationData[i].state_charging_str = LocationData[i].state_unknown_str = LocationData[i].state_error_str = 0
     LocationData[i].state_total_str = LocationData[i].evses.length 
@@ -282,14 +277,6 @@ onMounted( async () => {
     else if (LocationData[i].facilities_str === 'PARKING_LOT') {
       LocationData[i].facilities_img = parkingPng
     }    
-    // else if (LocationData[i].facilities_str === 'CAFE') {
-    //   LocationData[i].facilities_img = cafePng
-    // }    
-
-    // else if (LocationData[i].facilities_str === 'AIRPORT') {
-    //   LocationData[i].facilities_img = airportPng
-    // } 
-
     else {
       LocationData[i].facilities_img = trainPng
     }

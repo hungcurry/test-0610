@@ -4,7 +4,7 @@
       <el-menu-item index="dashboard">
         <span>Dashboard</span>
       </el-menu-item>
-      <el-menu-item v-if="user === 'AdminUser'" index="paymentHistory">
+      <el-menu-item v-if="user === 'AdminUser' || user === undefined" index="paymentHistory">
         <span>Payment</span>
       </el-menu-item>
       <el-sub-menu index="station">
@@ -38,6 +38,9 @@
       </el-menu-item>
       <el-menu-item v-if="dev_member" index="test">
         <span>Test</span>
+      </el-menu-item>
+      <el-menu-item v-if="company === 'MSI'" index="program">
+        <span>Program</span>
       </el-menu-item>
     </el-menu>
   </div>

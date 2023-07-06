@@ -41,7 +41,6 @@
             <div class="evse-notification-container">
               <p v-for="value in error_evse" :key="value">
                 <a :href=value.url > {{ value.name + ' ' }}</a>
-                <!-- <span class="name" @click="aaa">{{value.name }}</span> -->
                 <span class="offline_count">{{ '(' + value.unknown_count + ')'}}</span>
                 <span class="error_count">{{ '(' + value.error_count + ')'}}</span>
                 <br>
@@ -56,16 +55,14 @@
       <div class="title">
         <p>Analysis Dashboard</p>
       </div>
-      <!-- <div class="date-container">
+      <div class="date-container">
         <div class="date">
           <el-button class="date-btn" @click="date_select('all')"> All </el-button>
           <el-button class="date-btn" @click="date_select('today')"> Today </el-button>
           <el-button class="date-btn" @click="date_select('week')"> This Week </el-button>
           <el-button class="date-btn" @click="date_select('month')"> This Month</el-button>
-          <el-button class="date-btn" @click="date_select('season')"> This Season</el-button>
-          <el-button class="date-btn" @click="date_select('year')"> This Year</el-button>
         </div>
-      </div> -->
+      </div>
       <div class="card">
 
         <div class="card-use-time">
@@ -140,14 +137,6 @@
               <p class="value">{{ visitor }}</p>
               <p class="title">QR-Pay</p>
             </div>
-<!-- 
-            <p class="value">{{ ev_life }}</p>
-            <p class="title">EV-Life</p>
-            <p class="value">{{ rfid }}</p>
-            <p class="title">RFID</p>
-            <p class="value">{{ visitor }}</p>
-            <p class="title">QR-Pay</p> -->
-            <!-- <div class="total-use-time"> {{ ev_life + ' / ' + rfid + ' / ' + visitor }}</div> -->
           </div>
         </div>
 
@@ -192,6 +181,7 @@ import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { useRouter } from 'vue-router'
 import ApiFunc from '@/components/ApiFunc'
 import { useMStore } from "../stores/m_cloud"
+
 const MStore = useMStore();
 const company = MStore?.permission?.company?.name
 const router = useRouter()
@@ -209,13 +199,11 @@ const rfid = ref(0)
 const member = ref(0)
 const business = ref(0)
 const totalkwh = ref(0)
-
+const station_count = ref(0)
+const payment_method_obj = reactive({ credit: 0, rfid: 0, free: 0, googlepay: 0, applepay: 0, samsungpay: 0,  })
 const charger_time = reactive({ hr: 0, min: 0, sec: 0 })
 const parking_time = reactive({ hr: 0, min: 0, sec: 0 })
-
-const goto_payment = () => {
-  router.push({ name: 'paymentHistory' })
-}
+const status_obj = reactive({ Available: 0, Charging: 0, Offline: 0, Error: 0})
 
 const payment_method_option = {
   tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
@@ -223,7 +211,6 @@ const payment_method_option = {
   xAxis: { type: 'value', boundaryGap: [0, 0.01] },
   yAxis: { type: 'category', data: ['SAMSUNG PAY', 'GOOGLE PAY', 'APPLE PAY', 'FREE', 'RFID', 'Credit Card'] },
   series: [{ type: 'bar', barWidth: '20%', data: [0, 0, 0, 0], color: "#92a9c4" },
-    // { name: 'Parking', type: 'bar', barWidth:'20%', data: [19325, 23438, 31000], color: "#61a8d8" }
   ]
 }
 
@@ -238,8 +225,6 @@ const location_type_option = {
     { name: 'Restaurant', type: 'bar', stack: 'total', label: { show: true }, emphasis: { focus: 'series' }, data: [120] },
     { name: 'Mall', type: 'bar', stack: 'total', label: { show: true }, emphasis: { focus: 'series' }, data: [220] },
     { name: 'Super Market', type: 'bar', stack: 'total', label: { show: true }, emphasis: { focus: 'series' }, data: [150] },
-    // { name: 'Public transportation', type: 'bar', stack: 'total', label: { show: true}, emphasis: { focus: 'series'}, data: [820]},
-    // { name: 'Fuel station', type: 'bar', stack: 'total', label: { show: true}, emphasis: { focus: 'series'}, data: [820]},
     { name: 'Parking lot', type: 'bar', stack: 'total', label: { show: true }, emphasis: { focus: 'series' }, data: [820] },
     { name: 'Others', type: 'bar', stack: 'total', label: { show: true }, emphasis: { focus: 'series' }, data: [820] },
   ]
@@ -256,7 +241,6 @@ const power_times_option = {
   ],
 }
 
-const status_obj = reactive({ Available: 0, Charging: 0, Offline: 0, Error: 0})
 const evse_status_option = reactive({
   tooltip: { trigger: 'item' },
   legend: { show: true, orient: 'vertical', x: 'right', y: 'center',
@@ -271,9 +255,126 @@ const evse_status_option = reactive({
   }]
 })
 
-const payment_method_obj = reactive({ credit: 0, rfid: 0, free: 0, googlepay: 0, applepay: 0, samsungpay: 0,  })
-const station_count = ref(0)
+const goto_payment = () => {
+  router.push({ name: 'paymentHistory' })
+}
+
+const date_select = async (select_time) => {
+  const now = new Date()
+  let select_time1 = null
+  if (select_time === 'all') 
+    select_time1 = new Date(1970, 1, 1);
+  else if (select_time === 'today') 
+    select_time1 = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  else if (select_time === 'week') 
+    select_time1 = new Date(now.getFullYear(), now.getMonth(), now.getDate() - now.getDay())
+  else if (select_time === 'month') 
+    select_time1 = new Date(now.getFullYear(), now.getMonth())
+  queryTotalUsedTime(select_time1)
+  queryTotalUsedTimes(select_time1)
+  queryTotalUsedPower(select_time1)
+}
+
+const queryTotalUsedPower = async (select_time1) => {
+  totalkwh.value = 0
+  if (select_time1 === undefined ) 
+    select_time1 = new Date(1970, 1, 1)
+  let queryData = { "database": "OCPI", "collection": "Session", "pipelines": [ 
+    { "$match": { "$expr": { "$and": [ { "$gte": ["$last_updated", { "$dateFromString": { "dateString": select_time1 } }] }] } }},
+    { $group: { _id: null, totalkwh: { $sum: '$kwh' }, }}
+  ]}
+  let response = await MsiApi.mongoAggregate(queryData)
+  if (parseInt(response?.data?.result?.[0]?.totalkwh)) {
+    totalkwh.value = parseInt(response?.data?.result?.[0]?.totalkwh)
+    totalkwh.value = totalkwh.value / 1000
+  }
+}
+
+const queryTotalUsedTime = async (select_time1) => {
+  parking_time.sec = parking_time.hr = parking_time.min = 0
+  charger_time.sec = charger_time.hr = charger_time.min = 0
+  if (select_time1 === undefined ) 
+    select_time1 = new Date(1970, 1, 1)
+  let  queryData = { "database": "CPO", "collection": "PaymentHistory", "pipelines": [
+  { "$match": { "$expr": { "$and": [ { "$gte": ["$created_date", { "$dateFromString": { "dateString": select_time1 } }] }] } }},
+  { "$project": { "_id": 0, "operator_types": 1 } }]}
+
+  let response = await MsiApi.mongoAggregate(queryData)
+
+  for (let i = 0; i < response?.data?.result?.length; i++) {
+    for (let j = 0; j < response.data.result[i]?.operator_types?.length; j++) {
+      if (response.data.result[i]?.operator_types[j]?.type === "charge") {
+        charger_time.sec = charger_time.sec + response.data.result[i]?.operator_types[j]?.time
+      }
+      else {
+        parking_time.sec = parking_time.sec + response.data.result[i]?.operator_types[j]?.time
+      }
+    }
+  }
+  charger_time.min = charger_time.sec / 60
+  charger_time.hr = parseInt(charger_time.min / 60)
+  charger_time.min = parseInt(charger_time.min % 60)
+  parking_time.min = parking_time.sec / 60
+  parking_time.hr = parseInt(parking_time.min / 60)
+  parking_time.min = parseInt(parking_time.min % 60)
+}
+
+const queryTotalUsedTimes = async (select_time1) => {
+  rfid.value = visitor.value = income.value = ev_life.value = 0
+  payment_method_obj.credit = payment_method_obj.rfid = payment_method_obj.applepay = payment_method_obj.googlepay = payment_method_obj.samsungpay = payment_method_obj.free = 0
+
+  if (select_time1 === undefined ) 
+    select_time1 = new Date(1970, 1, 1)
+  let queryData = { "database": "CPO", "collection": "PaymentHistory", "pipelines": [
+  { "$match": { "$expr": { "$and": [ { "$gte": ["$created_date", { "$dateFromString": { "dateString": select_time1 } }] }] } }},  
+  {
+    $facet: {
+      guestEmail: [{ $match: { "guestEmail": { "$ne": null } } }, { $count: "guestEmail" }],
+      RFID: [{ $match: { "paymethod.method": 'RFID' } }, { $count: "RFID" }],
+      CREDIT: [{ $match: { "paymethod.method": 'CREDIT' } }, { $count: "CREDIT" }],
+      FREE: [{ $match: { "paymethod.method": 'FREE' } }, { $count: "FREE" }],
+      APPLEPAY: [{ $match: { "paymethod.method": 'APPLEPAY' } }, { $count: "APPLEPAY" }],
+      SAMSUNGPAY: [{ $match: { "paymethod.method": 'SAMSUNGPAY' } }, { $count: "SAMSUNGPAY" }],
+      GOOGLEPAY: [{ $match: { "paymethod.method": 'GOOGLEPAY' } }, { $count: "GOOGLEPAY" }],
+      totalCount: [{ $group: { _id: null, totalCount: { $sum: 1 } } }],
+      income:[{ $group: { _id: null, income: { $sum: "$price" } } }]
+    }
+  }]}
+  let response = await MsiApi.mongoAggregate(queryData)
+  
+  if ( typeof response.data.result[0].RFID[0]?.RFID === 'number') 
+    rfid.value = response.data.result[0].RFID[0]?.RFID
+  if ( typeof response.data.result[0].guestEmail[0]?.guestEmail === 'number') 
+    visitor.value = response.data.result[0].guestEmail[0]?.guestEmail
+  if (typeof response.data.result[0].totalCount[0]?.totalCount === 'number')
+    ev_life.value = response.data.result[0].totalCount[0]?.totalCount - rfid.value - visitor.value
+  if ( typeof response.data.result[0].income[0]?.income === 'number')  
+    income.value = response.data.result[0].income[0]?.income.toLocaleString()
+
+  payment_method_obj.credit = response.data.result[0].CREDIT[0]?.CREDIT
+  payment_method_obj.rfid = response.data.result[0].RFID[0]?.RFID
+  payment_method_obj.applepay = response.data.result[0].APPLEPAY[0]?.APPLEPAY
+  payment_method_obj.googlepay = response.data.result[0].GOOGLEPAY[0]?.GOOGLEPAY
+  payment_method_obj.samsungpay = response.data.result[0].SAMSUNGPAY[0]?.SAMSUNGPAY
+  payment_method_obj.free = response.data.result[0].FREE[0]?.FREE
+  
+  let ret_chart = null
+  let chart_inst = null
+
+  ret_chart = ref_payment_chart.value
+
+  payment_method_option.series[0].data = [payment_method_obj.samsungpay,payment_method_obj.googlepay,payment_method_obj.applepay, payment_method_obj.free, payment_method_obj.rfid, payment_method_obj.credit]
+  echarts.dispose(ret_chart)
+  chart_inst = echarts.init(ret_chart)
+  payment_method_option && chart_inst.setOption(payment_method_option)
+
+  }
+  
 onMounted(async () => {
+
+  queryTotalUsedTimes()
+  queryTotalUsedPower()
+  queryTotalUsedTime()
 
   let queryData = {
     "database": "OCPI", "collection": "EVSE", "pipelines": [
@@ -288,7 +389,6 @@ onMounted(async () => {
       }]
   }
   let response = await MsiApi.mongoAggregate(queryData)
-  console.log(response)  
   status_obj.total = status_obj.Available = status_obj.Offline = status_obj.Charging = status_obj.Error = 0
 
   if (response.data.result[0]?.totalCount?.[0]?.totalCount)
@@ -330,7 +430,6 @@ onMounted(async () => {
   for (let i = 0; i < EvseData.length; i++) {
     const index = error_evse.findIndex(obj=>obj.id === EvseData[i].locationId)
     if (index !== -1) {
-      console.log(EvseData[i].status)
       if (EvseData[i].status === 'UNKNOWN')
         error_evse[index].unknown_count += 1
       else if (EvseData[i].status === 'OUTOFORDER')
@@ -351,7 +450,7 @@ onMounted(async () => {
   }
   for(let i = 0; i < error_evse.length; i++) {
     if (error_evse[i].name === undefined) {
-      error_evse[i].name = 'unpaired'
+      error_evse[i].name = 'Unpaired'
       if (import.meta.env.VITE_BASE_URL !== undefined)
         error_evse[i].url = import.meta.env.VITE_BASE_URL + '/evse?page=unpaired'
       else 
@@ -360,37 +459,6 @@ onMounted(async () => {
     }
   }
 
-  queryData = { "database": "CPO", "collection": "PaymentHistory", "pipelines": [{
-    $facet: {
-      guestEmail: [{ $match: { "guestEmail": { "$ne": null } } }, { $count: "guestEmail" }],
-      RFID: [{ $match: { "paymethod.method": 'RFID' } }, { $count: "RFID" }],
-      CREDIT: [{ $match: { "paymethod.method": 'CREDIT' } }, { $count: "CREDIT" }],
-      FREE: [{ $match: { "paymethod.method": 'FREE' } }, { $count: "FREE" }],
-      APPLEPAY: [{ $match: { "paymethod.method": 'APPLEPAY' } }, { $count: "APPLEPAY" }],
-      SAMSUNGPAY: [{ $match: { "paymethod.method": 'SAMSUNGPAY' } }, { $count: "SAMSUNGPAY" }],
-      GOOGLEPAY: [{ $match: { "paymethod.method": 'GOOGLEPAY' } }, { $count: "GOOGLEPAY" }],
-      totalCount: [{ $group: { _id: null, totalCount: { $sum: 1 } } }],
-      income:[{ $group: { _id: null, income: { $sum: "$price" } } }]
-    }
-  }]}
-  response = await MsiApi.mongoAggregate(queryData)
-  payment_method_obj.credit = response.data.result[0].CREDIT[0]?.CREDIT
-  payment_method_obj.rfid = response.data.result[0].RFID[0]?.RFID
-  payment_method_obj.applepay = response.data.result[0].APPLEPAY[0]?.APPLEPAY
-  payment_method_obj.googlepay = response.data.result[0].GOOGLEPAY[0]?.GOOGLEPAY
-  payment_method_obj.samsungpay = response.data.result[0].SAMSUNGPAY[0]?.SAMSUNGPAY
-  payment_method_obj.free = response.data.result[0].FREE[0]?.FREE
-
-  // payment_method_obj.others = response.data.result[0].totalCount[0]?.totalCount - payment_method_obj.credit - payment_method_obj.rfid - payment_method_obj.free
-  
-  if (response.data.result[0].totalCount[0]?.totalCount - response.data.result[0].RFID[0]?.RFID - response.data.result[0].guestEmail[0]?.guestEmail)
-    ev_life.value = response.data.result[0].totalCount[0]?.totalCount - response.data.result[0].RFID[0]?.RFID - response.data.result[0].guestEmail[0]?.guestEmail
-  if (response.data.result[0].guestEmail[0]?.guestEmail)
-    visitor.value = response.data.result[0].guestEmail[0]?.guestEmail
-  if (response.data.result[0].RFID[0]?.RFID)
-    rfid.value = response.data.result[0].RFID[0]?.RFID
-  if (response.data.result[0].income[0]?.income.toLocaleString())
-    income.value = response.data.result[0].income[0]?.income.toLocaleString()
 
   queryData = { "database": "CPO", "collection": "UserData", "pipelines": [ {$count: "memberCount"}]}
   response = await MsiApi.mongoAggregate(queryData)
@@ -399,13 +467,7 @@ onMounted(async () => {
   queryData = { "database": "CPO", "collection": "CompanyInformation", "pipelines": [ { $count: "companyCount"} ] }
   response = await MsiApi.mongoAggregate(queryData)
   business.value = response?.data?.result?.[0]?.companyCount
-
-  queryData = { "database": "OCPI", "collection": "Session", "pipelines": [ { $group: { _id: null, totalkwh: { $sum: '$kwh' }, }}]}
-  response = await MsiApi.mongoAggregate(queryData)
-  if (parseInt(response?.data?.result?.[0]?.totalkwh)) {
-    totalkwh.value = parseInt(response?.data?.result?.[0]?.totalkwh)
-    totalkwh.value = totalkwh.value / 1000
-  }
+  
 
   // queryData = { "database": "CPO", "collection": "PaymentHistory", "pipelines": [ {
   //   $facet: {
@@ -418,38 +480,12 @@ onMounted(async () => {
   // }] }
   // // { $group: { _id: null, totalkwh: { $sum: '$kwh' }, }}]}
   // response = await MsiApi.mongoAggregate(queryData)
-  // console.log(response)
 
 
-  queryData = { "database": "CPO", "collection": "PaymentHistory", "pipelines": [{ "$project": { "_id": 0, "operator_types": 1 } }]}
-  response = await MsiApi.mongoAggregate(queryData)
 
-  for (let i = 0; i < response?.data?.result?.length; i++) {
-    for (let j = 0; j < response.data.result[i]?.operator_types?.length; j++) {
-      if (response.data.result[i]?.operator_types[j]?.type === "charge") {
-        charger_time.sec = charger_time.sec + response.data.result[i]?.operator_types[j]?.time
-      }
-      else {
-        parking_time.sec = parking_time.sec + response.data.result[i]?.operator_types[j]?.time
-      }
-    }
-  }
-  charger_time.min = charger_time.sec / 60
-  charger_time.hr = parseInt(charger_time.min / 60)
-  charger_time.min = parseInt(charger_time.min % 60)
-
-  parking_time.min = parking_time.sec / 60
-  parking_time.hr = parseInt(parking_time.min / 60)
-  parking_time.min = parseInt(parking_time.min % 60)
 
   let ret_chart = null
   let chart_inst = null
-
-  ret_chart = ref_payment_chart.value
-
-  payment_method_option.series[0].data = [payment_method_obj.samsungpay,payment_method_obj.googlepay,payment_method_obj.applepay, payment_method_obj.free, payment_method_obj.rfid, payment_method_obj.credit]
-  chart_inst = echarts.init(ret_chart)
-  payment_method_option && chart_inst.setOption(payment_method_option)
 
   ret_chart = ref_location_type.value
 
@@ -469,8 +505,6 @@ onMounted(async () => {
     else if (response?.data?.result?.[i]?.facilities?.[0] === 'RESTAURANT') { facilities.restaurant++ }
     else if (response?.data?.result?.[i]?.facilities?.[0] === 'MALL') { facilities.mall++ }
     else if (response?.data?.result?.[i]?.facilities?.[0] === 'SUPERMARKET') { facilities.super_market++ }
-    // else if (response?.data?.result?.[i]?.facilities?.[0] === 'TAXI_STAND'){facilities.public_transportation++}
-    // else if (response?.data?.result?.[i]?.facilities?.[0] === 'FUEL_STATION'){facilities.fuel_station++}
     else if (response?.data?.result?.[i]?.facilities?.[0] === 'PARKING_LOT') { facilities.parking_lot++ }
     else if (response?.data?.result?.[i]?.facilities?.[0] === 'WIFI') { facilities.others++ }
   }
@@ -478,8 +512,6 @@ onMounted(async () => {
   location_type_option.series[1].data[0] = facilities.restaurant
   location_type_option.series[2].data[0] = facilities.mall
   location_type_option.series[3].data[0] = facilities.super_market
-  // location_type_option.series[4].data[0] = facilities.public_transportation
-  // location_type_option.series[4].data[0] = facilities.fuel_station
   location_type_option.series[4].data[0] = facilities.parking_lot
   location_type_option.series[5].data[0] = facilities.others
 
