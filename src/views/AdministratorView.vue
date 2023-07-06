@@ -93,7 +93,7 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import ApiFunc from '@/components/ApiFunc'
+import ApiFunc from '@/composables/ApiFunc'
 import msi from '@/assets/msi_style'
 import { ElMessageBox, ElMessage } from 'element-plus'
 import { useMStore } from "../stores/m_cloud";

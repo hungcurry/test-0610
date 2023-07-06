@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useMStore } from "../stores/m_cloud"
-import ApiFunc from '@/components/ApiFunc'
+import ApiFunc from '@/composables/ApiFunc'
 import EmsLayout from '@/components/EmsLayout.vue'
 
 import LoginView from '../views/LoginView.vue'
@@ -154,7 +154,6 @@ const router = createRouter({
 })
 
 router.beforeEach(async to => {
-  
   if (to.meta.title) {
     document.title = to.meta.title
   }
@@ -201,9 +200,6 @@ router.beforeEach(async to => {
     return '/login'
   }
 
-  if (toPath === '/user' && MStore.user_data.first_name !== 'Steven' && MStore.user_data.first_name !== 'Leo' && MStore.user_data.first_name !== 'Frank' ) {
-    return '/login'
-  }
 
 })
 

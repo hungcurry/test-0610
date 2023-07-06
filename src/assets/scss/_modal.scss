@@ -1,0 +1,82 @@
+.el-overlay-dialog {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  .el-dialog {
+    --el-dialog-border-radius: var(--el-border-radius-round);
+    margin: auto;
+    border: 0.6rem solid var(--blue-700);
+  }
+  .el-dialog__header {
+    position: relative;
+    padding: 0;
+    margin-right: 0;
+    overflow: hidden;
+    border-radius: 2rem 2rem 0 0;
+    span {
+      font-size: 2.2rem;
+      font-weight: 500;
+    }
+  }
+  .el-dialog__headerbtn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    right: 1rem;
+    height: 3rem;
+    width: 3rem;
+  }
+  .el-dialog__body {
+    padding: 2rem 2rem 1rem 2rem;
+    @media (min-width: 992px) {
+      padding: 3rem 3rem 1rem 3rem;
+    }
+  }
+  .dialog-context {
+    height: auto;
+    overflow-y: scroll;
+    max-height: calc(100vh - 20rem);
+    @media (min-width: 768px) {
+      max-height: calc(100vh - 25rem);
+    }
+    @media (min-width: 992px) {
+      max-height: calc(100vh - 30rem);
+    }
+  }
+  .el-icon {
+    height: 3rem;
+    width: 3rem;
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+  }
+  .el-icon svg {
+    height: 100%;
+    width: 100%;
+  }
+  .el-dialog__footer {
+    padding: 2rem;
+  }
+  .el-button {
+    height: 4rem;
+    span {
+      font-size: 1.6rem;
+    }
+  }
+  .el-button + .el-button {
+    @media (min-width: 992px) {
+      margin-left: 4.4rem;
+    }
+  }
+  .dialog-context::-webkit-scrollbar {
+    display: none;
+  }
+  .dialog-context {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+}

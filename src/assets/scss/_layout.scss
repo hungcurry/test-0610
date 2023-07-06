@@ -1,0 +1,68 @@
+* {
+  box-sizing: border-box;
+}
+html {
+  font-size: 10px;
+}
+body {
+  font-size: 16px;
+}
+html,
+body,
+#app {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+html.dark {
+  background: var(--black-300);
+}
+p {
+  margin: 0;
+  text-align: justify;
+}
+a {
+  text-decoration: none;
+}
+.container {
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  @media (min-width: 576px) {
+    max-width: 540px;
+  }
+  @media (min-width: 768px) {
+    max-width: 720px;
+  }
+  @media (min-width: 992px) {
+    max-width: 960px;
+  }
+  @media (min-width: 1200px) {
+    max-width: 1140px;
+  }
+  @media (min-width: 1400px) {
+    max-width: 1320px;
+  }
+  &.md {
+    max-width: 100%;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+    @media (min-width: 992px) {
+      padding-left: 2rem;
+      padding-right: 2rem;
+    }
+  }
+  &.lg {
+    max-width: 100%;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+    @media (min-width: 992px) {
+      padding-left: 4rem;
+      padding-right: 4rem;
+    }
+  }
+}
+.el-card__body {
+  height: 100%;
+}

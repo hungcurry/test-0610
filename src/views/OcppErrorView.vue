@@ -12,7 +12,6 @@
           <el-table-column prop="evse_id" label="EVSE ID" min-width="10"/>
           <el-table-column prop="ocpp_errorCode" label="Error Code" min-width="10"/>
           <el-table-column prop="vendorErrorCode" label="VendorErrorCode" min-width="10"/>
-          <!-- <el-table-column prop="level" label="Level" min-width="10"/> -->
           <el-table-column prop="ocpp_firmware_status" label="OCPP FW Status" min-width="10"/>
           <el-table-column prop="ocpp_status" label="OCPP Status" min-width="10">
           <template #header>
@@ -58,9 +57,9 @@
 
 <script  setup>
 import { onMounted, reactive, ref} from 'vue'
-import ApiFunc from '@/components/ApiFunc'
+import ApiFunc from '@/composables/ApiFunc'
 import msi from '@/assets/msi_style'
-import  {export_json_to_excel}  from '@/components/Export2Excel'
+import  {export_json_to_excel}  from '@/composables/Export2Excel'
 import { useMStore } from "../stores/m_cloud";
 import moment from "moment"
 const MStore = useMStore()
@@ -77,19 +76,6 @@ const handleButtonClick = () => {
   ErrorCodeVisible.value = true
 }
 
-// const ocppErrorTabel = [    
-//   {label:'EVSE ID', value:'evse_id', width:'10'},
-//   {label:'Error Code', value:'ocpp_errorCode', width:'10'},
-//   {label:'VendorErrorCode', value:'vendorErrorCode', width:'10'},
-//   {label:'Created Time', value:'created_date',width:'12'},
-//   // {label:'Level', value:'level', width:'5'}, 
-//   // {label:'Status', value:'ocpp_status', width:'6'},
-//   // {label:'Vendor', value:'vendorId', width:'5'},
-//   // {label:'Read', value:'read',width:'5'},
-//   // {label:'Operator', value:'',width:'15'},
-//   ]
-
-
 const getEVSEOCPPLogs = async() => {
   
   isLoading.value = true
@@ -105,11 +91,10 @@ const getEVSEOCPPLogs = async() => {
           }
         }
       },
-      // { "$project": { "_id": 0, 'created_date': 1, 'evse_id': 1, 'ocpp_errorCode': 1, 'vendorErrorCode': 1} }
+      { "$project": { "_id": 0, 'created_date': 1, 'evse_id': 1, 'ocpp_errorCode': 1, 'vendorErrorCode': 1, 'ocpp_firmware_status':1} }
     ]
   }
   let response = await MsiApi.mongoAggregate(queryData)
-  console.log(response)
   if (response.status === 200) {
     ocppErrorData.splice(0, ocppErrorData.length)
     Object.assign(ocppErrorData, response.data.result)
@@ -130,8 +115,8 @@ const getEVSEOCPPLogs = async() => {
 }
 
 const download = () => {
-  const tHeader = ['EVSE ID', 'Error Code', 'VendorErrorCode', 'Created Time']
-  const filterVal = ['evse_id', 'ocpp_errorCode', 'vendorErrorCode', 'created_date_str']
+  const tHeader = ['EVSE ID', 'Error Code', 'VendorErrorCode', 'OCPP FW Status','Created Time']
+  const filterVal = ['evse_id', 'ocpp_errorCode', 'vendorErrorCode', 'ocpp_firmware_status','created_date_str']
   const data = ocppErrorData.map(v => filterVal.map(j => v[j]))
   export_json_to_excel ({ header: tHeader, data: data, filename: 'OCPP Error' })
 }

@@ -1,19 +1,48 @@
+<script setup>
+import i18n from '@/locales'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+const route = useRoute()
+const router = useRouter()
+const reset_password_visible = ref(false)
+
+const English = () => {
+  i18n.global.locale.value = 'en_us'
+}
+const Chinese = () => {
+  i18n.global.locale.value = 'zh_tw'
+}
+const Personal_Info = () => {
+  router.push({ name: 'user' })
+}
+const logOut = () => {
+  router.push({ name: 'login' })
+}
+const resetPW = () => {
+  reset_password_visible.value = true
+}
+const emitCallBack = (res) => {
+  reset_password_visible.value = res
+}
+</script>
+
 <template>
   <div class="header-layout">
     <div class="left-header">
       <div class="station_map" v-if="route.path === '/station'">
-        <img src="@/assets/img/station_available.png">
+        <!-- <div class="station_map" > -->
+        <img src="@/assets/img/station_available.png" />
         <!-- <p>{{$t('account')}}</p> -->
         <p>Available</p>
-        <img src="@/assets/img/station_charging.png">
-        <p>Charging</p>
-        <img src="@/assets/img/station_offline.png">
+        <img src="@/assets/img/station_charging.png" />
+        <p>Charging / Full Charged</p>
+        <img src="@/assets/img/station_offline.png" />
         <p>Offline</p>
-        <img src="@/assets/img/station_error.png">
+        <img src="@/assets/img/station_error.png" />
         <p>Error</p>
       </div>
     </div>
-
     <div class="common-header">
       <!-- <el-dropdown>
         <el-button class="user"><font-awesome-icon icon="fa-solid fa-user" /></el-button>
@@ -23,9 +52,9 @@
             <el-dropdown-item @click="Chinese()">�c��</el-dropdown-item>
           </el-dropdown-menu>
         </template>
-      </el-dropdown>
+      </el-dropdown> -->
 
-      <el-button class="gear"><font-awesome-icon icon="fa-solid fa-gear" /></el-button>
+      <!-- <el-button class="gear"><font-awesome-icon icon="fa-solid fa-gear" /></el-button>
       <el-button class="bell"><font-awesome-icon icon="fa-solid fa-bell" /></el-button> -->
 
       <el-dropdown trigger="click">
@@ -38,121 +67,54 @@
           </el-dropdown-menu>
         </template>
       </el-dropdown>
-
-      <el-dialog v-model="reset_password_visible" title="Reset Password" draggable>
-        <el-form>
-          <el-form-item label="New password">
-            <el-input v-model="reset_password1" />
-          </el-form-item>
-          <el-form-item label="New password again">
-            <el-input v-model="reset_password2" />
-          </el-form-item>
-        </el-form>
-        <template #footer>
-          <span class="dialog-footer">
-            <el-button @click="cancel_resetPW('cancel', false)">Cancel</el-button>
-            <el-button type="primary" @click="confirm_PW('confirm', false)">Confirm</el-button>
-          </span>
-        </template>
-      </el-dialog>
     </div>
   </div>
+  <PasswordModal :modal="reset_password_visible" @closeModal="emitCallBack" />
 </template>
 
-<script setup>
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { ref } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import ApiFunc from '@/components/ApiFunc'
-import i18n from '@/locales'
-import { ElMessage } from 'element-plus'
-
-const route = useRoute()
-const router = useRouter()
-const MsiApi = ApiFunc()
-
-const reset_password_visible = ref(false)
-const reset_password1 = ref('')
-const reset_password2 = ref('')
-
-const English = () => { i18n.global.locale.value = 'en_us' }
-const Chinese = () => { i18n.global.locale.value = 'zh_tw' }
-
-
-const Personal_Info = () => {
-  router.push({ name: 'user' })
-}
-
-const logOut = () => {
-  router.push({ name: 'login' })
-}
-
-const resetPW = () => {
-  reset_password1.value = ''
-  reset_password2.value = ''
-  reset_password_visible.value = true
-}
-
-const cancel_resetPW = () => {
-  reset_password_visible.value = false
-}
-
-const confirm_PW = () => {
-  if (reset_password1.value === reset_password2.value) {
-    let sendData = { password: reset_password2.value }
-    MsiApi.resetPW(sendData)
-    reset_password_visible.value = false
-  }
-  else {
-    ElMessage('PW error')
-  }
-  reset_password1.value = ''
-  reset_password2.value = ''
-}
-
-</script>
-
-<style scoped lang="scss">
+<style lang="scss" scoped>
 .header-layout {
+  width: 100%;
+  height: 60px;
+  background-color: #c5cdd8;
   display: flex;
   justify-content: space-between;
-
+  align-items: center;
+  position: sticky;
+  top: 0;
+  right: 0;
+  z-index: 98;
   .station_map {
     display: flex;
-    flex-direction: row;
     align-items: center;
     margin-left: 20px;
-
     img {
       width: 36px;
       height: 36px;
     }
-
     p {
       font-size: 18px;
       margin-right: 40px;
       color: #414c58;
     }
   }
-
   .gear {
     width: 60px;
     height: 60px;
     background-color: transparent;
     border-style: none;
   }
-
   .bell {
     width: 60px;
     height: 60px;
     background-color: transparent;
     border-style: none;
   }
-
   .user {
     width: 60px;
     height: 60px;
     background-color: transparent;
     border-style: none;
   }
-}</style>
+}
+</style>

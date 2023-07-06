@@ -167,8 +167,8 @@
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { ref, reactive, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import ApiFunc from '@/components/ApiFunc'
-import CommpnFunc from '@/components/CommonFunc'
+import ApiFunc from '@/composables/ApiFunc'
+import CommpnFunc from '@/composables/CommonFunc'
 import msi from '@/assets/msi_style'
 import { ElMessageBox, ElMessage } from 'element-plus'
 

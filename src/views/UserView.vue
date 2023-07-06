@@ -107,7 +107,7 @@
 <script setup>
 import { ref, reactive, onMounted} from 'vue'
 import msi from '@/assets/msi_style'
-import ApiFunc from '@/components/ApiFunc'
+import ApiFunc from '@/composables/ApiFunc'
 import { useMStore } from "../stores/m_cloud"
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import {  ElMessage } from 'element-plus'

@@ -22,7 +22,7 @@ import FullCalendar from '@fullcalendar/vue3'
 import dayGridPlugin from '@fullcalendar/daygrid'
 import interactionPlugin from '@fullcalendar/interaction'
 import timeGridPlugin from '@fullcalendar/timegrid'
-import ApiFunc from '@/components/ApiFunc'
+import ApiFunc from '@/composables/ApiFunc'
 import { onMounted, reactive, ref } from 'vue'
 const MsiApi = ApiFunc()
 const calendarRef = ref()

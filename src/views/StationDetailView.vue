@@ -82,7 +82,7 @@
 <script setup>
 import { ref, reactive, onMounted} from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import ApiFunc from '@/components/ApiFunc'
+import ApiFunc from '@/composables/ApiFunc'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import  msi_style  from '../assets/msi_style'
 import { ElMessage } from 'element-plus'

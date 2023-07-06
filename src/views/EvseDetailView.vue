@@ -174,7 +174,7 @@
 <script setup>
 import { reactive, onMounted} from 'vue'
 import { useRoute, useRouter} from 'vue-router'
-import ApiFunc from '@/components/ApiFunc'
+import ApiFunc from '@/composables/ApiFunc'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import {  ElMessageBox } from 'element-plus'
 import msi from '@/assets/msi_style'

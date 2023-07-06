@@ -5,7 +5,7 @@
     <div class="tabs">
     <el-tabs v-model="activeName" >
       <el-tab-pane label="Paired" name="1" >
-        <div class="table">
+        <div class="table w-full">
           
         <el-table class="evse-table" :data="EvseConnectData" style="width: 95%; height:800px" stripe
         :cell-style=msi.tb_cell :header-cell-style=msi.tb_header_cell size="large" @selection-change="handleSelectionChange">
@@ -40,7 +40,7 @@
       </div>
       </el-tab-pane>
       <el-tab-pane label="Unpaired" name="2">
-        <div class="table">
+        <div class="table w-full">
           <el-table class="evse-table" :data="EvseUnConnectData" style="width: 95%; height:800px" stripe 
           :cell-style=msi.tb_cell :header-cell-style=msi.tb_header_cell size="large" @selection-change="handleSelectionChange">
             <el-table-column prop="locationName" label="Station" min-width="80"/>
@@ -95,7 +95,7 @@
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { ref, reactive, onMounted} from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import ApiFunc from '@/components/ApiFunc'
+import ApiFunc from '@/composables/ApiFunc'
 import msi from '@/assets/msi_style'
 import { ElMessage } from 'element-plus'
 import moment from "moment"
@@ -116,7 +116,6 @@ const updateSW = async() => {
   let queryData = { "database":"CPO", "collection":"VersionControl", "query": { "type": 'XP012'}}
   let response = await MsiApi.mongoQuery(queryData)
   swVersion.value = response.data.all[0].version
-  console.log(swVersion.value)
   let release_note = response.data.all[0].release_note.find(obj => obj.version === swVersion.value)
   if (release_note) {
     update_file.value = release_note.file

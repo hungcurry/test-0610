@@ -1,0 +1,22 @@
+.caret-none {
+  caret-color: transparent;
+}
+.z-99 {
+  position: relative;
+  z-index: 99;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.white-space-nowrap {
+  white-space: nowrap !important;
+}
+.box-shadow {
+  box-shadow: 0.7rem 1.1rem 1.2rem rgba(146, 169, 196, 0.25) !important;
+}
+* {
+  // outline: 1px solid red;
+}

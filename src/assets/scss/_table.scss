@@ -1,0 +1,81 @@
+.el-table {
+  thead {
+    color: var(--secondary);
+  }
+  .sort-caret.ascending {
+    border-bottom-color: var(--secondary);
+  }
+  .sort-caret.descending {
+    border-top-color: var(--secondary);
+  }
+  .cell {
+    font-size: 1.8rem;
+    font-weight: 500;
+    line-height: 2rem;
+  }
+  tbody {
+    .cell {
+      color: var(--black-200);
+    }
+  }
+}
+// el-table-Dropdown
+.el-table-filter {
+  .el-table-filter__content {
+    background-color: var(--blue-1200);
+    border-radius: 0.6rem 0.6rem 0 0;
+    padding-top: 0.8rem;
+  }
+  .el-table-filter__bottom {
+    display: flex;
+    justify-content: space-around;
+    background-color: var(--blue-1200);
+    border-radius: 0 0 0.6rem 0.6rem;
+    border-top: 0;
+    padding: 0.5rem 1.4rem 1.2rem 1.2rem;
+    button {
+      width: 8rem;
+      vertical-align: middle;
+      line-height: 1.5rem;
+      color: var(--white);
+      padding: 0.4rem 1.2rem;
+      background-color: var(--secondary);
+      border-radius: 2rem;
+    }
+    button + button {
+      margin-left: 1rem;
+    }
+  }
+  .el-checkbox {
+    --el-checkbox-bg-color: transparent;
+    --el-checkbox-checked-text-color: var(--white);
+    --el-checkbox-checked-bg-color: transparent;
+    --el-checkbox-checked-input-border-color: var(--white);
+    --el-checkbox-label-color: var(--white);
+    --el-checkbox-label-Available: var(--Available);
+  }
+  // state
+  .el-checkbox__inner::after {
+    box-sizing: content-box;
+    content: '';
+    width: 0.7rem;
+    height: 0.7rem;
+    background-color: var(--white);
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    opacity: 0;
+    border: 0;
+  }
+  .el-checkbox__input.is-checked .el-checkbox__inner::after {
+    opacity: 1;
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  .el-checkbox__label {
+    color: var(--white);
+  }
+}
+.el-table__column-filter-trigger i {
+  color: var(--secondary);
+}

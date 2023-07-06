@@ -109,10 +109,10 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import ApiFunc from '@/components/ApiFunc'
+import ApiFunc from '@/composables/ApiFunc'
 import {  ElMessageBox, ElMessage } from 'element-plus'
 import { v4 as uuidv4 } from 'uuid'
-import CommpnFunc from '@/components/CommonFunc'
+import CommpnFunc from '@/composables/CommonFunc'
 import msi from '@/assets/msi_style'
 const MsiFunc = CommpnFunc()
 const route = useRoute()

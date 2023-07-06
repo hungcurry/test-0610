@@ -71,7 +71,7 @@
 import { ref, reactive, onMounted} from 'vue'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import msi from '@/assets/msi_style'
-import ApiFunc from '@/components/ApiFunc'
+import ApiFunc from '@/composables/ApiFunc'
 import { ElMessage, ElMessageBox } from 'element-plus'
 const MsiApi = ApiFunc()
 const ProgramData = reactive([])

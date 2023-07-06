@@ -1,188 +1,12 @@
-<template>
-  <div class="dashboard">
-    <!-- <div class="dashboard-select">
-      <el-select v-model="select_country" class="location" placeholder="Country" size="large">
-        <el-option v-for="country in country_options" :key="country.value" :label="country.label" :value="country.value" />
-      </el-select>
-      <select name="country" class="country" >
-        <option value="">  City</option>
-        <option value="taipei">Taipei</option>
-      </select>
-      <select name="station" class="country" >
-        <option value="">  Station</option>
-        <option value="taipei">MSI
-        </option>
-      </select>
-    </div> -->
-    <br>
-    <br>
-    <div class="dashboard-title">
-      <p>Real-time Status</p>
-    </div>
-
-    <div class="real-time-container">
-      <div class="evse-status">
-        <el-card shadow="always">
-          <p class="evse-status-title">EVSE Status</p>
-          <div class="evse-status-container">
-            <div>
-              <p>{{ station_count }} Station</p>
-              <p>{{ status_obj.total }} Chargers</p>
-            </div>
-            <div ref="ref_evse_status" class="evse-status-chart"></div>
-          </div>
-        </el-card>
-      </div>
-
-      <div class="evse-notification">
-        <el-col>
-          <el-card shadow="always">
-            <p class="evse-notification-title">Offline / Error EVSE</p>
-            <div class="evse-notification-container">
-              <p v-for="value in error_evse" :key="value">
-                <a :href=value.url > {{ value.name + ' ' }}</a>
-                <span class="offline_count">{{ '(' + value.unknown_count + ')'}}</span>
-                <span class="error_count">{{ '(' + value.error_count + ')'}}</span>
-                <br>
-              </p>
-            </div>
-          </el-card>
-        </el-col>
-      </div>
-    </div>
-
-    <div class="analysis-container">
-      <div class="title">
-        <p>Analysis Dashboard</p>
-      </div>
-      <div class="date-container">
-        <div class="date">
-          <el-button class="date-btn" @click="date_select('all')"> All </el-button>
-          <el-button class="date-btn" @click="date_select('today')"> Today </el-button>
-          <el-button class="date-btn" @click="date_select('week')"> This Week </el-button>
-          <el-button class="date-btn" @click="date_select('month')"> This Month</el-button>
-        </div>
-      </div>
-      <div class="card">
-
-        <div class="card-use-time">
-          <div class="card-header">
-            <font-awesome-icon class="header-icon" icon="fa-regular fa-clock" />
-            <span>Total Used Time (Charging / Parking)</span>
-          </div>
-          <div class="card-body">
-            <div class="total-use-time"> {{ charger_time.hr + ' hr ' + charger_time.min + ' min / ' + parking_time.hr + 
-            ' hr ' + parking_time.min + ' min'}}</div>
-          </div>
-        </div>
-
-        <div class="card-customers">
-          <div class="card-header">
-            <font-awesome-icon class="header-icon" icon="fa-regular fa-user" />
-            <span>Customers</span>
-          </div>
-          <div class="card-body">
-            <div class="member">
-              <p class="value">{{ member }}</p>
-              <p class="title">Member</p>
-            </div>
-
-            <div v-if="company === 'MSI'" class="business">
-              <p class="value">{{ business }}</p>
-              <p class="title">CPO</p>
-            </div>
-          </div>
-        </div>
-
-        <div class="card-income">
-          <div class="card-header">
-            <font-awesome-icon class="header-icon" icon="fa-solid fa-coins" />
-            <span>Income</span>
-            <el-button v-if="company === 'MSI'" class="ellipsis" @click="goto_payment"> <font-awesome-icon
-                icon="fa-solid fa-ellipsis" /></el-button>
-          </div>
-          <div class="card-body">
-            <div class="income"> TWD$ {{ income }} </div>
-          </div>
-        </div>
-
-        <div class="card-use-power">
-          <div class="card-header">
-            <font-awesome-icon class="header-icon" icon="fa-regular fa-clock" />
-            <span>Total Used Power</span>
-          </div>
-          <div class="card-body">
-            <div class="total-use-time"> {{ totalkwh }} kW </div>
-          </div>
-        </div>
-
-        <div class="card-amount">
-          <div class="card-header">
-            <font-awesome-icon class="header-icon" icon="fa-regular fa-clock" />
-            <span> Total Used Times </span>
-          </div>
-          <div class="card-body">
-
-            <div class="member">
-              <p class="value">{{ ev_life }}</p>
-              <p class="title">EV-Life</p>
-            </div>
-
-            <div class="member">
-              <p class="value">{{ rfid }}</p>
-              <p class="title">RFID</p>
-            </div>
-
-            <div class="member">
-              <p class="value">{{ visitor }}</p>
-              <p class="title">QR-Pay</p>
-            </div>
-          </div>
-        </div>
-
-        <div class="card-payment-method">
-          <div class="card-header">
-            <font-awesome-icon class="header-icon" icon="fa-regular fa-clock" />
-            <span>Payment Method</span>
-          </div>
-          <div class="card-body">
-            <div ref="ref_payment_chart" class="payment-chart"></div>
-          </div>
-        </div>
-
-        <div class="card-power-time">
-          <div class="card-header">
-            <font-awesome-icon class="header-icon" icon="fa-regular fa-clock" />
-            <span>Used Power & Times</span>
-          </div>
-          <div class="card-body">
-            <div ref="ref_power_time" class="power-time"></div>
-          </div>
-        </div>
-
-        <div class="card-location-type">
-          <div class="card-header">
-            <font-awesome-icon class="header-icon" icon="fa-regular fa-clock" />
-            <span>Station Type of Usage</span>
-          </div>
-          <div class="card-body">
-            <div ref="ref_location_type" class="location-type"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</template>
-
 <script setup>
 import * as echarts from 'echarts'
-import { ref, reactive, onMounted } from 'vue'
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import ApiFunc from '@/composables/ApiFunc'
+import SelectDropdown from '@/components/Input/SelectDropdown.vue'
+import { ref, reactive, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
-import ApiFunc from '@/components/ApiFunc'
-import { useMStore } from "../stores/m_cloud"
+import { useMStore } from '@/stores/m_cloud'
 
-const MStore = useMStore();
+const MStore = useMStore()
 const company = MStore?.permission?.company?.name
 const router = useRouter()
 const MsiApi = ApiFunc()
@@ -203,6 +27,33 @@ const station_count = ref(0)
 const payment_method_obj = reactive({ credit: 0, rfid: 0, free: 0, googlepay: 0, applepay: 0, samsungpay: 0,  })
 const charger_time = reactive({ hr: 0, min: 0, sec: 0 })
 const parking_time = reactive({ hr: 0, min: 0, sec: 0 })
+// selectDropdown
+const select_country = ref('Country')
+const select_city = ref('City')
+const select_station = ref('Station')
+let ret_chart = null
+let chart_inst = null
+const country_options = ref([
+  { value: 'Taiwan' },
+  { value: 'Japan' },
+  { value: 'South Korea' },
+  { value: 'Thailand' },
+  { value: 'Vietnam' },
+])
+const city_options = ref([
+  { value: 'Taipei' },
+  { value: 'Kaohsiung' },
+  { value: 'Taichung' },
+  { value: 'Tainan' },
+  { value: 'Hsinchu' },
+])
+const station_options = ref([
+  { value: 'Option1' },
+  { value: 'Option2' },
+  { value: 'Option3' },
+  { value: 'Option4' },
+  { value: 'Option5' },
+])
 const status_obj = reactive({ Available: 0, Charging: 0, Offline: 0, Error: 0})
 
 const payment_method_option = {
@@ -214,45 +65,147 @@ const payment_method_option = {
   ]
 }
 
-const location_type_option = {
+const evse_status_option = reactive({
+  tooltip: { trigger: 'item' },
+  legend: {
+    show: true,
+    x: 'right',
+    y: 'center',
+    formatter: function (value) {
+      return value + ' (' + status_obj[value] + ')'
+    },
+  },
+  series: [
+    {
+      name: '',
+      type: 'pie',
+      radius: ['80%', '100%'],
+      avoidLabelOverlap: false,
+      label: { show: false, position: 'center' },
+      color: ['#537ebc', '#64bfae', '#b1b1b1', '#ef8879'],
+      labelLine: { show: false },
+      data: [
+        { value: status_obj.Available, name: 'Available' },
+        { value: status_obj.Charging, name: 'Charging' },
+        { value: status_obj.Offline, name: 'Offline' },
+        { value: status_obj.Error, name: 'Error' },
+      ],
+    },
+  ],
+  media: [
+    {
+      query: {
+        maxWidth: 767,
+      },
+      option: {
+        legend: {
+          orient: 'vertical',
+          top: '20%',
+          bottom: '5%',
+          left: '60%',
+        },
+        series: [
+          {
+            left: '0%',
+            right: '30%',
+            top: '5%',
+            bottom: '5%',
+          },
+        ],
+      },
+    },
+  ],
+})
+const location_type_option = reactive({
   tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
   legend: {},
-  grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
+  grid: { left: '2%', right: '10%', bottom: '3%', containLabel: true },
   xAxis: { type: 'value' },
   yAxis: { type: 'category', data: [''] },
   series: [
-    { name: 'Hotel', type: 'bar', stack: 'total', label: { show: true }, emphasis: { focus: 'series' }, data: [320] },
-    { name: 'Restaurant', type: 'bar', stack: 'total', label: { show: true }, emphasis: { focus: 'series' }, data: [120] },
-    { name: 'Mall', type: 'bar', stack: 'total', label: { show: true }, emphasis: { focus: 'series' }, data: [220] },
-    { name: 'Super Market', type: 'bar', stack: 'total', label: { show: true }, emphasis: { focus: 'series' }, data: [150] },
-    { name: 'Parking lot', type: 'bar', stack: 'total', label: { show: true }, emphasis: { focus: 'series' }, data: [820] },
-    { name: 'Others', type: 'bar', stack: 'total', label: { show: true }, emphasis: { focus: 'series' }, data: [820] },
-  ]
-}
+    {
+      name: 'Hotel',
+      type: 'bar',
+      stack: 'total',
+      label: { show: true },
+      emphasis: { focus: 'series' },
+      data: [320],
+      color: '#566575',
+    },
+    {
+      name: 'Restaurant',
+      type: 'bar',
+      stack: 'total',
+      label: { show: true },
+      emphasis: { focus: 'series' },
+      data: [120],
+      color: '#92a9c4',
+    },
+    {
+      name: 'Mall',
+      type: 'bar',
+      stack: 'total',
+      label: { show: true },
+      emphasis: { focus: 'series' },
+      data: [220],
+      color: '#414c58',
+    },
+    {
+      name: 'Super Market',
+      type: 'bar',
+      stack: 'total',
+      label: { show: true },
+      emphasis: { focus: 'series' },
+      data: [150],
+      color: '#7e8c9c',
+    },
+    {
+      name: 'Parking lot',
+      type: 'bar',
+      stack: 'total',
+      label: { show: true },
+      emphasis: { focus: 'series' },
+      data: [820],
+      color: '#90a9bf',
+    },
+    {
+      name: 'Others',
+      type: 'bar',
+      stack: 'total',
+      label: { show: true },
+      emphasis: { focus: 'series' },
+      data: [820],
+      color: '#baddf9',
+    },
+  ],
+})
 
-const power_times_option = {
+const power_times_option = reactive({
   tooltip: { trigger: 'axis' },
   legend: { data: ['Power', 'Times'] },
   grid: { left: '2%', right: '5%', bottom: '3%', containLabel: true },
-  xAxis: { type: 'category', boundaryGap: false, data: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] },
-  yAxis: { type: 'value' },
-  series: [{ name: 'Power', type: 'line', stack: 'Total', data: [120, 132, 101, 134, 90, 230, 210] },
-  { name: 'Times', type: 'line', stack: 'Total', data: [220, 182, 191, 234, 290, 330, 310] },
-  ],
-}
-
-const evse_status_option = reactive({
-  tooltip: { trigger: 'item' },
-  legend: { show: true, orient: 'vertical', x: 'right', y: 'center',
-    formatter: function (value) { return value + ' (' + status_obj[value] + ')'}
+  xAxis: {
+    type: 'category',
+    boundaryGap: false,
+    data: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
   },
-  series: [{
-    name: '', type: 'pie', radius: ['80%', '100%'],
-    avoidLabelOverlap: false, label: { show: false, position: 'center' }, color: ['#537ebc', '#64bfae', '#b1b1b1', '#ef8879'],
-    labelLine: { show: false },
-    data: [{ value: status_obj.Available, name: 'Available' }, { value: status_obj.Charging, name: 'Charging' },
-    { value: status_obj.Offline, name: 'Offline' }, { value: status_obj.Error, name: 'Error' }]
-  }]
+  yAxis: { type: 'value' },
+  series: [
+    {
+      name: 'Power',
+      type: 'line',
+      stack: 'Total',
+      data: [120, 132, 101, 134, 90, 230, 210],
+      color: '#94eadb',
+    },
+    {
+      name: 'Times',
+      type: 'line',
+      stack: 'Total',
+      data: [220, 182, 191, 234, 290, 330, 310],
+      color: '#61a8d8',
+    },
+  ],
 })
 
 const goto_payment = () => {
@@ -358,8 +311,7 @@ const queryTotalUsedTimes = async (select_time1) => {
   payment_method_obj.samsungpay = response.data.result[0].SAMSUNGPAY[0]?.SAMSUNGPAY
   payment_method_obj.free = response.data.result[0].FREE[0]?.FREE
   
-  let ret_chart = null
-  let chart_inst = null
+
 
   ret_chart = ref_payment_chart.value
 
@@ -377,38 +329,52 @@ onMounted(async () => {
   queryTotalUsedTime()
 
   let queryData = {
-    "database": "OCPI", "collection": "EVSE", "pipelines": [
+    database: 'OCPI',
+    collection: 'EVSE',
+    pipelines: [
       {
         $facet: {
-          AVAILABLE: [{ $match: { "status": 'AVAILABLE' } }, { $count: "AVAILABLE" }],
-          UNKNOWN: [{ $match: { "status": 'UNKNOWN' } }, { $count: "UNKNOWN" }],
-          CHARGING: [{ $match: { "status": 'CHARGING' } }, { $count: "CHARGING" }],
-          OUTOFORDER: [{ $match: { "status": 'OUTOFORDER' } }, { $count: "OUTOFORDER" }],
+          AVAILABLE: [{ $match: { status: 'AVAILABLE' } }, { $count: 'AVAILABLE' }],
+          UNKNOWN: [{ $match: { status: 'UNKNOWN' } }, { $count: 'UNKNOWN' }],
+          CHARGING: [{ $match: { status: 'CHARGING' } }, { $count: 'CHARGING' }],
+          OUTOFORDER: [{ $match: { status: 'OUTOFORDER' } }, { $count: 'OUTOFORDER' }],
           totalCount: [{ $group: { _id: null, totalCount: { $sum: 1 } } }],
-        }
-      }]
+        },
+      },
+    ],
   }
   let response = await MsiApi.mongoAggregate(queryData)
   status_obj.total = status_obj.Available = status_obj.Offline = status_obj.Charging = status_obj.Error = 0
 
   if (response.data.result[0]?.totalCount?.[0]?.totalCount)
     status_obj.total = response.data.result[0].totalCount?.[0]?.totalCount
-  if(response.data.result[0]?.AVAILABLE[0]?.AVAILABLE)
+  if (response.data.result[0]?.AVAILABLE[0]?.AVAILABLE)
     status_obj.Available = response.data.result[0].AVAILABLE[0]?.AVAILABLE
-  if(response.data.result[0]?.CHARGING[0]?.CHARGING)
+  if (response.data.result[0]?.CHARGING[0]?.CHARGING)
     status_obj.Charging = response.data.result[0].CHARGING[0]?.CHARGING
-  if(response.data.result[0]?.UNKNOWN[0]?.UNKNOWN)
+  if (response.data.result[0]?.UNKNOWN[0]?.UNKNOWN)
     status_obj.Offline = response.data.result[0].UNKNOWN[0]?.UNKNOWN
-  if(response.data.result[0]?.OUTOFORDER[0]?.OUTOFORDER)
+  if (response.data.result[0]?.OUTOFORDER[0]?.OUTOFORDER)
     status_obj.Error = response.data.result[0].OUTOFORDER[0]?.OUTOFORDER
-  
-  queryData = { "database": "OCPI", "collection": "Location", "pipelines": [ { "$project": { "_id": 0, "evses": 1, "name": 1, "id": 1 } }]}
+
+  queryData = {
+    database: 'OCPI',
+    collection: 'Location',
+    pipelines: [{ $project: { _id: 0, evses: 1, name: 1, id: 1 } }],
+  }
   response = await MsiApi.mongoAggregate(queryData)
   let locationData = response.data.result
   queryData = {
-    "database": "OCPI", "collection": "EVSE", "pipelines": [
-      { $match: { $or: [{ "status": { "$eq": 'UNKNOWN' } }, { "status": { "$eq": 'OUTOFORDER' } }] } },
-      { "$project": { "_id": 1 , "status":1} }]
+    database: 'OCPI',
+    collection: 'EVSE',
+    pipelines: [
+      {
+        $match: {
+          $or: [{ status: { $eq: 'UNKNOWN' } }, { status: { $eq: 'OUTOFORDER' } }],
+        },
+      },
+      { $project: { _id: 1, status: 1 } },
+    ],
   }
 
   response = await MsiApi.mongoAggregate(queryData)
@@ -422,39 +388,64 @@ onMounted(async () => {
           break
         }
       }
-      if (EvseData[i].locationName)
-        break
+      if (EvseData[i].locationName) break
     }
   }
 
   for (let i = 0; i < EvseData.length; i++) {
-    const index = error_evse.findIndex(obj=>obj.id === EvseData[i].locationId)
+    const index = error_evse.findIndex((obj) => obj.id === EvseData[i].locationId)
     if (index !== -1) {
-      if (EvseData[i].status === 'UNKNOWN')
-        error_evse[index].unknown_count += 1
-      else if (EvseData[i].status === 'OUTOFORDER')
-        error_evse[index].error_count += 1
-    }
-    else{
+      if (EvseData[i].status === 'UNKNOWN') error_evse[index].unknown_count += 1
+      else if (EvseData[i].status === 'OUTOFORDER') error_evse[index].error_count += 1
+    } else {
       if (EvseData[i].status === 'UNKNOWN')
         if (import.meta.env.VITE_BASE_URL !== undefined)
-          error_evse.push({name:EvseData[i].locationName, id: EvseData[i].locationId, error_count:0 ,unknown_count:1, url: import.meta.env.VITE_BASE_URL + '/stationDetail?id=' + EvseData[i].locationId})
+          error_evse.push({
+            name: EvseData[i].locationName,
+            id: EvseData[i].locationId,
+            error_count: 0,
+            unknown_count: 1,
+            url:
+              import.meta.env.VITE_BASE_URL +
+              '/stationDetail?id=' +
+              EvseData[i].locationId,
+          })
         else
-          error_evse.push({name:EvseData[i].locationName, id: EvseData[i].locationId, error_count:0 ,unknown_count:1, url: '/stationDetail?id=' + EvseData[i].locationId})
+          error_evse.push({
+            name: EvseData[i].locationName,
+            id: EvseData[i].locationId,
+            error_count: 0,
+            unknown_count: 1,
+            url: '/stationDetail?id=' + EvseData[i].locationId,
+          })
       else if (EvseData[i].status === 'OUTOFORDER')
         if (import.meta.env.VITE_BASE_URL !== undefined)
-          error_evse.push({name:EvseData[i].locationName, id: EvseData[i].locationId, error_count:1 ,unknown_count:0, url: import.meta.env.VITE_BASE_URL + '/stationDetail?id=' + EvseData[i].locationId})        
+          error_evse.push({
+            name: EvseData[i].locationName,
+            id: EvseData[i].locationId,
+            error_count: 1,
+            unknown_count: 0,
+            url:
+              import.meta.env.VITE_BASE_URL +
+              '/stationDetail?id=' +
+              EvseData[i].locationId,
+          })
         else
-          error_evse.push({name:EvseData[i].locationName, id: EvseData[i].locationId, error_count:1 ,unknown_count:0, url: '/stationDetail?id=' + EvseData[i].locationId})        
+          error_evse.push({
+            name: EvseData[i].locationName,
+            id: EvseData[i].locationId,
+            error_count: 1,
+            unknown_count: 0,
+            url: '/stationDetail?id=' + EvseData[i].locationId,
+          })
     }
   }
-  for(let i = 0; i < error_evse.length; i++) {
+  for (let i = 0; i < error_evse.length; i++) {
     if (error_evse[i].name === undefined) {
       error_evse[i].name = 'Unpaired'
       if (import.meta.env.VITE_BASE_URL !== undefined)
         error_evse[i].url = import.meta.env.VITE_BASE_URL + '/evse?page=unpaired'
-      else 
-        error_evse[i].url = '/evse?page=unpaired'
+      else error_evse[i].url = '/evse?page=unpaired'
       break
     }
   }
@@ -471,12 +462,12 @@ onMounted(async () => {
 
   // queryData = { "database": "CPO", "collection": "PaymentHistory", "pipelines": [ {
   //   $facet: {
-      
+
   //     charging_time: [{ $match: { "operator_types.type": 'charge' } },
   //     {$group:{_id:null, total_time:{$sum:"$operator_types.time"}}} ],
-      
+
   //     //  parking_time: [{ $match: { "operator_types.type": 'parking' } }, { $sum: "parking_time" }],
-  //   }  
+  //   }
   // }] }
   // // { $group: { _id: null, totalkwh: { $sum: '$kwh' }, }}]}
   // response = await MsiApi.mongoAggregate(queryData)
@@ -490,23 +481,38 @@ onMounted(async () => {
   ret_chart = ref_location_type.value
 
   queryData = {
-    "database": "OCPI", "collection": "Location", "pipelines": [
-      { "$project": { "_id": 0 } }
-    ]
+    database: 'OCPI',
+    collection: 'Location',
+    pipelines: [{ $project: { _id: 0 } }],
   }
 
   response = await MsiApi.mongoAggregate(queryData)
   station_count.value = response?.data?.result?.length
 
-  let facilities = { hotel: 0, restaurant: 0, mall: 0, super_market: 0, parking_lot: 0, others: 0 }
+  let facilities = {
+    hotel: 0,
+    restaurant: 0,
+    mall: 0,
+    super_market: 0,
+    parking_lot: 0,
+    others: 0,
+  }
 
   for (let i = 0; i < response?.data?.result?.length; i++) {
-    if (response?.data?.result?.[i]?.facilities?.[0] === 'HOTEL') { facilities.hotel++ }
-    else if (response?.data?.result?.[i]?.facilities?.[0] === 'RESTAURANT') { facilities.restaurant++ }
-    else if (response?.data?.result?.[i]?.facilities?.[0] === 'MALL') { facilities.mall++ }
-    else if (response?.data?.result?.[i]?.facilities?.[0] === 'SUPERMARKET') { facilities.super_market++ }
-    else if (response?.data?.result?.[i]?.facilities?.[0] === 'PARKING_LOT') { facilities.parking_lot++ }
-    else if (response?.data?.result?.[i]?.facilities?.[0] === 'WIFI') { facilities.others++ }
+    if (response?.data?.result?.[i]?.facilities?.[0] === 'HOTEL') {
+      facilities.hotel++
+    } else if (response?.data?.result?.[i]?.facilities?.[0] === 'RESTAURANT') {
+      facilities.restaurant++
+    } else if (response?.data?.result?.[i]?.facilities?.[0] === 'MALL') {
+      facilities.mall++
+    } else if (response?.data?.result?.[i]?.facilities?.[0] === 'SUPERMARKET') {
+      facilities.super_market++
+    }
+    else if (response?.data?.result?.[i]?.facilities?.[0] === 'PARKING_LOT') {
+      facilities.parking_lot++
+    } else if (response?.data?.result?.[i]?.facilities?.[0] === 'WIFI') {
+      facilities.others++
+    }
   }
   location_type_option.series[0].data[0] = facilities.hotel
   location_type_option.series[1].data[0] = facilities.restaurant
@@ -520,41 +526,50 @@ onMounted(async () => {
 
   ret_chart = ref_power_time.value
   queryData = {
-    "database": "CPO", "collection": "CompanyInformation", "pipelines": [
-      { $count: "companyCount" }]
+    database: 'CPO',
+    collection: 'CompanyInformation',
+    pipelines: [{ $count: 'companyCount' }],
   }
   response = await MsiApi.mongoAggregate(queryData)
   business.value = response.data.result[0].companyCount
 
   const now = new Date()
   let today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-  let date0 = new Date(today.getTime() - (0 * 24 * 60 * 60 * 1000))
-  let date1 = new Date(today.getTime() - (1 * 24 * 60 * 60 * 1000))
-  let date2 = new Date(today.getTime() - (2 * 24 * 60 * 60 * 1000))
-  let date3 = new Date(today.getTime() - (3 * 24 * 60 * 60 * 1000))
-  let date4 = new Date(today.getTime() - (4 * 24 * 60 * 60 * 1000))
-  let date5 = new Date(today.getTime() - (5 * 24 * 60 * 60 * 1000))
-  let date6 = new Date(today.getTime() - (6 * 24 * 60 * 60 * 1000))
-  let date7 = new Date(today.getTime() - (7 * 24 * 60 * 60 * 1000))
+  let date0 = new Date(today.getTime() - 0 * 24 * 60 * 60 * 1000)
+  let date1 = new Date(today.getTime() - 1 * 24 * 60 * 60 * 1000)
+  let date2 = new Date(today.getTime() - 2 * 24 * 60 * 60 * 1000)
+  let date3 = new Date(today.getTime() - 3 * 24 * 60 * 60 * 1000)
+  let date4 = new Date(today.getTime() - 4 * 24 * 60 * 60 * 1000)
+  let date5 = new Date(today.getTime() - 5 * 24 * 60 * 60 * 1000)
+  let date6 = new Date(today.getTime() - 6 * 24 * 60 * 60 * 1000)
+  let date7 = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000)
 
   let use_power_time_obj = {
-    date1: { power: 0, times: 0 }, date2: { power: 0, times: 0 }, date3: { power: 0, times: 0 },
-    date4: { power: 0, times: 0 }, date5: { power: 0, times: 0 }, date6: { power: 0, times: 0 }, date7: { power: 0, times: 0 }
+    date1: { power: 0, times: 0 },
+    date2: { power: 0, times: 0 },
+    date3: { power: 0, times: 0 },
+    date4: { power: 0, times: 0 },
+    date5: { power: 0, times: 0 },
+    date6: { power: 0, times: 0 },
+    date7: { power: 0, times: 0 },
   }
 
   queryData = {
-    "database": "OCPI", "collection": "Session", "pipelines": [
+    database: 'OCPI',
+    collection: 'Session',
+    pipelines: [
       {
-        "$match": {
-          "$expr": {
-            "$and": [
-              { "$gte": ["$start_date_time", { "$dateFromString": { "dateString": date7 } }] },
-              { "$lt": ["$end_date_time", { "$dateFromString": { "dateString": date6 } }] }]
-          }
-        }
+        $match: {
+          $expr: {
+            $and: [
+              { $gte: ['$start_date_time', { $dateFromString: { dateString: date7 } }] },
+              { $lt: ['$end_date_time', { $dateFromString: { dateString: date6 } }] },
+            ],
+          },
+        },
       },
-      { "$project": { "_id": 0, "kwh": 1 } }
-    ]
+      { $project: { _id: 0, kwh: 1 } },
+    ],
   }
   response = await MsiApi.mongoAggregate(queryData)
 
@@ -564,18 +579,21 @@ onMounted(async () => {
   }
 
   queryData = {
-    "database": "OCPI", "collection": "Session", "pipelines": [
+    database: 'OCPI',
+    collection: 'Session',
+    pipelines: [
       {
-        "$match": {
-          "$expr": {
-            "$and": [
-              { "$gte": ["$start_date_time", { "$dateFromString": { "dateString": date6 } }] },
-              { "$lt": ["$end_date_time", { "$dateFromString": { "dateString": date5 } }] }]
-          }
-        }
+        $match: {
+          $expr: {
+            $and: [
+              { $gte: ['$start_date_time', { $dateFromString: { dateString: date6 } }] },
+              { $lt: ['$end_date_time', { $dateFromString: { dateString: date5 } }] },
+            ],
+          },
+        },
       },
-      { "$project": { "_id": 0, "kwh": 1 } }
-    ]
+      { $project: { _id: 0, kwh: 1 } },
+    ],
   }
   response = await MsiApi.mongoAggregate(queryData)
 
@@ -585,18 +603,21 @@ onMounted(async () => {
   }
 
   queryData = {
-    "database": "OCPI", "collection": "Session", "pipelines": [
+    database: 'OCPI',
+    collection: 'Session',
+    pipelines: [
       {
-        "$match": {
-          "$expr": {
-            "$and": [
-              { "$gte": ["$start_date_time", { "$dateFromString": { "dateString": date5 } }] },
-              { "$lt": ["$end_date_time", { "$dateFromString": { "dateString": date4 } }] }]
-          }
-        }
+        $match: {
+          $expr: {
+            $and: [
+              { $gte: ['$start_date_time', { $dateFromString: { dateString: date5 } }] },
+              { $lt: ['$end_date_time', { $dateFromString: { dateString: date4 } }] },
+            ],
+          },
+        },
       },
-      { "$project": { "_id": 0, "kwh": 1 } }
-    ]
+      { $project: { _id: 0, kwh: 1 } },
+    ],
   }
   response = await MsiApi.mongoAggregate(queryData)
 
@@ -605,18 +626,21 @@ onMounted(async () => {
     use_power_time_obj.date5.power += response.data.result[i].kwh
   }
   queryData = {
-    "database": "OCPI", "collection": "Session", "pipelines": [
+    database: 'OCPI',
+    collection: 'Session',
+    pipelines: [
       {
-        "$match": {
-          "$expr": {
-            "$and": [
-              { "$gte": ["$start_date_time", { "$dateFromString": { "dateString": date4 } }] },
-              { "$lt": ["$end_date_time", { "$dateFromString": { "dateString": date3 } }] }]
-          }
-        }
+        $match: {
+          $expr: {
+            $and: [
+              { $gte: ['$start_date_time', { $dateFromString: { dateString: date4 } }] },
+              { $lt: ['$end_date_time', { $dateFromString: { dateString: date3 } }] },
+            ],
+          },
+        },
       },
-      { "$project": { "_id": 0, "kwh": 1 } }
-    ]
+      { $project: { _id: 0, kwh: 1 } },
+    ],
   }
   response = await MsiApi.mongoAggregate(queryData)
 
@@ -625,18 +649,21 @@ onMounted(async () => {
     use_power_time_obj.date4.power += response.data.result[i].kwh
   }
   queryData = {
-    "database": "OCPI", "collection": "Session", "pipelines": [
+    database: 'OCPI',
+    collection: 'Session',
+    pipelines: [
       {
-        "$match": {
-          "$expr": {
-            "$and": [
-              { "$gte": ["$start_date_time", { "$dateFromString": { "dateString": date3 } }] },
-              { "$lt": ["$end_date_time", { "$dateFromString": { "dateString": date2 } }] }]
-          }
-        }
+        $match: {
+          $expr: {
+            $and: [
+              { $gte: ['$start_date_time', { $dateFromString: { dateString: date3 } }] },
+              { $lt: ['$end_date_time', { $dateFromString: { dateString: date2 } }] },
+            ],
+          },
+        },
       },
-      { "$project": { "_id": 0, "kwh": 1 } }
-    ]
+      { $project: { _id: 0, kwh: 1 } },
+    ],
   }
   response = await MsiApi.mongoAggregate(queryData)
 
@@ -645,18 +672,21 @@ onMounted(async () => {
     use_power_time_obj.date3.power += response.data.result[i].kwh
   }
   queryData = {
-    "database": "OCPI", "collection": "Session", "pipelines": [
+    database: 'OCPI',
+    collection: 'Session',
+    pipelines: [
       {
-        "$match": {
-          "$expr": {
-            "$and": [
-              { "$gte": ["$start_date_time", { "$dateFromString": { "dateString": date2 } }] },
-              { "$lt": ["$end_date_time", { "$dateFromString": { "dateString": date1 } }] }]
-          }
-        }
+        $match: {
+          $expr: {
+            $and: [
+              { $gte: ['$start_date_time', { $dateFromString: { dateString: date2 } }] },
+              { $lt: ['$end_date_time', { $dateFromString: { dateString: date1 } }] },
+            ],
+          },
+        },
       },
-      { "$project": { "_id": 0, "kwh": 1 } }
-    ]
+      { $project: { _id: 0, kwh: 1 } },
+    ],
   }
   response = await MsiApi.mongoAggregate(queryData)
 
@@ -665,18 +695,21 @@ onMounted(async () => {
     use_power_time_obj.date2.power += response.data.result[i].kwh
   }
   queryData = {
-    "database": "OCPI", "collection": "Session", "pipelines": [
+    database: 'OCPI',
+    collection: 'Session',
+    pipelines: [
       {
-        "$match": {
-          "$expr": {
-            "$and": [
-              { "$gte": ["$start_date_time", { "$dateFromString": { "dateString": date1 } }] },
-              { "$lt": ["$end_date_time", { "$dateFromString": { "dateString": date0 } }] }]
-          }
-        }
+        $match: {
+          $expr: {
+            $and: [
+              { $gte: ['$start_date_time', { $dateFromString: { dateString: date1 } }] },
+              { $lt: ['$end_date_time', { $dateFromString: { dateString: date0 } }] },
+            ],
+          },
+        },
       },
-      { "$project": { "_id": 0, "kwh": 1 } }
-    ]
+      { $project: { _id: 0, kwh: 1 } },
+    ],
   }
   response = await MsiApi.mongoAggregate(queryData)
 
@@ -700,14 +733,62 @@ onMounted(async () => {
   power_times_option.series[1].data[5] = use_power_time_obj.date2.times
   power_times_option.series[1].data[6] = use_power_time_obj.date1.times
 
-  power_times_option.xAxis.data[6] = new Date(date1).getMonth() + 1 + "/" + new Date(date1).getDate() + "(" + new Date(date1).toLocaleDateString('en-US', { weekday: 'short' }) + ".)"
-  power_times_option.xAxis.data[5] = new Date(date2).getMonth() + 1 + "/" + new Date(date2).getDate() + "(" + new Date(date2).toLocaleDateString('en-US', { weekday: 'short' }) + ".)"
-  power_times_option.xAxis.data[4] = new Date(date3).getMonth() + 1 + "/" + new Date(date3).getDate() + "(" + new Date(date3).toLocaleDateString('en-US', { weekday: 'short' }) + ".)"
-  power_times_option.xAxis.data[3] = new Date(date4).getMonth() + 1 + "/" + new Date(date4).getDate() + "(" + new Date(date4).toLocaleDateString('en-US', { weekday: 'short' }) + ".)"
-  power_times_option.xAxis.data[2] = new Date(date5).getMonth() + 1 + "/" + new Date(date5).getDate() + "(" + new Date(date5).toLocaleDateString('en-US', { weekday: 'short' }) + ".)"
-  power_times_option.xAxis.data[1] = new Date(date6).getMonth() + 1 + "/" + new Date(date6).getDate() + "(" + new Date(date6).toLocaleDateString('en-US', { weekday: 'short' }) + ".)"
-  power_times_option.xAxis.data[0] = new Date(date7).getMonth() + 1 + "/" + new Date(date7).getDate() + "(" + new Date(date7).toLocaleDateString('en-US', { weekday: 'short' }) + ".)"
-
+  power_times_option.xAxis.data[6] =
+    new Date(date1).getMonth() +
+    1 +
+    '/' +
+    new Date(date1).getDate() +
+    '(' +
+    new Date(date1).toLocaleDateString('en-US', { weekday: 'short' }) +
+    '.)'
+  power_times_option.xAxis.data[5] =
+    new Date(date2).getMonth() +
+    1 +
+    '/' +
+    new Date(date2).getDate() +
+    '(' +
+    new Date(date2).toLocaleDateString('en-US', { weekday: 'short' }) +
+    '.)'
+  power_times_option.xAxis.data[4] =
+    new Date(date3).getMonth() +
+    1 +
+    '/' +
+    new Date(date3).getDate() +
+    '(' +
+    new Date(date3).toLocaleDateString('en-US', { weekday: 'short' }) +
+    '.)'
+  power_times_option.xAxis.data[3] =
+    new Date(date4).getMonth() +
+    1 +
+    '/' +
+    new Date(date4).getDate() +
+    '(' +
+    new Date(date4).toLocaleDateString('en-US', { weekday: 'short' }) +
+    '.)'
+  power_times_option.xAxis.data[2] =
+    new Date(date5).getMonth() +
+    1 +
+    '/' +
+    new Date(date5).getDate() +
+    '(' +
+    new Date(date5).toLocaleDateString('en-US', { weekday: 'short' }) +
+    '.)'
+  power_times_option.xAxis.data[1] =
+    new Date(date6).getMonth() +
+    1 +
+    '/' +
+    new Date(date6).getDate() +
+    '(' +
+    new Date(date6).toLocaleDateString('en-US', { weekday: 'short' }) +
+    '.)'
+  power_times_option.xAxis.data[0] =
+    new Date(date7).getMonth() +
+    1 +
+    '/' +
+    new Date(date7).getDate() +
+    '(' +
+    new Date(date7).toLocaleDateString('en-US', { weekday: 'short' }) +
+    '.)'
 
   chart_inst = echarts.init(ret_chart)
   power_times_option && chart_inst.setOption(power_times_option)
@@ -717,376 +798,414 @@ onMounted(async () => {
     { value: status_obj.Available, name: 'Available' },
     { value: status_obj.Charging, name: 'Charging' },
     { value: status_obj.Offline, name: 'Offline' },
-    { value: status_obj.Error, name: 'Error' },]
+    { value: status_obj.Error, name: 'Error' },
+  ]
   chart_inst = echarts.init(ret_chart)
 
   evse_status_option && chart_inst.setOption(evse_status_option)
+
+  window.addEventListener('resize', () => {
+    chart_inst.resize()
+  })
 })
 
+onUnmounted(() => {
+  window.removeEventListener('resize', () => chart_inst.resize())
+})
 </script>
 
+<template>
+  <div class="dashboard">
+    <div class="container lg mb-36px">
+      <!-- <div
+        class="selectDropdown md:flex md:flex-nowrap justify-center lg:justify-start pt-40px"
+      >
+        <SelectDropdown
+          v-model="select_country"
+          :data="country_options"
+          class="Country select mr-8px lg:mr-32px mb-20px md:mb-0"
+        >
+          <img
+            class="w-20px mr-8px"
+            src="@/assets/img/dashboard_dropdown_area.png"
+            alt=""
+          />
+        </SelectDropdown>
+
+        <SelectDropdown
+          v-model="select_city"
+          :data="city_options"
+          class="City select mr-8px lg:mr-32px mb-20px md:mb-0"
+        >
+          <img
+            class="w-20px mr-8px"
+            src="@/assets/img/dashboard_dropdown_location.png"
+            alt=""
+          />
+        </SelectDropdown>
+
+        <SelectDropdown
+          v-model="select_station"
+          :data="station_options"
+          class="Station select mb-10px md:mb-0"
+        >
+          <img
+            class="w-20px mr-8px"
+            src="@/assets/img/dashboard_dropdown_station.png"
+            alt=""
+          />
+        </SelectDropdown>
+      </div> -->
+
+      <p class="m-0 text-20px text-blue-1200 py-20px text-center">Real-time Status</p>
+      <el-row class="realtimeStatus" :gutter="30">
+        <el-col class="mb-24px lg:mb-0" :xs="24" :md="12">
+          <div class="evse-status">
+            <el-card class="text-20px text-blue-1200 border-0 box-shadow" shadow="always">
+              <div class="lg:flex justify-between h-full">
+                <div class="flex-shrink-0">
+                  <div class="evse-title flex items-center pb-16px md:pb-20px">
+                    <img
+                      src="@/assets/img/dashboard_title_status.png"
+                      alt="dashboard_title_status"
+                    />
+                    <p class="text-blue-1200 text-22px ml-8px">EVSE Status</p>
+                  </div>
+                  <div class="evse-text w-full">
+                    <p class="text-secondary mb-4">
+                      <span class="text-32px mr-4">{{ station_count }}</span>
+                      Station
+                    </p>
+                    <p class="text-secondary mb-4">
+                      <span class="text-32px mr-4">{{ status_obj.total }} </span>Chargers
+                    </p>
+                  </div>
+                </div>
+
+                <div
+                  class="evse-status-container scrollbar pb-4 overflow-x-auto flex-grow"
+                >
+                  <div ref="ref_evse_status" class="evse-status-chart"></div>
+                </div>
+              </div>
+            </el-card>
+          </div>
+        </el-col>
+        <el-col :xs="24" :md="12">
+          <div class="evse-notification">
+            <el-card class="text-20px text-blue-1200 border-0 box-shadow" shadow="always">
+              <div class="evse-title flex items-center pb-16px md:pb-20px">
+                <img
+                  src="@/assets/img/dashboard_title_error.png"
+                  alt="dashboard_title_error"
+                />
+                <p class="text-blue-1200 text-22px ml-8px">Offline / Error EVSE</p>
+              </div>
+              <div class="evse-notification-container scrollbar">
+                <p class="mb-4" v-for="value in error_evse" :key="value">
+                  <a class="text-black" :href="value.url"> {{ value.name + ' ' }}</a>
+                  <!-- <span class="name" @click="aaa">{{value.name }}</span> -->
+                  <span class="text-Offline-2 mr-2">{{
+                    '(' + value.unknown_count + ')'
+                  }}</span>
+                  <span class="text-Error mr-2">{{ '(' + value.error_count + ')' }}</span>
+                  <br />
+                </p>
+              </div>
+            </el-card>
+          </div>
+        </el-col>
+      </el-row>
+    </div>
+    <!-- ------------------------------------- -->
+    <div class="container md pb-20px bg-blue-100">
+      <p class="m-0 text-20px text-blue-1200 pt-20px pb-24px text-center">
+        Analysis Dashboard
+      </p>
+      <div class="pb-24px">
+        <div class="scrollbar overflow-x-auto">
+          <div class="date pb-6 flex xl-justify-center">
+            <el-button
+              type="primary"
+              round
+              class="btn-primary"
+              @click="date_select('all')"
+            >
+              All
+            </el-button>
+            <el-button
+              type="primary"
+              round
+              class="btn-primary"
+              @click="date_select('today')"
+            >
+              Today
+            </el-button>
+            <el-button
+              type="primary"
+              round
+              class="btn-primary"
+              @click="date_select('week')"
+            >
+              This Week
+            </el-button>
+            <el-button
+              type="primary"
+              round
+              class="btn-primary"
+              @click="date_select('month')"
+            >
+              This Month</el-button
+            >
+          </div>
+        </div>
+      </div>
+      <div class="card-container scrollbar lg:px-20px overflow-x-auto">
+        <div class="card grid grid-cols-4 grid-rows-3 gap-24px pb-24px">
+          <div class="use-time flex-col card-rounded box-shadow col-span-2">
+            <div class="evse-title flex items-center pb-16px md:pb-20px">
+              <img
+                src="@/assets/img/dashboard_title_time.png"
+                alt="dashboard_title_time"
+              />
+              <p class="text-blue-1200 text-22px ml-8px">
+                Total Used Time (Charge / Parking)
+              </p>
+            </div>
+            <div class="card-body flex-center h-full text-40px md:text-60px">
+              <div class="total-use-time">
+                {{ charger_time.hr }} <span class="text-24px mr-8px">hr</span>
+                {{ charger_time.min }} <span class="text-24px mr-8px">min</span>
+                <span class="text-24px ml-8px">/</span>
+                {{ parking_time.hr }} <span class="text-24px mr-8px">hr</span>
+                {{ parking_time.min }} <span class="text-24px mr-8px">min</span>
+              </div>
+            </div>
+          </div>
+          <div class="amount flex-col card-rounded box-shadow">
+            <div class="evse-title flex items-center pb-16px md:pb-20px">
+              <font-awesome-icon
+                class="w-24px h-24px"
+                icon="fa-regular fa-calendar-check"
+              />
+              <p class="text-blue-1200 text-22px ml-8px">Total Used Times</p>
+            </div>
+            <div
+              class="card-body flex-center h-full text-40px md:text-60px justify-evenly"
+            >
+              <div>
+                <p class="value">{{ ev_life }}</p>
+                <p class="title">EV-Life</p>
+              </div>
+              <div>
+                <p class="value">{{ rfid }}</p>
+                <p class="title">RFID</p>
+              </div>
+              <div>
+                <p class="value">{{ visitor }}</p>
+                <p class="title">QR-Pay</p>
+              </div>
+            </div>
+          </div>
+          <div class="income flex-col card-rounded box-shadow">
+            <div class="evse-title flex items-center pb-16px md:pb-20px">
+              <font-awesome-icon class="w-24px h-24px" icon="fa-solid fa-coins" />
+              <p class="text-blue-1200 text-22px ml-8px">Income</p>
+              <el-button v-if="company === 'MSI'" class="ellipsis" @click="goto_payment">
+                <font-awesome-icon icon="fa-solid fa-ellipsis"
+              /></el-button>
+            </div>
+            <div class="card-body flex-center h-full text-40px md:text-60px">
+              <div class="income">
+                <span class="text-24px mr-8px">$</span>
+                {{ income }}
+                <span class="text-24px mr-8px">TWD</span>
+              </div>
+            </div>
+          </div>
+          <div class="use-power flex-col card-rounded box-shadow">
+            <div class="evse-title flex items-center pb-16px md:pb-20px">
+              <img
+                src="@/assets/img/dashboard_title_amount.png"
+                alt="dashboard_title_amount"
+              />
+              <p class="text-blue-1200 text-22px ml-8px">Total Used Power</p>
+            </div>
+            <div class="card-body flex-center h-full text-40px md:text-60px">
+              <div class="total-use-time">
+                {{ totalkwh }}
+                <span class="text-24px mr-8px">kW</span>
+              </div>
+            </div>
+          </div>
+          <div class="customers flex-col card-rounded box-shadow">
+            <div class="evse-title flex items-center pb-16px md:pb-20px">
+              <font-awesome-icon class="w-24px h-24px" icon="fa-regular fa-user" />
+              <p class="text-blue-1200 text-22px ml-8px">Customers</p>
+            </div>
+            <div
+              class="card-body flex-center h-full text-40px md:text-60px justify-evenly"
+            >
+              <div>
+                <p class="value">{{ member }}</p>
+                <p class="title">Member</p>
+              </div>
+              <div v-if="company === 'MSI'" class="business">
+                <p class="value">{{ business }}</p>
+                <p class="title">CPO</p>
+              </div>
+            </div>
+          </div>
+          <div class="location-type flex-col card-rounded box-shadow col-span-2">
+            <div class="evse-title flex items-center pb-16px md:pb-20px">
+              <img
+                src="@/assets/img/dashboard_title_locationtype.png"
+                alt="dashboard_title_locationtype"
+              />
+              <p class="text-blue-1200 text-22px ml-8px">Station Type of Usage</p>
+            </div>
+            <div class="card-body flex-center h-full text-40px md:text-60px">
+              <div ref="ref_location_type" class="location-type"></div>
+            </div>
+          </div>
+          <div class="power-time flex-col card-rounded box-shadow col-span-2">
+            <div class="evse-title flex items-center pb-16px md:pb-20px">
+              <img
+                src="@/assets/img/dashboard_title_power.png"
+                alt="dashboard_title_power"
+              />
+              <p class="text-blue-1200 text-22px ml-8px">Used Power & Times</p>
+            </div>
+            <div class="card-body flex-center h-full text-40px md:text-60px">
+              <div ref="ref_power_time" class="power-time flex-grow"></div>
+            </div>
+          </div>
+          <div class="payment-method flex-col card-rounded box-shadow col-span-2">
+            <div class="evse-title flex items-center pb-16px md:pb-20px">
+              <font-awesome-icon class="w-24px h-24px" icon="fa-regular fa-credit-card" />
+              <p class="text-blue-1200 text-22px ml-8px">Payment Method</p>
+            </div>
+            <div class="card-body flex-center h-full text-40px md:text-60px">
+              <div ref="ref_payment_chart" class="payment-chart"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
 
 <style lang="scss" scoped>
 .dashboard {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  height: 100%;
-
-  .dashboard-select {
-    display: flex;
-    flex-direction: row;
-    margin-top: 40px;
-    margin-left: 40px;
-
-    .location {
-      width: 250px;
-      margin-right: 32px;
-    }
-
-    .country {
-      width: 250px;
-      margin-right: 32px;
-    }
-
-    .station {
-      width: 250px;
-      margin-right: 77px;
-    }
-  }
-
-  .country {
-    background: url('https://dev-evse.com/data/common/pic/2222.png') no-repeat 10px center;
-    background-size: 22px 22px;
-    padding-left: 35px;
-    width: 250px;
-    color: #ffffff;
-    background-color: #414c58;
-    border: 0px;
-    border-radius: 20px;
-    font-size: 18px;
-  }
-
   :deep(.el-input__wrapper) {
-    background-color: #414c58;
-    border: 0px;
-    border-radius: 20px;
+    background-color: var(--blue-1200);
+    border: 0;
+    border-radius: 2rem;
   }
-
   :deep(.el-input__inner::placeholder) {
-    color: #ffffff;
-    font-size: 18px;
+    color: var(--white);
+    font-size: 1.8rem;
   }
-
   :deep(.el-select__caret) {
-    color: #ffffff;
+    color: var(--white);
   }
-
-  .dashboard-title {
-    display: flex;
-    flex-direction: row;
-    width: 100%;
-    justify-content: center;
-
-    p {
-      margin: -13px;
-      font-size: 18px;
-      color: #92a9c4;
-    }
+}
+.realtimeStatus {
+  .el-card {
+    --el-card-padding: 1.6rem;
+    height: 100%;
+    background-color: var(--blue-100);
+    border-radius: 1rem;
   }
-
-  .real-time-container {
-    display: flex;
-    flex-direction: row;
-    width: 100%;
-    justify-content: flex-start;
-
-    .evse-status {
-      margin-top: 20px;
-      width: 900px;
-      height: 180px;
-
-      .evse-status-title {
-        margin: 0px;
-        font-size: 22px;
-      }
-
-      .evse-status-container {
-        display: flex;
-        flex-direction: row;
-
-        p {
-          font-size: 22px;
-          color: #414C58;
-        }
-      }
-
-      .el-card {
-        margin-left: 20px;
-        height: 180px;
-        width: 95%;
-        background-color: #f3f7fa;
-      }
-
-      .evse-status-chart {
-        width: 400px;
-        height: 120px;
-      }
+  .el-card__body {
+    padding: var(--el-card-padding);
+  }
+  .evse-status {
+    height: 100%;
+    &-container {
     }
-
-    .evse-notification {
-      margin-top: 20px;
-      width: 900px;
-      height: 180px;
-
-      .el-card {
-        margin-left: 20px;
-        height: 180px;
-        width: 95%;
-        background-color: #f3f7fa;
-      }
-
-      .evse-notification-title {
-        margin: 0px;
-        font-size: 22px;
-      }
-
-      .evse-notification-container {
-        height: 100px;
-        overflow: auto;
-
-        // display: flex;
-        // flex-direction: row;
-        p {
-          // text-align: center;
-          margin: 5px;
-          font-size: 20px;
-          color: #983636;
-        }
-
-        .name {
-          color: #000000;
-        }
-
-        .offline_count{
-          color: #b1b1b1;
-        }
-        .error_count{
-          color: #ef8879;
-        }
-        a:link{color:#000000 }
-        a:visited{color:#000000}
-        a:hover{color:#000000}
-        a:active{color:#000000}
-        a {text-decoration: none;}
+    &-chart {
+      width: 100%;
+      min-width: 34rem;
+      height: 14.5rem;
+      @media (min-width: 2000px) {
+        min-width: initial;
+        width: 50rem;
+        margin: 0 auto;
       }
     }
   }
-
-  .analysis-container {
-    background-color: #f3f7fa;
-    height: 750px;
-    margin-top: 20px;
-    overflow: auto;
-
+  .evse-notification {
+    height: 100%;
+    :deep(.el-card__body) {
+      display: flex;
+      flex-direction: column;
+    }
+    &-container {
+      height: 11rem;
+      overflow: auto;
+      p {
+        font-size: 2rem;
+        color: #983636;
+      }
+    }
+  }
+}
+.card {
+  width: 184rem;
+  margin: 0 auto;
+  grid-template-rows: 18rem 18rem 1fr;
+  grid-auto-columns: 20rem;
+  grid-auto-rows: 20rem;
+  .ellipsis {
+    width: 30px;
+    height: 30px;
+    background-color: transparent;
+    border-style: none;
+  }
+  .card-body {
+    color: var(--blue-1200);
+    .value {
+      text-align: center;
+      margin-bottom: 0.8rem;
+    }
     .title {
-      display: flex;
-      flex-direction: row;
+      text-align: center;
+      font-size: 1.6rem;
+    }
+    .payment-chart {
       width: 100%;
-      justify-content: center;
+      height: 18rem;
     }
-
-    .date-container {
+    .power-time {
       width: 100%;
+      height: 100%;
     }
-
-    .date {
-      display: flex;
-      flex-direction: row;
-      justify-content: center;
-
-      .date-btn {
-        font-size: 22px;
-      }
-    }
-
-    .card {
-      height: 630px;
-      width: 1620px;
-      display: grid;
-      margin-top: 28px;
-      margin-left: 40px;
-      // margin-bottom: 40px;
-      row-gap: 26px;
-      column-gap: 24px;
-      grid-template-areas:
-        "card-use-time card-use-time card-amount card-income"
-        "card-use-power card-customers card-payment-method card-payment-method"
-        "card-power-time card-power-time card-payment-method card-payment-method"
-        "card-power-time card-power-time card-location-type card-location-type";
-
-      // "card-customers card-customers  card-amount card-use-power card-income"
-      // "card-location-type card-location-type card-payment-method card-payment-method card-payment-method"
-      // "card-power-time card-power-time card-payment-method card-payment-method card-payment-method"
-      // "card-power-time card-power-time card-use-time card-use-time card-use-time ";
-
-      grid-auto-flow: row;
-
-      .card-header {
-        display: flex;
-        align-items: center;
-        height: 30px;
-        font-size: 22px;
-        margin: 12px 30px 0px 18px;
-
-        .header-icon {
-          margin-right: 10px;
-        }
-      }
-
-      .card-body {
-        height: 138px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-      }
-
-      .card-use-time {
-        grid-area: card-use-time;
-        background-color: #ffffff;
-        display: flex;
-        flex-direction: column;
-
-        .total-use-time {
-          text-align: center;
-          font-size: 40px;
-        }
-      }
-
-      .card-customers {
-        grid-area: card-customers;
-        background-color: #ffffff;
-
-        .card-body {
-          display: flex;
-          flex-direction: row;
-
-          .member {
-            margin-right: 66px;
-          }
-
-          .business {
-            margin-right: 66px;
-          }
-
-          .value {
-            font-size: 40px;
-            text-align: center;
-            margin: 0 0 8px 0px;
-          }
-
-          .title {
-            margin: 0;
-            font-size: 16px;
-            color: #414C58;
-          }
-        }
-
-        .ellipsis {
-          width: 30px;
-          height: 30px;
-          background-color: transparent;
-          border-style: none;
-        }
-      }
-
-      .card-income {
-        grid-area: card-income;
-        background-color: #ffffff;
-        font-size: 40px;
-
-        .ellipsis {
-          width: 30px;
-          height: 30px;
-          background-color: transparent;
-          border-style: none;
-        }
-      }
-
-      .card-use-power {
-        grid-area: card-use-power;
-        background-color: #ffffff;
-        font-size: 40px;
-      }
-
-      .card-amount {
-        grid-area: card-amount;
-        background-color: #ffffff;
-        font-size: 40px;
-        .card-body {
-          display: flex;
-          flex-direction: row;
-          .member {
-            margin-right: 66px;
-          }
-        .value {
-            font-size: 40px;
-            text-align: center;
-            margin: 0 0 8px 0px;
-          }
-
-          .title {
-            margin: 0;
-            font-size: 16px;
-            color: #414C58;
-          }
-        }
-      }
-
-      .card-payment-method {
-        grid-area: card-payment-method;
-        background-color: #ffffff;
-
-        // width:600px;
-        .ellipsis {
-          width: 30px;
-          height: 30px;
-          background-color: transparent;
-          border-style: none;
-        }
-
-        .payment-chart {
-          width: 100%;
-          height: 250px;
-          overflow: hidden;
-        }
-      }
-
-      .card-power-time {
-        grid-area: card-power-time;
-        background-color: #ffffff;
-
-        .power-time {
-          width: 100%;
-          height: 100%;
-        }
-      }
-
-      .card-location-type {
-        grid-area: card-location-type;
-        background-color: #ffffff;
-
-        .location-type {
-          width: 100%;
-          height: 100%;
-        }
-      }
+    .location-type {
+      width: 100%;
+      height: 11rem;
     }
   }
-}</style>
-
-
-
-
-
-
+}
+.scrollbar {
+  &::-webkit-scrollbar {
+    width: 0.8rem;
+    height: 0.8rem;
+  }
+  &::-webkit-scrollbar-track,
+  &::-webkit-scrollbar-corner {
+    background-color: var(--blue-100);
+  }
+  &::-webkit-scrollbar-thumb {
+    background-color: var(--blue-1000);
+    border-radius: 2rem;
+  }
+}
+// control bottom block scrollbar
+.card-container {
+  @media (min-width: 992px) {
+    // height: calc(100vh - 50rem);
+    height: calc(100vh - 47rem);
+  }
+}
+</style>

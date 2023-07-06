@@ -1,0 +1,27 @@
+$--colors: (
+  'primary': (
+    'base': #92a9c4,
+  ),
+  'success': (
+    'base': #94eadb,
+  ),
+  'warning': (
+    'base': #e6a23c,
+  ),
+  'danger': (
+    'base': #f56c6c,
+  ),
+  'error': (
+    'base': #ef8879,
+  ),
+  'info': (
+    'base': #bcbcbc,
+  ),
+);
+
+@forward 'element-plus/theme-chalk/src/common/var.scss' with (
+  $colors: $--colors,
+  $date-editor: (
+    'daterange-width': 260px,
+  )
+);

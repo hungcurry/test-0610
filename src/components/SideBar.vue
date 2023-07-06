@@ -1,56 +1,88 @@
+<script setup>
+import SideBarLink from '@/components/SideBarLink.vue'
+import { storeToRefs } from 'pinia'
+import { useSideMenuStore } from '@/stores/sidemenu'
+import { Fold, Expand } from '@element-plus/icons-vue'
+
+const sideMenuStore = useSideMenuStore()
+const { isCollapse, sideBar } = storeToRefs(sideMenuStore)
+const { handleClose, handleOpen } = sideMenuStore
+const menuClose = () => {
+  handleClose()
+}
+const menuOpen = () => {
+  handleOpen()
+}
+</script>
+
 <template>
-  <div class="sidebar">
-    <p class="m-cloud">m-Cloud</p>
-    
-    <!-- <img src="@/assets/img/all_msilogo.png" alt=""> -->
-      <div class="sidebar-link">
-        <side-bar-link/>
-      </div>
+  <div ref="sideBar" class="sidebar close">
+    <div class="flex flex-center my-14px">
+      <p class="m-cloud m-0 mr-20px">m-Cloud</p>
+      <!-- buttonGroup -->
+      <template v-if="true">
+        <el-button
+          v-if="!isCollapse"
+          type="primary"
+          class="collapse bg-secondary border-0 inline-block text-white"
+          @click.stop="menuClose"
+          ><el-icon> <Fold /> </el-icon
+        ></el-button>
+        <el-button
+          v-else
+          type="primary"
+          class="expand bg-secondary border-0 mx-auto text-white"
+          @click.stop="menuOpen"
+        >
+          <el-icon>
+            <Expand />
+          </el-icon>
+        </el-button>
+      </template>
+    </div>
+    <div class="sidebarLink">
+      <side-bar-link />
+    </div>
   </div>
 </template>
 
-<script setup>
-import SideBarLink from '../components/SideBarLink.vue'
-
-</script>
-
-<style lang="scss">
+<style lang="scss" scoped>
 .sidebar {
-  margin: 0;
-  width: 300px;
-  height: 100%;
-  background-color: #2e343a;
-  img {
-    margin: 36px 0 36px 0;
-  }
-
+  box-sizing: border-box;
   .m-cloud {
-    width: 100%;
-    font-size: 40px;
-    color: #FFFFFF;
+    font-size: 4rem;
+    color: var(--white);
     text-align: center;
+    display: block;
+    line-height: 3.2rem;
   }
-  // .sidebar-content {
-  //   width: 100%;
-  //   height: 100%;
-  //   display: flex;
-  //   flex-direction: column;
-  //   align-items: center;
-  //   p {
-  //     margin: 0;
-  //     font-size: 30px;
-  //     text-align: center;
-  //     color: rgb(255, 255, 255);
-  //   }
-  //   img {
-  //     width: 80%;
-  //     text-align: center;
-  //   }
-  //   .sidebar-link {
-  //     width:100%;
-  //   }
-  // }
+  .sidebarLink {
+    height: calc(100vh - 18%);
+    overflow-x: hidden;
+    overflow-y: scroll;
+    box-sizing: border-box;
+    &::-webkit-scrollbar {
+      width: 0.8rem;
+    }
+    &::-webkit-scrollbar-track,
+    &::-webkit-scrollbar-corner {
+      background-color: var(--primary);
+    }
+    &::-webkit-scrollbar-thumb {
+      background-color: var(--secondary);
+      border-radius: 2rem;
+    }
+  }
+  .collapse,
+  .expand {
+    padding: 1rem;
+    font-size: 2.2rem;
+    display: flex;
+  }
 }
-
-
+.sidebar.close {
+  .m-cloud {
+    display: none;
+  }
+}
 </style>

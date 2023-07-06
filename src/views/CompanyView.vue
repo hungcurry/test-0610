@@ -97,7 +97,7 @@
 import { Search } from '@element-plus/icons-vue'
 import { ref, reactive, onMounted} from 'vue'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import ApiFunc from '@/components/ApiFunc'
+import ApiFunc from '@/composables/ApiFunc'
 import msi from '@/assets/msi_style'
 import moment from "moment"
 import {  ElMessageBox,ElMessage } from 'element-plus'

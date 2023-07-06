@@ -74,7 +74,7 @@ import { useMStore } from "../stores/m_cloud"
 import { storeToRefs } from "pinia"
 import  msi_style  from '../assets/msi_style'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import MsiCommonApi from '@/components/ApiFunc'
+import MsiCommonApi from '@/composables/ApiFunc'
 
 import hotelPng from '@/assets/img/station_list_type_hotel.png'
 import restaurantPng from '@/assets/img/station_list_type_restaurant.png'
@@ -243,7 +243,6 @@ onMounted( async () => {
   const response = await MsiApi.mongoQuery(queryData)
   LocationData.length = 0
   Object.assign(LocationData, response.data.all)
-  console.log(LocationData)
   for (let i = 0; i < LocationData.length; i++) {
     LocationData[i].state_available_str = LocationData[i].state_charging_str = LocationData[i].state_unknown_str = LocationData[i].state_error_str = 0
     LocationData[i].state_total_str = LocationData[i].evses.length 

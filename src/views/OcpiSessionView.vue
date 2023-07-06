@@ -17,8 +17,8 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
-import ApiFunc from '@/components/ApiFunc'
-import  {export_json_to_excel}  from '@/components/Export2Excel'
+import ApiFunc from '@/composables/ApiFunc'
+import  {export_json_to_excel}  from '@/composables/Export2Excel'
 import msi from '@/assets/msi_style'
 
 import { useMStore } from "../stores/m_cloud";

@@ -1,0 +1,18 @@
+.el-loading-mask {
+  width: 100%;
+  height: 100%;
+  z-index: 9;
+  background-color: rgba($color: #000000, $alpha: 0.6);
+}
+.el-loading-spinner .path {
+  -webkit-animation: loading-dash 1.5s ease-in-out infinite;
+  animation: loading-dash 1.5s ease-in-out infinite;
+  stroke-dasharray: 90, 150;
+  stroke-dashoffset: 0;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke: var(--primary) !important;
+}
+.el-loading-spinner .el-loading-text {
+  color: var(--primary) !important;
+}
