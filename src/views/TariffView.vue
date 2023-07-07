@@ -1,70 +1,3 @@
-<template>
-  <div class="tariff">
-    <el-button class="add-tariff" @click="editTariff"> Add Rate Plan</el-button>
-    <div class="tariff-list">
-      <el-table :data="TariffData" style="width: 95%; height:95%" stripe :cell-style=msi.tb_cell :header-cell-style=msi.tb_header_cell size="large">
-        <el-table-column prop="profile_name" label="Profile Name" min-width="10"/>
-        <el-table-column prop="tariff_text" label="Description" min-width="60"/>
-        <el-table-column prop="min_price_str" label="Min Price" min-width="10"/>
-        <!-- <el-table-column prop="max_price_str" label="Max Price" min-width="10"/> -->
-        <el-table-column prop="currency" label="Currency" min-width="10"/>
-        <el-table-column fixed="right" label="Operations" min-width="15">
-          <template #default="scope">
-            <el-button link type="primary" size="large" @click="deleteTariff (scope.row)" >Delete</el-button>
-            <el-button link type="primary" size="large" @click="copyTariff(scope)">Copy</el-button>
-            <el-button link type="primary" size="large" @click="editTariff(scope.row)">More</el-button>
-          </template>
-        </el-table-column>
-      </el-table>
-    </div>
-
-    <el-dialog v-model="addTariffFormVisible" title="Add Rate" draggable>
-      <p> Tariff Type </p>
-      <el-select v-model="tariff_select" class="m-2" placeholder="Select" size="large">
-        <el-option v-for="item in TariffOptions" :key="item.value" :label="item.label" :value="item.value"/>
-      </el-select>
-      <br><br>
-      <p> Time </p>
-      <el-time-select v-model="startTime" :max-time="endTime" placeholder="Start time" start="00:00" step="00:30" end="24:00"/>
-      <el-time-select v-model="endTime" :min-time="startTime" placeholder="End time" start="00:00" step="00:30" end="24:00"/>
-      <br><br>
-      <p> Applied Day of Week </p>
-      <el-checkbox-button v-for="week in day" :key="week" :label="week"> {{ week }} </el-checkbox-button>
-
-      <div v-if="tariff_select === 'Charging'">
-        <p>Charging Method</p>
-        <el-select v-model="charging_select" class="m-2" placeholder="Select" size="large">
-          <el-option v-for="item in ChargingOptions" :key="item.value" :label="item.label" :value="item.value"/>
-        </el-select>
-
-        <p>Vat</p>
-          <el-input v-model="vat" />
-        <p>Start Fee</p>
-        <el-input v-model="start_fee" />
-        <p>Charging Fee</p>
-          <el-input v-model="charging_fee" />
-      </div>
-
-      <div v-if="tariff_select === 'Parking'">
-        <p>Vat</p>
-        <el-input v-model="charging_fee" />
-        <p>Start Fee</p>
-        <el-input v-model="charging_fee" />
-        <p>Parging Fee</p>
-        <el-input v-model="charging_fee" />
-        <p>Max Fee</p>
-        <el-input v-model="charging_fee" />
-      </div>
-      <template #footer>
-        <span class="dialog-footer">
-          <el-button @click="addUser('cancel', false)">Cancel</el-button>
-          <el-button type="primary" @click="addUser('confirm', false)">Add</el-button>
-        </span>
-      </template>
-    </el-dialog>
-  </div>
-</template>
-  
 <script setup>
 import { ref, reactive, onMounted} from 'vue'
 import {useRouter } from 'vue-router'
@@ -179,6 +112,73 @@ onMounted( async() => {
 
 </script>
 
+<template>
+  <div class="tariff">
+    <el-button class="add-tariff" @click="editTariff"> Add Rate Plan</el-button>
+    <div class="tariff-list">
+      <el-table :data="TariffData" style="width: 95%; height:95%" stripe :cell-style=msi.tb_cell :header-cell-style=msi.tb_header_cell size="large">
+        <el-table-column prop="profile_name" label="Profile Name" min-width="10"/>
+        <el-table-column prop="tariff_text" label="Description" min-width="60"/>
+        <el-table-column prop="min_price_str" label="Min Price" min-width="10"/>
+        <!-- <el-table-column prop="max_price_str" label="Max Price" min-width="10"/> -->
+        <el-table-column prop="currency" label="Currency" min-width="10"/>
+        <el-table-column fixed="right" label="Operations" min-width="15">
+          <template #default="scope">
+            <el-button link type="primary" size="large" @click="deleteTariff (scope.row)" >Delete</el-button>
+            <el-button link type="primary" size="large" @click="copyTariff(scope)">Copy</el-button>
+            <el-button link type="primary" size="large" @click="editTariff(scope.row)">More</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+    </div>
+
+    <el-dialog v-model="addTariffFormVisible" title="Add Rate" draggable>
+      <p> Tariff Type </p>
+      <el-select v-model="tariff_select" class="m-2" placeholder="Select" size="large">
+        <el-option v-for="item in TariffOptions" :key="item.value" :label="item.label" :value="item.value"/>
+      </el-select>
+      <br><br>
+      <p> Time </p>
+      <el-time-select v-model="startTime" :max-time="endTime" placeholder="Start time" start="00:00" step="00:30" end="24:00"/>
+      <el-time-select v-model="endTime" :min-time="startTime" placeholder="End time" start="00:00" step="00:30" end="24:00"/>
+      <br><br>
+      <p> Applied Day of Week </p>
+      <el-checkbox-button v-for="week in day" :key="week" :label="week"> {{ week }} </el-checkbox-button>
+
+      <div v-if="tariff_select === 'Charging'">
+        <p>Charging Method</p>
+        <el-select v-model="charging_select" class="m-2" placeholder="Select" size="large">
+          <el-option v-for="item in ChargingOptions" :key="item.value" :label="item.label" :value="item.value"/>
+        </el-select>
+
+        <p>Vat</p>
+          <el-input v-model="vat" />
+        <p>Start Fee</p>
+        <el-input v-model="start_fee" />
+        <p>Charging Fee</p>
+          <el-input v-model="charging_fee" />
+      </div>
+
+      <div v-if="tariff_select === 'Parking'">
+        <p>Vat</p>
+        <el-input v-model="charging_fee" />
+        <p>Start Fee</p>
+        <el-input v-model="charging_fee" />
+        <p>Parging Fee</p>
+        <el-input v-model="charging_fee" />
+        <p>Max Fee</p>
+        <el-input v-model="charging_fee" />
+      </div>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="addUser('cancel', false)">Cancel</el-button>
+          <el-button type="primary" @click="addUser('confirm', false)">Add</el-button>
+        </span>
+      </template>
+    </el-dialog>
+  </div>
+</template>
+  
 <style lang="scss">
 
 .tariff {

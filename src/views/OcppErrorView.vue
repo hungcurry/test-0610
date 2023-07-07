@@ -1,60 +1,3 @@
-<template>
-
-	<div class="ocpp-error">
-    <p class="total-count"> {{ 'Total Count : ' + ocppErrorData.length  }}</p>
-		<div class="date-picker">
-			<el-date-picker v-model="select_time" type="datetimerange" start-placeholder="Start Date" end-placeholder="End Date" :default-time="defaultTime" @change="getEVSEOCPPLogs"/>
-		</div>
-		<el-button class="download" @click="download"> Download </el-button>
-
-		<div class="log-list">
-			<el-table :data="ocppErrorData" style="width: 95%; height:95%" stripe  :cell-style=msi.tb_cell  :header-cell-style=msi.tb_header_cell size="large" v-loading = "isLoading">
-          <el-table-column prop="evse_id" label="EVSE ID" min-width="10"/>
-          <el-table-column prop="ocpp_errorCode" label="Error Code" min-width="10"/>
-          <el-table-column prop="vendorErrorCode" label="VendorErrorCode" min-width="10"/>
-          <el-table-column prop="ocpp_firmware_status" label="OCPP FW Status" min-width="10"/>
-          <el-table-column prop="ocpp_status" label="OCPP Status" min-width="10">
-          <template #header>
-            <div class="custom-header">
-              <span>OCPP Status</span>
-              <el-button type="text" size="small" @click="handleButtonClick">?</el-button>
-            </div>
-          </template>
-          </el-table-column>
-          <el-table-column prop="created_date_str" label="Created Time" min-width="10" sortable='sortable' />
-			</el-table>
-		</div>
-
-    <el-dialog v-model="ErrorCodeVisible" title="Error Code List">
-      <p>-1  No communication between Charging board and HMI</p> 
-      <p>1  Initial setting  fault</p> 
-      <p>2  Initial Leakage current protection</p> 
-      <p>3  High Leakage current protection</p> 
-      <p>4  Low Leakage current protection</p> 
-      <p>5  Ground Fault Protection by Delta type</p> 
-      <p>6  Ground Fault Protection by Y type</p> 
-      <p>8  Control pilot status is abnormal</p> 
-      <p>14  Fw update checksum is abnormal</p> 
-      <p>15  Fw update size is abnormal</p> 
-      <p>18  Relay detection is abnormal for non-charging L phase</p> 
-      <p>19  Relay detection is abnormal for non-charging N phase</p> 
-      <p>20  Relay detection is abnormal for charging L phase</p> 
-      <p>21  Relay detection is abnormal for charging N phase</p> 
-      <p>22  Over current protection</p> 
-      <p>24  Over Voltage Protection</p> 
-      <p>25  Under Voltage Protection</p> 
-      <p>26  Thermal is abnormal for system</p> 
-      <p>27  Thermal is abnormal for relay</p> 
-      <p>28  Thermal is abnormal for charging gun</p> 
-      <p>33  Emergency button is triggered</p> 
-      <p>64  Pile state is abnormal</p> 
-      <p>159  Unexpected Discharging</p> 
-    </el-dialog>
-
-	</div>
-
-</template>
-
 <script  setup>
 import { onMounted, reactive, ref} from 'vue'
 import ApiFunc from '@/composables/ApiFunc'
@@ -126,6 +69,63 @@ onMounted(() => {
 })
 
 </script>
+
+<template>
+
+	<div class="ocpp-error">
+    <p class="total-count"> {{ 'Total Count : ' + ocppErrorData.length  }}</p>
+		<div class="date-picker">
+			<el-date-picker v-model="select_time" type="datetimerange" start-placeholder="Start Date" end-placeholder="End Date" :default-time="defaultTime" @change="getEVSEOCPPLogs"/>
+		</div>
+		<el-button class="download" @click="download"> Download </el-button>
+
+		<div class="log-list">
+			<el-table :data="ocppErrorData" style="width: 95%; height:95%" stripe  :cell-style=msi.tb_cell  :header-cell-style=msi.tb_header_cell size="large" v-loading = "isLoading">
+          <el-table-column prop="evse_id" label="EVSE ID" min-width="10"/>
+          <el-table-column prop="ocpp_errorCode" label="Error Code" min-width="10"/>
+          <el-table-column prop="vendorErrorCode" label="VendorErrorCode" min-width="10"/>
+          <el-table-column prop="ocpp_firmware_status" label="OCPP FW Status" min-width="10"/>
+          <el-table-column prop="ocpp_status" label="OCPP Status" min-width="10">
+          <template #header>
+            <div class="custom-header">
+              <span>OCPP Status</span>
+              <el-button type="text" size="small" @click="handleButtonClick">?</el-button>
+            </div>
+          </template>
+          </el-table-column>
+          <el-table-column prop="created_date_str" label="Created Time" min-width="10" sortable='sortable' />
+			</el-table>
+		</div>
+
+    <el-dialog v-model="ErrorCodeVisible" title="Error Code List">
+      <p>-1  No communication between Charging board and HMI</p> 
+      <p>1  Initial setting  fault</p> 
+      <p>2  Initial Leakage current protection</p> 
+      <p>3  High Leakage current protection</p> 
+      <p>4  Low Leakage current protection</p> 
+      <p>5  Ground Fault Protection by Delta type</p> 
+      <p>6  Ground Fault Protection by Y type</p> 
+      <p>8  Control pilot status is abnormal</p> 
+      <p>14  Fw update checksum is abnormal</p> 
+      <p>15  Fw update size is abnormal</p> 
+      <p>18  Relay detection is abnormal for non-charging L phase</p> 
+      <p>19  Relay detection is abnormal for non-charging N phase</p> 
+      <p>20  Relay detection is abnormal for charging L phase</p> 
+      <p>21  Relay detection is abnormal for charging N phase</p> 
+      <p>22  Over current protection</p> 
+      <p>24  Over Voltage Protection</p> 
+      <p>25  Under Voltage Protection</p> 
+      <p>26  Thermal is abnormal for system</p> 
+      <p>27  Thermal is abnormal for relay</p> 
+      <p>28  Thermal is abnormal for charging gun</p> 
+      <p>33  Emergency button is triggered</p> 
+      <p>64  Pile state is abnormal</p> 
+      <p>159  Unexpected Discharging</p> 
+    </el-dialog>
+
+	</div>
+
+</template>
 
 <style lang="scss">
 .ocpp-error {

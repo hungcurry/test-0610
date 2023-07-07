@@ -1,33 +1,3 @@
-<template>
-  <div class="parking" style="height:85vh;">
-    <el-checkbox v-model="all_visible" label="All" size="large" @change="show_all"/>
-    <el-table :data="parkingData" style="width: 95%; height:95%" stripe :cell-style=msi.tb_cell :header-cell-style=msi.tb_header_cell size="large">
-      <el-table-column prop="station_str" label="Station" min-width="80"/>
-      <el-table-column prop="station_id" label="EVSE " min-width="80"/>
-      <el-table-column prop="car_num" label="Car Num" min-width="60"/>
-      <el-table-column prop="start_date_local_time" label="Start Time" min-width="80"/>
-      <el-table-column prop="end_date_local_time" label="End Time" min-width="80"/>
-      <el-table-column prop="car_lp_pic" label="Pic" min-width="100">
-        <template #default="scope">
-          <template  v-if="!scope.row.show">
-            <el-button @click="downloadImage(scope.row)"> preview </el-button>
-          </template>
-          <template v-else>
-            <img :src=scope.row.car_lp_pic alt="" width="250">
-          </template>
-        </template>
-      </el-table-column>
-      <!-- <el-table-column prop="created_date" label="created_date" min-width="80"/> -->
-      <!-- <el-table-column prop="model_cr_ver" label="model_cr_ver" min-width="80"/>
-      <el-table-column prop="model_lp_ver" label="model_lp_ver" min-width="80"/> -->
-      <!-- <el-table-column prop="paymentHistoryInfo" label="paymentHistoryInfo" min-width="80"/> -->
-      <!-- <el-table-column prop="sensor_type" label="sensor_type" min-width="80"/> -->
-      <!-- <el-table-column prop="updated_date" label="updated_date" min-width="80"/> -->
-      <!-- <el-table-column prop="_id" label="_id" min-width="80"/> -->
-    </el-table>
-  </div>
-</template>
-
 <script setup>
 
 import { ref, reactive, onMounted} from 'vue'
@@ -100,5 +70,35 @@ onMounted( async () => {
 })
 
 </script>
+
+<template>
+  <div class="parking" style="height:85vh;">
+    <el-checkbox v-model="all_visible" label="All" size="large" @change="show_all"/>
+    <el-table :data="parkingData" style="width: 95%; height:95%" stripe :cell-style=msi.tb_cell :header-cell-style=msi.tb_header_cell size="large">
+      <el-table-column prop="station_str" label="Station" min-width="80"/>
+      <el-table-column prop="station_id" label="EVSE " min-width="80"/>
+      <el-table-column prop="car_num" label="Car Num" min-width="60"/>
+      <el-table-column prop="start_date_local_time" label="Start Time" min-width="80"/>
+      <el-table-column prop="end_date_local_time" label="End Time" min-width="80"/>
+      <el-table-column prop="car_lp_pic" label="Pic" min-width="100">
+        <template #default="scope">
+          <template  v-if="!scope.row.show">
+            <el-button @click="downloadImage(scope.row)"> preview </el-button>
+          </template>
+          <template v-else>
+            <img :src=scope.row.car_lp_pic alt="" width="250">
+          </template>
+        </template>
+      </el-table-column>
+      <!-- <el-table-column prop="created_date" label="created_date" min-width="80"/> -->
+      <!-- <el-table-column prop="model_cr_ver" label="model_cr_ver" min-width="80"/>
+      <el-table-column prop="model_lp_ver" label="model_lp_ver" min-width="80"/> -->
+      <!-- <el-table-column prop="paymentHistoryInfo" label="paymentHistoryInfo" min-width="80"/> -->
+      <!-- <el-table-column prop="sensor_type" label="sensor_type" min-width="80"/> -->
+      <!-- <el-table-column prop="updated_date" label="updated_date" min-width="80"/> -->
+      <!-- <el-table-column prop="_id" label="_id" min-width="80"/> -->
+    </el-table>
+  </div>
+</template>
 
 <style></style>

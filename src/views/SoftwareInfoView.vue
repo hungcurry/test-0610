@@ -1,82 +1,3 @@
-<template>
-  <div class="sw-info">
-    <div class="sw">
-      <br>
-      <div class="header-container"> 
-        <strong class="release-version">{{ 'OTA SW Version :' + swData.version }}</strong>
-        <el-button class="release-btn" v-if="isMSI" @click="add('XP012')"> Add SW Release</el-button>
-      </div>
-      <el-table :data="swData.release_note" style="width: 95%; height:400px" stripe 
-      :cell-style=msi.tb_cell :header-cell-style=msi.tb_header_cell size="large">
-        <el-table-column prop="version" label="Version" min-width="10"/>
-        <el-table-column prop="description" label="Description" min-width="15"/>
-        <el-table-column prop="update_time_str" label="Update Time" min-width="10"/>
-        <el-table-column v-if="isMSI" prop="" label="Release" min-width="5">
-          <template #default="scope">
-            <el-button @click="release(scope, 'XP012')"> Release </el-button>
-          </template>
-        </el-table-column>
-        <el-table-column v-if="isMSI" prop="" label="" min-width="5">
-          <template #default="scope">
-            <el-button @click="detail_info(scope, 'XP012')"> <font-awesome-icon icon="fa-solid fa-ellipsis" /> </el-button>
-          </template>
-        </el-table-column>
-      </el-table>
-    </div>
-    <br><br>
-    <div class="fw">
-      <div class="header-container">
-        <strong class="release-version">{{ 'OTA FW Version :' + fwData.version }}</strong>
-        <el-button class="release-btn" v-if="isMSI" @click="add('XP011_BT')"> Add FW Release</el-button>
-      </div>
-      <el-table :data="fwData.release_note" style="width: 95%; height:400px" stripe 
-      :cell-style=msi.tb_cell :header-cell-style=msi.tb_header_cell size="large">
-        <el-table-column prop="version" label="Version" min-width="10"/>
-        <el-table-column prop="description" label="Description" min-width="15"/>
-        <el-table-column prop="update_time_str" label="Update Time" min-width="10"/>
-        <el-table-column v-if="isMSI" prop="" label="Release" min-width="5">
-          <template #default="scope">
-            <el-button @click="release(scope, 'XP011_BT')"> Release </el-button>
-          </template>
-        </el-table-column>
-        <el-table-column v-if="isMSI" prop="" label="" min-width="5">
-          <template #default="scope">
-            <el-button @click="detail_info(scope, 'XP011_BT')"> <font-awesome-icon icon="fa-solid fa-ellipsis" /> </el-button>
-          </template>
-        </el-table-column>
-      </el-table>
-    </div>
-
-    <el-dialog v-model="swVisible" :title= dialog_title draggable>
-      <el-form :model="Detail_Data">
-        <el-form-item label="Version" >
-          <el-input v-model="Detail_Data.version" />
-        </el-form-item>
-        <el-form-item label="File Path" >
-          <el-input v-model="Detail_Data.file" />
-        </el-form-item>
-
-        <el-form-item label="Download File" >
-          <el-button  @click="download_File">Download File</el-button>
-        </el-form-item>
-
-        <el-form-item label="Description" >
-          <el-input v-model="Detail_Data.description" type="textarea" />
-        </el-form-item>
-        <el-form-item label="Update time" >
-          <el-input v-model="Detail_Data.update_time_str" disabled />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <span class="dialog-footer">
-          <el-button @click="confirm('cancel')">Cancel</el-button>
-          <el-button type="primary" @click="confirm('confirm')">Confirm</el-button>
-        </span>
-      </template>
-    </el-dialog>
-  </div>
-</template>
-
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import ApiFunc from '@/composables/ApiFunc'
@@ -227,6 +148,85 @@ onMounted( async() => {
 })
 
 </script>
+
+<template>
+  <div class="sw-info">
+    <div class="sw">
+      <br>
+      <div class="header-container"> 
+        <strong class="release-version">{{ 'OTA SW Version :' + swData.version }}</strong>
+        <el-button class="release-btn" v-if="isMSI" @click="add('XP012')"> Add SW Release</el-button>
+      </div>
+      <el-table :data="swData.release_note" style="width: 95%; height:400px" stripe 
+      :cell-style=msi.tb_cell :header-cell-style=msi.tb_header_cell size="large">
+        <el-table-column prop="version" label="Version" min-width="10"/>
+        <el-table-column prop="description" label="Description" min-width="15"/>
+        <el-table-column prop="update_time_str" label="Update Time" min-width="10"/>
+        <el-table-column v-if="isMSI" prop="" label="Release" min-width="5">
+          <template #default="scope">
+            <el-button @click="release(scope, 'XP012')"> Release </el-button>
+          </template>
+        </el-table-column>
+        <el-table-column v-if="isMSI" prop="" label="" min-width="5">
+          <template #default="scope">
+            <el-button @click="detail_info(scope, 'XP012')"> <font-awesome-icon icon="fa-solid fa-ellipsis" /> </el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+    </div>
+    <br><br>
+    <div class="fw">
+      <div class="header-container">
+        <strong class="release-version">{{ 'OTA FW Version :' + fwData.version }}</strong>
+        <el-button class="release-btn" v-if="isMSI" @click="add('XP011_BT')"> Add FW Release</el-button>
+      </div>
+      <el-table :data="fwData.release_note" style="width: 95%; height:400px" stripe 
+      :cell-style=msi.tb_cell :header-cell-style=msi.tb_header_cell size="large">
+        <el-table-column prop="version" label="Version" min-width="10"/>
+        <el-table-column prop="description" label="Description" min-width="15"/>
+        <el-table-column prop="update_time_str" label="Update Time" min-width="10"/>
+        <el-table-column v-if="isMSI" prop="" label="Release" min-width="5">
+          <template #default="scope">
+            <el-button @click="release(scope, 'XP011_BT')"> Release </el-button>
+          </template>
+        </el-table-column>
+        <el-table-column v-if="isMSI" prop="" label="" min-width="5">
+          <template #default="scope">
+            <el-button @click="detail_info(scope, 'XP011_BT')"> <font-awesome-icon icon="fa-solid fa-ellipsis" /> </el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+    </div>
+
+    <el-dialog v-model="swVisible" :title= dialog_title draggable>
+      <el-form :model="Detail_Data">
+        <el-form-item label="Version" >
+          <el-input v-model="Detail_Data.version" />
+        </el-form-item>
+        <el-form-item label="File Path" >
+          <el-input v-model="Detail_Data.file" />
+        </el-form-item>
+
+        <el-form-item label="Download File" >
+          <el-button  @click="download_File">Download File</el-button>
+        </el-form-item>
+
+        <el-form-item label="Description" >
+          <el-input v-model="Detail_Data.description" type="textarea" />
+        </el-form-item>
+        <el-form-item label="Update time" >
+          <el-input v-model="Detail_Data.update_time_str" disabled />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="confirm('cancel')">Cancel</el-button>
+          <el-button type="primary" @click="confirm('confirm')">Confirm</el-button>
+        </span>
+      </template>
+    </el-dialog>
+  </div>
+</template>
 
 <style lang="scss" scoped>
 .release-btn {

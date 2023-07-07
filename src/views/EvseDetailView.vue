@@ -1,3 +1,112 @@
+<script setup>
+import { reactive, onMounted} from 'vue'
+import { useRoute, useRouter} from 'vue-router'
+import ApiFunc from '@/composables/ApiFunc'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import {  ElMessageBox } from 'element-plus'
+import msi from '@/assets/msi_style'
+import { useMStore } from "../stores/m_cloud"
+import moment from "moment"
+const MStore = useMStore()
+
+
+const deleteEvse = () => {
+  ElMessageBox.confirm('Do you want to delete?','Warning', {confirmButtonText: 'OK', cancelButtonText: 'Cancel', type: 'warning'})
+  .then(async () => {
+    let sendData = { 'class' : 'EVSE', 'id' : evseId }
+    console.log(await MsiApi.setCollectionData('delete', 'ocpi', sendData))
+
+    sendData = { 'class' : 'Connector', 'id' : connectorData.id }
+    console.log(await MsiApi.setCollectionData('delete', 'ocpi', sendData))
+
+    if(chargePointInfoData.hmi !== '') { 
+      sendData = { 'class' : 'HMIControlBoardInfo', 'pk' : chargePointInfoData.hmi }
+      console.log(await MsiApi.setCollectionData('delete', 'cpo', sendData))
+    }
+    let evseArr = []
+    for (let i = 0; i < locationData?.evses?.length; i++) {
+      if (locationData.evses[i].uid === evseId) {
+        continue
+      }
+      evseArr.push(locationData.evses[i]._id)
+    }
+    let sendData1 = { 'class' : 'Location', 'id': locationData.id, 'evses' : evseArr}
+    console.log(await MsiApi.setCollectionData('patch', 'ocpi', sendData1))
+
+    router.back(-1)
+    // router.push({ name: 'stationDetail', query: {id:locationData.id} })
+  })
+}
+
+const edit = () => {
+  router.push({ name: 'evseEdit', query: {station_id:locationData.id, evse_id:evseId} })
+}
+
+
+const route = useRoute()
+const evseId = route.query.evse_id
+const router = useRouter()
+const MsiApi = ApiFunc()
+
+const evseData = reactive([])
+const connectorData = reactive([])
+const chargePointInfoData = reactive([])
+const hmiInfoData = reactive([])
+const locationData = reactive([])
+const tariffData = reactive([])
+
+const tariff_elements = reactive([])
+
+onMounted( async () => {
+  
+  let queryData = { "database":"OCPI", "collection":"EVSE", "query": { "uid": {"UUID":evseId}}}
+  let response = await MsiApi.mongoQuery(queryData)
+  Object.assign(evseData, response.data.all[0]) 
+
+  let localEndTime =  new Date( (new Date(evseData.last_updated).getTime()) + ((MStore.timeZoneOffset ) * -60000))
+  evseData.last_updated_str = (moment(localEndTime).format("YYYY-MM-DD HH:mm:ss"))
+  
+  
+  queryData = { "database":"OCPI", "collection":"Connector", "query": { "_id": { "ObjectId" : evseData?.connectors?.[0]?._id}}}
+  response = await MsiApi.mongoQuery(queryData)
+  Object.assign(connectorData, response.data.all[0]) 
+
+  localEndTime =  new Date( (new Date(connectorData.last_updated).getTime()) + ((MStore.timeZoneOffset ) * -60000))
+  connectorData.last_updated_str = (moment(localEndTime).format("YYYY-MM-DD HH:mm:ss"))
+
+  queryData = { "database":"CPO", "collection":"ChargePointInfo", "query": { "evse": { "ObjectId" : evseData?._id}}}
+  response = await MsiApi.mongoQuery(queryData)
+  Object.assign(chargePointInfoData, response.data.all[0])
+  if(chargePointInfoData.hmi !== '') {
+    queryData = { "database":"CPO", "collection":"HMIControlBoardInfo", "query": { "_id": { "ObjectId" : chargePointInfoData?.hmi}}}    
+    response = await MsiApi.mongoQuery(queryData)
+    Object.assign(hmiInfoData, response.data.all[0])
+  }
+  queryData = { "database":"OCPI", "collection":"Location", "query": {  "evses" : {"$in": [  {"ObjectId" : evseData?._id }]}  }}
+  response = await MsiApi.mongoQuery(queryData)
+  if (response.data.all.length === 0) {
+    if(locationData.name === undefined)
+      locationData.name = ''
+    if(locationData.country === undefined)
+    locationData.country = ''      
+    if(locationData.city === undefined)
+      locationData.city = ''
+    if(locationData.address === undefined)
+      locationData.address = ''
+  }
+  else {
+    Object.assign(locationData, response.data.all[0])
+  }
+  queryData = { "database":"OCPI", "collection":"Tariff", "query": { "id": { "UUID" : connectorData.tariff_ids[0]}}}
+  response = await MsiApi.mongoQuery(queryData)
+  Object.assign(tariffData, response.data.all[0])
+  tariffData.tariff_alt_text_str = tariffData.tariff_alt_text[0].text
+  
+  Object.assign(tariff_elements, tariffData.elements )
+})
+
+</script>
+
 <template>
   <div class="evse-detail">
     <div class="evse-detail-header">
@@ -170,116 +279,7 @@
     </div>
   </div>
 </template>
-  
-<script setup>
-import { reactive, onMounted} from 'vue'
-import { useRoute, useRouter} from 'vue-router'
-import ApiFunc from '@/composables/ApiFunc'
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import {  ElMessageBox } from 'element-plus'
-import msi from '@/assets/msi_style'
-import { useMStore } from "../stores/m_cloud"
-import moment from "moment"
-const MStore = useMStore()
 
-
-const deleteEvse = () => {
-  ElMessageBox.confirm('Do you want to delete?','Warning', {confirmButtonText: 'OK', cancelButtonText: 'Cancel', type: 'warning'})
-  .then(async () => {
-    let sendData = { 'class' : 'EVSE', 'id' : evseId }
-    console.log(await MsiApi.setCollectionData('delete', 'ocpi', sendData))
-
-    sendData = { 'class' : 'Connector', 'id' : connectorData.id }
-    console.log(await MsiApi.setCollectionData('delete', 'ocpi', sendData))
-
-    if(chargePointInfoData.hmi !== '') { 
-      sendData = { 'class' : 'HMIControlBoardInfo', 'pk' : chargePointInfoData.hmi }
-      console.log(await MsiApi.setCollectionData('delete', 'cpo', sendData))
-    }
-    let evseArr = []
-    for (let i = 0; i < locationData?.evses?.length; i++) {
-      if (locationData.evses[i].uid === evseId) {
-        continue
-      }
-      evseArr.push(locationData.evses[i]._id)
-    }
-    let sendData1 = { 'class' : 'Location', 'id': locationData.id, 'evses' : evseArr}
-    console.log(await MsiApi.setCollectionData('patch', 'ocpi', sendData1))
-
-    router.back(-1)
-    // router.push({ name: 'stationDetail', query: {id:locationData.id} })
-  })
-}
-
-const edit = () => {
-  router.push({ name: 'evseEdit', query: {station_id:locationData.id, evse_id:evseId} })
-}
-
-
-const route = useRoute()
-const evseId = route.query.evse_id
-const router = useRouter()
-const MsiApi = ApiFunc()
-
-const evseData = reactive([])
-const connectorData = reactive([])
-const chargePointInfoData = reactive([])
-const hmiInfoData = reactive([])
-const locationData = reactive([])
-const tariffData = reactive([])
-
-const tariff_elements = reactive([])
-
-onMounted( async () => {
-  
-  let queryData = { "database":"OCPI", "collection":"EVSE", "query": { "uid": {"UUID":evseId}}}
-  let response = await MsiApi.mongoQuery(queryData)
-  Object.assign(evseData, response.data.all[0]) 
-
-  let localEndTime =  new Date( (new Date(evseData.last_updated).getTime()) + ((MStore.timeZoneOffset ) * -60000))
-  evseData.last_updated_str = (moment(localEndTime).format("YYYY-MM-DD HH:mm:ss"))
-  
-  
-  queryData = { "database":"OCPI", "collection":"Connector", "query": { "_id": { "ObjectId" : evseData?.connectors?.[0]?._id}}}
-  response = await MsiApi.mongoQuery(queryData)
-  Object.assign(connectorData, response.data.all[0]) 
-
-  localEndTime =  new Date( (new Date(connectorData.last_updated).getTime()) + ((MStore.timeZoneOffset ) * -60000))
-  connectorData.last_updated_str = (moment(localEndTime).format("YYYY-MM-DD HH:mm:ss"))
-
-  queryData = { "database":"CPO", "collection":"ChargePointInfo", "query": { "evse": { "ObjectId" : evseData?._id}}}
-  response = await MsiApi.mongoQuery(queryData)
-  Object.assign(chargePointInfoData, response.data.all[0])
-  if(chargePointInfoData.hmi !== '') {
-    queryData = { "database":"CPO", "collection":"HMIControlBoardInfo", "query": { "_id": { "ObjectId" : chargePointInfoData?.hmi}}}    
-    response = await MsiApi.mongoQuery(queryData)
-    Object.assign(hmiInfoData, response.data.all[0])
-  }
-  queryData = { "database":"OCPI", "collection":"Location", "query": {  "evses" : {"$in": [  {"ObjectId" : evseData?._id }]}  }}
-  response = await MsiApi.mongoQuery(queryData)
-  if (response.data.all.length === 0) {
-    if(locationData.name === undefined)
-      locationData.name = ''
-    if(locationData.country === undefined)
-    locationData.country = ''      
-    if(locationData.city === undefined)
-      locationData.city = ''
-    if(locationData.address === undefined)
-      locationData.address = ''
-  }
-  else {
-    Object.assign(locationData, response.data.all[0])
-  }
-  queryData = { "database":"OCPI", "collection":"Tariff", "query": { "id": { "UUID" : connectorData.tariff_ids[0]}}}
-  response = await MsiApi.mongoQuery(queryData)
-  Object.assign(tariffData, response.data.all[0])
-  tariffData.tariff_alt_text_str = tariffData.tariff_alt_text[0].text
-  
-  Object.assign(tariff_elements, tariffData.elements )
-})
-
-</script>
-  
 <style lang="scss" scoped>
 
 .evse-detail {
@@ -485,22 +485,3 @@ onMounted( async () => {
   }
 }
 </style>
-
-
-
-.hmi-item{
-  display: flex;
-  flex-direction: row;
-  margin-bottom: 7px;
-  p{
-    margin: 0;
-    padding: 0;
-  }
-  .hmi-title{
-    width: 300px;
-    color: #566575;
-  }
-  .hmi-value{
-    width: 200px;
-  }
-}

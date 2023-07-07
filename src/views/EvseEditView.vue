@@ -1,111 +1,3 @@
-<template>
-  <div class="evse-edit">
-    <p>{{evse_edit_title}}</p>
-    <div class="evse-edit-main">
-      <div class="evse-edit-left">
-
-        <div class="evse-edit-left-up">
-          <p class="title">Station</p>
-          <p>Name</p>
-          <el-input class="station-input" v-model="stationName" disabled></el-input>
-          <p>EVSE ID</p>
-          <el-input v-model="evse_obj.evse_id"></el-input>
-
-          <p>Floor Level</p>
-          <el-input v-model="evse_obj.floor_level"></el-input>
-          <!-- <p>Charger Label</p>
-          <el-input v-model="evse_obj.physical_reference"></el-input> -->
-          <!-- <p>Note</p>
-          <el-input v-model="evse_obj.directions" disabled></el-input> -->
-          
-        </div>
-        <div class="evse-edit-left-down">
-          <p class="title">Connector Info</p> 
-          <div class="connector-item">
-            <p class="connector-title">Type</p>
-            <p class="connector-value"> {{ connector_obj.standard }}</p>
-          </div>  
-          <!-- <div class="connector-item">
-            <p class="connector-title">Connector ID</p>
-            <p class="connector-value"> {{ connector_obj.id }}</p>
-          </div>   -->
-          <!-- <div class="connector-item">
-            <p class="connector-title">Format</p>
-            <p class="connector-value"> {{ connector_obj.format }}</p>
-          </div>   -->
-          <!-- <div class="connector-item">
-            <p class="connector-title">Power Type</p>
-            <p class="connector-value"> {{ connector_obj.power_type }}</p>
-          </div>   -->
-          <div class="connector-item">
-            <p class="connector-title">Max Voltage</p>
-            <p class="connector-value"> {{ connector_obj.max_voltage + 'V'}} </p>
-          </div>  
-          <div class="connector-item">
-            <p class="connector-title">Max Amperage</p>
-            
-            <p class="connector-value"> {{ connector_obj.max_amperage + 'A' }}</p>
-
-            <!-- <el-input v-model="connector_obj.max_amperage"></el-input>  -->
-            <!-- <span> A </span> -->
-            
-          </div>  
-          <div class="connector-item">
-            <p class="connector-title">Max Electric Power</p>
-            <p class="connector-value"> {{ connector_obj.max_electric_power + 'W' }}</p>
-          </div>  
-
-        </div>  
-      </div>
-      <div class="evse-edit-right">
-        <div class="tariff-item">
-          <p class="tariff-title">Rate Profile</p>
-          <el-select class="el-select" v-model="select_profile" placeholder="Select" size="large" @change="selectTariff">
-            <el-option v-for="item in tariff_profile" :key="item.value" :label="item.profile_name" :value="item.id" />
-          </el-select>
-        </div>
-
-        <!-- <div class="tariff-item">
-          <p class="tariff-title">Type</p>
-          <p class="tariff-value">AD_HOC_PAYMENT</p>
-        </div> -->
-        <div class="tariff-item">
-          <p class="tariff-title">Currency</p>
-          <p class="tariff-value">{{selectTariffObj.currency}}</p>
-        </div>        
-        <!-- <div class="tariff-item">
-          <p class="tariff-title">Rate alt url</p>
-          <p class="tariff-value">NONE</p>
-        </div> -->
-        <div class="tariff-item">
-          <p class="tariff-title">Rate alt text</p>
-          <p class="tariff-value"></p>
-        </div>
-
-
-        <el-table :data="selectTariffObj.elements" style="width: 95%; height:500px" stripe 
-        :cell-style=msi.tb_cell :header-cell-style=msi.tb_header_cell size="large">
-          <el-table-column prop="price_components[0].type" label="Type" min-width="50"/>
-          <el-table-column prop="price_components[0].price" label="Price" min-width="50"/>
-          <el-table-column prop="price_components[0].vat" label="Vat" min-width="50"/>
-          <el-table-column prop="price_components[0].step_size" label="Step Size" min-width="50"/>
-          <el-table-column prop="restrictions.start_time" label="Start Time" min-width="50"/>
-          <el-table-column prop="restrictions.end_time" label="End Time" min-width="50"/>
-          <el-table-column prop="restrictions.day_of_week" label="Day Of Week" min-width="50"/>
-        </el-table>
-
-      </div>
-    </div>
-
-    <div class="down">
-      <el-button class="button" @click="CancelEvseEdit"> Cancel </el-button>
-      <el-button class="button" @click="SaveEvseEdit"> Save </el-button>
-    </div>
-
-  </div>
-
-</template>
-
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
@@ -248,6 +140,114 @@ onMounted( async()=>{
   stationName.value = response.data.all[0]?.name
 })
 </script>
+
+<template>
+  <div class="evse-edit">
+    <p>{{evse_edit_title}}</p>
+    <div class="evse-edit-main">
+      <div class="evse-edit-left">
+
+        <div class="evse-edit-left-up">
+          <p class="title">Station</p>
+          <p>Name</p>
+          <el-input class="station-input" v-model="stationName" disabled></el-input>
+          <p>EVSE ID</p>
+          <el-input v-model="evse_obj.evse_id"></el-input>
+
+          <p>Floor Level</p>
+          <el-input v-model="evse_obj.floor_level"></el-input>
+          <!-- <p>Charger Label</p>
+          <el-input v-model="evse_obj.physical_reference"></el-input> -->
+          <!-- <p>Note</p>
+          <el-input v-model="evse_obj.directions" disabled></el-input> -->
+          
+        </div>
+        <div class="evse-edit-left-down">
+          <p class="title">Connector Info</p> 
+          <div class="connector-item">
+            <p class="connector-title">Type</p>
+            <p class="connector-value"> {{ connector_obj.standard }}</p>
+          </div>  
+          <!-- <div class="connector-item">
+            <p class="connector-title">Connector ID</p>
+            <p class="connector-value"> {{ connector_obj.id }}</p>
+          </div>   -->
+          <!-- <div class="connector-item">
+            <p class="connector-title">Format</p>
+            <p class="connector-value"> {{ connector_obj.format }}</p>
+          </div>   -->
+          <!-- <div class="connector-item">
+            <p class="connector-title">Power Type</p>
+            <p class="connector-value"> {{ connector_obj.power_type }}</p>
+          </div>   -->
+          <div class="connector-item">
+            <p class="connector-title">Max Voltage</p>
+            <p class="connector-value"> {{ connector_obj.max_voltage + 'V'}} </p>
+          </div>  
+          <div class="connector-item">
+            <p class="connector-title">Max Amperage</p>
+            
+            <p class="connector-value"> {{ connector_obj.max_amperage + 'A' }}</p>
+
+            <!-- <el-input v-model="connector_obj.max_amperage"></el-input>  -->
+            <!-- <span> A </span> -->
+            
+          </div>  
+          <div class="connector-item">
+            <p class="connector-title">Max Electric Power</p>
+            <p class="connector-value"> {{ connector_obj.max_electric_power + 'W' }}</p>
+          </div>  
+
+        </div>  
+      </div>
+      <div class="evse-edit-right">
+        <div class="tariff-item">
+          <p class="tariff-title">Rate Profile</p>
+          <el-select class="el-select" v-model="select_profile" placeholder="Select" size="large" @change="selectTariff">
+            <el-option v-for="item in tariff_profile" :key="item.value" :label="item.profile_name" :value="item.id" />
+          </el-select>
+        </div>
+
+        <!-- <div class="tariff-item">
+          <p class="tariff-title">Type</p>
+          <p class="tariff-value">AD_HOC_PAYMENT</p>
+        </div> -->
+        <div class="tariff-item">
+          <p class="tariff-title">Currency</p>
+          <p class="tariff-value">{{selectTariffObj.currency}}</p>
+        </div>        
+        <!-- <div class="tariff-item">
+          <p class="tariff-title">Rate alt url</p>
+          <p class="tariff-value">NONE</p>
+        </div> -->
+        <div class="tariff-item">
+          <p class="tariff-title">Rate alt text</p>
+          <p class="tariff-value"></p>
+        </div>
+
+
+        <el-table :data="selectTariffObj.elements" style="width: 95%; height:500px" stripe 
+        :cell-style=msi.tb_cell :header-cell-style=msi.tb_header_cell size="large">
+          <el-table-column prop="price_components[0].type" label="Type" min-width="50"/>
+          <el-table-column prop="price_components[0].price" label="Price" min-width="50"/>
+          <el-table-column prop="price_components[0].vat" label="Vat" min-width="50"/>
+          <el-table-column prop="price_components[0].step_size" label="Step Size" min-width="50"/>
+          <el-table-column prop="restrictions.start_time" label="Start Time" min-width="50"/>
+          <el-table-column prop="restrictions.end_time" label="End Time" min-width="50"/>
+          <el-table-column prop="restrictions.day_of_week" label="Day Of Week" min-width="50"/>
+        </el-table>
+
+      </div>
+    </div>
+
+    <div class="down">
+      <el-button class="button" @click="CancelEvseEdit"> Cancel </el-button>
+      <el-button class="button" @click="SaveEvseEdit"> Save </el-button>
+    </div>
+
+  </div>
+
+</template>
 
 <style lang="scss" scoped>
 .evse-edit{

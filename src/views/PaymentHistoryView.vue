@@ -1,168 +1,3 @@
-<script setup>
-import ApiFunc from '@/composables/ApiFunc'
-import Calendar from '@/components/icons/IconCalendar.vue'
-import msi from '@/assets/msi_style'
-import moment from 'moment'
-import { ref, reactive, onMounted } from 'vue'
-import { export_json_to_excel } from '@/composables/Export2Excel'
-import { useMStore } from '../stores/m_cloud'
-
-const MStore = useMStore()
-const MsiApi = ApiFunc()
-const PaymentData = reactive([])
-const now = new Date()
-const isLoading = ref(false)
-const parking_visible = ref(true)
-const charging_visible = ref(true)
-
-const defaultTime = ref([
-  new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0),
-  new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59),
-])
-const defaultTime2 = [new Date(2000, 1, 1, 0, 0, 0), new Date(2000, 2, 1, 23, 59, 59)]
-const filters = [
-  { text: 'CREDIT', value: 'CREDIT' },
-  { text: 'RFID', value: 'RFID' },
-  { text: 'FREE', value: 'FREE' },
-  { text: 'APPLE PAY', value: 'APPLEPAY' },
-  { text: 'GOOGLE PAY', value: 'GOOGLEPAY' },
-  { text: 'SAMSUNG PAY', value: 'SAMSUNGPAY' },
-]
-
-const download = () => {
-  const tHeader = [
-    'Station Name',
-    'Station EVSE ID',
-    'Parking Used Time',
-    ' Parking Price',
-    'Parking License Plate',
-    'Charge Used Time',
-    'Charge kWh',
-    'Charge Price',
-    'Total Price',
-    'Method',
-    'Created Date',
-  ]
-  const filterVal = [
-    'location_name',
-    'evse_id',
-    'parking_time',
-    'parking_price_str',
-    'parking_car_num_str',
-    'charge_time',
-    'charge_energy_str',
-    'charge_price_str',
-    'price_str',
-    'paymethod_str',
-    'created_date_str',
-  ]
-  const data = PaymentData.map((v) => filterVal.map((j) => v[j]))
-  export_json_to_excel({ header: tHeader, data: data, filename: 'PaymentHistory' })
-}
-
-const filterTag = (value, rowData) => {
-  return rowData.paymethod.method === value
-}
-
-const select_date = async () => {
-  let queryData = {
-    database: 'CPO',
-    collection: 'PaymentHistory',
-    query: {
-      $expr: {
-        $and: [
-          {
-            $gte: [
-              '$created_date',
-              { $dateFromString: { dateString: defaultTime.value[0] } },
-            ],
-          },
-          {
-            $lte: [
-              '$created_date',
-              { $dateFromString: { dateString: defaultTime.value[1] } },
-            ],
-          },
-        ],
-      },
-    },
-  }
-  const response = await MongoQurey(queryData)
-  console.log(response)
-}
-
-const MongoQurey = async (queryData) => {
-  isLoading.value = true
-  const response = await MsiApi.mongoQuery(queryData)
-
-  PaymentData.length = 0
-  Object.assign(PaymentData, response.data.all)
-
-  for (let i = 0; i < PaymentData.length; i++) {
-    PaymentData[i].paymethod_str = PaymentData[i]?.paymethod?.method
-
-    let localTime = new Date(
-      new Date(PaymentData[i].created_date).getTime() + MStore.timeZoneOffset * -60000
-    )
-    PaymentData[i].created_date_str = moment(localTime).format('YYYY-MM-DD HH:mm:ss')
-
-    for (let j = 0; j < PaymentData[i]?.operator_types?.length; j++) {
-      if (PaymentData[i].operator_types[j].type === 'charge') {
-        let time = moment.duration(PaymentData[i]?.operator_types?.[j]?.time, 'seconds')
-        PaymentData[i].charge_time = moment({
-          h: time.hours(),
-          m: time.minutes(),
-          s: time.seconds(),
-        }).format('HH:mm:ss')
-        PaymentData[i].charge_energy_str = PaymentData[i]?.operator_types[j]?.kwh
-        PaymentData[i].charge_price_str = PaymentData[i]?.operator_types[
-          j
-        ]?.price.toLocaleString()
-      } else if (PaymentData[i].operator_types[j].type === 'parking') {
-        let time = moment.duration(PaymentData[i]?.operator_types?.[j]?.time, 'seconds')
-        PaymentData[i].parking_time = moment({
-          h: time.hours(),
-          m: time.minutes(),
-          s: time.seconds(),
-        }).format('HH:mm:ss')
-        PaymentData[i].parking_price_str = PaymentData[i]?.operator_types[
-          j
-        ]?.price.toLocaleString()
-        PaymentData[i].parking_car_num_str = PaymentData[i]?.operator_types[j]?.car_num
-      }
-    }
-    PaymentData[i].price_str = PaymentData[i]?.price?.toLocaleString()
-  }
-  isLoading.value = false
-  return response
-}
-
-onMounted(async () => {
-  let queryData = {
-    database: 'CPO',
-    collection: 'PaymentHistory',
-    query: {
-      $expr: {
-        $and: [
-          {
-            $gte: [
-              '$created_date',
-              {
-                $dateFromString: {
-                  dateString: new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0),
-                },
-              },
-            ],
-          },
-        ],
-      },
-    },
-  }
-  let res = await MongoQurey(queryData)
-  console.log(res)
-})
-</script>
-
 <template>
   <div class="payment">
     <div class="container lg">
@@ -327,6 +162,171 @@ onMounted(async () => {
     </div>
   </div>
 </template>
+
+<script setup>
+import ApiFunc from '@/composables/ApiFunc'
+import Calendar from '@/components/icons/IconCalendar.vue'
+import msi from '@/assets/msi_style'
+import moment from 'moment'
+import { ref, reactive, onMounted } from 'vue'
+import { export_json_to_excel } from '@/composables/Export2Excel'
+import { useMStore } from '../stores/m_cloud'
+
+const MStore = useMStore()
+const MsiApi = ApiFunc()
+const PaymentData = reactive([])
+const now = new Date()
+const isLoading = ref(false)
+const parking_visible = ref(true)
+const charging_visible = ref(true)
+
+const defaultTime = ref([
+  new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0),
+  new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59),
+])
+const defaultTime2 = [new Date(2000, 1, 1, 0, 0, 0), new Date(2000, 2, 1, 23, 59, 59)]
+const filters = [
+  { text: 'CREDIT', value: 'CREDIT' },
+  { text: 'RFID', value: 'RFID' },
+  { text: 'FREE', value: 'FREE' },
+  { text: 'APPLE PAY', value: 'APPLEPAY' },
+  { text: 'GOOGLE PAY', value: 'GOOGLEPAY' },
+  { text: 'SAMSUNG PAY', value: 'SAMSUNGPAY' },
+]
+
+const download = () => {
+  const tHeader = [
+    'Station Name',
+    'Station EVSE ID',
+    'Parking Used Time',
+    ' Parking Price',
+    'Parking License Plate',
+    'Charge Used Time',
+    'Charge kWh',
+    'Charge Price',
+    'Total Price',
+    'Method',
+    'Created Date',
+  ]
+  const filterVal = [
+    'location_name',
+    'evse_id',
+    'parking_time',
+    'parking_price_str',
+    'parking_car_num_str',
+    'charge_time',
+    'charge_energy_str',
+    'charge_price_str',
+    'price_str',
+    'paymethod_str',
+    'created_date_str',
+  ]
+  const data = PaymentData.map((v) => filterVal.map((j) => v[j]))
+  export_json_to_excel({ header: tHeader, data: data, filename: 'PaymentHistory' })
+}
+
+const filterTag = (value, rowData) => {
+  return rowData.paymethod.method === value
+}
+
+const select_date = async () => {
+  let queryData = {
+    database: 'CPO',
+    collection: 'PaymentHistory',
+    query: {
+      $expr: {
+        $and: [
+          {
+            $gte: [
+              '$created_date',
+              { $dateFromString: { dateString: defaultTime.value[0] } },
+            ],
+          },
+          {
+            $lte: [
+              '$created_date',
+              { $dateFromString: { dateString: defaultTime.value[1] } },
+            ],
+          },
+        ],
+      },
+    },
+  }
+  const response = await MongoQurey(queryData)
+  console.log(response)
+}
+
+const MongoQurey = async (queryData) => {
+  isLoading.value = true
+  const response = await MsiApi.mongoQuery(queryData)
+
+  PaymentData.length = 0
+  Object.assign(PaymentData, response.data.all)
+
+  for (let i = 0; i < PaymentData.length; i++) {
+    PaymentData[i].paymethod_str = PaymentData[i]?.paymethod?.method
+
+    let localTime = new Date(
+      new Date(PaymentData[i].created_date).getTime() + MStore.timeZoneOffset * -60000
+    )
+    PaymentData[i].created_date_str = moment(localTime).format('YYYY-MM-DD HH:mm:ss')
+
+    for (let j = 0; j < PaymentData[i]?.operator_types?.length; j++) {
+      if (PaymentData[i].operator_types[j].type === 'charge') {
+        let time = moment.duration(PaymentData[i]?.operator_types?.[j]?.time, 'seconds')
+        PaymentData[i].charge_time = moment({
+          h: time.hours(),
+          m: time.minutes(),
+          s: time.seconds(),
+        }).format('HH:mm:ss')
+        PaymentData[i].charge_energy_str = PaymentData[i]?.operator_types[j]?.kwh
+        PaymentData[i].charge_price_str = PaymentData[i]?.operator_types[
+          j
+        ]?.price.toLocaleString()
+      } else if (PaymentData[i].operator_types[j].type === 'parking') {
+        let time = moment.duration(PaymentData[i]?.operator_types?.[j]?.time, 'seconds')
+        PaymentData[i].parking_time = moment({
+          h: time.hours(),
+          m: time.minutes(),
+          s: time.seconds(),
+        }).format('HH:mm:ss')
+        PaymentData[i].parking_price_str = PaymentData[i]?.operator_types[
+          j
+        ]?.price.toLocaleString()
+        PaymentData[i].parking_car_num_str = PaymentData[i]?.operator_types[j]?.car_num
+      }
+    }
+    PaymentData[i].price_str = PaymentData[i]?.price?.toLocaleString()
+  }
+  isLoading.value = false
+  return response
+}
+
+onMounted(async () => {
+  let queryData = {
+    database: 'CPO',
+    collection: 'PaymentHistory',
+    query: {
+      $expr: {
+        $and: [
+          {
+            $gte: [
+              '$created_date',
+              {
+                $dateFromString: {
+                  dateString: new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0),
+                },
+              },
+            ],
+          },
+        ],
+      },
+    },
+  }
+  let res = await MongoQurey(queryData)
+  console.log(res)
+})
+</script>
 
 <style lang="scss" scoped>
 .payment {

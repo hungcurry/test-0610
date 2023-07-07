@@ -1,188 +1,3 @@
-<template>
-  <div class="station-edit">
-    <div class="header">
-      <p>{{ edit_title }}</p>
-    </div>
-    <div class="main">
-      <div class="left">
-        <div class="left-up">
-          <div class="left-title">
-            <p>Station Details</p>
-          </div>
-          <div class="left-up-main">
-            <div class="left-up-left">
-              <img class="station-img" v-if="StationData.img_str !== undefined" :src="StationData.img_str">
-              <img class="station-img" v-else src="@/assets/img/null_pic.png">
-            </div>
-            <div class="left-up-right">
-
-              <!-- <el-form :model="StationData"> -->
-              <p>Station Name</p>
-              <!-- <el-form-item label=" " prop="name"> -->
-              <el-input v-model="StationData.name" />
-              <!-- </el-form-item> -->
-
-              <p>Station Type</p>
-              <!-- <el-form-item label=" " prop="facilities"> -->
-              <el-select class="el-select" v-model="StationData.facilities_str" placeholder="Select" size="large">
-                <el-option v-for="item in facilities_type" :key="item.value" :label="item.label" :value="item.value" />
-              </el-select>
-              <!-- </el-form-item> -->
-
-              <!-- </el-form> -->
-
-              <!-- <p>Station Name</p>
-              <el-input v-model=" StationData.name " ></el-input> -->
-              <!-- <p>Station Type</p>
-              <el-select class="el-select" v-model="StationData.facilities_str" placeholder="Select" size="large" >
-                <el-option v-for="item in facilities_type" :key="item.value" :label="item.label" :value="item.value" />
-              </el-select> -->
-              <!-- <p>Owner</p>
-              <el-input v-model="StationData.owner_name_string"></el-input> -->
-              <!-- <p>Operator</p>
-              <el-input v-model="StationData.operator_name_string"></el-input> -->
-              <!-- <p>Operator ID</p>
-              <el-input v-model="StationData.party_id"></el-input> -->
-              <!-- <p>Note / Description</p>
-              <el-input v-model="StationData.directions_str"></el-input> -->
-              <br>
-              <el-checkbox v-model="StationData.publish" label="Publish" size="large" />
-              <!-- <el-checkbox v-model="StationData.parking_type_enable" label="Parking Lot" size="large" /> -->
-              <!-- <el-checkbox v-model="StationData.charging_when_closed" label="Charging when place is closed"
-                size="large" /> -->
-            </div>
-          </div>
-
-        </div>
-        <div class="v-line1"></div>
-        <div class="left-down">
-          <div class="left-down-title">
-            <p> Station </p>
-          </div>
-          <div class="left-down-line1">
-            <div>
-              <p>Country</p>
-              <el-select v-model="StationData.country" placeholder="Select" size="large"
-                @change="change_country_code(StationData)">
-                <el-option v-for="item in country_list" :key="item.value" :label="item.label" :value="item.value" />
-              </el-select>
-            </div>
-            <div v-if="StationData.country === 'Taiwan'">
-              <p>City</p>
-              <el-select class="el-select" v-model="StationData.city" placeholder="Select" size="large">
-                <el-option v-for="item in taiwan_city" :key="item.value" :label="item.label" :value="item.value" />
-              </el-select>
-            </div>
-            <div v-else>
-              <p>City</p>
-              <el-input v-model="StationData.city"></el-input>
-            </div>
-            <div>
-              <p>Address </p>
-              <el-input v-model="StationData.address" placeholder="EX: 中和區立德街69號"></el-input>
-            </div>
-            <div class="button-div">
-              <el-button class="button" @click="getCoordinates"> Get Coordinates </el-button>
-            </div>
-          </div>
-          <div class="left-down-line2">
-            <div>
-              <p>City (En)</p>
-              <el-input v-model="StationData.city1"></el-input>
-            </div>
-            <div>
-              <p>Address (En)</p>
-              <el-input v-model="StationData.address1"></el-input>
-            </div>
-          </div>
-          <div class="left-down-line2">
-            <div>
-              <p>Latitude</p>
-              <el-input v-model="StationData.latitude_str" placeholder="EX: 25.007678"></el-input>
-            </div>
-            <div>
-              <p>Longitude</p>
-              <el-input v-model="StationData.longitude_str" placeholder="EX: 121.487396"></el-input>
-            </div>
-
-            <div>
-              <p>Time Zone</p>
-              <el-input v-model="StationData.time_zone"></el-input>
-            </div>
-
-            <div class="button-div">
-              <!-- <el-button class="button" @click="getAddress"> Get Address </el-button> -->
-              <el-button class="button" @click="getTimeZone"> Get Time Zone </el-button>
-            </div>
-
-            <!-- <div>
-              <p>Postal Code</p>
-              <el-input v-model="StationData.postal_code"></el-input>
-            </div> -->
-          </div>
-          <p> {{ Coordinates2Addr }}</p>
-        </div>
-      </div>
-      <div class="v-line">
-      </div>
-      <!-- <div class="right">
-        <p>Open Time</p>
-        <el-switch v-model="select_all" size="large" inactive-text="Select All"/>
-        <div class="week-container">
-          <div class="week">
-            <el-checkbox v-model="w0check" label="" size="large" :disabled = "!select_all" @change="change_all_week"/>
-            <span class="text">All</span>
-            <el-slider v-model="w0val" range :max="24" :disabled = "!select_all" @change="change_all_time"/>
-          </div>
-          <div class="week">
-            <el-checkbox v-model="w1check" label="" size="large" :disabled = "select_all"/>
-            <span class="text">Mon.</span>
-            <el-slider v-model="w1val" range :max="24" :disabled = "select_all"/>
-          </div>
-          <div class="week">
-            <el-checkbox v-model="w2check" label="" size="large" :disabled = "select_all"/>
-            <span class="text">Tue.</span>
-            <el-slider v-model="w2val" range :max="24" :disabled = "select_all"/>
-          </div>
-          <div class="week">
-            <el-checkbox v-model="w3check" label="" size="large" :disabled = "select_all"/>
-            <span class="text">Wed.</span>
-            <el-slider v-model="w3val" range :max="24" :disabled = "select_all"/>
-          </div>
-          <div class="week">
-            <el-checkbox v-model="w4check" label="" size="large" :disabled = "select_all"/>
-            <span class="text">Thu.</span>
-            <el-slider v-model="w4val" range :max="24" :disabled = "select_all"/>
-          </div>
-          <div class="week">
-            <el-checkbox v-model="w5check" label="" size="large" :disabled = "select_all"/>
-            <span class="text">Fri.</span>
-            <el-slider v-model="w5val" range :max="24" :disabled = "select_all"/>
-          </div>
-          <div class="week">
-            <el-checkbox v-model="w6check" label="" size="large" :disabled = "select_all"/>
-            <span class="text">Sat.</span>
-            <el-slider v-model="w6val" range :max="24" :disabled = "select_all"/>
-          </div>
-          <div class="week">
-            <el-checkbox v-model="w7check" label="" size="large" :disabled = "select_all"/>
-            <span class="text">Sun.</span>
-            <el-slider v-model="w7val" range :max="24" :disabled = "select_all"/>
-          </div>
-        </div>
-      </div> -->
-
-
-      
-    </div>
-    <div class="down">
-      <el-button class="button" v-if="station_id" @click="deleteStation"> Delete </el-button>
-      <el-button class="button" @click="backStation"> Cancel </el-button>
-      <el-button class="button" @click="saveStation"> Save </el-button>
-    </div>
-  </div>
-</template>
-
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
@@ -426,6 +241,191 @@ onMounted(async () => {
 })
 
 </script>
+
+<template>
+  <div class="station-edit">
+    <div class="header">
+      <p>{{ edit_title }}</p>
+    </div>
+    <div class="main">
+      <div class="left">
+        <div class="left-up">
+          <div class="left-title">
+            <p>Station Details</p>
+          </div>
+          <div class="left-up-main">
+            <div class="left-up-left">
+              <img class="station-img" v-if="StationData.img_str !== undefined" :src="StationData.img_str">
+              <img class="station-img" v-else src="@/assets/img/null_pic.png">
+            </div>
+            <div class="left-up-right">
+
+              <!-- <el-form :model="StationData"> -->
+              <p>Station Name</p>
+              <!-- <el-form-item label=" " prop="name"> -->
+              <el-input v-model="StationData.name" />
+              <!-- </el-form-item> -->
+
+              <p>Station Type</p>
+              <!-- <el-form-item label=" " prop="facilities"> -->
+              <el-select class="el-select" v-model="StationData.facilities_str" placeholder="Select" size="large">
+                <el-option v-for="item in facilities_type" :key="item.value" :label="item.label" :value="item.value" />
+              </el-select>
+              <!-- </el-form-item> -->
+
+              <!-- </el-form> -->
+
+              <!-- <p>Station Name</p>
+              <el-input v-model=" StationData.name " ></el-input> -->
+              <!-- <p>Station Type</p>
+              <el-select class="el-select" v-model="StationData.facilities_str" placeholder="Select" size="large" >
+                <el-option v-for="item in facilities_type" :key="item.value" :label="item.label" :value="item.value" />
+              </el-select> -->
+              <!-- <p>Owner</p>
+              <el-input v-model="StationData.owner_name_string"></el-input> -->
+              <!-- <p>Operator</p>
+              <el-input v-model="StationData.operator_name_string"></el-input> -->
+              <!-- <p>Operator ID</p>
+              <el-input v-model="StationData.party_id"></el-input> -->
+              <!-- <p>Note / Description</p>
+              <el-input v-model="StationData.directions_str"></el-input> -->
+              <br>
+              <el-checkbox v-model="StationData.publish" label="Publish" size="large" />
+              <!-- <el-checkbox v-model="StationData.parking_type_enable" label="Parking Lot" size="large" /> -->
+              <!-- <el-checkbox v-model="StationData.charging_when_closed" label="Charging when place is closed"
+                size="large" /> -->
+            </div>
+          </div>
+
+        </div>
+        <div class="v-line1"></div>
+        <div class="left-down">
+          <div class="left-down-title">
+            <p> Station </p>
+          </div>
+          <div class="left-down-line1">
+            <div>
+              <p>Country</p>
+              <el-select v-model="StationData.country" placeholder="Select" size="large"
+                @change="change_country_code(StationData)">
+                <el-option v-for="item in country_list" :key="item.value" :label="item.label" :value="item.value" />
+              </el-select>
+            </div>
+            <div v-if="StationData.country === 'Taiwan'">
+              <p>City</p>
+              <el-select class="el-select" v-model="StationData.city" placeholder="Select" size="large">
+                <el-option v-for="item in taiwan_city" :key="item.value" :label="item.label" :value="item.value" />
+              </el-select>
+            </div>
+            <div v-else>
+              <p>City</p>
+              <el-input v-model="StationData.city"></el-input>
+            </div>
+            <div>
+              <p>Address </p>
+              <el-input v-model="StationData.address" placeholder="EX: 中和區立德街69號"></el-input>
+            </div>
+            <div class="button-div">
+              <el-button class="button" @click="getCoordinates"> Get Coordinates </el-button>
+            </div>
+          </div>
+          <div class="left-down-line2">
+            <div>
+              <p>City (En)</p>
+              <el-input v-model="StationData.city1"></el-input>
+            </div>
+            <div>
+              <p>Address (En)</p>
+              <el-input v-model="StationData.address1"></el-input>
+            </div>
+          </div>
+          <div class="left-down-line2">
+            <div>
+              <p>Latitude</p>
+              <el-input v-model="StationData.latitude_str" placeholder="EX: 25.007678"></el-input>
+            </div>
+            <div>
+              <p>Longitude</p>
+              <el-input v-model="StationData.longitude_str" placeholder="EX: 121.487396"></el-input>
+            </div>
+
+            <div>
+              <p>Time Zone</p>
+              <el-input v-model="StationData.time_zone"></el-input>
+            </div>
+
+            <div class="button-div">
+              <!-- <el-button class="button" @click="getAddress"> Get Address </el-button> -->
+              <el-button class="button" @click="getTimeZone"> Get Time Zone </el-button>
+            </div>
+
+            <!-- <div>
+              <p>Postal Code</p>
+              <el-input v-model="StationData.postal_code"></el-input>
+            </div> -->
+          </div>
+          <p> {{ Coordinates2Addr }}</p>
+        </div>
+      </div>
+      <div class="v-line">
+      </div>
+      <!-- <div class="right">
+        <p>Open Time</p>
+        <el-switch v-model="select_all" size="large" inactive-text="Select All"/>
+        <div class="week-container">
+          <div class="week">
+            <el-checkbox v-model="w0check" label="" size="large" :disabled = "!select_all" @change="change_all_week"/>
+            <span class="text">All</span>
+            <el-slider v-model="w0val" range :max="24" :disabled = "!select_all" @change="change_all_time"/>
+          </div>
+          <div class="week">
+            <el-checkbox v-model="w1check" label="" size="large" :disabled = "select_all"/>
+            <span class="text">Mon.</span>
+            <el-slider v-model="w1val" range :max="24" :disabled = "select_all"/>
+          </div>
+          <div class="week">
+            <el-checkbox v-model="w2check" label="" size="large" :disabled = "select_all"/>
+            <span class="text">Tue.</span>
+            <el-slider v-model="w2val" range :max="24" :disabled = "select_all"/>
+          </div>
+          <div class="week">
+            <el-checkbox v-model="w3check" label="" size="large" :disabled = "select_all"/>
+            <span class="text">Wed.</span>
+            <el-slider v-model="w3val" range :max="24" :disabled = "select_all"/>
+          </div>
+          <div class="week">
+            <el-checkbox v-model="w4check" label="" size="large" :disabled = "select_all"/>
+            <span class="text">Thu.</span>
+            <el-slider v-model="w4val" range :max="24" :disabled = "select_all"/>
+          </div>
+          <div class="week">
+            <el-checkbox v-model="w5check" label="" size="large" :disabled = "select_all"/>
+            <span class="text">Fri.</span>
+            <el-slider v-model="w5val" range :max="24" :disabled = "select_all"/>
+          </div>
+          <div class="week">
+            <el-checkbox v-model="w6check" label="" size="large" :disabled = "select_all"/>
+            <span class="text">Sat.</span>
+            <el-slider v-model="w6val" range :max="24" :disabled = "select_all"/>
+          </div>
+          <div class="week">
+            <el-checkbox v-model="w7check" label="" size="large" :disabled = "select_all"/>
+            <span class="text">Sun.</span>
+            <el-slider v-model="w7val" range :max="24" :disabled = "select_all"/>
+          </div>
+        </div>
+      </div> -->
+
+
+      
+    </div>
+    <div class="down">
+      <el-button class="button" v-if="station_id" @click="deleteStation"> Delete </el-button>
+      <el-button class="button" @click="backStation"> Cancel </el-button>
+      <el-button class="button" @click="saveStation"> Save </el-button>
+    </div>
+  </div>
+</template>
 
 <style lang="scss" >
 .station-edit {

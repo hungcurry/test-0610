@@ -1,223 +1,3 @@
-<template>
-  <div class="customers-detail">
-    <p class="customers-title"> {{ userData.first_name + ' ' + userData.last_name }} </p>
-
-    <div class="customers-el-tab">
-      <el-tabs v-model="activeName" class="demo-tabs">
-        <el-tab-pane label="General" name="first">
-
-          <div class="customers-up">
-            <div class="customers-up-left">
-              <div class="general-info">
-                <div class="customers-general-info-header">
-                  <font-awesome-icon icon="fa-regular fa-user" />
-                  General Info
-                  <el-button class="gear" @click="editUser"><font-awesome-icon icon="fa-solid fa-gear" /></el-button>
-                </div>
-
-                <div class="customers-info-item">
-                  <p class="customers-info-title">Email</p>
-                  <p class="customers-info-value">{{ userData.email }}</p>
-                </div>
-                <div class="customers-info-item">
-                  <p class="customers-info-title">Phone</p>
-                  <p class="customers-info-value">{{ userData.phone }}</p>
-                </div>
-                <div class="customers-info-item">
-                  <p class="customers-info-title">Country</p>
-                  <p class="customers-info-value">{{ userData.country }}</p>
-                </div>
-                <div class="customers-info-item">
-                  <p class="customers-info-title">Language</p>
-                  <p class="customers-info-value">{{ userData.language }}</p>
-                </div>
-                <div class="customers-info-item">
-                  <p class="customers-info-title">Binding Cards</p>
-                  <el-button @click="binding_card_detail"> Card Detail</el-button>
-                </div>
-
-                <div class="customers-info-item">
-                  <p class="customers-info-title">Device</p>
-                  <el-button @click="device_detail"> Device Detail</el-button>
-                </div>
-
-                <div class="customers-info-item">
-                  <p class="customers-info-title">Permission</p>
-                  <p class="customers-info-value">{{ userData.permission_str }}</p>
-                </div>
-
-                <div class="customers-info-item">
-                  <p class="customers-info-title">Updated Date</p>
-                  <p class="customers-info-value">{{ userData.updated_date_str }}</p>
-                </div>
-                <div class="customers-info-item">
-                  <p class="customers-info-title">Created Date</p>
-                  <p class="customers-info-value">{{ userData.created_date_str }}</p>
-                </div>
-
-              </div>
-            </div>
-
-            <div class="customers-up-right">
-              <div class="real-time-info">
-                <div class="customers-general-info-header">
-                  <font-awesome-icon icon="fa-regular fa-user" />
-                  Real-time Info
-                </div>
-                <div class="real-time-info-item">
-                  <p class="real-time-info-title">EVSE Info</p>
-                  <p class="real-time-info-value">{{ userData.evse_list_id }}</p>
-                  <el-button v-if="company === 'MSI'" class="gear" @click="clearEvseList"><font-awesome-icon
-                      icon="fa-solid fa-gear" /> Clear</el-button>
-                </div>
-                <div class="real-time-info-item">
-                  <p class="real-time-info-title">Status</p>
-                  <p class="real-time-info-value">{{ }}</p>
-                </div>
-              </div>
-              <div class="total-record">
-                <div class="customers-general-info-header">
-                  <font-awesome-icon icon="fa-regular fa-user" />
-                  Total Record
-                </div>
-                <div class="real-time-info-item">
-                  <p class="real-time-info-title">Total Used Power</p>
-                  <p class="real-time-info-value">{{ paymentData.charge_kwh }}</p>
-                </div>
-                <div class="real-time-info-item">
-                  <p class="real-time-info-title">Total Cost</p>
-                  <p class="real-time-info-value">{{ paymentData.cost_str }}</p>
-                </div>
-                <div class="real-time-info-item">
-                  <p class="real-time-info-title">Total Times</p>
-                  <p class="real-time-info-value">{{ paymentData.amount_str }}</p>
-                </div>
-                <div class="real-time-info-item">
-                  <p class="real-time-info-title">Total Charging Time</p>
-                  <p class="real-time-info-value">{{ paymentData.charge_hr + ":" + paymentData.charge_min + ":" +
-                    paymentData.charge_sec }}</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="customers-down">
-            <div class="rfid">
-              <div class="customers-general-info-header">
-                <font-awesome-icon icon="fa-regular fa-user" />
-                RFID
-                <el-button class="gear" @click="editRfid"><font-awesome-icon icon="fa-solid fa-gear" />
-                   Add RFID</el-button>
-              </div>
-              <div class="rfid-detail">
-                <el-table :data="userData.rfids" style="width: 95%; height:95%" stripe :cell-style=msi.tb_cell
-                  :header-cell-style=msi.tb_header_cell size="large">
-                  <el-table-column prop="rfid" label="Number" min-width="80" />
-                  <el-table-column prop="cash" label="Cash" min-width="80" />
-                  <el-table-column prop="nickname" label="Name" min-width="80" />
-                  <el-table-column prop="enable" label="Enable" min-width="80" />
-                  <el-table-column>
-                    <template #default="scope">
-                      <el-button @click="card_detail(scope)"> <font-awesome-icon icon="fa-solid fa-ellipsis" />
-                      </el-button>
-                    </template>
-                  </el-table-column>
-                </el-table>
-              </div>
-            </div>
-          </div>
-        </el-tab-pane>
-
-        <el-tab-pane label="Payment" name="second">
-          <el-table :data="paymentData" style="width: 95%; height:900px" stripe :cell-style=msi.tb_cell
-            :header-cell-style=msi.tb_header_cell size="large" v-loading="isLoading">
-            <el-table-column prop="evse_id" label="EVSE ID" min-width="80" />
-            <el-table-column prop="location_name" label="Station Name" min-width="80" />
-            <el-table-column prop="price" label="Price" min-width="80" />
-            <el-table-column prop="currency" label="Currency" min-width="80" />
-            <el-table-column prop="created_date_str" label="Created Time" min-width="80" />
-          </el-table>
-        </el-tab-pane>
-      </el-tabs>
-    </div>
-
-    <el-dialog v-model="EditCustomerFormVisible" title="Edit Customer" draggable>
-      <el-form>
-        <el-form-item label="First Name">
-          <el-input v-model="userDataMod.first_name" />
-        </el-form-item>
-        <el-form-item label="Last Name">
-          <el-input v-model="userDataMod.last_name" />
-        </el-form-item>
-        <el-form-item label="E-Mail">
-          <el-input v-model="userDataMod.email" />
-        </el-form-item>
-        <el-form-item label="Phone">
-          <el-input v-model="userDataMod.phone" />
-        </el-form-item>
-        <el-form-item label="Permission">
-          <el-select class="el-select" v-model="userDataMod.permission_str" placeholder="Select" size="large">
-            <el-option v-for="item in user_type" :key="item.value" :label="item.name" :value="item.name" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="Active">
-          <el-switch v-model="userDataMod.permission_active_str" />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <span class="dialog-footer">
-          <el-button @click="editUserDialog('delete')">Delete</el-button>
-          <el-button @click="editUserDialog('cancel')">Cancel</el-button>
-          <el-button type="primary" @click="editUserDialog('confirm')"> Confirm</el-button>
-        </span>
-      </template>
-    </el-dialog>
-
-    <el-dialog v-model="EditRfidFormVisible" :title=rfid_title draggable>
-      <el-form>
-        <el-form-item label="Number">
-          <el-input v-model="rfidData.rfid" />
-        </el-form-item>
-        <el-form-item label="Cash">
-          <el-input v-model="rfidData.cash" />
-        </el-form-item>
-        <el-form-item label="Name">
-          <el-input v-model="rfidData.nickname" />
-        </el-form-item>
-        <el-form-item label="Enable">
-          <el-switch v-model="rfidData.enable" />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <span class="dialog-footer">
-          <el-button v-if="modify_card_index!==-1" @click="confirmRfid('delete')">Delete</el-button>
-          <el-button @click="confirmRfid('cancel')">Cancel</el-button>
-          <el-button type="primary" @click="confirmRfid('confirm')"> Confirm</el-button>
-        </span>
-      </template>
-    </el-dialog>
-
-    <el-dialog v-model="DeviceDialogVisible" title="Device">
-      <el-table :data="userData.deviceId_list">
-        <el-table-column property="device_name" label="Name" width="300" />
-        <el-table-column property="device_platform" label="Platform" width="100" />
-        <el-table-column property="device_os_version" label="OS Version" />
-        <el-table-column property="app_version" label="App Version" />
-      </el-table>
-    </el-dialog>
-
-    <el-dialog v-model="BindingCardDialogVisible" title="Binding Card">
-      <el-table :data="userData.paylistArrObj">
-        <el-table-column property="card_num" label="Card Num " width="150" />
-        <!-- <el-table-column property="card4No" label="Card 4" width="200" /> -->
-        <el-table-column property="expireDate" label="Expire Date(YYMM)" />
-        <el-table-column property="bindingDate" label="Binding Date" />
-      </el-table>
-    </el-dialog>
-
-  </div>
-</template>
-
 <script setup>
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { ref, reactive, onMounted } from 'vue'
@@ -463,6 +243,226 @@ onMounted(async () => {
 
 </script>
 
+<template>
+  <div class="customers-detail">
+    <p class="customers-title"> {{ userData.first_name + ' ' + userData.last_name }} </p>
+
+    <div class="customers-el-tab">
+      <el-tabs v-model="activeName" class="demo-tabs">
+        <el-tab-pane label="General" name="first">
+
+          <div class="customers-up">
+            <div class="customers-up-left">
+              <div class="general-info">
+                <div class="customers-general-info-header">
+                  <font-awesome-icon icon="fa-regular fa-user" />
+                  General Info
+                  <el-button class="gear" @click="editUser"><font-awesome-icon icon="fa-solid fa-gear" /></el-button>
+                </div>
+
+                <div class="customers-info-item">
+                  <p class="customers-info-title">Email</p>
+                  <p class="customers-info-value">{{ userData.email }}</p>
+                </div>
+                <div class="customers-info-item">
+                  <p class="customers-info-title">Phone</p>
+                  <p class="customers-info-value">{{ userData.phone }}</p>
+                </div>
+                <div class="customers-info-item">
+                  <p class="customers-info-title">Country</p>
+                  <p class="customers-info-value">{{ userData.country }}</p>
+                </div>
+                <div class="customers-info-item">
+                  <p class="customers-info-title">Language</p>
+                  <p class="customers-info-value">{{ userData.language }}</p>
+                </div>
+                <div class="customers-info-item">
+                  <p class="customers-info-title">Binding Cards</p>
+                  <el-button @click="binding_card_detail"> Card Detail</el-button>
+                </div>
+
+                <div class="customers-info-item">
+                  <p class="customers-info-title">Device</p>
+                  <el-button @click="device_detail"> Device Detail</el-button>
+                </div>
+
+                <div class="customers-info-item">
+                  <p class="customers-info-title">Permission</p>
+                  <p class="customers-info-value">{{ userData.permission_str }}</p>
+                </div>
+
+                <div class="customers-info-item">
+                  <p class="customers-info-title">Updated Date</p>
+                  <p class="customers-info-value">{{ userData.updated_date_str }}</p>
+                </div>
+                <div class="customers-info-item">
+                  <p class="customers-info-title">Created Date</p>
+                  <p class="customers-info-value">{{ userData.created_date_str }}</p>
+                </div>
+
+              </div>
+            </div>
+
+            <div class="customers-up-right">
+              <div class="real-time-info">
+                <div class="customers-general-info-header">
+                  <font-awesome-icon icon="fa-regular fa-user" />
+                  Real-time Info
+                </div>
+                <div class="real-time-info-item">
+                  <p class="real-time-info-title">EVSE Info</p>
+                  <p class="real-time-info-value">{{ userData.evse_list_id }}</p>
+                  <el-button v-if="company === 'MSI'" class="gear" @click="clearEvseList"><font-awesome-icon
+                      icon="fa-solid fa-gear" /> Clear</el-button>
+                </div>
+                <div class="real-time-info-item">
+                  <p class="real-time-info-title">Status</p>
+                  <p class="real-time-info-value">{{ }}</p>
+                </div>
+              </div>
+              <div class="total-record">
+                <div class="customers-general-info-header">
+                  <font-awesome-icon icon="fa-regular fa-user" />
+                  Total Record
+                </div>
+                <div class="real-time-info-item">
+                  <p class="real-time-info-title">Total Used Power</p>
+                  <p class="real-time-info-value">{{ paymentData.charge_kwh }}</p>
+                </div>
+                <div class="real-time-info-item">
+                  <p class="real-time-info-title">Total Cost</p>
+                  <p class="real-time-info-value">{{ paymentData.cost_str }}</p>
+                </div>
+                <div class="real-time-info-item">
+                  <p class="real-time-info-title">Total Times</p>
+                  <p class="real-time-info-value">{{ paymentData.amount_str }}</p>
+                </div>
+                <div class="real-time-info-item">
+                  <p class="real-time-info-title">Total Charging Time</p>
+                  <p class="real-time-info-value">{{ paymentData.charge_hr + ":" + paymentData.charge_min + ":" +
+                    paymentData.charge_sec }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="customers-down">
+            <div class="rfid">
+              <div class="customers-general-info-header">
+                <font-awesome-icon icon="fa-regular fa-user" />
+                RFID
+                <el-button class="gear" @click="editRfid"><font-awesome-icon icon="fa-solid fa-gear" />
+                   Add RFID</el-button>
+              </div>
+              <div class="rfid-detail">
+                <el-table :data="userData.rfids" style="width: 95%; height:95%" stripe :cell-style=msi.tb_cell
+                  :header-cell-style=msi.tb_header_cell size="large">
+                  <el-table-column prop="rfid" label="Number" min-width="80" />
+                  <el-table-column prop="cash" label="Cash" min-width="80" />
+                  <el-table-column prop="nickname" label="Name" min-width="80" />
+                  <el-table-column prop="enable" label="Enable" min-width="80" />
+                  <el-table-column>
+                    <template #default="scope">
+                      <el-button @click="card_detail(scope)"> <font-awesome-icon icon="fa-solid fa-ellipsis" />
+                      </el-button>
+                    </template>
+                  </el-table-column>
+                </el-table>
+              </div>
+            </div>
+          </div>
+        </el-tab-pane>
+
+        <el-tab-pane label="Payment" name="second">
+          <el-table :data="paymentData" style="width: 95%; height:900px" stripe :cell-style=msi.tb_cell
+            :header-cell-style=msi.tb_header_cell size="large" v-loading="isLoading">
+            <el-table-column prop="evse_id" label="EVSE ID" min-width="80" />
+            <el-table-column prop="location_name" label="Station Name" min-width="80" />
+            <el-table-column prop="price" label="Price" min-width="80" />
+            <el-table-column prop="currency" label="Currency" min-width="80" />
+            <el-table-column prop="created_date_str" label="Created Time" min-width="80" />
+          </el-table>
+        </el-tab-pane>
+      </el-tabs>
+    </div>
+
+    <el-dialog v-model="EditCustomerFormVisible" title="Edit Customer" draggable>
+      <el-form>
+        <el-form-item label="First Name">
+          <el-input v-model="userDataMod.first_name" />
+        </el-form-item>
+        <el-form-item label="Last Name">
+          <el-input v-model="userDataMod.last_name" />
+        </el-form-item>
+        <el-form-item label="E-Mail">
+          <el-input v-model="userDataMod.email" />
+        </el-form-item>
+        <el-form-item label="Phone">
+          <el-input v-model="userDataMod.phone" />
+        </el-form-item>
+        <el-form-item label="Permission">
+          <el-select class="el-select" v-model="userDataMod.permission_str" placeholder="Select" size="large">
+            <el-option v-for="item in user_type" :key="item.value" :label="item.name" :value="item.name" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="Active">
+          <el-switch v-model="userDataMod.permission_active_str" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="editUserDialog('delete')">Delete</el-button>
+          <el-button @click="editUserDialog('cancel')">Cancel</el-button>
+          <el-button type="primary" @click="editUserDialog('confirm')"> Confirm</el-button>
+        </span>
+      </template>
+    </el-dialog>
+
+    <el-dialog v-model="EditRfidFormVisible" :title=rfid_title draggable>
+      <el-form>
+        <el-form-item label="Number">
+          <el-input v-model="rfidData.rfid" />
+        </el-form-item>
+        <el-form-item label="Cash">
+          <el-input v-model="rfidData.cash" />
+        </el-form-item>
+        <el-form-item label="Name">
+          <el-input v-model="rfidData.nickname" />
+        </el-form-item>
+        <el-form-item label="Enable">
+          <el-switch v-model="rfidData.enable" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button v-if="modify_card_index!==-1" @click="confirmRfid('delete')">Delete</el-button>
+          <el-button @click="confirmRfid('cancel')">Cancel</el-button>
+          <el-button type="primary" @click="confirmRfid('confirm')"> Confirm</el-button>
+        </span>
+      </template>
+    </el-dialog>
+
+    <el-dialog v-model="DeviceDialogVisible" title="Device">
+      <el-table :data="userData.deviceId_list">
+        <el-table-column property="device_name" label="Name" width="300" />
+        <el-table-column property="device_platform" label="Platform" width="100" />
+        <el-table-column property="device_os_version" label="OS Version" />
+        <el-table-column property="app_version" label="App Version" />
+      </el-table>
+    </el-dialog>
+
+    <el-dialog v-model="BindingCardDialogVisible" title="Binding Card">
+      <el-table :data="userData.paylistArrObj">
+        <el-table-column property="card_num" label="Card Num " width="150" />
+        <!-- <el-table-column property="card4No" label="Card 4" width="200" /> -->
+        <el-table-column property="expireDate" label="Expire Date(YYMM)" />
+        <el-table-column property="bindingDate" label="Binding Date" />
+      </el-table>
+    </el-dialog>
+
+  </div>
+</template>
+
 <style lang="scss" scoped >
 .customers-detail {
   width: 100%;
@@ -581,4 +581,5 @@ onMounted(async () => {
 
 .test {
   height: 50%;
-}</style>
+}
+</style>

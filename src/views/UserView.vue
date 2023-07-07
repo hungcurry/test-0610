@@ -1,109 +1,3 @@
-<template>
-<div>
-  <h1>Personal Info</h1>
-  <el-form label-position="left" label-width="100px">
-    <el-form-item label="First Name" >
-      <el-input v-model="first_name" style="width: 300px"/>
-    </el-form-item>
-    <el-form-item label="Last Name" >
-      <el-input v-model="last_name" style="width: 300px"/>
-    </el-form-item>
-    <el-form-item label="Email Name" >
-      <el-input v-model="email" style="width: 300px"/>
-    </el-form-item>
-    <el-form-item label="Credit Card" >
-      <el-button v-if="companyData.name === 'MSI' " @click="add_card" style="width: 300px" disabled> Add Card </el-button>
-      <el-button v-else-if="CardData.length !== 0" @click="add_card" style="width: 300px" disabled> Add Card </el-button>
-      <el-button v-else @click="add_card" style="width: 300px"> Add Card </el-button>
-    </el-form-item>
-
-    <el-form-item label="Card List" >
-      <el-table :data="CardData" style="width: 80%; " stripe :cell-style=msi.tb_cell :header-cell-style=msi.tb_header_cell size="large" >
-      <el-table-column prop="card_num_str" label="Card Number" min-width="80" />
-      <el-table-column prop="expireDate" label="Expire Date(MM/YY)" min-width="80" />
-      <el-table-column prop="bindingDate" label="Binding Date" min-width="80" />
-      <el-table-column>
-          <el-button @click="card_delete"> Delete Card</el-button>
-      </el-table-column>
-    </el-table>
-    </el-form-item>
-
-    <el-form-item label="Add Program" >
-      <el-button v-if="ProgramData.length > 0" @click="add_program" style="width: 300px" disabled> Add Program </el-button>
-      <el-button v-else-if="CardData.length > 0" @click="add_program" style="width: 300px"> Add Program </el-button>
-      <el-button v-else @click="add_program" style="width: 300px" disabled>  Add Program </el-button>
-    </el-form-item>
-
-    <el-form-item label="Program" >
-      <el-table :data="ProgramData" style="width: 80%; " stripe :cell-style=msi.tb_cell
-      :header-cell-style=msi.tb_header_cell size="large">
-      
-      <el-table-column prop="name" label="Program Name" min-width="80" />
-      <el-table-column prop="evse" label="EVSE Quantity" min-width="80" />
-      <el-table-column prop="admin_user" label="CPO Account" min-width="80" />
-      <el-table-column prop="price" label="Price" min-width="80" />
-      <el-table-column>
-        <el-button @click="add_program" disabled v-if="companyData.name === 'MSI' "> <font-awesome-icon icon="fa-solid fa-ellipsis" /></el-button>
-          <el-button @click="add_program" v-else> <font-awesome-icon icon="fa-solid fa-ellipsis" /></el-button>
-      </el-table-column>
-
-    </el-table>
-    </el-form-item>
-  </el-form>
-
-  <el-dialog v-model="ProgramVisible" title="Select Program">
-    <el-table :data="program_plan" @current-change="handleCurrentChange" highlight-current-row>
-      <el-table-column prop="name" label="Program Name" min-width="80" />
-      <el-table-column prop="evse" label="EVSE Quantity" min-width="80" />
-      <el-table-column prop="admin_user" label="CPO Account" min-width="80" />
-      <el-table-column prop="price" label="Price" min-width="80" />
-    </el-table>
-    <template #footer>
-      <span class="dialog-footer">
-        <el-button @click="cancelProgram">Cancel</el-button>
-        <el-button type="primary" @click="confirmProgram">Confirm</el-button>
-      </span>
-    </template>
-  </el-dialog>
-
-
-  <el-dialog v-model="CheckProgramVisible" title="Check Program">
-    <el-form label-position="left" label-width="100px">
-
-      <el-table :data="select_plan" @current-change="handleCurrentChange" highlight-current-row>
-        <el-table-column prop="name" label="Program Name" min-width="80" />
-        <el-table-column prop="evse" label="EVSE Quantity" min-width="80" />
-        <el-table-column prop="admin_user" label="CPO Account" min-width="80" />
-        <el-table-column prop="price" label="Price" min-width="80" />
-      </el-table>
-      <br>
-      <el-form-item label="Title" >
-        <el-input v-model="companyData.name" style="width: 300px"/>
-      </el-form-item>
-      <el-form-item label="Address" >
-        <el-input v-model="companyData.address_str" style="width: 300px"/>
-      </el-form-item>
-      <el-form-item label="Phone" >
-        <el-input v-model="companyData.phone" style="width: 300px"/>
-      </el-form-item>
-      <el-form-item label="Tax" >
-        <el-input v-model="companyData.tax_id" style="width: 300px"/>
-      </el-form-item>
-      <el-form-item label="Email" >
-        <el-input v-model="companyData.email" style="width: 300px"/>
-      </el-form-item>
-    </el-form>
-    <template #footer>
-      <span class="dialog-footer">
-        <el-button @click="cancelCheckProgram">Cancel</el-button>
-        <el-button type="primary" @click="subscribeProgram">Confirm</el-button>
-      </span>
-    </template>
-  
-  </el-dialog>
-</div>
-</template>
-
 <script setup>
 import { ref, reactive, onMounted} from 'vue'
 import msi from '@/assets/msi_style'
@@ -275,6 +169,112 @@ onMounted( async () => {
 })
 
 </script>
+
+<template>
+<div>
+  <h1>Personal Info</h1>
+  <el-form label-position="left" label-width="100px">
+    <el-form-item label="First Name" >
+      <el-input v-model="first_name" style="width: 300px"/>
+    </el-form-item>
+    <el-form-item label="Last Name" >
+      <el-input v-model="last_name" style="width: 300px"/>
+    </el-form-item>
+    <el-form-item label="Email Name" >
+      <el-input v-model="email" style="width: 300px"/>
+    </el-form-item>
+    <el-form-item label="Credit Card" >
+      <el-button v-if="companyData.name === 'MSI' " @click="add_card" style="width: 300px" disabled> Add Card </el-button>
+      <el-button v-else-if="CardData.length !== 0" @click="add_card" style="width: 300px" disabled> Add Card </el-button>
+      <el-button v-else @click="add_card" style="width: 300px"> Add Card </el-button>
+    </el-form-item>
+
+    <el-form-item label="Card List" >
+      <el-table :data="CardData" style="width: 80%; " stripe :cell-style=msi.tb_cell :header-cell-style=msi.tb_header_cell size="large" >
+      <el-table-column prop="card_num_str" label="Card Number" min-width="80" />
+      <el-table-column prop="expireDate" label="Expire Date(MM/YY)" min-width="80" />
+      <el-table-column prop="bindingDate" label="Binding Date" min-width="80" />
+      <el-table-column>
+          <el-button @click="card_delete"> Delete Card</el-button>
+      </el-table-column>
+    </el-table>
+    </el-form-item>
+
+    <el-form-item label="Add Program" >
+      <el-button v-if="ProgramData.length > 0" @click="add_program" style="width: 300px" disabled> Add Program </el-button>
+      <el-button v-else-if="CardData.length > 0" @click="add_program" style="width: 300px"> Add Program </el-button>
+      <el-button v-else @click="add_program" style="width: 300px" disabled>  Add Program </el-button>
+    </el-form-item>
+
+    <el-form-item label="Program" >
+      <el-table :data="ProgramData" style="width: 80%; " stripe :cell-style=msi.tb_cell
+      :header-cell-style=msi.tb_header_cell size="large">
+      
+      <el-table-column prop="name" label="Program Name" min-width="80" />
+      <el-table-column prop="evse" label="EVSE Quantity" min-width="80" />
+      <el-table-column prop="admin_user" label="CPO Account" min-width="80" />
+      <el-table-column prop="price" label="Price" min-width="80" />
+      <el-table-column>
+        <el-button @click="add_program" disabled v-if="companyData.name === 'MSI' "> <font-awesome-icon icon="fa-solid fa-ellipsis" /></el-button>
+          <el-button @click="add_program" v-else> <font-awesome-icon icon="fa-solid fa-ellipsis" /></el-button>
+      </el-table-column>
+
+    </el-table>
+    </el-form-item>
+  </el-form>
+
+  <el-dialog v-model="ProgramVisible" title="Select Program">
+    <el-table :data="program_plan" @current-change="handleCurrentChange" highlight-current-row>
+      <el-table-column prop="name" label="Program Name" min-width="80" />
+      <el-table-column prop="evse" label="EVSE Quantity" min-width="80" />
+      <el-table-column prop="admin_user" label="CPO Account" min-width="80" />
+      <el-table-column prop="price" label="Price" min-width="80" />
+    </el-table>
+    <template #footer>
+      <span class="dialog-footer">
+        <el-button @click="cancelProgram">Cancel</el-button>
+        <el-button type="primary" @click="confirmProgram">Confirm</el-button>
+      </span>
+    </template>
+  </el-dialog>
+
+
+  <el-dialog v-model="CheckProgramVisible" title="Check Program">
+    <el-form label-position="left" label-width="100px">
+
+      <el-table :data="select_plan" @current-change="handleCurrentChange" highlight-current-row>
+        <el-table-column prop="name" label="Program Name" min-width="80" />
+        <el-table-column prop="evse" label="EVSE Quantity" min-width="80" />
+        <el-table-column prop="admin_user" label="CPO Account" min-width="80" />
+        <el-table-column prop="price" label="Price" min-width="80" />
+      </el-table>
+      <br>
+      <el-form-item label="Title" >
+        <el-input v-model="companyData.name" style="width: 300px"/>
+      </el-form-item>
+      <el-form-item label="Address" >
+        <el-input v-model="companyData.address_str" style="width: 300px"/>
+      </el-form-item>
+      <el-form-item label="Phone" >
+        <el-input v-model="companyData.phone" style="width: 300px"/>
+      </el-form-item>
+      <el-form-item label="Tax" >
+        <el-input v-model="companyData.tax_id" style="width: 300px"/>
+      </el-form-item>
+      <el-form-item label="Email" >
+        <el-input v-model="companyData.email" style="width: 300px"/>
+      </el-form-item>
+    </el-form>
+    <template #footer>
+      <span class="dialog-footer">
+        <el-button @click="cancelCheckProgram">Cancel</el-button>
+        <el-button type="primary" @click="subscribeProgram">Confirm</el-button>
+      </span>
+    </template>
+  
+  </el-dialog>
+</div>
+</template>
 
 <style lang="scss" scoped>
   .el-input {

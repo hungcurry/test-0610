@@ -1,95 +1,3 @@
-<template>
-  <div class="customer">
-
-    <el-button class="add-user-btn" @click="addAdminUser"> Add Admin </el-button>
-
-    <div class="customer-list">
-      <el-table :data="UserData" style="width: 95%; height:95%" stripe :cell-style=msi.tb_cell
-        :header-cell-style=msi.tb_header_cell size="large" v-loading="isLoading">
-        <el-table-column v-for="item in UserTable" :key="item" :prop=item.value :label=item.label :min-width=item.width
-          :sortable="item.sortable">
-          <template #default="scope" v-if="item.type === 'button'">
-            <el-button @click="detail_info(scope)"> <font-awesome-icon icon="fa-solid fa-ellipsis" /> </el-button>
-          </template>
-        </el-table-column>
-      </el-table>
-    </div>
-
-    <el-dialog v-model="AddAdminFormVisible" title="Add Admin User" draggable>
-      <el-form :model="AddAdminData">
-        <el-form-item label="First Name">
-          <el-input v-model="AddAdminData.first_name" />
-        </el-form-item>
-        <el-form-item label="Last Name">
-          <el-input v-model="AddAdminData.last_name" />
-        </el-form-item>
-        <el-form-item label="E-Mail">
-          <el-input v-model="AddAdminData.email" />
-        </el-form-item>
-        <el-form-item label="Phone">
-          <el-input v-model="AddAdminData.phone" />
-        </el-form-item>
-        <el-form-item label="Permission">
-          <el-select class="el-select" v-model="AddAdminData.permission_str" placeholder="Select" size="large"
-            @change="setPermission">
-            <el-option v-for="item in user_type" :key="item.value" :label="item.name" :value="item._id" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="Edit">
-          <el-switch v-model="AddAdminData.permission_edit" />
-        </el-form-item>
-        <el-form-item label="Active">
-          <el-switch v-model="AddAdminData.permission_active" />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <span class="dialog-footer">
-          <el-button @click="AddAdmin('cancel', false)">Cancel</el-button>
-          <el-button type="primary" @click="AddAdmin('confirm', false)">Confirm</el-button>
-        </span>
-      </template>
-    </el-dialog>
-
-    <el-dialog v-model="EditAdminFormVisible" title="Edit Admin User" draggable>
-      <el-form :model="editAdminData">
-        <el-form-item label="First Name">
-          <el-input v-model="editAdminData.first_name" />
-        </el-form-item>
-        <el-form-item label="Last Name">
-          <el-input v-model="editAdminData.last_name" />
-        </el-form-item>
-        <el-form-item label="E-Mail">
-          <el-input v-model="editAdminData.email" />
-        </el-form-item>
-        <el-form-item label="Phone">
-          <el-input v-model="editAdminData.phone" />
-        </el-form-item>
-        <el-form-item label="Permission">
-          <el-select class="el-select" v-model="editAdminData.permission_str" placeholder="Select" size="large"
-            @change="setPermission">
-            <el-option v-for="item in user_type" :key="item.value" :label="item.name" :value="item._id" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="Edit">
-          <el-switch v-model="editAdminData.permission_edit" />
-        </el-form-item>
-        <el-form-item label="Active">
-          <el-switch v-model="editAdminData.permission_active" />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <span class="dialog-footer">
-          <el-button @click="editAdmin('delete')">Delete</el-button>
-          <el-button @click="editAdmin('cancel')">Cancel</el-button>
-          <el-button type="primary" @click="editAdmin('confirm')">
-            Confirm
-          </el-button>
-        </span>
-      </template>
-    </el-dialog>
-  </div>
-</template>
-
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
@@ -290,6 +198,98 @@ onMounted(async () => {
 })
 </script>
 
+<template>
+  <div class="customer">
+
+    <el-button class="add-user-btn" @click="addAdminUser"> Add Admin </el-button>
+
+    <div class="customer-list">
+      <el-table :data="UserData" style="width: 95%; height:95%" stripe :cell-style=msi.tb_cell
+        :header-cell-style=msi.tb_header_cell size="large" v-loading="isLoading">
+        <el-table-column v-for="item in UserTable" :key="item" :prop=item.value :label=item.label :min-width=item.width
+          :sortable="item.sortable">
+          <template #default="scope" v-if="item.type === 'button'">
+            <el-button @click="detail_info(scope)"> <font-awesome-icon icon="fa-solid fa-ellipsis" /> </el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+    </div>
+
+    <el-dialog v-model="AddAdminFormVisible" title="Add Admin User" draggable>
+      <el-form :model="AddAdminData">
+        <el-form-item label="First Name">
+          <el-input v-model="AddAdminData.first_name" />
+        </el-form-item>
+        <el-form-item label="Last Name">
+          <el-input v-model="AddAdminData.last_name" />
+        </el-form-item>
+        <el-form-item label="E-Mail">
+          <el-input v-model="AddAdminData.email" />
+        </el-form-item>
+        <el-form-item label="Phone">
+          <el-input v-model="AddAdminData.phone" />
+        </el-form-item>
+        <el-form-item label="Permission">
+          <el-select class="el-select" v-model="AddAdminData.permission_str" placeholder="Select" size="large"
+            @change="setPermission">
+            <el-option v-for="item in user_type" :key="item.value" :label="item.name" :value="item._id" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="Edit">
+          <el-switch v-model="AddAdminData.permission_edit" />
+        </el-form-item>
+        <el-form-item label="Active">
+          <el-switch v-model="AddAdminData.permission_active" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="AddAdmin('cancel', false)">Cancel</el-button>
+          <el-button type="primary" @click="AddAdmin('confirm', false)">Confirm</el-button>
+        </span>
+      </template>
+    </el-dialog>
+
+    <el-dialog v-model="EditAdminFormVisible" title="Edit Admin User" draggable>
+      <el-form :model="editAdminData">
+        <el-form-item label="First Name">
+          <el-input v-model="editAdminData.first_name" />
+        </el-form-item>
+        <el-form-item label="Last Name">
+          <el-input v-model="editAdminData.last_name" />
+        </el-form-item>
+        <el-form-item label="E-Mail">
+          <el-input v-model="editAdminData.email" />
+        </el-form-item>
+        <el-form-item label="Phone">
+          <el-input v-model="editAdminData.phone" />
+        </el-form-item>
+        <el-form-item label="Permission">
+          <el-select class="el-select" v-model="editAdminData.permission_str" placeholder="Select" size="large"
+            @change="setPermission">
+            <el-option v-for="item in user_type" :key="item.value" :label="item.name" :value="item._id" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="Edit">
+          <el-switch v-model="editAdminData.permission_edit" />
+        </el-form-item>
+        <el-form-item label="Active">
+          <el-switch v-model="editAdminData.permission_active" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="editAdmin('delete')">Delete</el-button>
+          <el-button @click="editAdmin('cancel')">Cancel</el-button>
+          <el-button type="primary" @click="editAdmin('confirm')">
+            Confirm
+          </el-button>
+        </span>
+      </template>
+    </el-dialog>
+  </div>
+</template>
+
 <style lang="scss">
 .customer {
   position: relative;
@@ -335,4 +335,5 @@ onMounted(async () => {
     color: #FFFFFF;
     border-radius: 20px;
   }
-}</style>
+}
+</style>

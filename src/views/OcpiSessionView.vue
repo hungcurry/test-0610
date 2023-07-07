@@ -1,20 +1,3 @@
-<template>
-  <div class="log">
-    <p class="total-count"> {{ 'Total Count : ' + OcpiSessionData.length  }}</p>
-    <div class="date-picker">
-      <el-date-picker v-model="select_time" type="datetimerange" start-placeholder="Start Date" end-placeholder="End Date" :default-time="defaultTime" @change="select_date"/>
-    </div>
-    <el-button class="download" @click="download"> Download </el-button>
-
-    <div class="log-list">
-      <el-table :data="OcpiSessionData" style="width: 95%; height:95%" stripe  :cell-style=msi.tb_cell  :header-cell-style=msi.tb_header_cell size="large" v-loading = "isLoading">
-        <el-table-column v-for="item in OcpiSessionTable" :key="item" :prop=item.value :label=item.label  :min-width=item.width :sortable="item.sortable">
-          </el-table-column>
-      </el-table>
-    </div>
-  </div>
-</template>
-
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import ApiFunc from '@/composables/ApiFunc'
@@ -115,6 +98,23 @@ onMounted( async() => {
 })
 
 </script>
+
+<template>
+  <div class="log">
+    <p class="total-count"> {{ 'Total Count : ' + OcpiSessionData.length  }}</p>
+    <div class="date-picker">
+      <el-date-picker v-model="select_time" type="datetimerange" start-placeholder="Start Date" end-placeholder="End Date" :default-time="defaultTime" @change="select_date"/>
+    </div>
+    <el-button class="download" @click="download"> Download </el-button>
+
+    <div class="log-list">
+      <el-table :data="OcpiSessionData" style="width: 95%; height:95%" stripe  :cell-style=msi.tb_cell  :header-cell-style=msi.tb_header_cell size="large" v-loading = "isLoading">
+        <el-table-column v-for="item in OcpiSessionTable" :key="item" :prop=item.value :label=item.label  :min-width=item.width :sortable="item.sortable">
+          </el-table-column>
+      </el-table>
+    </div>
+  </div>
+</template>
 
 <style lang="scss">
 .log {

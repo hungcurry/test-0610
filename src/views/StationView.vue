@@ -1,72 +1,3 @@
-<template>
-  <div class="station">
-    <div class="station-list" v-show="display_mode === 'List Mode'">
-      <el-table :data="LocationData" style="width: 95%; height:95%" stripe :cell-style=msi_style.tb_cell :header-cell-style=msi_style.tb_header_cell size="large">
-        <el-table-column v-for="item in LocationTable" :key="item" :prop=item.value :label=item.label  :min-width=item.width :sortable="item.sortable"
-        :filters="item.filter" :filter-method="item.filter_method" >
-          <template #default="scope" v-if ="item.label === 'Status'">
-            <el-tag effect="dark"> {{scope.row.state_available_str}} </el-tag>
-            <el-tag type="success" effect="dark"> {{scope.row.state_charging_str}} </el-tag>
-            <el-tag type="info" effect="dark"> {{scope.row.state_unknown_str}} </el-tag>
-            <el-tag type="danger" effect="dark"> {{scope.row.state_error_str}} </el-tag>
-          </template>
-
-          <template #default="scope" v-else-if="item.type === 'button' && item.value === 'detail'">
-            <el-button @click="detail_info(scope.row)"> <font-awesome-icon icon="fa-solid fa-ellipsis" /> </el-button>
-          </template>
-
-          <template #default="scope" v-else-if ="item.label === 'Type'">
-            <img :src="scope.row.facilities_img">
-          </template>
-
-        </el-table-column>
-      </el-table>
-    </div>
-
-    <div class="station-map" ref="stationMap" v-show="display_mode === 'Map Mode'">
-    </div>
-
-    <el-button class="mode" @click="changeMode"> {{ display_mode }}</el-button>
-    <el-button class="add-station" @click="add_station">Add Station</el-button>
-
-    <div class="station-detail" v-if="show_stataion_detail" >
-      <div class="station-detail-button">
-        <el-button @click="close_detail" class="arrow"><font-awesome-icon icon="fa-solid fa-arrow-right" /></el-button>
-        <el-button  @click="edit_detail" class="pen"><font-awesome-icon icon="fa-regular fa-pen-to-square"/></el-button>
-      </div>
-      <div class="station-detail-lat-lng">
-        <p class="lat">{{ SideBarInfo.coordinates.latitude }}</p>
-        <p class="lng">{{ SideBarInfo.coordinates.longitude }}</p>
-      </div>
-      <p class="location-name">{{ SideBarInfo.name }}</p>
-      <div class="location-addr">
-        <font-awesome-icon @click="edit_detail" class="addr-img" icon="fa-solid fa-location-dot" />
-        <p class="addr">{{SideBarInfo.address  }}</p>
-      </div>
-
-      <div class="status">
-        <img src="@/assets/img/station_type_J1772.png" alt="">
-        <span class="type">{{ 'Type 1 (J1772) (' + SideBarInfo.state_total_str + ')'}}</span>
-        <p class="available status">Available ({{SideBarInfo.state_available_str }}) </p>
-        <p class="charging status">Charging ({{SideBarInfo.state_charging_str }})</p>
-        <p class="offline status">Offline ({{SideBarInfo.state_unknown_str }})</p>
-        <p class="error status">Error ({{SideBarInfo.state_error_str }})</p>
-      </div>
-
-      <div class="footer-button">
-        <button class="detail-btn" @click="detail_info(SideBarInfo)">
-          View Details
-        </button>
-
-        <!-- <button disabled class="add-btn">
-          Add Charger
-        </button> -->
-      </div>
-    </div>
-  </div>
-
-</template>
-
 <script setup>
 import { ref, reactive, onMounted, onUnmounted} from 'vue'
 import { useRoute, useRouter,onBeforeRouteUpdate } from 'vue-router'
@@ -301,6 +232,75 @@ onUnmounted( () =>{
 })
 
 </script >
+
+<template>
+  <div class="station">
+    <div class="station-list" v-show="display_mode === 'List Mode'">
+      <el-table :data="LocationData" style="width: 95%; height:95%" stripe :cell-style=msi_style.tb_cell :header-cell-style=msi_style.tb_header_cell size="large">
+        <el-table-column v-for="item in LocationTable" :key="item" :prop=item.value :label=item.label  :min-width=item.width :sortable="item.sortable"
+        :filters="item.filter" :filter-method="item.filter_method" >
+          <template #default="scope" v-if ="item.label === 'Status'">
+            <el-tag effect="dark"> {{scope.row.state_available_str}} </el-tag>
+            <el-tag type="success" effect="dark"> {{scope.row.state_charging_str}} </el-tag>
+            <el-tag type="info" effect="dark"> {{scope.row.state_unknown_str}} </el-tag>
+            <el-tag type="danger" effect="dark"> {{scope.row.state_error_str}} </el-tag>
+          </template>
+
+          <template #default="scope" v-else-if="item.type === 'button' && item.value === 'detail'">
+            <el-button @click="detail_info(scope.row)"> <font-awesome-icon icon="fa-solid fa-ellipsis" /> </el-button>
+          </template>
+
+          <template #default="scope" v-else-if ="item.label === 'Type'">
+            <img :src="scope.row.facilities_img">
+          </template>
+
+        </el-table-column>
+      </el-table>
+    </div>
+
+    <div class="station-map" ref="stationMap" v-show="display_mode === 'Map Mode'">
+    </div>
+
+    <el-button class="mode" @click="changeMode"> {{ display_mode }}</el-button>
+    <el-button class="add-station" @click="add_station">Add Station</el-button>
+
+    <div class="station-detail" v-if="show_stataion_detail" >
+      <div class="station-detail-button">
+        <el-button @click="close_detail" class="arrow"><font-awesome-icon icon="fa-solid fa-arrow-right" /></el-button>
+        <el-button  @click="edit_detail" class="pen"><font-awesome-icon icon="fa-regular fa-pen-to-square"/></el-button>
+      </div>
+      <div class="station-detail-lat-lng">
+        <p class="lat">{{ SideBarInfo.coordinates.latitude }}</p>
+        <p class="lng">{{ SideBarInfo.coordinates.longitude }}</p>
+      </div>
+      <p class="location-name">{{ SideBarInfo.name }}</p>
+      <div class="location-addr">
+        <font-awesome-icon @click="edit_detail" class="addr-img" icon="fa-solid fa-location-dot" />
+        <p class="addr">{{SideBarInfo.address  }}</p>
+      </div>
+
+      <div class="status">
+        <img src="@/assets/img/station_type_J1772.png" alt="">
+        <span class="type">{{ 'Type 1 (J1772) (' + SideBarInfo.state_total_str + ')'}}</span>
+        <p class="available status">Available ({{SideBarInfo.state_available_str }}) </p>
+        <p class="charging status">Charging ({{SideBarInfo.state_charging_str }})</p>
+        <p class="offline status">Offline ({{SideBarInfo.state_unknown_str }})</p>
+        <p class="error status">Error ({{SideBarInfo.state_error_str }})</p>
+      </div>
+
+      <div class="footer-button">
+        <button class="detail-btn" @click="detail_info(SideBarInfo)">
+          View Details
+        </button>
+
+        <!-- <button disabled class="add-btn">
+          Add Charger
+        </button> -->
+      </div>
+    </div>
+  </div>
+
+</template>
 
 <style lang="scss">
 

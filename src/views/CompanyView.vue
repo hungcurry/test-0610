@@ -1,98 +1,3 @@
-<template>
-    <div class="customer">
-
-      <el-input class="search-input" v-model="input" placeholder="Please input" @keyup.enter="search">
-        <template #append>
-          <el-button :icon="Search" @click="search" />
-        </template>
-      </el-input>
-  
-      <el-button class="add-user-btn" @click="AddCompany"> Add Company </el-button>
-  
-      <div class="customer-list">
-        <el-table :data="UserData" style="width: 95%; height:95%" stripe :cell-style=msi.tb_cell :header-cell-style=msi.tb_header_cell size="large"
-        v-loading = "isLoading">
-          <el-table-column v-for="item in UserTable" :key="item" :prop=item.value :label=item.label  :min-width=item.width :sortable="item.sortable">
-            <template #default="scope" v-if ="item.type === 'button'">
-              <el-button @click="detail_info(scope.row)"> <font-awesome-icon icon="fa-solid fa-ellipsis" /> </el-button>
-            </template>
-          </el-table-column>
-        </el-table>
-      </div>
-    </div>
-
-    <el-dialog v-model="CompanyFormVisible" :title=company_title draggable>
-    <el-form :model="companyData">
-      <el-form-item label="Company Name" >
-        <el-input v-model="companyData.name" />
-      </el-form-item>
-
-      <el-form-item label="Country" >
-        <el-input v-model="companyData.country" />
-      </el-form-item>
-
-      <!-- <el-form-item label="Operator ID" >
-        <el-input v-model="companyData.party_id" />
-      </el-form-item> -->
-
-      <el-form-item label="City" >
-        <el-input v-model="companyData.city" />
-      </el-form-item>
-
-      <el-form-item label="Address" >
-        <el-input v-model="companyData.address" />
-      </el-form-item>
-
-      <el-form-item label="Tax" >
-        <el-input v-model="companyData.tax_id" />
-      </el-form-item>
-
-      <el-form-item label="Phone" >
-        <el-input v-model="companyData.phone" />
-      </el-form-item>
-      <!-- <el-form-item label="Remark" >
-        <el-input v-model="companyData.remark" />
-      </el-form-item> -->
-      <hr>
-<br>
-      <el-form-item label="Invoice Hash IV" >
-        <el-input v-model="companyData.invoice.hashIV" />
-      </el-form-item>
-      <el-form-item label="Invoice Hash Key" >
-        <el-input v-model="companyData.invoice.hashKey" />
-      </el-form-item>
-      <el-form-item label="Invoice Merchant ID" >
-        <el-input v-model="companyData.invoice.merchantId" />
-      </el-form-item>
-      <!-- <el-form-item label="Invoice Owner" >
-        <el-input v-model="companyData.invoice.owner" />
-      </el-form-item> -->
-      <el-form-item label="Payment Hash IV" >
-        <el-input v-model="companyData.payment.hashIV" />
-      </el-form-item>
-      <el-form-item label="Payment Hash Key" >
-        <el-input v-model="companyData.payment.hashKey" />
-      </el-form-item>
-      <el-form-item label="Payment Merchant ID" >
-        <el-input v-model="companyData.payment.merchantId" />
-      </el-form-item>
-      <!-- <el-form-item label="Payment Owner" >
-        <el-input v-model="companyData.payment.owner" />
-      </el-form-item> -->
-      
-    </el-form>
-    <template #footer>
-      <span class="dialog-footer">
-        <el-button v-if=" edit_mode !== 'create'" @click="editCompany('delete')">Delete</el-button>
-        <el-button @click="editCompany('cancel')">Cancel</el-button>
-        <el-button type="primary" @click="editCompany('confirm')">
-          Confirm
-        </el-button>
-      </span>
-    </template>
-  </el-dialog>
-</template>
-  
 <script setup>
 import { Search } from '@element-plus/icons-vue'
 import { ref, reactive, onMounted} from 'vue'
@@ -247,7 +152,102 @@ onMounted( async() => {
     console.log( await MongoQurey(queryData))
 })
 </script>
+
+<template>
+    <div class="customer">
+
+      <el-input class="search-input" v-model="input" placeholder="Please input" @keyup.enter="search">
+        <template #append>
+          <el-button :icon="Search" @click="search" />
+        </template>
+      </el-input>
   
+      <el-button class="add-user-btn" @click="AddCompany"> Add Company </el-button>
+  
+      <div class="customer-list">
+        <el-table :data="UserData" style="width: 95%; height:95%" stripe :cell-style=msi.tb_cell :header-cell-style=msi.tb_header_cell size="large"
+        v-loading = "isLoading">
+          <el-table-column v-for="item in UserTable" :key="item" :prop=item.value :label=item.label  :min-width=item.width :sortable="item.sortable">
+            <template #default="scope" v-if ="item.type === 'button'">
+              <el-button @click="detail_info(scope.row)"> <font-awesome-icon icon="fa-solid fa-ellipsis" /> </el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+      </div>
+    </div>
+
+    <el-dialog v-model="CompanyFormVisible" :title=company_title draggable>
+    <el-form :model="companyData">
+      <el-form-item label="Company Name" >
+        <el-input v-model="companyData.name" />
+      </el-form-item>
+
+      <el-form-item label="Country" >
+        <el-input v-model="companyData.country" />
+      </el-form-item>
+
+      <!-- <el-form-item label="Operator ID" >
+        <el-input v-model="companyData.party_id" />
+      </el-form-item> -->
+
+      <el-form-item label="City" >
+        <el-input v-model="companyData.city" />
+      </el-form-item>
+
+      <el-form-item label="Address" >
+        <el-input v-model="companyData.address" />
+      </el-form-item>
+
+      <el-form-item label="Tax" >
+        <el-input v-model="companyData.tax_id" />
+      </el-form-item>
+
+      <el-form-item label="Phone" >
+        <el-input v-model="companyData.phone" />
+      </el-form-item>
+      <!-- <el-form-item label="Remark" >
+        <el-input v-model="companyData.remark" />
+      </el-form-item> -->
+      <hr>
+<br>
+      <el-form-item label="Invoice Hash IV" >
+        <el-input v-model="companyData.invoice.hashIV" />
+      </el-form-item>
+      <el-form-item label="Invoice Hash Key" >
+        <el-input v-model="companyData.invoice.hashKey" />
+      </el-form-item>
+      <el-form-item label="Invoice Merchant ID" >
+        <el-input v-model="companyData.invoice.merchantId" />
+      </el-form-item>
+      <!-- <el-form-item label="Invoice Owner" >
+        <el-input v-model="companyData.invoice.owner" />
+      </el-form-item> -->
+      <el-form-item label="Payment Hash IV" >
+        <el-input v-model="companyData.payment.hashIV" />
+      </el-form-item>
+      <el-form-item label="Payment Hash Key" >
+        <el-input v-model="companyData.payment.hashKey" />
+      </el-form-item>
+      <el-form-item label="Payment Merchant ID" >
+        <el-input v-model="companyData.payment.merchantId" />
+      </el-form-item>
+      <!-- <el-form-item label="Payment Owner" >
+        <el-input v-model="companyData.payment.owner" />
+      </el-form-item> -->
+      
+    </el-form>
+    <template #footer>
+      <span class="dialog-footer">
+        <el-button v-if=" edit_mode !== 'create'" @click="editCompany('delete')">Delete</el-button>
+        <el-button @click="editCompany('cancel')">Cancel</el-button>
+        <el-button type="primary" @click="editCompany('confirm')">
+          Confirm
+        </el-button>
+      </span>
+    </template>
+  </el-dialog>
+</template>
+ 
 <style lang="scss">
 .customer {
   position: relative;

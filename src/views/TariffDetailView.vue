@@ -1,168 +1,3 @@
-<template>
-  <div class="tariff-detail">
-    <div class="tariff-up">
-      <p>Rate Profile Details</p>
-      <el-button class="add-tariff-element-btn" @click="ShowElementDialog('add')"> Add Rate </el-button>
-    </div>
-    <el-tabs v-model="activeName" class="demo-tabs">
-      <el-tab-pane label="General" name="one">
-        <div class="tariff-main">
-          <div class="tariff-left">
-            <p>Profile Name</p>
-            <el-input v-model="TariffData.profile_name" />
-
-            <!-- 
-            <p>Type</p>
-            <el-select v-model="TariffData.type" class="m-2" placeholder="Select" size="large">
-              <el-option v-for="item in tariff_type_opeion" :key="item.value" :label="item.label" :value="item.value"/>
-            </el-select> 
-            -->
-
-            <p>Currency</p>
-            <el-select v-model="TariffData.currency" class="m-2" placeholder="Select" size="large">
-              <el-option v-for="item in tariff_currency_opeion" :key="item.value" :label="item.label"
-                :value="item.value" />
-            </el-select>
-            <p>Country Code</p>
-            <el-select v-model="TariffData.country_code" class="m-2" placeholder="Select" size="large">
-              <el-option v-for="item in tariff_country_code_opeion" :key="item.value" :label="item.label"
-                :value="item.value" />
-            </el-select>
-
-            <p>Min Price</p>
-            <el-input v-model="TariffData.min_price_str" />
-            <!-- 
-            <p>Max Price</p>
-            <el-input v-model="TariffData.max_price_str" /> -->
-
-            <!-- <p>Rate URL</p>
-              <el-input v-model="TariffData.tariff_alt_url" /> -->
-            <!-- <p>Operator ID</p>
-            <el-input v-model="TariffData.party_id" />	 -->
-          </div>
-          <div class="tariff-right">
-            <!-- <p>Rate Description</p> <el-button @click="printElement"> Description generator </el-button> -->
-            <div class="tariff-description">
-              <div class="tariff-description-1">
-                <p>English</p>
-                <el-input v-model="textarea_en" :rows="20" type="textarea" placeholder="1. Charging Day of Week: Mon./Tue./Wed./Thu./Fri. Time: 08:00 ~ 18:00 TWD $10/per kWh; Time: 18:00 ~ 07:59 TWD $6/per kWh Day of Week: Sat./Sun. Time: 00:00 ~ 23:59 TWD $6/per kWh 
-2. Parking Day of Week: Mon./Tue./Wed./Thu./Fri. Time: 08:00 ~ 18:00 TWD $40/per hour; Time: 18:00 ~ 07:59 TWD $20/per hour Day of Week: Sat./Sun. Time: 00:00 ~ 23:59 TWD $20/per hour" />
-              </div>
-              <div class="tariff-description-1">
-                <p>Chinese</p>
-                <el-input v-model="textarea_zh" :rows="20" type="textarea" placeholder="1. 充電費 平日：星期一到星期五 時間：早上八點到晚上六點費用：一度電10元；時間：晚上六點到早上八點  費用：一度電6元 假日：星期六到星期日 時間：00:00 ~23:59 費用：一度電6元
-2. 停車費 平日：星期一到星期五 時間：早上八點到晚上六點 費用：每小時40元；時間：晚上六點到早上八點 費用：每小時20元 假日：星期六到星期日 時間：00:00 ~23:59 費用：每小時20元" />
-              </div>
-              <!-- <div class="tariff-description-1">
-                <p>Japanese</p>
-                <el-input v-model="textarea_jp" :rows="20" type="textarea" placeholder="Please input" />
-              </div> -->
-            </div>
-          </div>
-        </div>
-      </el-tab-pane>
-
-      <el-tab-pane label="Rate" name="two">
-        <el-table :data="tariff_elements" style="width: 95%; height:800px" stripe :cell-style=msi.tb_cell
-          :header-cell-style=msi.tb_header_cell size="large">
-          <el-table-column prop="price_components_type_str" label="Type" min-width="50" />
-          <el-table-column prop="price_components[0].price" label="Price" min-width="50" />
-          <el-table-column prop="price_components[0].vat" label="Vat" min-width="50" />
-          <el-table-column prop="price_components[0].step_size" label="Unit" min-width="50" />
-          <el-table-column prop="restrictions.start_time" label="Start Time" min-width="50" />
-          <el-table-column prop="restrictions.end_time" label="End Time" min-width="50" />
-          <el-table-column prop="restrictions.day_of_week" label="Day Of Week" min-width="50" />
-          <el-table-column>
-            <template #default="scope">
-              <el-button @click="ShowElementDialog('edit', scope)"> <font-awesome-icon icon="fa-solid fa-ellipsis" />
-              </el-button>
-            </template>
-          </el-table-column>
-        </el-table>
-      </el-tab-pane>
-
-      <el-tab-pane label="Charger list" name="three">
-        <p v-for="item in used_evse" :key="item" :label="item" :value="item"> {{ item }}</p>
-      </el-tab-pane>
-    </el-tabs>
-
-    <el-dialog v-model="add_tariff_visible" :title=add_tariff_title draggable>
-      <p> Type </p>
-      <el-select v-model="new_element.price_type" placeholder="Select" size="large"
-        @change="seletcType">
-        <el-option v-for="item in price_type_opeion" :key="item.value" :label="item.label" :value="item.value" />
-      </el-select>
-      <div v-if="new_element.price_type === ''">
-      </div>
-      <div v-else>
-        <div v-if="new_element.price_type === 'ENERGY'">
-          <p>Price</p>
-          <el-input-number v-model="new_element.price_price" :controls="false" />
-          <p>Unit kWh</p>
-          <el-input-number v-model="new_element.step_size" :controls="false" disabled />
-        </div>
-
-        <div v-else-if="new_element.price_type === 'TIME'">
-          <p>Price ($ / hr)</p>
-          <el-input-number v-model="new_element.price_price" :controls="false" />
-          <p>Unit (Second)</p>
-          <el-input-number v-model="new_element.step_size" :controls="false" />
-          <!-- <p> {{ 'i.e. ' + (tariff_element.price_components[0].step_size / 60).toFixed(2) + ' Min ' +
-            (new_element.price_price / (3600 / tariff_element.price_components[0].step_size)).toFixed(2) 
-            + ' Dollar ' + 'excl Vat'}}</p> -->
-        </div>
-
-        <div v-else-if="new_element.price_type === 'PARKING_TIME'">
-          <p>Price ($ / hr)</p>
-          <el-input-number v-model="new_element.price_price" :controls="false" />
-          <p>Unit (Second)</p>
-          <el-input-number v-model="new_element.step_size" :controls="false" />
-          <!-- <p> {{ 'i.e. ' + (tariff_element.price_components[0].step_size / 60).toFixed(2) + ' Min ' +
-            (tariff_element.price_components[0].price / (3600 / tariff_element.price_components[0].step_size)).toFixed(2)
-            + ' Dollar ' + 'excl Vat'}}</p> -->
-        </div>
-
-
-
-        <p>Vat</p>
-        <el-input-number v-model="new_element.vat" :controls="false" />
-        <div v-if="new_element.price_type === 'PARKING_TIME'">
-          <p>Min Duration (Second)</p>
-          <el-input-number v-model="new_element.min_duration" :controls="false" />
-          <p>Max Duration (Second)</p>
-          <el-input-number v-model="new_element.max_duration" :controls="false" />
-        </div>        
-        <p>Time</p>
-        <el-time-select v-model="new_element.start_time" :max-time="endTime" placeholder="Start time"
-          start="00:00" step="00:30" end="24:00" />
-        <el-time-select v-model="new_element.end_time" :min-time="startTime" placeholder="End time"
-          start="00:00" step="00:30" end="24:00" />
-
-        <div class="demo-button-style">
-          <el-checkbox-group v-model="new_element.day_of_week" size="large">
-            <el-checkbox-button v-for="week in day" :key="week.value" :label="week.value"> {{ week.label }}
-            </el-checkbox-button>
-          </el-checkbox-group>
-        </div>
-      </div>
-      
-      <template #footer>
-        <el-button @click="editElement('cancel')">Cancel</el-button>
-        <template v-if="element_action === 'add'">
-          <el-button type="primary" @click="editElement('add')">Create</el-button>
-        </template>
-        <template v-else>
-          <el-button type="primary" @click="editElement('delete')">Delete</el-button>
-          <el-button type="primary" @click="editElement('edit')">Modify</el-button>
-        </template>
-      </template>
-    </el-dialog>
-
-    <el-button class="cancel-tariff-btn" @click="cancel_tariff"> Cancel </el-button>
-    <el-button class="save-tariff-btn" @click="save_tariff"> Save </el-button>
-  </div>
-</template>
-
 <script setup>
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { ref, reactive, onMounted } from 'vue'
@@ -490,6 +325,171 @@ onMounted(async () => {
   }
 })
 </script>
+
+<template>
+  <div class="tariff-detail">
+    <div class="tariff-up">
+      <p>Rate Profile Details</p>
+      <el-button class="add-tariff-element-btn" @click="ShowElementDialog('add')"> Add Rate </el-button>
+    </div>
+    <el-tabs v-model="activeName" class="demo-tabs">
+      <el-tab-pane label="General" name="one">
+        <div class="tariff-main">
+          <div class="tariff-left">
+            <p>Profile Name</p>
+            <el-input v-model="TariffData.profile_name" />
+
+            <!-- 
+            <p>Type</p>
+            <el-select v-model="TariffData.type" class="m-2" placeholder="Select" size="large">
+              <el-option v-for="item in tariff_type_opeion" :key="item.value" :label="item.label" :value="item.value"/>
+            </el-select> 
+            -->
+
+            <p>Currency</p>
+            <el-select v-model="TariffData.currency" class="m-2" placeholder="Select" size="large">
+              <el-option v-for="item in tariff_currency_opeion" :key="item.value" :label="item.label"
+                :value="item.value" />
+            </el-select>
+            <p>Country Code</p>
+            <el-select v-model="TariffData.country_code" class="m-2" placeholder="Select" size="large">
+              <el-option v-for="item in tariff_country_code_opeion" :key="item.value" :label="item.label"
+                :value="item.value" />
+            </el-select>
+
+            <p>Min Price</p>
+            <el-input v-model="TariffData.min_price_str" />
+            <!-- 
+            <p>Max Price</p>
+            <el-input v-model="TariffData.max_price_str" /> -->
+
+            <!-- <p>Rate URL</p>
+              <el-input v-model="TariffData.tariff_alt_url" /> -->
+            <!-- <p>Operator ID</p>
+            <el-input v-model="TariffData.party_id" />	 -->
+          </div>
+          <div class="tariff-right">
+            <!-- <p>Rate Description</p> <el-button @click="printElement"> Description generator </el-button> -->
+            <div class="tariff-description">
+              <div class="tariff-description-1">
+                <p>English</p>
+                <el-input v-model="textarea_en" :rows="20" type="textarea" placeholder="1. Charging Day of Week: Mon./Tue./Wed./Thu./Fri. Time: 08:00 ~ 18:00 TWD $10/per kWh; Time: 18:00 ~ 07:59 TWD $6/per kWh Day of Week: Sat./Sun. Time: 00:00 ~ 23:59 TWD $6/per kWh 
+2. Parking Day of Week: Mon./Tue./Wed./Thu./Fri. Time: 08:00 ~ 18:00 TWD $40/per hour; Time: 18:00 ~ 07:59 TWD $20/per hour Day of Week: Sat./Sun. Time: 00:00 ~ 23:59 TWD $20/per hour" />
+              </div>
+              <div class="tariff-description-1">
+                <p>Chinese</p>
+                <el-input v-model="textarea_zh" :rows="20" type="textarea" placeholder="1. 充電費 平日：星期一到星期五 時間：早上八點到晚上六點費用：一度電10元；時間：晚上六點到早上八點  費用：一度電6元 假日：星期六到星期日 時間：00:00 ~23:59 費用：一度電6元
+2. 停車費 平日：星期一到星期五 時間：早上八點到晚上六點 費用：每小時40元；時間：晚上六點到早上八點 費用：每小時20元 假日：星期六到星期日 時間：00:00 ~23:59 費用：每小時20元" />
+              </div>
+              <!-- <div class="tariff-description-1">
+                <p>Japanese</p>
+                <el-input v-model="textarea_jp" :rows="20" type="textarea" placeholder="Please input" />
+              </div> -->
+            </div>
+          </div>
+        </div>
+      </el-tab-pane>
+
+      <el-tab-pane label="Rate" name="two">
+        <el-table :data="tariff_elements" style="width: 95%; height:800px" stripe :cell-style=msi.tb_cell
+          :header-cell-style=msi.tb_header_cell size="large">
+          <el-table-column prop="price_components_type_str" label="Type" min-width="50" />
+          <el-table-column prop="price_components[0].price" label="Price" min-width="50" />
+          <el-table-column prop="price_components[0].vat" label="Vat" min-width="50" />
+          <el-table-column prop="price_components[0].step_size" label="Unit" min-width="50" />
+          <el-table-column prop="restrictions.start_time" label="Start Time" min-width="50" />
+          <el-table-column prop="restrictions.end_time" label="End Time" min-width="50" />
+          <el-table-column prop="restrictions.day_of_week" label="Day Of Week" min-width="50" />
+          <el-table-column>
+            <template #default="scope">
+              <el-button @click="ShowElementDialog('edit', scope)"> <font-awesome-icon icon="fa-solid fa-ellipsis" />
+              </el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+      </el-tab-pane>
+
+      <el-tab-pane label="Charger list" name="three">
+        <p v-for="item in used_evse" :key="item" :label="item" :value="item"> {{ item }}</p>
+      </el-tab-pane>
+    </el-tabs>
+
+    <el-dialog v-model="add_tariff_visible" :title=add_tariff_title draggable>
+      <p> Type </p>
+      <el-select v-model="new_element.price_type" placeholder="Select" size="large"
+        @change="seletcType">
+        <el-option v-for="item in price_type_opeion" :key="item.value" :label="item.label" :value="item.value" />
+      </el-select>
+      <div v-if="new_element.price_type === ''">
+      </div>
+      <div v-else>
+        <div v-if="new_element.price_type === 'ENERGY'">
+          <p>Price</p>
+          <el-input-number v-model="new_element.price_price" :controls="false" />
+          <p>Unit kWh</p>
+          <el-input-number v-model="new_element.step_size" :controls="false" disabled />
+        </div>
+
+        <div v-else-if="new_element.price_type === 'TIME'">
+          <p>Price ($ / hr)</p>
+          <el-input-number v-model="new_element.price_price" :controls="false" />
+          <p>Unit (Second)</p>
+          <el-input-number v-model="new_element.step_size" :controls="false" />
+          <!-- <p> {{ 'i.e. ' + (tariff_element.price_components[0].step_size / 60).toFixed(2) + ' Min ' +
+            (new_element.price_price / (3600 / tariff_element.price_components[0].step_size)).toFixed(2) 
+            + ' Dollar ' + 'excl Vat'}}</p> -->
+        </div>
+
+        <div v-else-if="new_element.price_type === 'PARKING_TIME'">
+          <p>Price ($ / hr)</p>
+          <el-input-number v-model="new_element.price_price" :controls="false" />
+          <p>Unit (Second)</p>
+          <el-input-number v-model="new_element.step_size" :controls="false" />
+          <!-- <p> {{ 'i.e. ' + (tariff_element.price_components[0].step_size / 60).toFixed(2) + ' Min ' +
+            (tariff_element.price_components[0].price / (3600 / tariff_element.price_components[0].step_size)).toFixed(2)
+            + ' Dollar ' + 'excl Vat'}}</p> -->
+        </div>
+
+
+
+        <p>Vat</p>
+        <el-input-number v-model="new_element.vat" :controls="false" />
+        <div v-if="new_element.price_type === 'PARKING_TIME'">
+          <p>Min Duration (Second)</p>
+          <el-input-number v-model="new_element.min_duration" :controls="false" />
+          <p>Max Duration (Second)</p>
+          <el-input-number v-model="new_element.max_duration" :controls="false" />
+        </div>        
+        <p>Time</p>
+        <el-time-select v-model="new_element.start_time" :max-time="endTime" placeholder="Start time"
+          start="00:00" step="00:30" end="24:00" />
+        <el-time-select v-model="new_element.end_time" :min-time="startTime" placeholder="End time"
+          start="00:00" step="00:30" end="24:00" />
+
+        <div class="demo-button-style">
+          <el-checkbox-group v-model="new_element.day_of_week" size="large">
+            <el-checkbox-button v-for="week in day" :key="week.value" :label="week.value"> {{ week.label }}
+            </el-checkbox-button>
+          </el-checkbox-group>
+        </div>
+      </div>
+      
+      <template #footer>
+        <el-button @click="editElement('cancel')">Cancel</el-button>
+        <template v-if="element_action === 'add'">
+          <el-button type="primary" @click="editElement('add')">Create</el-button>
+        </template>
+        <template v-else>
+          <el-button type="primary" @click="editElement('delete')">Delete</el-button>
+          <el-button type="primary" @click="editElement('edit')">Modify</el-button>
+        </template>
+      </template>
+    </el-dialog>
+
+    <el-button class="cancel-tariff-btn" @click="cancel_tariff"> Cancel </el-button>
+    <el-button class="save-tariff-btn" @click="save_tariff"> Save </el-button>
+  </div>
+</template>
 
 <style lang="scss" scoped >
 .tariff-detail {

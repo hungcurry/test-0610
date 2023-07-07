@@ -1,84 +1,3 @@
-<template>
-  <div class="station-detail">
-    <div class="station-info">
-      <img class="station-img" v-if="StationData.img_str!==undefined" :src="StationData.img_str" >
-      <img class="station-img" v-else src="@/assets/img/null_pic.png">
-      <div class="station-message">
-        <span class="station-name">{{ StationData.name }}</span>
-        <font-awesome-icon class="station-edit-btn" icon="fa-regular fa-pen-to-square" @click="go_to_station_edit_page() "/>
-        <br>
-        
-        <img src="@/assets/img/station_detail_latitude.png" >
-        <!-- <font-awesome-icon icon="fa-solid fa-arrow-right"/> -->
-        <span> {{ StationData.latitude_str }} {{ "," }} {{ StationData.longitude_str }}</span>
-        <br>
-        
-        <!-- <img src="@/assets/img/station_detail_admin.png" >
-        <span>Operator:</span><span>{{ StationData.party_id }}</span>
-        <br> -->
-        <img src="@/assets/img/station_list_type_office1.png" >
-        <span>{{ StationData.country }} {{ StationData.city }}{{ StationData.address }}</span>
-        <br>
-        <!-- <font-awesome-icon icon="fa-solid fa-arrow-right"/>
-        <span>{{ StationData.city }}{{ StationData.address }}</span> -->
-      </div>
-    </div>
-    <div class="evse-list">
-      <div class="btn-container">
-        <!-- <el-button class="add-charger" @click="addCharger"> Add Charger </el-button> -->
-
-        <el-button v-if="editMode === true" class="edit" @click="updateSW"> Update SW </el-button>
-        <!-- <el-button v-if="editMode === true" class="edit" @click="updateFW " disabled> Update FW </el-button> -->
-        <el-button v-if="editMode === true" class="edit" @click="evseReset('soft') " > Soft Reset </el-button>
-        <el-button v-if="editMode === true" class="edit" @click="evseReset('hard') " > Hard Reset </el-button>
-
-        <el-button class="edit" @click="edit_charger"> {{ edit_button_str }} </el-button>
-      </div>
-      <div class="list-container">
-        <el-table :data="StationDetailEvseData" style="width: 95%; height:95%" stripe :cell-style=msi_style.tb_cell :header-cell-style=msi_style.tb_header_cell size="large"
-        @selection-change="handleSelectionChange">
-          <el-table-column prop="evse_id" label="EVSE ID" min-width="50"/>
-          <el-table-column prop="floor_level" label="Floor Level" min-width="30"/>
-          <el-table-column prop="status" label="Status" min-width="60" >
-            <template #default="scope">
-                <p class="available" v-if="scope.row.status === 'AVAILABLE'"> {{ "●" + scope.row.status }}</p>
-                <p class="charging" v-else-if="scope.row.status === 'CHARGING'"> {{ "●" + scope.row.status }}</p>
-                <p class="offline" v-else-if="scope.row.status === 'UNKNOWN' "> {{ "●" + scope.row.status }}</p>
-                <p class="error" v-else-if="scope.row.status === 'OUTOFORDER'"> {{ "●" + scope.row.status }}</p>
-              </template>
-          </el-table-column>
-          <el-table-column prop="type_str" label="Type" min-width="30"/>
-          <el-table-column prop="hmi_version" label="SW Ver." min-width="50"/>
-          <el-table-column prop="" label="Latest SW" min-width="40">
-          <template #default="scope">
-            <p v-if="scope.row.hmi_version === `b'0.1.2.3'`"> {{ "V" }}</p>
-          </template>
-          </el-table-column>
-
-          <el-table-column prop="last_updated_str" label="Updated Time" min-width="70"/>
-          <el-table-column v-if="editMode === false" prop="" label="" min-width="30">
-          <template #default="scope">
-                <el-button @click="charger_detail(scope.row)"> <font-awesome-icon icon="fa-solid fa-ellipsis" /> </el-button>
-          </template>
-          </el-table-column>
-          <el-table-column v-else type="selection" min-width="30">
-          </el-table-column>
-
-        </el-table>
-      </div>
-    </div>
-    <el-dialog v-model="sw_version_visable" title="Update SW">
-      <p>Now Version {{ fwVersion }}</p>
-      <template #footer>
-        <span class="dialog-footer">
-          <el-button @click="sw_version_visable = false">Cancel</el-button>
-          <el-button type="primary" @click="updateConfirm()">Confirm</el-button>
-        </span>
-      </template>
-    </el-dialog>
-  </div>
-</template>
-
 <script setup>
 import { ref, reactive, onMounted} from 'vue'
 import { useRoute, useRouter } from 'vue-router'
@@ -204,17 +123,94 @@ onMounted( async () => {
       StationDetailEvseData[i].type_str = 'Tyep 2'
     else 
       StationDetailEvseData[i].type_str = StationData.evses[i].connectors[0].standard
-
-
     let localEndTime =  new Date( (new Date(StationData.evses[i].last_updated).getTime()) + ((MStore.timeZoneOffset ) * -60000))
     StationDetailEvseData[i].last_updated_str = (moment(localEndTime).format("YYYY-MM-DD HH:mm:ss"))
-
-    
   }
   StationData.img_str = StationData?.images?.[0]?.url
 })
 
 </script>
+
+<template>
+  <div class="station-detail">
+    <div class="station-info">
+      <img class="station-img" v-if="StationData.img_str!==undefined" :src="StationData.img_str" >
+      <img class="station-img" v-else src="@/assets/img/null_pic.png">
+      <div class="station-message">
+        <span class="station-name">{{ StationData.name }}</span>
+        <font-awesome-icon class="station-edit-btn" icon="fa-regular fa-pen-to-square" @click="go_to_station_edit_page() "/>
+        <br>
+        
+        <img src="@/assets/img/station_detail_latitude.png" >
+        <!-- <font-awesome-icon icon="fa-solid fa-arrow-right"/> -->
+        <span> {{ StationData.latitude_str }} {{ "," }} {{ StationData.longitude_str }}</span>
+        <br>
+        
+        <!-- <img src="@/assets/img/station_detail_admin.png" >
+        <span>Operator:</span><span>{{ StationData.party_id }}</span>
+        <br> -->
+        <img src="@/assets/img/station_list_type_office1.png" >
+        <span>{{ StationData.country }} {{ StationData.city }}{{ StationData.address }}</span>
+        <br>
+        <!-- <font-awesome-icon icon="fa-solid fa-arrow-right"/>
+        <span>{{ StationData.city }}{{ StationData.address }}</span> -->
+      </div>
+    </div>
+    <div class="evse-list">
+      <div class="btn-container">
+        <!-- <el-button class="add-charger" @click="addCharger"> Add Charger </el-button> -->
+
+        <el-button v-if="editMode === true" class="edit" @click="updateSW"> Update SW </el-button>
+        <!-- <el-button v-if="editMode === true" class="edit" @click="updateFW " disabled> Update FW </el-button> -->
+        <el-button v-if="editMode === true" class="edit" @click="evseReset('soft') " > Soft Reset </el-button>
+        <el-button v-if="editMode === true" class="edit" @click="evseReset('hard') " > Hard Reset </el-button>
+
+        <el-button class="edit" @click="edit_charger"> {{ edit_button_str }} </el-button>
+      </div>
+      <div class="list-container">
+        <el-table :data="StationDetailEvseData" style="width: 95%; height:95%" stripe :cell-style=msi_style.tb_cell :header-cell-style=msi_style.tb_header_cell size="large"
+        @selection-change="handleSelectionChange">
+          <el-table-column prop="evse_id" label="EVSE ID" min-width="50"/>
+          <el-table-column prop="floor_level" label="Floor Level" min-width="30"/>
+          <el-table-column prop="status" label="Status" min-width="60" >
+            <template #default="scope">
+                <p class="available" v-if="scope.row.status === 'AVAILABLE'"> {{ "●" + scope.row.status }}</p>
+                <p class="charging" v-else-if="scope.row.status === 'CHARGING'"> {{ "●" + scope.row.status }}</p>
+                <p class="offline" v-else-if="scope.row.status === 'UNKNOWN' "> {{ "●" + scope.row.status }}</p>
+                <p class="error" v-else-if="scope.row.status === 'OUTOFORDER'"> {{ "●" + scope.row.status }}</p>
+              </template>
+          </el-table-column>
+          <el-table-column prop="type_str" label="Type" min-width="30"/>
+          <el-table-column prop="hmi_version" label="SW Ver." min-width="50"/>
+          <el-table-column prop="" label="Latest SW" min-width="40">
+          <template #default="scope">
+            <p v-if="scope.row.hmi_version === `b'0.1.2.3'`"> {{ "V" }}</p>
+          </template>
+          </el-table-column>
+
+          <el-table-column prop="last_updated_str" label="Updated Time" min-width="70"/>
+          <el-table-column v-if="editMode === false" prop="" label="" min-width="30">
+          <template #default="scope">
+                <el-button @click="charger_detail(scope.row)"> <font-awesome-icon icon="fa-solid fa-ellipsis" /> </el-button>
+          </template>
+          </el-table-column>
+          <el-table-column v-else type="selection" min-width="30">
+          </el-table-column>
+
+        </el-table>
+      </div>
+    </div>
+    <el-dialog v-model="sw_version_visable" title="Update SW">
+      <p>Now Version {{ fwVersion }}</p>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="sw_version_visable = false">Cancel</el-button>
+          <el-button type="primary" @click="updateConfirm()">Confirm</el-button>
+        </span>
+      </template>
+    </el-dialog>
+  </div>
+</template>
 
 <style lang="scss" scoped>
 .station-detail {

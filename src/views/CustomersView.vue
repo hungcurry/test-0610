@@ -1,44 +1,3 @@
-<template>
-  <div class="customer">
-    <el-input class="search-input" v-model="input" placeholder="Please input" @keyup.enter="search">
-      <template #append>
-        <el-button :icon="Search" @click="search" />
-      </template>
-    </el-input>
-
-    <el-button class="add-user-btn" @click="addUser('', true)"> Add User </el-button>
-
-    <div class="customer-list">
-      <el-table :data="UserData" style="width: 95%; height:95%" stripe :cell-style=msi.tb_cell :header-cell-style=msi.tb_header_cell size="large"
-      v-loading = "isLoading">
-        <el-table-column v-for="item in UserTable" :key="item" :prop=item.value :label=item.label  :min-width=item.width :sortable="item.sortable">
-          <template #default="scope" v-if ="item.type === 'button'">
-            <el-button @click="detail_info(scope.row)"> <font-awesome-icon icon="fa-solid fa-ellipsis" /> </el-button>
-          </template>
-        </el-table-column>
-      </el-table>
-    </div>
-
-    <el-dialog v-model="dialogFormVisible" title="Add User" draggable>
-      <p> First Name </p>
-        <el-input v-model="newUser.first_name" />
-        <br><br>
-        <p> Last Name </p>
-        <el-input v-model="newUser.last_name" />
-        <br><br>
-        <p> Email </p>
-        <el-input v-model="newUser.email" />
-      <template #footer>
-        <span class="dialog-footer">
-          <el-button @click="addUser('cancel', false)">Cancel</el-button>
-          <el-button type="primary" @click="addUser('confirm', false)">Confirm</el-button>
-        </span>
-      </template>
-    </el-dialog>
-
-  </div>
-</template>
-
 <script setup>
 import { Search } from '@element-plus/icons-vue'
 import { ref, reactive, onMounted} from 'vue'
@@ -170,6 +129,47 @@ onMounted( async() => {
     GetPermission()
 })
 </script>
+
+<template>
+  <div class="customer">
+    <el-input class="search-input" v-model="input" placeholder="Please input" @keyup.enter="search">
+      <template #append>
+        <el-button :icon="Search" @click="search" />
+      </template>
+    </el-input>
+
+    <el-button class="add-user-btn" @click="addUser('', true)"> Add User </el-button>
+
+    <div class="customer-list">
+      <el-table :data="UserData" style="width: 95%; height:95%" stripe :cell-style=msi.tb_cell :header-cell-style=msi.tb_header_cell size="large"
+      v-loading = "isLoading">
+        <el-table-column v-for="item in UserTable" :key="item" :prop=item.value :label=item.label  :min-width=item.width :sortable="item.sortable">
+          <template #default="scope" v-if ="item.type === 'button'">
+            <el-button @click="detail_info(scope.row)"> <font-awesome-icon icon="fa-solid fa-ellipsis" /> </el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+    </div>
+
+    <el-dialog v-model="dialogFormVisible" title="Add User" draggable>
+      <p> First Name </p>
+        <el-input v-model="newUser.first_name" />
+        <br><br>
+        <p> Last Name </p>
+        <el-input v-model="newUser.last_name" />
+        <br><br>
+        <p> Email </p>
+        <el-input v-model="newUser.email" />
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="addUser('cancel', false)">Cancel</el-button>
+          <el-button type="primary" @click="addUser('confirm', false)">Confirm</el-button>
+        </span>
+      </template>
+    </el-dialog>
+
+  </div>
+</template>
 
 <style lang="scss" scoped>
 

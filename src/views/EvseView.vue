@@ -1,96 +1,3 @@
-<template>
-  <div class="evse">
-    <el-button v-if="editMode === false" class="add-charger" @click="add_charger" > Add Charger</el-button>
-    <el-button class="edit" @click="edit" > {{edit_button_str}}</el-button>
-    <div class="tabs">
-    <el-tabs v-model="activeName" >
-      <el-tab-pane label="Paired" name="1" >
-        <div class="table w-full">
-          
-        <el-table class="evse-table" :data="EvseConnectData" style="width: 95%; height:800px" stripe
-        :cell-style=msi.tb_cell :header-cell-style=msi.tb_header_cell size="large" @selection-change="handleSelectionChange">
-          <el-table-column prop="locationName" label="Station" min-width="60"/>
-          <el-table-column prop="floor_level" label="Floor Level" min-width="30"/>
-          <!-- <el-table-column prop="physical_reference" label="Charger Label" min-width="30"/> -->
-          <el-table-column prop="evse_id" label="EVSE ID" min-width="80"/>
-          <el-table-column prop="status" label="Status" min-width="50" :filters="status_filter_item" :filter-method="status_filter">
-            <template #default="scope">
-                <p class="available" v-if="scope.row.status === 'AVAILABLE'"> {{ "●" + scope.row.status }}</p>
-                <p class="charging" v-else-if="scope.row.status === 'CHARGING'"> {{ "●" + scope.row.status }}</p>
-                <p class="offline" v-else-if="scope.row.status === 'UNKNOWN' "> {{ "●" + scope.row.status }}</p>
-                <p class="error" v-else-if="scope.row.status === 'OUTOFORDER'"> {{ "●" + scope.row.status }}</p>
-              </template>
-          </el-table-column>
-          <el-table-column prop="hmi_version" label="SW Ver." min-width="50"/>
-          <el-table-column prop="" label="Latest SW" min-width="30">
-          <template #default="scope">
-            <p v-if="scope.row.hmi_version === swVersion"> {{ "V" }}</p>
-          </template>
-          </el-table-column>
-
-          <el-table-column prop="last_updated_str" label="Updated Time" min-width="50"/>
-          <el-table-column v-if="editMode === false" prop="" label="" min-width="30">
-          <template #default="scope">
-                <el-button @click="detail_info(scope.row)"> <font-awesome-icon icon="fa-solid fa-ellipsis" /> </el-button>
-          </template>
-          </el-table-column>
-          <el-table-column v-else type="selection" min-width="10">
-          </el-table-column>
-        </el-table>
-      </div>
-      </el-tab-pane>
-      <el-tab-pane label="Unpaired" name="2">
-        <div class="table w-full">
-          <el-table class="evse-table" :data="EvseUnConnectData" style="width: 95%; height:800px" stripe 
-          :cell-style=msi.tb_cell :header-cell-style=msi.tb_header_cell size="large" @selection-change="handleSelectionChange">
-            <el-table-column prop="locationName" label="Station" min-width="80"/>
-            <el-table-column prop="floor_level" label="Floor Level" min-width="30"/>
-            <!-- <el-table-column prop="physical_reference" label="Charger Label" min-width="30"/> -->
-            <el-table-column prop="evse_id" label="EVSE ID" min-width="80"/>
-            <el-table-column prop="status" label="Status" min-width="60" :filters="status_filter_item" :filter-method="status_filter">
-              <template #default="scope">
-                  <p class="available" v-if="scope.row.status === 'AVAILABLE'"> {{ "●" + scope.row.status }}</p>
-                  <p class="charging" v-else-if="scope.row.status === 'CHARGING'"> {{ "●" + scope.row.status }}</p>
-                  <p class="offline" v-else-if="scope.row.status === 'UNKNOWN' "> {{ "●" + scope.row.status }}</p>
-                  <p class="error" v-else-if="scope.row.status === 'OUTOFORDER'"> {{ "●" + scope.row.status }}</p>
-                </template>
-            </el-table-column>
-            <el-table-column prop="hmi_version" label="SW Ver." min-width="50"/>
-            <el-table-column prop="" label="Latest SW" min-width="30">
-              <template #default="scope">
-                <p v-if="scope.row.hmi_version === swVersion"> {{ "V" }}</p>
-              </template>
-            </el-table-column>
-  
-            <el-table-column prop="last_updated_str" label="Updated Time" min-width="50"/>
-            <el-table-column v-if="editMode === false" prop="" label="" min-width="30">
-              <template #default="scope">
-                <el-button @click="detail_info(scope.row)"> <font-awesome-icon icon="fa-solid fa-ellipsis" /> </el-button>
-              </template>
-            </el-table-column>
-            <el-table-column v-else type="selection" min-width="10"/>
-          </el-table>
-        </div>
-      </el-tab-pane>
-    </el-tabs>
-  </div>
-
-    <el-button v-if="editMode === true" class="update-button" @click="updateSW"> Update SW </el-button>
-    <el-button v-if="editMode === true" class="soft-reset-button" @click="evseReset('soft') "> Soft Reset </el-button>
-    <el-button v-if="editMode === true" class="hard-reset-button" @click="evseReset('hard') "> Hard Reset </el-button>
-    
-    <el-dialog v-model="sw_version_visable" title="Update SW">
-      <p>Now Version {{ swVersion }}</p>
-      <template #footer>
-        <span class="dialog-footer">
-          <el-button @click="sw_version_visable = false">Cancel</el-button>
-          <el-button type="primary" @click="updateConfirm()">Confirm</el-button>
-        </span>
-      </template>
-    </el-dialog>
-  </div>
-</template>
-
 <script setup>
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { ref, reactive, onMounted} from 'vue'
@@ -287,6 +194,99 @@ onMounted( async() => {
 })
 
 </script>
+
+<template>
+  <div class="evse">
+    <el-button v-if="editMode === false" class="add-charger" @click="add_charger" > Add Charger</el-button>
+    <el-button class="edit" @click="edit" > {{edit_button_str}}</el-button>
+    <div class="tabs">
+    <el-tabs v-model="activeName" >
+      <el-tab-pane label="Paired" name="1" >
+        <div class="table w-full">
+          
+        <el-table class="evse-table" :data="EvseConnectData" style="width: 95%; height:800px" stripe
+        :cell-style=msi.tb_cell :header-cell-style=msi.tb_header_cell size="large" @selection-change="handleSelectionChange">
+          <el-table-column prop="locationName" label="Station" min-width="60"/>
+          <el-table-column prop="floor_level" label="Floor Level" min-width="30"/>
+          <!-- <el-table-column prop="physical_reference" label="Charger Label" min-width="30"/> -->
+          <el-table-column prop="evse_id" label="EVSE ID" min-width="80"/>
+          <el-table-column prop="status" label="Status" min-width="50" :filters="status_filter_item" :filter-method="status_filter">
+            <template #default="scope">
+                <p class="available" v-if="scope.row.status === 'AVAILABLE'"> {{ "●" + scope.row.status }}</p>
+                <p class="charging" v-else-if="scope.row.status === 'CHARGING'"> {{ "●" + scope.row.status }}</p>
+                <p class="offline" v-else-if="scope.row.status === 'UNKNOWN' "> {{ "●" + scope.row.status }}</p>
+                <p class="error" v-else-if="scope.row.status === 'OUTOFORDER'"> {{ "●" + scope.row.status }}</p>
+              </template>
+          </el-table-column>
+          <el-table-column prop="hmi_version" label="SW Ver." min-width="50"/>
+          <el-table-column prop="" label="Latest SW" min-width="30">
+          <template #default="scope">
+            <p v-if="scope.row.hmi_version === swVersion"> {{ "V" }}</p>
+          </template>
+          </el-table-column>
+
+          <el-table-column prop="last_updated_str" label="Updated Time" min-width="50"/>
+          <el-table-column v-if="editMode === false" prop="" label="" min-width="30">
+          <template #default="scope">
+                <el-button @click="detail_info(scope.row)"> <font-awesome-icon icon="fa-solid fa-ellipsis" /> </el-button>
+          </template>
+          </el-table-column>
+          <el-table-column v-else type="selection" min-width="10">
+          </el-table-column>
+        </el-table>
+      </div>
+      </el-tab-pane>
+      <el-tab-pane label="Unpaired" name="2">
+        <div class="table w-full">
+          <el-table class="evse-table" :data="EvseUnConnectData" style="width: 95%; height:800px" stripe 
+          :cell-style=msi.tb_cell :header-cell-style=msi.tb_header_cell size="large" @selection-change="handleSelectionChange">
+            <el-table-column prop="locationName" label="Station" min-width="80"/>
+            <el-table-column prop="floor_level" label="Floor Level" min-width="30"/>
+            <!-- <el-table-column prop="physical_reference" label="Charger Label" min-width="30"/> -->
+            <el-table-column prop="evse_id" label="EVSE ID" min-width="80"/>
+            <el-table-column prop="status" label="Status" min-width="60" :filters="status_filter_item" :filter-method="status_filter">
+              <template #default="scope">
+                  <p class="available" v-if="scope.row.status === 'AVAILABLE'"> {{ "●" + scope.row.status }}</p>
+                  <p class="charging" v-else-if="scope.row.status === 'CHARGING'"> {{ "●" + scope.row.status }}</p>
+                  <p class="offline" v-else-if="scope.row.status === 'UNKNOWN' "> {{ "●" + scope.row.status }}</p>
+                  <p class="error" v-else-if="scope.row.status === 'OUTOFORDER'"> {{ "●" + scope.row.status }}</p>
+                </template>
+            </el-table-column>
+            <el-table-column prop="hmi_version" label="SW Ver." min-width="50"/>
+            <el-table-column prop="" label="Latest SW" min-width="30">
+              <template #default="scope">
+                <p v-if="scope.row.hmi_version === swVersion"> {{ "V" }}</p>
+              </template>
+            </el-table-column>
+  
+            <el-table-column prop="last_updated_str" label="Updated Time" min-width="50"/>
+            <el-table-column v-if="editMode === false" prop="" label="" min-width="30">
+              <template #default="scope">
+                <el-button @click="detail_info(scope.row)"> <font-awesome-icon icon="fa-solid fa-ellipsis" /> </el-button>
+              </template>
+            </el-table-column>
+            <el-table-column v-else type="selection" min-width="10"/>
+          </el-table>
+        </div>
+      </el-tab-pane>
+    </el-tabs>
+  </div>
+
+    <el-button v-if="editMode === true" class="update-button" @click="updateSW"> Update SW </el-button>
+    <el-button v-if="editMode === true" class="soft-reset-button" @click="evseReset('soft') "> Soft Reset </el-button>
+    <el-button v-if="editMode === true" class="hard-reset-button" @click="evseReset('hard') "> Hard Reset </el-button>
+    
+    <el-dialog v-model="sw_version_visable" title="Update SW">
+      <p>Now Version {{ swVersion }}</p>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="sw_version_visable = false">Cancel</el-button>
+          <el-button type="primary" @click="updateConfirm()">Confirm</el-button>
+        </span>
+      </template>
+    </el-dialog>
+  </div>
+</template>
 
 <style lang="scss" scoped>
 

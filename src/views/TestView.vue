@@ -1,22 +1,3 @@
-<template>
-  <div class='demo-app'>
-    <div class='demo-app-main'>
-      <FullCalendar class='demo-app-calendar fc-event1' :options='calendarOptions' ref="calendarRef">
-      </FullCalendar>
-      <br>
-      <FullCalendar class='demo-app-calendar fc-event2' :options='calendarOptions1' ref="calendarRef1">
-      </FullCalendar>
-
-    </div>
-    <div class="tariff-item">
-      <p class="tariff-title">Rate Profile</p>
-      <el-select class="el-select" v-model="select_profile" placeholder="Select" size="large" @change="selectTariff">
-        <el-option v-for="item in tariff_profile" :key="item.value" :label="item.profile_name" :value="item.id" />
-      </el-select>
-    </div>
-  </div>
-</template>
-
 <script setup>
 import FullCalendar from '@fullcalendar/vue3'
 import dayGridPlugin from '@fullcalendar/daygrid'
@@ -230,6 +211,25 @@ onMounted(async () => {
 })
 
 </script>
+
+<template>
+  <div class='demo-app'>
+    <div class='demo-app-main'>
+      <FullCalendar class='demo-app-calendar fc-event1' :options='calendarOptions' ref="calendarRef">
+      </FullCalendar>
+      <br>
+      <FullCalendar class='demo-app-calendar fc-event2' :options='calendarOptions1' ref="calendarRef1">
+      </FullCalendar>
+
+    </div>
+    <div class="tariff-item">
+      <p class="tariff-title">Rate Profile</p>
+      <el-select class="el-select" v-model="select_profile" placeholder="Select" size="large" @change="selectTariff">
+        <el-option v-for="item in tariff_profile" :key="item.value" :label="item.profile_name" :value="item.id" />
+      </el-select>
+    </div>
+  </div>
+</template>
 
 <style lang='scss' scoped>
 h2 {
