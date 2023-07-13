@@ -3,7 +3,8 @@ import { ref, reactive, onMounted} from 'vue'
 import {useRouter } from 'vue-router'
 import ApiFunc from '@/composables/ApiFunc'
 import msi from '@/assets/msi_style'
-import {  ElMessageBox,ElMessage } from 'element-plus'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { ElMessageBox,ElMessage } from 'element-plus'
 
 const router = useRouter()
 const MsiApi = ApiFunc()
@@ -14,6 +15,18 @@ const charging_select = ref ('Time')
 const addTariffFormVisible = ref(false)
 const TariffOptions = [ { value: 'Charging', label: 'Charging',}, {value: 'Parking',label: 'Parking',}  ]
 const ChargingOptions = [{ value: 'Time', label:'by Time'}, { value: 'Energy', label:'by Energy'}]
+
+const sortFunc = (obj1, obj2, column) => {
+  let at = obj1[column]
+  let bt = obj2[column]
+
+  if (bt === undefined) {
+    return -1
+  }
+  if (at > bt) {
+    return -1
+  }
+}
 
 const deleteTariff = async (row) => {
   let queryData = { "database":"OCPI", "collection":"Connector", "pipelines": [
@@ -114,23 +127,88 @@ onMounted( async() => {
 
 <template>
   <div class="tariff">
-    <el-button class="add-tariff" @click="editTariff"> Add Rate Plan</el-button>
-    <div class="tariff-list">
-      <el-table :data="TariffData" style="width: 95%; height:95%" stripe :cell-style=msi.tb_cell :header-cell-style=msi.tb_header_cell size="large">
-        <el-table-column prop="profile_name" label="Profile Name" min-width="10"/>
-        <el-table-column prop="tariff_text" label="Description" min-width="60"/>
-        <el-table-column prop="min_price_str" label="Min Price" min-width="10"/>
-        <!-- <el-table-column prop="max_price_str" label="Max Price" min-width="10"/> -->
-        <el-table-column prop="currency" label="Currency" min-width="10"/>
-        <el-table-column fixed="right" label="Operations" min-width="15">
-          <template #default="scope">
-            <el-button link type="primary" size="large" @click="deleteTariff (scope.row)" >Delete</el-button>
-            <el-button link type="primary" size="large" @click="copyTariff(scope)">Copy</el-button>
-            <el-button link type="primary" size="large" @click="editTariff(scope.row)">More</el-button>
-          </template>
-        </el-table-column>
-      </el-table>
+    <div class="container lg">
+      <div class="flex flex-justify-end flex-wrap lg:flex-nowrap pt-40px pb-32px">
+        <el-button class="add-tariff" @click="editTariff"> Add Rate Plan </el-button>
+      </div>
+
+      <div class="overflow-x-auto">
+        <div class="customer-list pb-40px">
+          <el-table 
+            :data="TariffData" 
+            class="white-space-nowrap text-primary"
+            height="calc(100vh - 220px)"
+            style="width: 100%"
+            stripe 
+            size="large"
+            :cell-style=msi.tb_cell 
+            :header-cell-style="msi.tb_header_cell"
+            v-loading.fullscreen.lock="isLoading"
+          >
+            <el-table-column
+              prop="profile_name"
+              label="Profile Name"
+              align="center"
+              sortable
+              :sort-method="(a, b) => sortFunc(a, b, 'profile_name')"
+              min-width="150"
+            />
+
+            <el-table-column
+              prop="tariff_text"
+              label="Description"
+              align="center"
+              sortable
+              :sort-method="(a, b) => sortFunc(a, b, 'tariff_text')"
+              min-width="450"
+            />
+
+            <el-table-column
+              prop="min_price_str"
+              label="Min Price"
+              align="center"
+              sortable
+              :sort-method="(a, b) => sortFunc(a, b, 'min_price_str')"
+              min-width="150"
+            />
+
+            <el-table-column
+              prop="currency"
+              label="Currency"
+              align="center"
+              sortable
+              :sort-method="(a, b) => sortFunc(a, b, 'currency')"
+              min-width="130"
+            />
+
+            <el-table-column
+              prop=""
+              label="Operations"
+              align="center"
+              min-width="200"
+            >
+              <template #default="scope">
+                <el-button link type="primary" size="large" @click="deleteTariff (scope.row)" >
+                  <img src="@/assets/img/tariff_delete1.png" alt="">
+                </el-button>
+                <el-button link type="primary" size="large" @click="copyTariff(scope)">
+                  <img src="@/assets/img/tariff_copy1.png" alt="">
+                </el-button>
+                <el-button link type="primary" size="large" @click="editTariff(scope.row)">
+                  <font-awesome-icon icon="fa-regular fa-pen-to-square" />
+                </el-button>
+
+              </template>
+            </el-table-column>
+          </el-table>
+        </div>
+      </div>
     </div>
+  </div>
+
+
+
+    <!-- 
 
     <el-dialog v-model="addTariffFormVisible" title="Add Rate" draggable>
       <p> Tariff Type </p>
@@ -175,34 +253,48 @@ onMounted( async() => {
           <el-button type="primary" @click="addUser('confirm', false)">Add</el-button>
         </span>
       </template>
-    </el-dialog>
-  </div>
+    </el-dialog> 
+    -->
 </template>
   
-<style lang="scss">
+<style lang="scss" scoped>
 
 .tariff {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  .tariff-list {
-    width: calc(100% - 40px);
-    height: calc(100% - 120px);
-    top: 120px;
-    left : 40px;
-    position: absolute;
-  }
   .add-tariff {
-  width: 220px;
-  height: 40px;
-  top: 40px;
-  right : 40px;
-  position: absolute;
-  font-size: 18px;
-  background-color: #000000DF;
-  color:#FFFFFF;
-  border-radius: 20px;
-}
+    width: 15rem;
+    height: 4rem;
+    padding: 0.8rem 2rem;
+    font-size: 1.8rem;
+    background-color: var(--secondary);
+    color: var(--white);
+    border-radius: 2rem;
+    box-shadow: 0.7rem 1.1rem 1.2rem rgba(146, 169, 196, 0.25) !important;
+  }
+  :deep(.svg-inline--fa) {
+    height: 1.8em;
+    filter: brightness(65%) saturate(100%);
+  }
+//   position: relative;
+//   width: 100%;
+//   height: 100%;
+//   .tariff-list {
+//     width: calc(100% - 40px);
+//     height: calc(100% - 120px);
+//     top: 120px;
+//     left : 40px;
+//     position: absolute;
+//   }
+//   .add-tariff {
+//   width: 220px;
+//   height: 40px;
+//   top: 40px;
+//   right : 40px;
+//   position: absolute;
+//   font-size: 18px;
+//   background-color: #000000DF;
+//   color:#FFFFFF;
+//   border-radius: 20px;
+// }
 }
 
 </style>

@@ -215,9 +215,14 @@ onMounted( async () => {
       :header-cell-style=msi.tb_header_cell size="large">
       
       <el-table-column prop="name" label="Program Name" min-width="80" />
+      <el-table-column prop="location" label="Location" min-width="60" />
       <el-table-column prop="evse" label="EVSE Quantity" min-width="80" />
+      <el-table-column prop="connector" label="Connector" min-width="60"/>
+      <el-table-column prop="tariff" label="Rate Plan" min-width="60"/>
+      <el-table-column prop="user" label="User" min-width="40" />
       <el-table-column prop="admin_user" label="CPO Account" min-width="80" />
-      <el-table-column prop="price" label="Price" min-width="80" />
+      <el-table-column prop="currency" label="Currency" min-width="80" />
+      <el-table-column prop="price" label="Price" min-width="40" />
       <el-table-column>
         <el-button @click="add_program" disabled v-if="companyData.name === 'MSI' "> <font-awesome-icon icon="fa-solid fa-ellipsis" /></el-button>
           <el-button @click="add_program" v-else> <font-awesome-icon icon="fa-solid fa-ellipsis" /></el-button>
@@ -230,9 +235,14 @@ onMounted( async () => {
   <el-dialog v-model="ProgramVisible" title="Select Program">
     <el-table :data="program_plan" @current-change="handleCurrentChange" highlight-current-row>
       <el-table-column prop="name" label="Program Name" min-width="80" />
+      <el-table-column prop="location" label="Location" min-width="60" />
       <el-table-column prop="evse" label="EVSE Quantity" min-width="80" />
+      <el-table-column prop="connector" label="Connector" min-width="60"/>
+      <el-table-column prop="tariff" label="Rate Plan" min-width="60"/>
+      <el-table-column prop="user" label="User" min-width="40" />
       <el-table-column prop="admin_user" label="CPO Account" min-width="80" />
-      <el-table-column prop="price" label="Price" min-width="80" />
+      <el-table-column prop="currency" label="Currency" min-width="80" />
+      <el-table-column prop="price" label="Price" min-width="40" />
     </el-table>
     <template #footer>
       <span class="dialog-footer">
@@ -253,9 +263,14 @@ onMounted( async () => {
     <el-form label-position="left" label-width="100px">
       <el-table :data="select_plan" @current-change="handleCurrentChange" highlight-current-row>
         <el-table-column prop="name" label="Program Name" min-width="80" />
-        <el-table-column prop="evse" label="EVSE Quantity" min-width="80" />
-        <el-table-column prop="admin_user" label="CPO Account" min-width="80" />
-        <el-table-column prop="price" label="Price" min-width="80" />
+      <el-table-column prop="location" label="Location" min-width="60" />
+      <el-table-column prop="evse" label="EVSE Quantity" min-width="80" />
+      <el-table-column prop="connector" label="Connector" min-width="60"/>
+      <el-table-column prop="tariff" label="Rate Plan" min-width="60"/>
+      <el-table-column prop="user" label="User" min-width="40" />
+      <el-table-column prop="admin_user" label="CPO Account" min-width="80" />
+      <el-table-column prop="currency" label="Currency" min-width="80" />
+      <el-table-column prop="price" label="Price" min-width="40" />
       </el-table>
       <br>
       <el-form-item label="Title" >

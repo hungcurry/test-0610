@@ -19,6 +19,18 @@ const dialogFormVisible = ref(false)
 const user_type = reactive([])
 const newUser = reactive({first_name:'', last_name:'', email:'', password:'msi32345599'})
 
+const sortFunc = (obj1, obj2, column) => {
+  let at = obj1[column]
+  let bt = obj2[column]
+
+  if (bt === undefined) {
+    return -1
+  }
+  if (at > bt) {
+    return -1
+  }
+}
+
 const UserTable = [
   {label:'First Name', value:'first_name', width:'40'}, {label:'Last Name', value:'last_name', width:'40'}, 
   {label:'E-mail', value:'email', width:'80'}, {label:'EVSE List', value:'evse_list_str', width:'40'}, 
@@ -131,100 +143,193 @@ onMounted( async() => {
 
 <template>
   <div class="customer">
-    <el-input class="search-input" v-model="input" placeholder="Please input" @keyup.enter="search">
-      <template #append>
-        <el-button :icon="Search" @click="search" />
-      </template>
-    </el-input>
-
-    <el-button class="add-user-btn" @click="addUser('', true)"> Add User </el-button>
-
-    <div class="customer-list">
-      <el-table :data="UserData" style="width: 95%; height:95%" stripe :cell-style=msi.tb_cell :header-cell-style=msi.tb_header_cell size="large"
-      v-loading = "isLoading">
-        <el-table-column v-for="item in UserTable" :key="item" :prop=item.value :label=item.label  :min-width=item.width :sortable="item.sortable">
-          <template #default="scope" v-if ="item.type === 'button'">
-            <el-button @click="detail_info(scope.row)"> <font-awesome-icon icon="fa-solid fa-ellipsis" /> </el-button>
+    <div class="container lg">
+      <div class="flex justify-between flex-wrap lg:flex-nowrap pt-40px pb-32px">
+        <el-input class="search-input" v-model="input" placeholder="Search" @keyup.enter="search">
+          <template #append>
+            <el-button :icon="Search" @click="search" />
           </template>
-        </el-table-column>
-      </el-table>
+        </el-input>
+        <el-button class="add-user-btn" @click="addUser('', true)"> Add User </el-button>
+      </div>
+      <div class="overflow-x-auto">
+        <div class="customer-list pb-40px">
+          <el-table 
+            :data="UserData" 
+            class="white-space-nowrap text-primary"
+            height="calc(100vh - 220px)"
+            style="width: 100%"
+            stripe 
+            size="large"
+            :cell-style=msi.tb_cell 
+            :header-cell-style="msi.tb_header_cell"
+            v-loading.fullscreen.lock="isLoading"
+          >
+            <el-table-column
+              prop="first_name"
+              label="First Name"
+              align="center"
+              sortable
+              :sort-method="(a, b) => sortFunc(a, b, 'first_name')"
+              min-width="200"
+            />
+            <el-table-column
+              prop="last_name"
+              label="Last Name"
+              align="center"
+              sortable
+              :sort-method="(a, b) => sortFunc(a, b, 'last_name')"
+              min-width="200"
+            />
+            <el-table-column
+              prop="email"
+              label="Email"
+              align="center"
+              sortable
+              :sort-method="(a, b) => sortFunc(a, b, 'email')"
+              min-width="350"
+            />
+            <el-table-column
+              prop="evse_list_str"
+              label="EVSE List"
+              align="center"
+              sortable
+              :sort-method="(a, b) => sortFunc(a, b, 'evse_list_str')"
+              min-width="150"
+            />
+            <el-table-column
+              prop="payment_length"
+              label="Used Times"
+              align="center"
+              sortable
+              :sort-method="(a, b) => sortFunc(a, b, 'payment_length')"
+              min-width="200"
+            />
+            <el-table-column
+              prop="updated_date_str"
+              label="Updated Date"
+              align="center"
+              sortable
+              :sort-method="(a, b) => sortFunc(a, b, 'updated_date_str')"
+              min-width="200"
+            />
+            <el-table-column
+              prop="detail"
+              label=""
+              align="center"
+              min-width="150"
+            >
+              <template #default="scope">
+                <el-button class="btn-more" @click="detail_info(scope.row)"> <font-awesome-icon icon="fa-solid fa-ellipsis" /> </el-button>
+              </template>
+            </el-table-column>
+          </el-table>
+        </div>
+        <el-dialog
+          v-model="dialogFormVisible"
+          class="max-w-600px"
+          :show-close="true"
+          width="90%"
+          destroy-on-close
+          center
+        >
+          <template #header="{ titleId, titleClass }">
+            <div class="py-2rem relative bg-blue-100">
+              <h4
+                :id="titleId"
+                :class="titleClass"
+                class="m-0 text-center text-blue-1200 font-400 text-24px line-height-26px"
+              >
+                Add User
+              </h4>
+            </div>
+          </template>
+          <div class="dialog-context">
+            <el-form class="max-w-500px m-auto">
+              <div class="w-full flex justify-between flex-wrap">
+                <el-form-item class="mb-24px sm:w-45% w-100%" label="First Name">
+                  <el-input v-model.trim="newUser.first_name" />
+                </el-form-item>
+                <el-form-item class="mb-24px sm:w-45% w-100%" label="Last Name">
+                  <el-input v-model.trim="newUser.last_name" />
+                </el-form-item>
+              </div>
+              <el-form-item class="mb-24px" label="Email">
+                <el-input v-model.trim="newUser.email" />
+              </el-form-item>
+            </el-form>
+          </div>
+          <template #footer>
+            <span class="dialog-footer flex flex-center">
+              <el-button
+                round
+                class="w-48% bg-btn-100 text-white max-w-140px"
+                @click.stop="addUser('cancel', false)"
+                >Cancel</el-button
+              >
+              <el-button
+                round
+                class="w-48% bg-btn-200 text-white max-w-140px"
+                @click.stop="addUser('confirm', false)"
+              >
+                Confirm
+              </el-button>
+            </span>
+          </template>
+        </el-dialog>
+      </div>
     </div>
-
-    <el-dialog v-model="dialogFormVisible" title="Add User" draggable>
-      <p> First Name </p>
-        <el-input v-model="newUser.first_name" />
-        <br><br>
-        <p> Last Name </p>
-        <el-input v-model="newUser.last_name" />
-        <br><br>
-        <p> Email </p>
-        <el-input v-model="newUser.email" />
-      <template #footer>
-        <span class="dialog-footer">
-          <el-button @click="addUser('cancel', false)">Cancel</el-button>
-          <el-button type="primary" @click="addUser('confirm', false)">Confirm</el-button>
-        </span>
-      </template>
-    </el-dialog>
-
   </div>
 </template>
 
 <style lang="scss" scoped>
 
 .customer {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  .customer-list {
-    width: calc(100% - 40px);
-    height: calc(100% - 120px);
-    top: 120px;
-    left : 40px;
-    position: absolute;
-  }
-
-  .customer-list-btn {
-    top: 40px;
-    left: 40px;
-    position: absolute;
-  }
-  .guest-list-btn {
-    top: 40px;
-    left: 160px;
-    position: absolute;
-  }
-
   .search-input {
     width: 400px;
     height: 40px;
-    top: 40px;
-    right : 300px;
-    position: absolute;
-  }
 
+    :deep(.el-input__wrapper) {
+      background-color: var(--el-fill-color-blank);
+      border-top-left-radius: 3rem;
+      border-bottom-left-radius: 3rem;
+      border: 0.2rem solid var(--blue-700);
+      border-right: 0.1rem solid var(--blue-700);
+      box-shadow: 0.7rem 1.1rem 1.2rem rgba(146, 169, 196, 0.25) !important;
+    }
+    :deep(.el-input-group__append) {
+      background-color: var(--el-fill-color-blank);
+      border-top-left-radius: 0;
+      border-bottom-left-radius: 0;
+      border-top-right-radius: 3rem;
+      border-bottom-right-radius: 3rem;
+      border: 0.2rem solid var(--blue-700);
+      border-left: 0;
+      box-shadow: 0.7rem 1.1rem 1.2rem rgba(146, 169, 196, 0.25) !important;
+    }
+    :deep(.el-input__inner) {
+      color: black;
+    }
+    :deep(.el-icon) {
+      color: black;
+    }
+  }
   .add-user-btn {
-    width: 220px;
-    height: 40px;
-    top: 40px;
-    right : 40px;
-    position: absolute;
-    font-size: 18px;
-    background-color: #000000DF;
-    color:#FFFFFF;
-    border-radius: 20px;
+    width: 15rem;
+    height: 4rem;
+    padding: 0.8rem 2rem;
+    font-size: 1.8rem;
+    background-color: var(--secondary);
+    color: var(--white);
+    border-radius: 2rem;
+    box-shadow: 0.7rem 1.1rem 1.2rem rgba(146, 169, 196, 0.25) !important;
   }
-}
-
-
-.el-dialog {
-  p{
-    width: 200px;
+  .el-form-item {
+    display: block;
   }
-  .el-input {
-    --el-input-bg-color: rgb(86, 101, 117);
-    --el-input-text-color: rgb(255, 255, 255);
-    width: 200px;
+  :deep(.el-form-item__label) {
+    display: block;
+    font-size: 1.6rem;
   }
 }
 

@@ -35,6 +35,18 @@ const AddCompany = () => {
   companyData.invoice = {hashIV:'', hashKey:'', merchantId:'', owner:''}
 }
 
+const sortFunc = (obj1, obj2, column) => {
+  let at = obj1[column]
+  let bt = obj2[column]
+
+  if (bt === undefined) {
+    return -1
+  }
+  if (at > bt) {
+    return -1
+  }
+}
+
 const search = async () => {
   let queryData = null
   if (input.value === '') {
@@ -154,142 +166,263 @@ onMounted( async() => {
 </script>
 
 <template>
-    <div class="customer">
+  <div class="customer">
+    <div class="container lg">
+      <div class="flex justify-between flex-wrap lg:flex-nowrap pt-40px pb-32px">
+        <el-input class="search-input" v-model="input" placeholder="Search" @keyup.enter="search">
+          <template #append>
+            <el-button :icon="Search" @click="search" />
+          </template>
+        </el-input>
+        <el-button class="add-user-btn" @click="AddCompany"> Add Company </el-button>
+      </div>
 
-      <el-input class="search-input" v-model="input" placeholder="Please input" @keyup.enter="search">
-        <template #append>
-          <el-button :icon="Search" @click="search" />
-        </template>
-      </el-input>
-  
-      <el-button class="add-user-btn" @click="AddCompany"> Add Company </el-button>
-  
-      <div class="customer-list">
-        <el-table :data="UserData" style="width: 95%; height:95%" stripe :cell-style=msi.tb_cell :header-cell-style=msi.tb_header_cell size="large"
-        v-loading = "isLoading">
-          <el-table-column v-for="item in UserTable" :key="item" :prop=item.value :label=item.label  :min-width=item.width :sortable="item.sortable">
-            <template #default="scope" v-if ="item.type === 'button'">
-              <el-button @click="detail_info(scope.row)"> <font-awesome-icon icon="fa-solid fa-ellipsis" /> </el-button>
-            </template>
-          </el-table-column>
-        </el-table>
+      <div class="overflow-x-auto">
+        <div class="customer-list pb-40px">
+          <el-table 
+            :data="UserData" 
+            class="white-space-nowrap text-primary"
+            height="calc(100vh - 220px)"
+            style="width: 100%"
+            stripe 
+            size="large"
+            :cell-style=msi.tb_cell 
+            :header-cell-style="msi.tb_header_cell"
+            v-loading.fullscreen.lock="isLoading"
+          >
+            <el-table-column
+              prop="name"
+              label="Name"
+              align="center"
+              sortable
+              :sort-method="(a, b) => sortFunc(a, b, 'name')"
+              min-width="200"
+            />
+            <el-table-column
+              prop="country"
+              label="Country"
+              align="center"
+              sortable
+              :sort-method="(a, b) => sortFunc(a, b, 'country')"
+              min-width="150"
+            />
+            <el-table-column
+              prop="city"
+              label="City"
+              align="center"
+              sortable
+              :sort-method="(a, b) => sortFunc(a, b, 'city')"
+              min-width="200"
+            />
+            <el-table-column
+              prop="address"
+              label="Address"
+              align="center"
+              sortable
+              :sort-method="(a, b) => sortFunc(a, b, 'address')"
+              min-width="300"
+            />
+            <el-table-column
+              prop="phone"
+              label="Phone"
+              align="center"
+              sortable
+              :sort-method="(a, b) => sortFunc(a, b, 'phone')"
+              min-width="150"
+            />
+            <el-table-column
+              prop="tax_id"
+              label="Tax ID"
+              align="center"
+              sortable
+              :sort-method="(a, b) => sortFunc(a, b, 'tax_id')"
+              min-width="150"
+            />
+            <el-table-column
+              prop="updated_date_str"
+              label="Updated Date"
+              align="center"
+              sortable
+              :sort-method="(a, b) => sortFunc(a, b, 'updated_date_str')"
+              min-width="200"
+            />
+            <el-table-column
+              prop="detail"
+              label=""
+              align="center"
+              min-width="150"
+            >
+              <template #default="scope">
+                <el-button class="btn-more" @click="detail_info(scope.row)"> <font-awesome-icon icon="fa-solid fa-ellipsis" /> </el-button>
+              </template>
+            </el-table-column>
+          </el-table>
+        </div>
+        <el-dialog
+          v-model="CompanyFormVisible"
+          class="max-w-600px"
+          :show-close="true"
+          width="90%"
+          destroy-on-close
+          center
+        >
+          <template #header="{ titleId, titleClass }">
+            <div class="py-2rem relative bg-blue-100">
+              <h4
+                :id="titleId"
+                :class="titleClass"
+                class="m-0 text-center text-blue-1200 font-400 text-24px line-height-26px"
+              >
+                {{ company_title }}
+              </h4>
+            </div>
+          </template>
+          <div class="dialog-context">
+            <el-form class="max-w-500px m-auto">
+              <el-form-item class="mb-24px" label="Company Name">
+                <el-input v-model.trim="companyData.name" />
+              </el-form-item>
+
+              <el-form-item class="mb-24px" label="Country">
+                <el-input v-model.trim="companyData.country" />
+              </el-form-item>
+
+              <!-- <el-form-item class="mb-24px" label="Operator ID">
+                <el-input v-model.trim="companyData.party_id" />
+              </el-form-item> -->
+
+              <el-form-item class="mb-24px" label="City">
+                <el-input v-model.trim="companyData.city" />
+              </el-form-item>
+
+              <el-form-item class="mb-24px" label="Address">
+                <el-input v-model.trim="companyData.address" />
+              </el-form-item>
+
+              <el-form-item class="mb-24px" label="Tax">
+                <el-input v-model.trim="companyData.tax_id" />
+              </el-form-item>
+
+              <el-form-item class="mb-24px" label="Phone">
+                <el-input v-model.trim="companyData.phone" />
+              </el-form-item>
+
+              <!-- <el-form-item class="mb-24px" label="Remark">
+                <el-input v-model.trim="companyData.remark" />
+              </el-form-item> -->
+
+              <el-form-item class="mb-24px" label="Invoice Hash IV">
+                <el-input v-model.trim="companyData.invoice.hashIV" />
+              </el-form-item>
+
+              <el-form-item class="mb-24px" label="Invoice Hash Key">
+                <el-input v-model.trim="companyData.invoice.hashKey" />
+              </el-form-item>
+
+              <el-form-item class="mb-24px" label="Invoice Merchant ID">
+                <el-input v-model.trim="companyData.invoice.merchantId" />
+              </el-form-item>
+
+              <!-- <el-form-item class="mb-24px" label="Invoice Owner">
+                <el-input v-model.trim="companyData.invoice.owner" />
+              </el-form-item> -->
+
+              <el-form-item class="mb-24px" label="Payment Hash IV">
+                <el-input v-model.trim="companyData.payment.hashIV" />
+              </el-form-item>
+
+              <el-form-item class="mb-24px" label="Payment Hash Key">
+                <el-input v-model.trim="companyData.payment.hashKey" />
+              </el-form-item>
+
+              <el-form-item class="mb-24px" label="Payment Merchant ID">
+                <el-input v-model.trim="companyData.payment.merchantId" />
+              </el-form-item>
+
+              <!-- <el-form-item class="mb-24px" label="Payment Owner">
+                <el-input v-model.trim="companyData.payment.owner" />
+              </el-form-item> -->
+            </el-form>
+          </div>
+          <template #footer>
+            <span class="dialog-footer flex flex-center">
+              <el-button
+                v-if=" edit_mode !== 'create'"
+                round
+                class="w-48% bg-btn-100 text-white max-w-140px"
+                @click.stop="editCompany('delete')"
+              >
+                Delete
+              </el-button>
+              <el-button
+                round
+                class="w-48% bg-btn-100 text-white max-w-140px"
+                @click.stop="editCompany('cancel')"
+              >
+                Cancel
+              </el-button>
+              <el-button
+                round
+                class="w-48% bg-btn-200 text-white max-w-140px"
+                @click.stop="editCompany('confirm')"
+              >
+                Confirm
+              </el-button>
+            </span>
+          </template>
+        </el-dialog>
       </div>
     </div>
-
-    <el-dialog v-model="CompanyFormVisible" :title=company_title draggable>
-    <el-form :model="companyData">
-      <el-form-item label="Company Name" >
-        <el-input v-model="companyData.name" />
-      </el-form-item>
-
-      <el-form-item label="Country" >
-        <el-input v-model="companyData.country" />
-      </el-form-item>
-
-      <!-- <el-form-item label="Operator ID" >
-        <el-input v-model="companyData.party_id" />
-      </el-form-item> -->
-
-      <el-form-item label="City" >
-        <el-input v-model="companyData.city" />
-      </el-form-item>
-
-      <el-form-item label="Address" >
-        <el-input v-model="companyData.address" />
-      </el-form-item>
-
-      <el-form-item label="Tax" >
-        <el-input v-model="companyData.tax_id" />
-      </el-form-item>
-
-      <el-form-item label="Phone" >
-        <el-input v-model="companyData.phone" />
-      </el-form-item>
-      <!-- <el-form-item label="Remark" >
-        <el-input v-model="companyData.remark" />
-      </el-form-item> -->
-      <hr>
-<br>
-      <el-form-item label="Invoice Hash IV" >
-        <el-input v-model="companyData.invoice.hashIV" />
-      </el-form-item>
-      <el-form-item label="Invoice Hash Key" >
-        <el-input v-model="companyData.invoice.hashKey" />
-      </el-form-item>
-      <el-form-item label="Invoice Merchant ID" >
-        <el-input v-model="companyData.invoice.merchantId" />
-      </el-form-item>
-      <!-- <el-form-item label="Invoice Owner" >
-        <el-input v-model="companyData.invoice.owner" />
-      </el-form-item> -->
-      <el-form-item label="Payment Hash IV" >
-        <el-input v-model="companyData.payment.hashIV" />
-      </el-form-item>
-      <el-form-item label="Payment Hash Key" >
-        <el-input v-model="companyData.payment.hashKey" />
-      </el-form-item>
-      <el-form-item label="Payment Merchant ID" >
-        <el-input v-model="companyData.payment.merchantId" />
-      </el-form-item>
-      <!-- <el-form-item label="Payment Owner" >
-        <el-input v-model="companyData.payment.owner" />
-      </el-form-item> -->
-      
-    </el-form>
-    <template #footer>
-      <span class="dialog-footer">
-        <el-button v-if=" edit_mode !== 'create'" @click="editCompany('delete')">Delete</el-button>
-        <el-button @click="editCompany('cancel')">Cancel</el-button>
-        <el-button type="primary" @click="editCompany('confirm')">
-          Confirm
-        </el-button>
-      </span>
-    </template>
-  </el-dialog>
+  </div>
 </template>
  
-<style lang="scss">
+<style lang="scss" scoped>
 .customer {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  .customer-list {
-    width: calc(100% - 40px);
-    height: calc(100% - 120px);
-    top: 120px;
-    left : 40px;
-    position: absolute;
-  }
-
-  .customer-list-btn {
-    top: 40px;
-    left: 40px;
-    position: absolute;
-  }
-  .guest-list-btn {
-    top: 40px;
-    left: 160px;
-    position: absolute;
-  }
-
   .search-input {
     width: 400px;
     height: 40px;
-    top: 40px;
-    right : 300px;
-    position: absolute;
-  }
 
+    :deep(.el-input__wrapper) {
+      background-color: var(--el-fill-color-blank);
+      border-top-left-radius: 3rem;
+      border-bottom-left-radius: 3rem;
+      border: 0.2rem solid var(--blue-700);
+      border-right: 0.1rem solid var(--blue-700);
+      box-shadow: 0.7rem 1.1rem 1.2rem rgba(146, 169, 196, 0.25) !important;
+    }
+    :deep(.el-input-group__append) {
+      background-color: var(--el-fill-color-blank);
+      border-top-left-radius: 0;
+      border-bottom-left-radius: 0;
+      border-top-right-radius: 3rem;
+      border-bottom-right-radius: 3rem;
+      border: 0.2rem solid var(--blue-700);
+      border-left: 0;
+      box-shadow: 0.7rem 1.1rem 1.2rem rgba(146, 169, 196, 0.25) !important;
+    }
+    :deep(.el-input__inner) {
+      color: black;
+    }
+    :deep(.el-icon) {
+      color: black;
+    }
+  }
   .add-user-btn {
-    width: 220px;
-    height: 40px;
-    top: 40px;
-    right : 40px;
-    position: absolute;
-    font-size: 18px;
-    background-color: #000000DF;
-    color:#FFFFFF;
-    border-radius: 20px;
+    width: 15rem;
+    height: 4rem;
+    padding: 0.8rem 2rem;
+    font-size: 1.8rem;
+    background-color: var(--secondary);
+    color: var(--white);
+    border-radius: 2rem;
+    box-shadow: 0.7rem 1.1rem 1.2rem rgba(146, 169, 196, 0.25) !important;
+  }
+  .el-form-item {
+    display: block;
+  }
+  :deep(.el-form-item__label) {
+    display: block;
+    font-size: 1.6rem;
   }
 }
   

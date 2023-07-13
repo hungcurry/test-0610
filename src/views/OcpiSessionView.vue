@@ -5,20 +5,34 @@ import  {export_json_to_excel}  from '@/composables/Export2Excel'
 import msi from '@/assets/msi_style'
 import { useMStore } from "../stores/m_cloud"
 import moment from "moment"
+import Calendar from '@/components/icons/IconCalendar.vue'
 const MStore = useMStore()
 const MsiApi = ApiFunc()
 const OcpiSessionData = reactive([])
 const now = new Date()
 const isLoading = ref(false)
-const OcpiSessionTable = [
-  {label:'Status', value:'status', width:'60'}, 
-  {label:'Station', value:'location_str', width:'80'}, 
-  {label:'EVSE ID', value:'evse_str', width:'80'}, 
-  {label:'kWh', value:'kwh', width:'80'}, 
-  {label:'Pirce', value:'price_str', width:'80'}, 
-  {label:'Start Time', value:'start_date_local_time', width:'80'}, 
-  {label:'End Time', value:'end_date_local_time', width:'80'}, 
+
+const filters = [
+  { text: 'Completed', value: 'COMPLETED' },
+  { text: 'Invalid', value: 'INVALID' },
+  { text: 'Active', value: 'ACTIVE' },
+  { text: 'Pending', value: 'PENDING' },
+  { text: 'Reservation', value: 'RESERVATION' },
 ]
+const filterTag = (value, rowData) => {
+  return rowData.status === value
+}
+const sortFunc = (obj1, obj2, column) => {
+  let at = obj1[column]
+  let bt = obj2[column]
+
+  if (bt === undefined) {
+    return -1
+  }
+  if (at > bt) {
+    return -1
+  }
+}
 
 const select_time = ref([ new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0), new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59)])
 const defaultTime = [new Date(2000, 1, 1, 0, 0, 0), new Date(2000, 1, 1, 23, 59, 59)]
@@ -100,66 +114,121 @@ onMounted( async() => {
 
 <template>
   <div class="log">
-    <p class="total-count"> {{ 'Total Count : ' + OcpiSessionData.length  }}</p>
-    <div class="date-picker">
-      <el-date-picker v-model="select_time" type="datetimerange" start-placeholder="Start Date" end-placeholder="End Date" :default-time="defaultTime" @change="select_date"/>
-    </div>
-    <el-button class="download" @click="download"> Download </el-button>
+    <div class="container lg">
+      <div class="flex justify-between flex-wrap lg:flex-nowrap pt-40px pb-32px">
+        <div class="date-picker w-full">
+          <el-date-picker 
+            v-model="select_time" 
+            class="mr-16px"
+            type="datetimerange" 
+            range-separator="-"
+            :prefix-icon="Calendar"
+            start-placeholder="Start Date" 
+            end-placeholder="End Date" 
+            @change="select_date()"
+            :default-time="defaultTime" 
+            />
+        </div>
 
-    <div class="log-list">
-      <el-table :data="OcpiSessionData" style="width: 95%; height:95%" stripe  :cell-style=msi.tb_cell  :header-cell-style=msi.tb_header_cell size="large" v-loading = "isLoading">
-        <el-table-column v-for="item in OcpiSessionTable" :key="item" :prop=item.value :label=item.label  :min-width=item.width :sortable="item.sortable">
-          </el-table-column>
-      </el-table>
+        <div class="w-full mt-4 md:mt-8 lg:mt-0 md:flex justify-between lg:justify-end items-center">
+          <el-button class="download-btn w-full md:w-auto mt-4 md:mt-0 md:ml-30px box-shadow" @click="download">
+            <span class="lg:hidden">Download</span>
+            <img
+              class="w-24px h-24px ml-10px lg:ml-0"
+              src="@/assets/img/station_download.png"
+              alt="station_download"
+            />
+          </el-button>
+        </div>
+      </div>
+
+      <div class="overflow-x-auto">
+        <div class="log-list pb-40px">
+          <el-table 
+            :data="OcpiSessionData"
+            class="white-space-nowrap text-primary"
+            height="calc(100vh - 220px)"
+            style="width: 100%" 
+            stripe  
+            size="large" 
+            :cell-style="msi.tb_cell"
+            :header-cell-style="msi.tb_header_cell"
+            v-loading.fullscreen.lock="isLoading"
+          >
+            <el-table-column
+              prop="status"
+              label="Status"
+              align="center"
+              sortable
+              :sort-method="(a, b) => sortFunc(a, b, 'status')"
+              :filters="filters"
+              :filter-method="filterTag"
+              min-width="200"
+            />
+            <el-table-column
+              prop="location_str"
+              label="Location"
+              align="center"
+              sortable
+              :sort-method="(a, b) => sortFunc(a, b, 'location_str')"
+              min-width="300"
+            />
+            <el-table-column
+              prop="evse_str"
+              label="EVSE ID"
+              align="center"
+              sortable
+              :sort-method="(a, b) => sortFunc(a, b, 'evse_str')"
+              min-width="250"
+            />
+            <el-table-column
+              prop="kwh"
+              label="kWh"
+              align="center"
+              sortable
+              :sort-method="(a, b) => sortFunc(a, b, 'kwh')"
+              min-width="200"
+            />
+            <el-table-column
+              prop="price_str"
+              label="Price"
+              align="center"
+              sortable
+              :sort-method="(a, b) => sortFunc(a, b, 'price_str')"
+              min-width="200"
+            />
+            <el-table-column
+              prop="start_date_local_time"
+              label="Start Time"
+              align="center"
+              sortable
+              :sort-method="(a, b) => sortFunc(a, b, 'start_date_local_time')"
+              min-width="250"
+            />
+            <el-table-column
+              prop="end_date_local_time"
+              label="End Time"
+              align="center"
+              sortable
+              :sort-method="(a, b) => sortFunc(a, b, 'end_date_local_time')"
+              min-width="250"
+            />
+          </el-table>
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
-<style lang="scss">
+<style lang="scss" scoped>
 .log {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  .log-list {
-    width: calc(100% - 40px);
-    height: calc(100% - 120px);
-    top: 120px;
-    left : 40px;
-    position: absolute;
-  }
-  .charger-btn {
-    top: 40px;
-    left: 40px;
-    position: absolute;
-  }
-  .database-btn {
-    top: 40px;
-    left: 160px;
-    position: absolute;
-  }
-
-  .date-picker {
-      top: 40px;
-      right : 300px;
-      position: absolute;
-  }
-
-  .download {
-    width: 220px;
-    height: 40px;
-    top: 40px;
-    right : 40px;
-    position: absolute;
-    font-size: 18px;
-    background-color: #000000DF;
-    color:#FFFFFF;
-    border-radius: 20px;
-  }
-
-  .total-count {
-    top: 40px;
-    left : 40px;
-    position: absolute;
+  .download-btn {
+    height: 4rem;
+    padding: 0.8rem 2rem;
+    font-size: 1.8rem;
+    background-color: var(--secondary);
+    color: var(--white);
+    border-radius: 2rem;
   }
 }
 
