@@ -12,6 +12,11 @@
     font-size: 1.8rem;
     font-weight: 500;
     line-height: 2rem;
+    button {
+      border: 0;
+      font-weight: 500;
+      border-radius: 20rem;
+    }
   }
   tbody {
     .cell {

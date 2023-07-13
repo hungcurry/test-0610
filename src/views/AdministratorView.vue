@@ -250,7 +250,7 @@ onMounted(async () => {
 
             <el-table-column
               prop="email"
-              label="Email"
+              label="E-mail"
               align="center"
               sortable
               :sort-method="(a, b) => sortFunc(a, b, 'email')"

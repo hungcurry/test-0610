@@ -17,6 +17,12 @@
 .box-shadow {
   box-shadow: 0.7rem 1.1rem 1.2rem rgba(146, 169, 196, 0.25) !important;
 }
+.filter-black {
+  filter: brightness(0%) saturate(0%);
+}
+.filter-white {
+  filter: brightness(100%) saturate(0%);
+}
 * {
   // outline: 1px solid red;
 }

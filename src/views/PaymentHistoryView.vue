@@ -1,168 +1,3 @@
-<template>
-  <div class="payment">
-    <div class="container lg">
-      <div class="flex justify-between flex-wrap lg:flex-nowrap pt-40px pb-32px">
-        <div class="date-picker w-full">
-          <el-date-picker
-            v-model="defaultTime"
-            class="mr-16px"
-            type="datetimerange"
-            range-separator="-"
-            :prefix-icon="Calendar"
-            start-placeholder="Start Date"
-            end-placeholder="End Date"
-            @change="select_date()"
-            :default-time="defaultTime2"
-          />
-        </div>
-        <div
-          class="w-full mt-4 md:mt-8 lg:mt-0 md:flex justify-between lg:justify-end items-center"
-        >
-          <div class="w-full lg:w-auto flex justify-between md:justify-start">
-            <el-checkbox
-              class="mr-30px"
-              v-model="parking_visible"
-              label="Parking"
-              size="large"
-            />
-            <el-checkbox v-model="charging_visible" label="Charging" size="large" />
-          </div>
-          <el-button
-            class="download-btn w-full md:w-auto mt-4 md:mt-0 md:ml-30px box-shadow"
-            @click="download"
-          >
-            <span class="lg:hidden">Download</span>
-            <img
-              class="w-24px h-24px ml-10px lg:ml-0"
-              src="@/assets/img/station_download.png"
-              alt="station_download"
-            />
-          </el-button>
-        </div>
-      </div>
-      <div class="overflow-x-auto">
-        <div class="payment-list pb-40px">
-          <el-table
-            :data="PaymentData"
-            class="white-space-nowrap text-primary"
-            height="calc(100vh - 220px)"
-            style="width: 100%"
-            stripe
-            size="large"
-            :cell-style="msi.tb_cell"
-            :header-cell-style="msi.tb_header_cell"
-            v-loading.fullscreen.lock="isLoading"
-          >
-            <el-table-column label="Stations" align="center" min-width="550">
-              <el-table-column
-                prop="location_name"
-                label="Name"
-                align="center"
-                sortable
-                min-width="250"
-              />
-              <el-table-column
-                prop="evse_id"
-                label="EVSE ID"
-                align="center"
-                sortable
-                min-width="300"
-              />
-            </el-table-column>
-
-            <el-table-column
-              v-if="parking_visible"
-              label="Parking"
-              align="center"
-              min-width="450"
-            >
-              <el-table-column
-                prop="parking_time"
-                label="Used Time"
-                align="center"
-                sortable
-                min-width="150"
-              />
-              <el-table-column
-                prop="parking_price_str"
-                label="Price"
-                header-align="center"
-                align="right"
-                sortable
-                min-width="150"
-              />
-              <el-table-column
-                prop="parking_car_num_str"
-                label="License Plate"
-                align="center"
-                sortable
-                min-width="200"
-              />
-            </el-table-column>
-
-            <el-table-column
-              v-if="charging_visible"
-              label="Charge"
-              align="center"
-              min-width="450"
-            >
-              <el-table-column
-                prop="charge_time"
-                label="Used Time"
-                align="center"
-                sortable
-                min-width="150"
-              />
-              <el-table-column
-                prop="charge_energy_str"
-                label="kWh"
-                header-align="center"
-                align="right"
-                sortable
-                min-width="150"
-              />
-              <el-table-column
-                prop="charge_price_str"
-                label="Price"
-                header-align="center"
-                align="right"
-                sortable
-                min-width="150"
-              />
-            </el-table-column>
-
-            <el-table-column
-              prop="price_str"
-              label="Total Price"
-              header-align="center"
-              align="right"
-              sortable
-              min-width="150"
-            />
-
-            <el-table-column
-              prop="paymethod_str"
-              label="Method"
-              align="center"
-              :filters="filters"
-              :filter-method="filterTag"
-              min-width="150"
-            />
-
-            <el-table-column
-              prop="created_date_str"
-              label="Created Date"
-              align="center"
-              sortable
-              min-width="250"
-            />
-          </el-table>
-        </div>
-      </div>
-    </div>
-  </div>
-</template>
-
 <script setup>
 import ApiFunc from '@/composables/ApiFunc'
 import Calendar from '@/components/icons/IconCalendar.vue'
@@ -327,6 +162,171 @@ onMounted(async () => {
   console.log(res)
 })
 </script>
+
+<template>
+  <div class="payment">
+    <div class="container lg">
+      <div class="flex justify-between flex-wrap lg:flex-nowrap pt-40px pb-32px">
+        <div class="date-picker w-full">
+          <el-date-picker
+            v-model="defaultTime"
+            class="mr-16px"
+            type="datetimerange"
+            range-separator="-"
+            :prefix-icon="Calendar"
+            start-placeholder="Start Date"
+            end-placeholder="End Date"
+            @change="select_date()"
+            :default-time="defaultTime2"
+          />
+        </div>
+        <div
+          class="w-full mt-4 md:mt-8 lg:mt-0 md:flex justify-between lg:justify-end items-center"
+        >
+          <div class="w-full lg:w-auto flex justify-between md:justify-start">
+            <el-checkbox
+              class="mr-30px"
+              v-model="parking_visible"
+              label="Parking"
+              size="large"
+            />
+            <el-checkbox v-model="charging_visible" label="Charging" size="large" />
+          </div>
+          <el-button
+            class="download-btn w-full md:w-auto mt-4 md:mt-0 md:ml-30px box-shadow"
+            @click="download"
+          >
+            <span class="lg:hidden">Download</span>
+            <img
+              class="w-24px h-24px ml-10px lg:ml-0"
+              src="@/assets/img/station_download.png"
+              alt="station_download"
+            />
+          </el-button>
+        </div>
+      </div>
+      <div class="overflow-x-auto">
+        <div class="payment-list pb-40px">
+          <el-table
+            :data="PaymentData"
+            class="white-space-nowrap text-primary"
+            height="calc(100vh - 220px)"
+            style="width: 100%"
+            stripe
+            size="large"
+            :cell-style="msi.tb_cell"
+            :header-cell-style="msi.tb_header_cell"
+            v-loading.fullscreen.lock="isLoading"
+          >
+            <el-table-column label="Station" align="center" min-width="550">
+              <el-table-column
+                prop="location_name"
+                label="Name"
+                align="center"
+                sortable
+                min-width="250"
+              />
+              <el-table-column
+                prop="evse_id"
+                label="EVSE ID"
+                align="center"
+                sortable
+                min-width="300"
+              />
+            </el-table-column>
+
+            <el-table-column
+              v-if="parking_visible"
+              label="Parking"
+              align="center"
+              min-width="450"
+            >
+              <el-table-column
+                prop="parking_time"
+                label="Used Time"
+                align="center"
+                sortable
+                min-width="150"
+              />
+              <el-table-column
+                prop="parking_price_str"
+                label="Price"
+                header-align="center"
+                align="right"
+                sortable
+                min-width="150"
+              />
+              <el-table-column
+                prop="parking_car_num_str"
+                label="License Plate"
+                align="center"
+                sortable
+                min-width="200"
+              />
+            </el-table-column>
+
+            <el-table-column
+              v-if="charging_visible"
+              label="Charging"
+              align="center"
+              min-width="450"
+            >
+              <el-table-column
+                prop="charge_time"
+                label="Used Time"
+                align="center"
+                sortable
+                min-width="150"
+              />
+              <el-table-column
+                prop="charge_energy_str"
+                label="kWh"
+                header-align="center"
+                align="right"
+                sortable
+                min-width="150"
+              />
+              <el-table-column
+                prop="charge_price_str"
+                label="Price"
+                header-align="center"
+                align="right"
+                sortable
+                min-width="150"
+              />
+            </el-table-column>
+
+            <el-table-column
+              prop="price_str"
+              label="Total Price"
+              header-align="center"
+              align="right"
+              sortable
+              min-width="150"
+            />
+
+            <el-table-column
+              prop="paymethod_str"
+              label="Method"
+              align="center"
+              :filters="filters"
+              :filter-method="filterTag"
+              min-width="150"
+            />
+
+            <el-table-column
+              prop="created_date_str"
+              label="Created Date"
+              align="center"
+              sortable
+              min-width="250"
+            />
+          </el-table>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
 
 <style lang="scss" scoped>
 .payment {

@@ -154,6 +154,7 @@ const save_tariff = async () => {
             delete TariffData.elements[i].restrictions_max_duration_str
             delete TariffData.elements[i].restrictions_min_duration_str
           }
+        console.log(TariffData)
         let res = await MsiApi.setCollectionData('post', 'ocpi', TariffData)
         console.log(res)
         if (res.status === 201) {
@@ -402,7 +403,7 @@ onMounted(async () => {
           <el-table-column prop="price_components_type_str" label="Type" min-width="50" />
           <el-table-column prop="price_components[0].price" label="Price" min-width="30" />
           <el-table-column prop="price_components[0].vat" label="Vat" min-width="30" />
-          <el-table-column prop="price_components_step_size_str" label="Charge Unit" min-width="30" />
+          <el-table-column prop="price_components_step_size_str" label="Unit" min-width="30" />
           <el-table-column prop="restrictions.start_time" label="Start Time" min-width="50" />
           <el-table-column prop="restrictions.end_time" label="End Time" min-width="50" />
           <el-table-column prop="restrictions_min_duration_str" label="Active (Minute)" min-width="50" />
@@ -434,14 +435,14 @@ onMounted(async () => {
         <div v-if="new_element.price_type === 'ENERGY'">
           <p>Price (kWh)</p>
           <el-input-number v-model="new_element.price_price" :controls="false" />
-          <p>Charge Unit (Wh)</p>
+          <p>Unit (Wh)</p>
           <el-input-number v-model="new_element.step_size_str" :controls="false" disabled />
         </div>
 
         <div v-else-if="new_element.price_type === 'TIME'">
           <p>Price ($ / hr)</p>
           <el-input-number v-model="new_element.price_price" :controls="false" />
-          <p>Charge Unit (Minute)</p>
+          <p>Unit (Minute)</p>
           <el-input-number v-model="new_element.step_size_str" :controls="false" />
           <!-- <p> {{ 'i.e. ' + new_element.step_size_str + ' Min ' +
             new_element.price_price /  60 * new_element.step_size_str
@@ -451,7 +452,7 @@ onMounted(async () => {
         <div v-else-if="new_element.price_type === 'PARKING_TIME'">
           <p>Price ($ / hr)</p>
           <el-input-number v-model="new_element.price_price" :controls="false" />
-          <p>Charge Unit (Minute)</p>
+          <p>Unit (Minute)</p>
           <el-input-number v-model="new_element.step_size_str" :controls="false" />
           <!-- <p> {{ 'i.e. ' + new_element.step_size_str + ' Min ' +
             new_element.price_price /  60 * new_element.step_size_str
@@ -469,9 +470,9 @@ onMounted(async () => {
           <el-input-number v-model="new_element.max_duration_str" :controls="false" />
         </div>        
         <p>Time</p>
-        <el-time-select v-model="new_element.start_time" :max-time="endTime" placeholder="Start time"
+        <el-time-select v-model="new_element.start_time" :max-time="new_element.end_time" placeholder="Start time"
           start="00:00" step="00:30" end="24:00" />
-        <el-time-select v-model="new_element.end_time" :min-time="startTime" placeholder="End time"
+        <el-time-select v-model="new_element.end_time" :min-time="new_element.start_time" placeholder="End time"
           start="00:00" step="00:30" end="24:00" />
 
         <div class="demo-button-style">

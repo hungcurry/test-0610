@@ -21,7 +21,7 @@ const pwVisible = () => {
 const login = async () => {
   if (checked.value === 'no') {
     ElMessage({
-      message: 'Warning, ½Ð¾\Åª ¥Î¤á¨óÄ³Áô¨p¬Fµ¦.',
+      message: 'Warning, ï¿½Ð¾\Åª ï¿½Î¤ï¿½ï¿½Ä³ï¿½ï¿½ï¿½pï¿½Fï¿½ï¿½.',
       type: 'warning',
     })
     return
@@ -137,7 +137,7 @@ onMounted(() => {
           {{ $t('log_in') }}
         </button>
       </form>
-      <p class="text-30px text-white">Version: 0.1.5</p>
+      <p class="text-30px text-white">Version: 0.1.6</p>
       <img class="logo" src="@/assets/img/login_msilogo.png" />
     </div>
   </div>

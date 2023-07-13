@@ -587,7 +587,7 @@ onUnmounted( () =>{
   }
 }
 
-.custom-info-window {
+:deep(.custom-info-window) {
   font-size: 25px;
   font-weight:bold;
 }

@@ -102,6 +102,7 @@ onMounted(() => {
         </div>
 
         <div class="w-full mt-4 md:mt-8 lg:mt-0 md:flex justify-between lg:justify-end items-center">
+          <p class="total-count box-shadow"> {{ 'Total Count : ' + ocppErrorData.length  }}</p>
           <el-button class="download-btn w-full md:w-auto mt-4 md:mt-0 md:ml-30px box-shadow" @click="download">
             <span class="lg:hidden">Download</span>
             <img
@@ -144,7 +145,7 @@ onMounted(() => {
             />
             <el-table-column
               prop="vendorErrorCode"
-              label="VendorErrorCode"
+              label="System Error Code"
               align="center"
               sortable
               :sort-method="(a, b) => sortFunc(a, b, 'vendorErrorCode')"
@@ -152,7 +153,7 @@ onMounted(() => {
             >
               <template #header>
                 <div class="vendorErrorCode-container">
-                  <span>VendorErrorCode</span>
+                  <span>System Error Code</span>
                   <el-button type="text" size="large" @click.stop="handleButtonClick" class="question-icon">
                     <el-icon><QuestionFilled /></el-icon>
                   </el-button>
@@ -162,7 +163,7 @@ onMounted(() => {
   
             <el-table-column
               prop="ocpp_firmware_status"
-              label="OCPP FW Status"
+              label="FW Error Info"
               align="center"
               sortable
               :sort-method="(a, b) => sortFunc(a, b, 'ocpp_firmware_status')"
@@ -234,6 +235,13 @@ onMounted(() => {
       top: -1.1rem;
       right: -6.2rem;
     }
+  }
+  .total-count {
+    line-height: 40px;
+    background-color: var(--blue-200);
+    border-radius: 2rem;
+    padding: 0 2rem;
+    cursor: default;
   }
   .el-dialog {
     p {

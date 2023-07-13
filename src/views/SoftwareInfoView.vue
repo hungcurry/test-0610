@@ -18,8 +18,6 @@ const Detail_Data = reactive([])
 const type = ref('')
 const index = ref('')
 
-
-
 const download_File = () => {
   const fileName = 'update_file'
   const link = document.createElement('a')
@@ -30,7 +28,6 @@ const download_File = () => {
   link.click()
   document.body.removeChild(link)
 }
-
 const confirm = async (mode) => {
   let check_format_success = true
   if (mode === 'cancel') {
@@ -89,7 +86,6 @@ const confirm = async (mode) => {
     }
   }
 }
-
 const add = (selectType) => {
   Detail_Data.version = ''
   Detail_Data.file = ''
@@ -107,7 +103,6 @@ const add = (selectType) => {
   type.value = selectType
   index.value = -1
 }
-
 const detail_info = (scope,selectType) => {
   swVisible.value = true
   type.value = selectType
@@ -117,7 +112,6 @@ const detail_info = (scope,selectType) => {
   Detail_Data.description = scope.row.description
   Detail_Data.update_time_str = scope.row.update_time_str
 }
-
 const release = async (scope,selectType) => {
   if (selectType === 'XP012')
     swData.version = scope.row.version
@@ -128,7 +122,6 @@ const release = async (scope,selectType) => {
   let sendData = { 'class' : 'VersionControl', 'pk': response.data.all[0]._id, release_date: new Date(), version : scope.row.version}
   console.log(await MsiApi.setCollectionData('patch', 'cpo', sendData))
 }
-
 onMounted( async() => {
   let queryData = { "database":"CPO", "collection":"VersionControl", "query": { "type": 'XP011_BT' }}
   let response = await MsiApi.mongoQuery(queryData)
@@ -146,82 +139,97 @@ onMounted( async() => {
   if (MStore?.permission?.company?.name === 'MSI') 
     isMSI.value = true
 })
-
 </script>
 
 <template>
   <div class="sw-info">
-    <div class="sw">
-      <br>
-      <div class="header-container"> 
-        <strong class="release-version">{{ 'OTA SW Version :' + swData.version }}</strong>
-        <el-button class="release-btn" v-if="isMSI" @click="add('XP012')"> Add SW Release</el-button>
+    <div class="container lg pb-40px">
+      <div class="sw pt-40px pb-20px">
+        <div class="header-container"> 
+          <strong class="text-20px text-blue-1200 block">{{ 'OTA SW Version :' + swData.version }}</strong>
+          <el-button class="release-btn px-30px box-shadow" v-if="isMSI" @click="add('XP012')"> Add SW Release</el-button>
+        </div>
+        <div class="overflow-x-auto">
+          <el-table :data="swData.release_note" class="white-space-nowrap text-primary" style="width: 100%; height:330px" stripe 
+          :cell-style=msi.tb_cell :header-cell-style=msi.tb_header_cell size="large">
+            <el-table-column prop="version" label="Version" min-width="200"/>
+            <el-table-column prop="description" label="Description" min-width="350"/>
+            <el-table-column prop="update_time_str" label="Update Time" min-width="250"/>
+            <el-table-column v-if="isMSI" prop="" class="text-right" label="Release" min-width="100">
+              <template #default="scope">
+                <el-button class="btn-Release" @click="release(scope, 'XP012')">Release</el-button>
+              </template>
+            </el-table-column>
+            <el-table-column v-if="isMSI" prop="" label="" min-width="100">
+              <template #default="scope">
+                <el-button class="btn-more" @click="detail_info(scope, 'XP012')"> <font-awesome-icon icon="fa-solid fa-ellipsis" /> </el-button>
+              </template>
+            </el-table-column>
+          </el-table>
+        </div>
       </div>
-      <el-table :data="swData.release_note" style="width: 95%; height:400px" stripe 
-      :cell-style=msi.tb_cell :header-cell-style=msi.tb_header_cell size="large">
-        <el-table-column prop="version" label="Version" min-width="10"/>
-        <el-table-column prop="description" label="Description" min-width="15"/>
-        <el-table-column prop="update_time_str" label="Update Time" min-width="10"/>
-        <el-table-column v-if="isMSI" prop="" label="Release" min-width="5">
-          <template #default="scope">
-            <el-button @click="release(scope, 'XP012')"> Release </el-button>
-          </template>
-        </el-table-column>
-        <el-table-column v-if="isMSI" prop="" label="" min-width="5">
-          <template #default="scope">
-            <el-button @click="detail_info(scope, 'XP012')"> <font-awesome-icon icon="fa-solid fa-ellipsis" /> </el-button>
-          </template>
-        </el-table-column>
-      </el-table>
-    </div>
-    <br><br>
-    <div class="fw">
-      <div class="header-container">
-        <strong class="release-version">{{ 'OTA FW Version :' + fwData.version }}</strong>
-        <el-button class="release-btn" v-if="isMSI" @click="add('XP011_BT')"> Add FW Release</el-button>
+      <div class="fw pt-20px">
+        <div class="header-container">
+          <strong class="text-20px text-blue-1200 block">{{ 'OTA FW Version :' + fwData.version }}</strong>
+          <el-button class="release-btn px-30px box-shadow" v-if="isMSI" @click="add('XP011_BT')"> Add FW Release</el-button>
+        </div>
+        <div class="overflow-x-auto">
+          <el-table :data="fwData.release_note" class="white-space-nowrap text-primary"  style="width: 100%; height:330px" stripe 
+          :cell-style=msi.tb_cell :header-cell-style=msi.tb_header_cell size="large">
+            <el-table-column prop="version" label="Version" min-width="200"/>
+            <el-table-column prop="description" label="Description" min-width="350"/>
+            <el-table-column prop="update_time_str" label="Update Time" min-width="250"/>
+            <el-table-column v-if="isMSI" prop="" label="Release" min-width="100">
+              <template #default="scope">
+                <el-button class="btn-Release" @click="release(scope, 'XP011_BT')"> Release </el-button>
+              </template>
+            </el-table-column>
+            <el-table-column v-if="isMSI" prop="" label="" min-width="100">
+              <template #default="scope">
+                <el-button class="btn-more" @click="detail_info(scope, 'XP011_BT')"> <font-awesome-icon icon="fa-solid fa-ellipsis" /> </el-button>
+              </template>
+            </el-table-column>
+          </el-table>
+        </div>
       </div>
-      <el-table :data="fwData.release_note" style="width: 95%; height:400px" stripe 
-      :cell-style=msi.tb_cell :header-cell-style=msi.tb_header_cell size="large">
-        <el-table-column prop="version" label="Version" min-width="10"/>
-        <el-table-column prop="description" label="Description" min-width="15"/>
-        <el-table-column prop="update_time_str" label="Update Time" min-width="10"/>
-        <el-table-column v-if="isMSI" prop="" label="Release" min-width="5">
-          <template #default="scope">
-            <el-button @click="release(scope, 'XP011_BT')"> Release </el-button>
-          </template>
-        </el-table-column>
-        <el-table-column v-if="isMSI" prop="" label="" min-width="5">
-          <template #default="scope">
-            <el-button @click="detail_info(scope, 'XP011_BT')"> <font-awesome-icon icon="fa-solid fa-ellipsis" /> </el-button>
-          </template>
-        </el-table-column>
-      </el-table>
     </div>
+    <el-dialog v-model="swVisible" class="max-w-600px">
+      <template #header="{ titleId, titleClass }">
+        <div class="py-2rem relative bg-blue-100">
+          <h4
+            :id="titleId"
+            :class="titleClass"
+            class="m-0 text-center text-blue-1200 font-400 text-24px line-height-26px"
+          >
+            {{ dialog_title }}
+          </h4>
+        </div>
+      </template>
+      <div class="dialog-context">
+        <el-form :model="Detail_Data">
+          <el-form-item class="block" label="Version" >
+            <el-input v-model="Detail_Data.version" />
+          </el-form-item>
+          <el-form-item class="block" label="File Path" >
+            <el-input v-model="Detail_Data.file" />
+          </el-form-item>
 
-    <el-dialog v-model="swVisible" :title= dialog_title draggable>
-      <el-form :model="Detail_Data">
-        <el-form-item label="Version" >
-          <el-input v-model="Detail_Data.version" />
-        </el-form-item>
-        <el-form-item label="File Path" >
-          <el-input v-model="Detail_Data.file" />
-        </el-form-item>
+          <el-form-item class="flex-center" label="Download File" >
+            <el-button type="primary"  @click="download_File">Download File</el-button>
+          </el-form-item>
 
-        <el-form-item label="Download File" >
-          <el-button  @click="download_File">Download File</el-button>
-        </el-form-item>
-
-        <el-form-item label="Description" >
-          <el-input v-model="Detail_Data.description" type="textarea" />
-        </el-form-item>
-        <el-form-item label="Update time" >
-          <el-input v-model="Detail_Data.update_time_str" disabled />
-        </el-form-item>
-      </el-form>
+          <el-form-item class="block" label="Description" >
+            <el-input v-model="Detail_Data.description" type="textarea" />
+          </el-form-item>
+          <el-form-item class="block" label="Update time" >
+            <el-input v-model="Detail_Data.update_time_str" disabled />
+          </el-form-item>
+        </el-form>
+      </div>
       <template #footer>
-        <span class="dialog-footer">
-          <el-button @click="confirm('cancel')">Cancel</el-button>
-          <el-button type="primary" @click="confirm('confirm')">Confirm</el-button>
+        <span class="dialog-footer flex flex-center">
+          <el-button round class="w-48% bg-btn-100 text-white max-w-140px" @click="confirm('cancel')">Cancel</el-button>
+          <el-button round class="w-48% bg-btn-200 text-white max-w-140px" @click="confirm('confirm')">Confirm</el-button>
         </span>
       </template>
     </el-dialog>
@@ -230,22 +238,17 @@ onMounted( async() => {
 
 <style lang="scss" scoped>
 .release-btn {
-    width: 220px;
-    height: 40px;
-    font-size: 18px;
-    background-color: #000000DF;
-    color:#FFFFFF;
-    border-radius: 20px;
-    margin-right: 100px;
+  height: 40px;
+  font-size: 18px;
+  background-color: var(--secondary);
+  color:#FFFFFF;
+  border-radius: 20px;
 }
-.release-version{
-  font-size: 20px;
-  margin-left: 20px;
-}
-
 .header-container {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
+  align-items: center;
+  padding-bottom: 2rem;
 }
-
 </style>

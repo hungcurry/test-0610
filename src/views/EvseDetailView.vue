@@ -2,13 +2,22 @@
 import { reactive, onMounted} from 'vue'
 import { useRoute, useRouter} from 'vue-router'
 import ApiFunc from '@/composables/ApiFunc'
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import {  ElMessageBox } from 'element-plus'
 import msi from '@/assets/msi_style'
 import { useMStore } from "../stores/m_cloud"
 import moment from "moment"
 const MStore = useMStore()
-
+const route = useRoute()
+const evseId = route.query.evse_id
+const router = useRouter()
+const MsiApi = ApiFunc()
+const evseData = reactive([])
+const connectorData = reactive([])
+const chargePointInfoData = reactive([])
+const hmiInfoData = reactive([])
+const locationData = reactive([])
+const tariffData = reactive([])
+const tariff_elements = reactive([])
 
 const deleteEvse = () => {
   ElMessageBox.confirm('Do you want to delete?','Warning', {confirmButtonText: 'OK', cancelButtonText: 'Cancel', type: 'warning'})
@@ -37,26 +46,9 @@ const deleteEvse = () => {
     // router.push({ name: 'stationDetail', query: {id:locationData.id} })
   })
 }
-
 const edit = () => {
   router.push({ name: 'evseEdit', query: {station_id:locationData.id, evse_id:evseId} })
 }
-
-
-const route = useRoute()
-const evseId = route.query.evse_id
-const router = useRouter()
-const MsiApi = ApiFunc()
-
-const evseData = reactive([])
-const connectorData = reactive([])
-const chargePointInfoData = reactive([])
-const hmiInfoData = reactive([])
-const locationData = reactive([])
-const tariffData = reactive([])
-
-const tariff_elements = reactive([])
-
 onMounted( async () => {
   
   let queryData = { "database":"OCPI", "collection":"EVSE", "query": { "uid": {"UUID":evseId}}}
@@ -104,383 +96,276 @@ onMounted( async () => {
   
   Object.assign(tariff_elements, tariffData.elements )
 })
-
 </script>
 
 <template>
   <div class="evse-detail">
-    <div class="evse-detail-header">
-      <p class="location-name">{{ locationData.name }}</p>
-      <p class="location-addr">{{ locationData.country + ' ' + locationData.city + locationData.address }}</p>
-      <el-button class="delete" @click="deleteEvse"> Delete </el-button>
-      <el-button class="edit" @click="edit"> Edit </el-button>
-      <!-- <el-button class="log" @click="log" disabled> Log </el-button> -->
-      <div class="evse-detail-header-container">
-        <p class="evse-id" > {{evseData.evse_id}}</p>
-        <p class="status available" v-if="evseData.status === 'AVAILABLE'"> {{ "●" + evseData.status }}</p>
-        <p class="status charging" v-else-if="evseData.status === 'CHARGING'"> {{ "●" + evseData.status }}</p>
-        <p class="status offline" v-else-if="evseData.status === 'UNKNOWN'"> {{ "●" + evseData.status }}</p>
-        <p class="status error" v-else-if="evseData.status === 'ERROR' || evseData.status === 'OUTOFORDER'"> {{ "●" + evseData.status }}</p>
+    <div class="evse-detail-header pt-40px pb-40px bg-white">
+      <div class="container lg">
+        <el-row :gutter="0">
+          <el-col class="el-col" :xs="24" :md="14">
+            <div class="h-full">
+              <p class="evse-id pb-20px" > {{evseData.evse_id}}</p>
+              <p class="status pb-20px available" v-if="evseData.status === 'AVAILABLE'"> {{ "●" + evseData.status }}</p>
+              <p class="status pb-20px charging" v-else-if="evseData.status === 'CHARGING'"> {{ "●" + evseData.status }}</p>
+              <p class="status pb-20px offline" v-else-if="evseData.status === 'UNKNOWN'"> {{ "●" + evseData.status }}</p>
+              <p class="status pb-20px error" v-else-if="evseData.status === 'ERROR' || evseData.status === 'OUTOFORDER'"> {{ "●" + evseData.status }}</p>
+            </div>
+          </el-col>
+          <el-col class="el-col" :xs="24" :md="10">
+            <div class="text-right">
+              <p class="location-name text-right mb-20px">{{ locationData.name }}</p>
+              <p class="location-addr text-right mb-20px">{{ locationData.country + ' ' + locationData.city + locationData.address }}</p>
+              <el-button type="primary" class="delete bg-secondary px-30px min" @click="deleteEvse"> Delete </el-button>
+              <el-button type="primary" class="edit bg-secondary px-30px min" @click="edit"> Edit </el-button>
+            </div>
+          </el-col>
+        </el-row>
       </div>
     </div>
-
-    <div class="evse-detail-main">
-      <div class="evse-connector-hmi-container">
-        <div class="evse-connector-container">
-          <div class="evse">
-            <font-awesome-icon class="header-icon" icon="fa-regular fa-clock" />
-            <span> EVSE Info</span>
-            <br><br>
-            <!-- <div class="evse-info-item">
-              <p class="evse-info-title">Charger ID</p>
-              <p class="evse-info-value">{{ evseData.uid }}</p>
-            </div> -->
-            <div class="evse-info-item">
-              <p class="evse-info-title">EVSE ID</p>
-              <p class="evse-info-value">{{evseData.evse_id}}</p>
+    <div class="evse-detail-main pt-30px pb-40px">
+      <div class="container lg">
+        <el-row class="evse-connector-hmi-container pb-20px" :gutter="30">
+          <el-col class="el-col evse-col" :xs="24" :md="8">
+            <div class="evse flex-col w-full h-full rounded-2xl p-16px bg-white lg:rounded-none lg:rounded-l-2xl">
+              <div class="title flex items-center mb-20px">
+                <img class="w-24px h-24px filter-black" src="@/assets/img/charger_evse.png" alt="">
+                <h4 class="m-0 ml-8px text-20px text-black-100"> EVSE Info</h4>
+              </div>
+              <div class="container-data h-full md:px-32px">
+                <!-- <div class="info-item">
+                  <p class="info-title w-50%">Charger ID</p>
+                  <p class="info-value w-50% ml-24px">{{ evseData.uid }}</p>
+                </div> -->
+                <div class="info-item">
+                  <p class="info-title w-50%">EVSE ID</p>
+                  <p class="info-value w-50% ml-24px">{{evseData.evse_id}}</p>
+                </div>
+                <div class="info-item">
+                  <p class="info-title w-50%">Floor Level</p>
+                  <p class="info-value w-50% ml-24px">{{evseData.floor_level}}</p>
+                </div>
+                <!-- <div class="info-item">
+                  <p class="info-title w-50%">Charger Label</p>
+                  <p class="info-value w-50% ml-24px">{{evseData.physical_reference}}</p>
+                </div> -->
+                <!-- <div class="info-item">
+                  <p class="info-title w-50%">Note / Description</p>
+                  <p class="info-value w-50% ml-24px">{{evseData.description}} </p>
+                </div>             -->
+                <div class="info-item">
+                  <p class="info-title w-50%">Last Updated</p>
+                  <p class="info-value w-50% ml-24px">{{evseData.last_updated_str}}</p>
+                </div>
+              </div>
+            </div >
+          </el-col>
+          <el-col class="el-col connector-col" :xs="24" :md="8">
+            <div class="connector flex-col w-full h-full rounded-2xl p-16px bg-white lg:rounded-none lg:rounded-r-2xl">
+              <div class="title flex items-center mb-20px">
+                <img class="w-24px h-24px filter-black" src="@/assets/img/charger_edit_connector.png" alt="">
+                <h4 class="m-0 ml-8px text-20px text-black-100"> Connector Info</h4>
+              </div>
+              <div class="container-data h-full md:px-32px">
+                <!-- <div class="info-item">
+                  <p class="info-title w-50%">Connector ID</p>
+                  <p class="info-value w-50% ml-24px">{{ connectorData.id }} </p>
+                </div>    -->
+                <div class="info-item">
+                  <p class="info-title w-50%">Type</p>
+                  <p class="info-value w-50% ml-24px">{{ connectorData.standard }} </p>
+                </div>   
+                <!-- <div class="info-item">
+                  <p class="info-title w-50%">Format</p>
+                  <p class="info-value w-50% ml-24px">{{ connectorData.format }}</p>
+                </div>    -->
+                <!-- <div class="info-item">
+                  <p class="info-title w-50%">Power Type</p>
+                  <p class="info-value w-50% ml-24px">{{connectorData.power_type}} </p>
+                </div>    -->
+                <div class="info-item">
+                  <p class="info-title w-50%">Max Voltage</p>
+                  <p class="info-value w-50% ml-24px">{{connectorData.max_voltage + ' V '}}</p>
+                </div>   
+                <div class="info-item">
+                  <p class="info-title w-50%">Max Amperage</p>
+                  <p class="info-value w-50% ml-24px">{{connectorData.max_amperage + ' A '}}</p>
+                </div>   
+                <div class="info-item">
+                  <p class="info-title w-50%">Max Electric Power</p>
+                  <p class="info-value w-50% ml-24px">{{connectorData.max_electric_power}} </p>
+                </div>   
+                <div class="info-item">
+                  <p class="info-title w-50%">Last Updated</p>
+                  <p class="info-value w-50% ml-24px">{{ connectorData.last_updated_str }} </p>
+                </div>  
+              </div> 
             </div>
-            <div class="evse-info-item">
-              <p class="evse-info-title">Floor Level</p>
-              <p class="evse-info-value">{{evseData.floor_level}}</p>
-            </div>
-            <!-- <div class="evse-info-item">
-              <p class="evse-info-title">Charger Label</p>
-              <p class="evse-info-value">{{evseData.physical_reference}}</p>
-            </div> -->
-            <!-- <div class="evse-info-item">
-              <p class="evse-info-title">Note / Description</p>
-              <p class="evse-info-value">{{evseData.description}} </p>
-            </div>             -->
-            <div class="evse-info-item">
-              <p class="evse-info-title">Last Updated</p>
-              <p class="evse-info-value">{{evseData.last_updated_str}}</p>
-            </div>
-          </div >
-          <div class="v-line">
+          </el-col>
+          <el-col class="el-col" :xs="24" :md="8">
+            <div class="hmi-container flex-col h-full rounded-2xl p-16px bg-white">
+              <div class="title flex items-center mb-20px">
+                <img class="w-24px h-24px filter-black" src="@/assets/img/charger_hmi.png" alt="">
+                <h4 class="m-0 ml-8px text-20px text-black-100"> HMI Info</h4>
+              </div>
+              <div class="container-data h-full md:px-32px">
+                <div class="info-item">
+                  <p class="info-title w-50%">Control Board Model</p>
+                  <p class="info-value w-50% ml-24px">{{ hmiInfoData.control_board_model_name }} </p>
+                </div>   
+                <div class="info-item">
+                  <p class="info-title w-50%">Control Board SN</p>
+                  <p class="info-value w-50% ml-24px">{{ hmiInfoData.control_board_sn }} </p>
+                </div>   
+                <div class="info-item">
+                  <p class="info-title w-50%">Control Board FW Version</p>
+                  <p class="info-value w-50% ml-24px">{{ hmiInfoData.control_board_fw_version }} </p>
+                </div>   
+                <div class="info-item">
+                  <p class="info-title w-50%">HMI Board Model</p>
+                  <p class="info-value w-50% ml-24px">{{ hmiInfoData.hmi_board_model_name }} </p>
+                </div>   
+                <div class="info-item">
+                  <p class="info-title w-50%">HMI Board SN</p>
+                  <p class="info-value w-50% ml-24px">{{ hmiInfoData.hmi_board_sn }} </p>
+                </div>   
+                <div class="info-item">
+                  <p class="info-title w-50%">HMI Board SW Version</p>
+                  <p class="info-value w-50% ml-24px">{{ hmiInfoData.hmi_board_sw_version }} </p>
+                </div>   
+                <div class="info-item">
+                  <p class="info-title w-50%">Created Date</p>
+                  <p class="info-value w-50% ml-24px">{{ hmiInfoData.created_date }} </p>
+                </div>  
+                <div class="info-item">
+                  <p class="info-title w-50%">Last Updated</p>
+                  <p class="info-value w-50% ml-24px">{{ hmiInfoData.updated_date }} </p>
+                </div>  
+              </div> 
           </div>
-          <div class="connector">
-            <font-awesome-icon class="header-icon" icon="fa-regular fa-clock" />
-            <span> Connector Info</span>
-            <br>
-            <br>
-            <!-- <div class="connector-item">
-              <p class="connector-title">Connector ID</p>
-              <p class="connector-value">{{ connectorData.id }} </p>
-            </div>    -->
-            <div class="connector-item">
-              <p class="connector-title">Type</p>
-              <p class="connector-value">{{ connectorData.standard }} </p>
-            </div>   
-            <!-- <div class="connector-item">
-              <p class="connector-title">Format</p>
-              <p class="connector-value">{{ connectorData.format }}</p>
-            </div>    -->
-            <!-- <div class="connector-item">
-              <p class="connector-title">Power Type</p>
-              <p class="connector-value">{{connectorData.power_type}} </p>
-            </div>    -->
-            <div class="connector-item">
-              <p class="connector-title">Max Voltage</p>
-              <p class="connector-value">{{connectorData.max_voltage + ' V '}}</p>
-            </div>   
-            <div class="connector-item">
-              <p class="connector-title">Max Amperage</p>
-              <p class="connector-value">{{connectorData.max_amperage + ' A '}}</p>
-            </div>   
-            <div class="connector-item">
-              <p class="connector-title">Max Electric Power</p>
-              <p class="connector-value">{{connectorData.max_electric_power}} </p>
-            </div>   
-            <div class="connector-item">
-              <p class="connector-title">Last Updated</p>
-              <p class="connector-value">{{ connectorData.last_updated_str }} </p>
-            </div>   
-          </div>
-        </div>
-
-        <div class="hmi-container">
-          <div class="hmi-container-data">
-            <font-awesome-icon class="header-icon" icon="fa-regular fa-clock" />
-            <span> HMI Info</span>
-            <br><br>
-            <div class="hmi-item">
-              <p class="hmi-title">Control Board Model</p>
-              <p class="hmi-value">{{ hmiInfoData.control_board_model_name }} </p>
-            </div>   
-            <div class="hmi-item">
-              <p class="hmi-title">Control Board SN</p>
-              <p class="hmi-value">{{ hmiInfoData.control_board_sn }} </p>
-            </div>   
-            <div class="hmi-item">
-              <p class="hmi-title">Control Board FW Version</p>
-              <p class="hmi-value">{{ hmiInfoData.control_board_fw_version }} </p>
-            </div>   
-            <div class="hmi-item">
-              <p class="hmi-title">HMI Board Model</p>
-              <p class="hmi-value">{{ hmiInfoData.hmi_board_model_name }} </p>
-            </div>   
-            <div class="hmi-item">
-              <p class="hmi-title">HMI Board SN</p>
-              <p class="hmi-value">{{ hmiInfoData.hmi_board_sn }} </p>
-            </div>   
-            <div class="hmi-item">
-              <p class="hmi-title">HMI Board SW Version</p>
-              <p class="hmi-value">{{ hmiInfoData.hmi_board_sw_version }} </p>
-            </div>   
-            <div class="hmi-item">
-              <p class="hmi-title">Created Date</p>
-              <p class="hmi-value">{{ hmiInfoData.created_date }} </p>
-            </div>  
-            <div class="hmi-item">
-              <p class="hmi-title">Last Updated</p>
-              <p class="hmi-value">{{ hmiInfoData.updated_date }} </p>
-            </div>  
-          </div> 
-        </div>
-      </div>
-      <div class="tariff-container">
-        <p class="tariff-title">Rate</p> 
-        <div class="tariff-container-header">
-          <div class="tariff-container-header-left">
-            <div class="tariff-itme">
-              <p class="tariff-title">Rate Profile</p>
-              <p class="tariff-value">{{ tariffData.profile_name }}</p>
+          </el-col>
+        </el-row>
+        <!-- ------------- -->
+        <el-row class="tariff-container rounded-2xl"  :gutter="30">
+          <el-col class="el-col" :xs="24" :md="24">
+            <div class=" h-full rounded-2xl p-16px bg-white">
+              <div class="title w-full flex items-center mb-20px">
+                <img class="w-24px h-24px filter-black" src="@/assets/img/charger_tariff.png" alt="">
+                <h4 class="m-0 ml-8px text-20px text-black-100">Rate</h4>
+              </div>
+              <div class="lg:flex mb-20px bg-blue-100 py-20px rounded-2xl">
+                <div class="tariff-left lg:w-30% mb-20px lg:mb-0">
+                  <div class="container-data h-full md:px-32px">
+                    <div class="info-item">
+                      <p class="info-title">
+                        <span class="font-700 text-blue-900">Rate Profile : </span>
+                        <span class="ml-18px">{{ tariffData.profile_name }}</span>
+                      </p>
+                    </div>
+                    <div class="info-item">
+                      <p class="info-title">
+                        <span class="font-700 text-blue-900">Rate alt url : </span>
+                        <sapn class="ml-18px">{{ tariffData.tariff_alt_url }}</sapn>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div class="tariff-right lg:w-70%">
+                  <div class="container-data h-full md:px-32px">
+                    <div class="">
+                      <p class="info-title font-700 text-blue-900 mb-7px">Rate Alt Text : </p>
+                      <p class="info-value">{{ tariffData.tariff_alt_text_str}}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <el-table :data="tariff_elements" style="width: 100%; height:300px" stripe 
+                :cell-style=msi.tb_cell :header-cell-style=msi.tb_header_cell size="large">
+                <el-table-column prop="price_components[0].type" label="Type" min-width="130"/>
+                <el-table-column prop="price_components[0].price" label="Price" min-width="80"/>
+                <el-table-column prop="price_components[0].vat" label="Vat" min-width="80"/>
+                <el-table-column prop="price_components[0].step_size" label="Unit" min-width="120"/>
+                <el-table-column prop="restrictions.start_time" label="Start Time" min-width="120"/>
+                <el-table-column prop="restrictions.end_time" label="End Time" min-width="120"/>
+                <el-table-column prop="restrictions.day_of_week" label="Day Of Week" min-width="300"/>
+              </el-table>
             </div>
-
-            <div class="tariff-itme">
-              <p class="tariff-title">Rate Alt Text</p>
-              <p class="tariff-value1">{{ tariffData.tariff_alt_text_str}}</p>
-            </div>
-
-            <!-- <div class="tariff-itme">
-              <p class="tariff-title">Rate alt url</p>
-              <p class="tariff-value">{{ tariffData.tariff_alt_url }}</p>
-            </div> -->
-          </div>
-          <!-- <div class="tariff-container-header-right">
-            <div class="tariff-itme">
-              <p class="tariff-title">Rate Alt Text</p>
-              <p class="tariff-value1">{{ tariffData.tariff_alt_text_str}}</p>
-            </div>
-          </div> -->
-        </div>
-
-        <el-table :data="tariff_elements" style="width: 95%; height:400px" stripe 
-					:cell-style=msi.tb_cell :header-cell-style=msi.tb_header_cell size="large">
-          <el-table-column prop="price_components[0].type" label="Type" min-width="50"/>
-          <el-table-column prop="price_components[0].price" label="Price" min-width="50"/>
-          <el-table-column prop="price_components[0].vat" label="Vat" min-width="50"/>
-          <el-table-column prop="price_components[0].step_size" label="Step Size" min-width="50"/>
-          <el-table-column prop="restrictions.start_time" label="Start Time" min-width="50"/>
-          <el-table-column prop="restrictions.end_time" label="End Time" min-width="50"/>
-          <el-table-column prop="restrictions.day_of_week" label="Day Of Week" min-width="50"/>
-        </el-table>
+          </el-col>
+        </el-row >
       </div>
     </div>
   </div>
 </template>
 
 <style lang="scss" scoped>
-
 .evse-detail {
   height: 100%;
   width: 100%;
-  margin: 0;
-  padding: 0;
   .evse-detail-header {
-    height: 150px;
-    width: 100%;
-    background-color: #ffffff;
-
-.location-name {
-    top: 60px;
-    right : 40px;
-    position: absolute;
-    font-size: 20px;
-}
-.location-addr {
-    top: 100px;
-    right : 40px;
-    position: absolute;
-}
-
-  .log {
-    width: 220px;
-    height: 40px;
-    top: 150px;
-    right : 40px;
-    position: absolute;
-    font-size: 18px;
-    background-color: #000000DF;
-    color:#FFFFFF;
-    border-radius: 20px;
-  }
-  .edit {
-    width: 220px;
-    height: 40px;
-    top: 150px;
-    right : 40px;
-    position: absolute;
-    font-size: 18px;
-    background-color: #000000DF;
-    color:#FFFFFF;
-    border-radius: 20px;
-  }
-  .delete {
-    width: 220px;
-    height: 40px;
-    top: 150px;
-    right : 40px + 220px + 30px;
-    position: absolute;
-    font-size: 18px;
-    background-color: #000000DF;
-    color:#FFFFFF;
-    border-radius: 20px;
-  }  
-    .evse-detail-header-container{
-      margin: 0px
+    .location-name {
+      font-size: 20px;
     }
-
+    .log {
+      width: 220px;
+      height: 40px;
+      font-size: 18px;
+      color:var(--white);
+      border-radius: 20px;
+    }
+    .edit {
+      width: 220px;
+      height: 40px;
+      font-size: 18px;
+      color:var(--white);
+      border-radius: 20px;
+    }
+    .delete {
+      width: 220px;
+      height: 40px;
+      font-size: 18px;
+      color:var(--white);
+      border-radius: 20px;
+    }  
     .evse-id{
-      padding: 20px 0 0 20px;
-      margin: 0 0 0 0px;
-      font-size: 40px;
+      font-size: 36px;
     }
     .status {
-      padding: 20px 0 0 20px;
-      margin: 0;
       font-size: 25px;
     }
   }
-
   .evse-detail-main {
-    height: calc(100% - 150px);
     width: 100%;
     background-color: #f3f7fa;
-    
-    .evse-connector-hmi-container{
-      height: 260px;
-      width: 100%;
-      display: flex;
-      flex-direction: row;
-      
-      .evse-connector-container{
-        width: 65%;
-        height: 100%;
-        background-color: #ffffff;
-        margin: 30px 20px 30px 30px;
-        display: flex;
-        flex-direction: row;
-        justify-content: space-between;
-        .evse {
-          padding: 20px 0px 0px 20px;
-          width: 45%;
-          span{
-           font-size: 20px; 
-          }
-          .evse-info-item{
-            display: flex;
-            flex-direction: row;
-            margin-bottom: 7px;
-            p{
-              margin: 0;
-              padding: 0;
-            }
-            .evse-info-title{
-              width: 300px;
-              color: #566575;
-            }
-            .evse-info-value{
-              width: 200px;
-            }
-          }
-        }
-        .connector {
-          padding: 20px 0px 0px 0px;
-          width: 45%;
-          .connector-item{
-            display: flex;
-            flex-direction: row;
-            margin-bottom: 7px;
-            p{
-              margin: 0;
-              padding: 0;
-            }
-            .connector-title{
-              width: 300px;
-              color: #566575;
-            }
-            .connector-value{
-              width: 200px;
-            }
-          }
-          span{
-           font-size: 20px; 
-          }
-          // background-color: #005500;
-        }
-        .v-line{
-          margin-top: 20px;
-          border-left: thick solid rgb(226, 234, 242);
-          height:90%;
-        }
-      }
-      .hmi-container{
-        width: 30%;
-        height: 100%;
-        background-color: #ffffff;
-        margin: 30px 0px 30px 20px;
-        .hmi-container-data {
-          padding: 20px 0px 0px 20px;
-          .hmi-item{
-            display: flex;
-            flex-direction: row;
-            margin-bottom: 7px;
-            p{
-              margin: 0;
-              padding: 0;
-            }
-            .hmi-title{
-              width: 300px;
-              color: #566575;
-            }
-            .hmi-value{
-              width: 200px;
-            }
-          }
-        }
-        
+    .evse-col{
+      @media (min-width: 992px) {
+        padding-right: 0 !important;
       }
     }
-    .tariff-container{
-      height: 550px;
-      width: calc(100% - 60px);
-      margin: 50px 30px 30px 30px;
-      background-color: #ffffff;
-
-      .tariff-container-header{display: flex;
-      flex-direction: row;}
-      
-
-      .tariff-itme{
-        display: flex;
-        flex-direction: row;
-        margin-bottom: 7px;
-        p{
-          margin: 0;
-          padding: 0;
-        }
-        .tariff-title{
-          width: 300px;
-          color: #566575;
-        }
-        .tariff-value{
-          width: 200px;
-        }
-        .tariff-value1{
-          width: 800px;
+    .info-title,.info-value{
+      text-align: left;
+      word-break: break-all;
+    }
+    .connector-col{
+      position: relative;
+      @media (min-width: 992px) {
+        padding-left: 0 !important;
+      }
+      &:before {
+        @media (min-width: 992px) {
+          content: "";
+          width: .3rem;
+          height: 70%;
+          position: absolute;
+          top: 15%;
+          left: -1.5rem;
+          background-color: var(--gray-200);
         }
       }
+    }
+    .info-item{
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: .8rem;
     }
   }
 }

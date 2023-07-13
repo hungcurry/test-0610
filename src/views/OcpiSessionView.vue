@@ -131,6 +131,7 @@ onMounted( async() => {
         </div>
 
         <div class="w-full mt-4 md:mt-8 lg:mt-0 md:flex justify-between lg:justify-end items-center">
+          <p class="total-count box-shadow"> {{ 'Total Count : ' + OcpiSessionData.length  }}</p>
           <el-button class="download-btn w-full md:w-auto mt-4 md:mt-0 md:ml-30px box-shadow" @click="download">
             <span class="lg:hidden">Download</span>
             <img
@@ -167,7 +168,7 @@ onMounted( async() => {
             />
             <el-table-column
               prop="location_str"
-              label="Location"
+              label="Station"
               align="center"
               sortable
               :sort-method="(a, b) => sortFunc(a, b, 'location_str')"
@@ -229,6 +230,13 @@ onMounted( async() => {
     background-color: var(--secondary);
     color: var(--white);
     border-radius: 2rem;
+  }
+  .total-count {
+    line-height: 40px;
+    background-color: var(--blue-200);
+    border-radius: 2rem;
+    padding: 0 2rem;
+    cursor: default;
   }
 }
 

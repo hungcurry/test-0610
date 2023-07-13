@@ -23,6 +23,8 @@ export default defineConfig({
       // ===================
       'btn-primary':
         'text-2.2rem shrink-0 min-w-150px hover:bg-blue-800 hover:text-white h-40px',
+      'btn-more': 'bg-btn-300 text-blue-1200 hover:bg-btn-300 px-20px py-16px',
+      'btn-Release': 'bg-blue-900 text-white hover:bg-blue-900 hover:text-white',
       'secondary-hover': 'text-secondary hover:text-blue-500',
     },
   ],
@@ -58,6 +60,7 @@ export default defineConfig({
       // -----------------------
       'btn-100': 'var(--btn-100)',
       'btn-200': 'var(--btn-200)',
+      'btn-300': 'var(--btn-300)',
       // -----------------------
       'gray-100': 'var(--gray-100)',
       'gray-200': 'var(--gray-200)',

@@ -231,7 +231,7 @@ onMounted( async()=>{
           <el-table-column prop="price_components[0].type" label="Type" min-width="50"/>
           <el-table-column prop="price_components[0].price" label="Price" min-width="50"/>
           <el-table-column prop="price_components[0].vat" label="Vat" min-width="50"/>
-          <el-table-column prop="price_components[0].step_size" label="Step Size" min-width="50"/>
+          <el-table-column prop="price_components[0].step_size" label="Unit" min-width="50"/>
           <el-table-column prop="restrictions.start_time" label="Start Time" min-width="50"/>
           <el-table-column prop="restrictions.end_time" label="End Time" min-width="50"/>
           <el-table-column prop="restrictions.day_of_week" label="Day Of Week" min-width="50"/>
