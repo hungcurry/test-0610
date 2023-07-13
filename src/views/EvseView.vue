@@ -225,7 +225,7 @@ onMounted( async() => {
           </template>
           </el-table-column>
 
-          <el-table-column prop="last_updated_str" label="Updated Time" min-width="50"/>
+          <el-table-column prop="last_updated_str" label="Updated Time" min-width="50" sortable/>
           <el-table-column v-if="editMode === false" prop="" label="" min-width="30">
           <template #default="scope">
                 <el-button @click="detail_info(scope.row)"> <font-awesome-icon icon="fa-solid fa-ellipsis" /> </el-button>
@@ -259,7 +259,7 @@ onMounted( async() => {
               </template>
             </el-table-column>
   
-            <el-table-column prop="last_updated_str" label="Updated Time" min-width="50"/>
+            <el-table-column prop="last_updated_str" label="Updated Time" min-width="50" sortable/>
             <el-table-column v-if="editMode === false" prop="" label="" min-width="30">
               <template #default="scope">
                 <el-button @click="detail_info(scope.row)"> <font-awesome-icon icon="fa-solid fa-ellipsis" /> </el-button>

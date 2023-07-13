@@ -5,6 +5,7 @@ import SelectDropdown from '@/components/Input/SelectDropdown.vue'
 import { ref, reactive, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useMStore } from '@/stores/m_cloud'
+import moment from "moment"
 
 const MStore = useMStore()
 const company = MStore?.permission?.company?.name
@@ -24,43 +25,46 @@ const member = ref(0)
 const business = ref(0)
 const totalkwh = ref(0)
 const station_count = ref(0)
-const payment_method_obj = reactive({ credit: 0, rfid: 0, free: 0, googlepay: 0, applepay: 0, samsungpay: 0,  })
+const payment_method_obj = reactive({ credit: 0, rfid: 0, free: 0, googlepay: 0, samsungpay: 0,  })
 const charger_time = reactive({ hr: 0, min: 0, sec: 0 })
 const parking_time = reactive({ hr: 0, min: 0, sec: 0 })
-// selectDropdown
-const select_country = ref('Country')
-const select_city = ref('City')
-const select_station = ref('Station')
+const station_create_date = moment(MStore.permission.company.created_date).format("YYYY-MM-DD")
+const customers_create_date = moment(MStore.permission.company.created_date).format("YYYY-MM-DD")
 let ret_chart = null
 let chart_inst = null
-const country_options = ref([
-  { value: 'Taiwan' },
-  { value: 'Japan' },
-  { value: 'South Korea' },
-  { value: 'Thailand' },
-  { value: 'Vietnam' },
-])
-const city_options = ref([
-  { value: 'Taipei' },
-  { value: 'Kaohsiung' },
-  { value: 'Taichung' },
-  { value: 'Tainan' },
-  { value: 'Hsinchu' },
-])
-const station_options = ref([
-  { value: 'Option1' },
-  { value: 'Option2' },
-  { value: 'Option3' },
-  { value: 'Option4' },
-  { value: 'Option5' },
-])
+// selectDropdown
+// const select_country = ref('Country')
+// const select_city = ref('City')
+// const select_station = ref('Station')
+
+// const country_options = ref([
+//   { value: 'Taiwan' },
+//   { value: 'Japan' },
+//   { value: 'South Korea' },
+//   { value: 'Thailand' },
+//   { value: 'Vietnam' },
+// ])
+// const city_options = ref([
+//   { value: 'Taipei' },
+//   { value: 'Kaohsiung' },
+//   { value: 'Taichung' },
+//   { value: 'Tainan' },
+//   { value: 'Hsinchu' },
+// ])
+// const station_options = ref([
+//   { value: 'Option1' },
+//   { value: 'Option2' },
+//   { value: 'Option3' },
+//   { value: 'Option4' },
+//   { value: 'Option5' },
+// ])
 const status_obj = reactive({ Available: 0, Charging: 0, Offline: 0, Error: 0})
 
 const payment_method_option = {
   tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
   legend: { y: 'bottom', x: 'left' }, grid: { left: '2%', right: '3%', bottom: '10%', containLabel: true },
   xAxis: { type: 'value', boundaryGap: [0, 0.01] },
-  yAxis: { type: 'category', data: ['SAMSUNG PAY', 'GOOGLE PAY', 'APPLE PAY', 'FREE', 'RFID', 'Credit Card'] },
+  yAxis: { type: 'category', data: ['SAMSUNG PAY', 'GOOGLE PAY',  'FREE', 'RFID', 'Credit Card'] },
   series: [{ type: 'bar', barWidth: '20%', data: [0, 0, 0, 0], color: "#92a9c4" },
   ]
 }
@@ -160,7 +164,7 @@ const location_type_option = reactive({
       color: '#7e8c9c',
     },
     {
-      name: 'Parking lot',
+      name: 'Parking Lot',
       type: 'bar',
       stack: 'total',
       label: { show: true },
@@ -311,16 +315,14 @@ const queryTotalUsedTimes = async (select_time1) => {
   payment_method_obj.samsungpay = response.data.result[0].SAMSUNGPAY[0]?.SAMSUNGPAY
   payment_method_obj.free = response.data.result[0].FREE[0]?.FREE
   
-
-
   ret_chart = ref_payment_chart.value
 
-  payment_method_option.series[0].data = [payment_method_obj.samsungpay,payment_method_obj.googlepay,payment_method_obj.applepay, payment_method_obj.free, payment_method_obj.rfid, payment_method_obj.credit]
+  payment_method_option.series[0].data = [payment_method_obj.samsungpay,payment_method_obj.googlepay, payment_method_obj.free, payment_method_obj.rfid, payment_method_obj.credit]
   echarts.dispose(ret_chart)
   chart_inst = echarts.init(ret_chart)
   payment_method_option && chart_inst.setOption(payment_method_option)
 
-  }
+}
   
 onMounted(async () => {
 
@@ -453,27 +455,12 @@ onMounted(async () => {
 
   queryData = { "database": "CPO", "collection": "UserData", "pipelines": [ {$count: "memberCount"}]}
   response = await MsiApi.mongoAggregate(queryData)
-  member.value = response?.data?.result?.[0]?.memberCount
+  if(response?.data?.result?.[0]?.memberCount)
+    member.value = response?.data?.result?.[0]?.memberCount
 
   queryData = { "database": "CPO", "collection": "CompanyInformation", "pipelines": [ { $count: "companyCount"} ] }
   response = await MsiApi.mongoAggregate(queryData)
   business.value = response?.data?.result?.[0]?.companyCount
-  
-
-  // queryData = { "database": "CPO", "collection": "PaymentHistory", "pipelines": [ {
-  //   $facet: {
-
-  //     charging_time: [{ $match: { "operator_types.type": 'charge' } },
-  //     {$group:{_id:null, total_time:{$sum:"$operator_types.time"}}} ],
-
-  //     //  parking_time: [{ $match: { "operator_types.type": 'parking' } }, { $sum: "parking_time" }],
-  //   }
-  // }] }
-  // // { $group: { _id: null, totalkwh: { $sum: '$kwh' }, }}]}
-  // response = await MsiApi.mongoAggregate(queryData)
-
-
-
 
   let ret_chart = null
   let chart_inst = null
@@ -969,7 +956,7 @@ onUnmounted(() => {
                 alt="dashboard_title_time"
               />
               <p class="text-blue-1200 text-22px ml-8px">
-                Total Used Time (Charge / Parking)
+                Total Used Time (Charging / Parking)
               </p>
             </div>
             <div class="card-body flex-center h-full text-40px md:text-60px">
@@ -1041,7 +1028,7 @@ onUnmounted(() => {
           <div class="customers flex-col card-rounded box-shadow">
             <div class="evse-title flex items-center pb-16px md:pb-20px">
               <font-awesome-icon class="w-24px h-24px" icon="fa-regular fa-user" />
-              <p class="text-blue-1200 text-22px ml-8px">Customers</p>
+              <p class="text-blue-1200 text-22px ml-8px" style="white-space:nowrap">Customers <span style="font-size: 21px;"> {{'(From data created until now)'}} </span></p>
             </div>
             <div
               class="card-body flex-center h-full text-40px md:text-60px justify-evenly"
@@ -1062,7 +1049,7 @@ onUnmounted(() => {
                 src="@/assets/img/dashboard_title_locationtype.png"
                 alt="dashboard_title_locationtype"
               />
-              <p class="text-blue-1200 text-22px ml-8px">Station Type of Usage</p>
+              <p class="text-blue-1200 text-22px ml-8px" style="white-space:nowrap" >Station Type of Usage {{'(From data created until now)'}}</p>
             </div>
             <div class="card-body flex-center h-full text-40px md:text-60px">
               <div ref="ref_location_type" class="location-type"></div>
@@ -1074,7 +1061,7 @@ onUnmounted(() => {
                 src="@/assets/img/dashboard_title_power.png"
                 alt="dashboard_title_power"
               />
-              <p class="text-blue-1200 text-22px ml-8px">Used Power & Times</p>
+              <p class="text-blue-1200 text-22px ml-8px">Used Power & Times (Last 7 days)</p>
             </div>
             <div class="card-body flex-center h-full text-40px md:text-60px">
               <div ref="ref_power_time" class="power-time flex-grow"></div>

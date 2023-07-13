@@ -10,7 +10,6 @@ import { useMStore } from "../stores/m_cloud"
 import moment from "moment"
 
 const MStore = useMStore();
-
 const router = useRouter()
 const MsiApi = ApiFunc()
 const UserData = reactive([])
@@ -22,7 +21,7 @@ const newUser = reactive({first_name:'', last_name:'', email:'', password:'msi32
 
 const UserTable = [
   {label:'First Name', value:'first_name', width:'40'}, {label:'Last Name', value:'last_name', width:'40'}, 
-  {label:'Email', value:'email', width:'80'}, {label:'EVSE List', value:'evse_list_str', width:'40'}, 
+  {label:'E-mail', value:'email', width:'80'}, {label:'EVSE List', value:'evse_list_str', width:'40'}, 
   {label:'Used Times', value:'payment_length', width:'30'}, {label:'Updated Date', value:'updated_date_str', width:'80'}, 
   {label:'', value:'detail', width:'20', type:'button'}
 ]

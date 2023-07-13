@@ -22,6 +22,7 @@ let upgrade_manager = {}
 let queryData = null
 let response = null
 let check_format_success = true
+const Effective = ref('1')
 const currentRow = ref()
 
 const cancelProgram = () => {
@@ -29,24 +30,25 @@ const cancelProgram = () => {
 }
 
 const subscribeProgram = async () => {
+  check_format_success = true
     if (companyData.name === undefined || companyData.name === '') {
-    ElMessage.error('Oops, First name required.')
+    ElMessage.error('Oops, Company name required.')
     check_format_success = false
   }
   if (companyData.address_str === undefined || companyData.address_str === '') {
-    ElMessage.error('Oops, First name required.')
+    ElMessage.error('Oops, Address required.')
     check_format_success = false
   }
   if (companyData.phone === undefined || companyData.phone === '') {
-    ElMessage.error('Oops, First name required.')
+    ElMessage.error('Oops, Phone required.')
     check_format_success = false
   }
   if (companyData.email === undefined || companyData.email === '') {
-    ElMessage.error('Oops, First name required.')
+    ElMessage.error('Oops, Email required.')
     check_format_success = false
   }
   if (companyData.tax_id === undefined || companyData.tax_id === '') {
-    ElMessage.error('Oops, First name required.')
+    ElMessage.error('Oops, Tax required.')
     check_format_success = false
   }
   if (check_format_success === true) {
@@ -54,8 +56,10 @@ const subscribeProgram = async () => {
             invoice_detail:{title:companyData.name, address: companyData.address_str, phone: companyData.phone, email:companyData.email}, 
             tax_id:companyData.tax_id }
   console.log(await MsiApi.subscribe_plan(sendData))
-  sendData = {}
-  console.log(await MsiApi.auth_payment(sendData))
+  if (Effective.value === '1') {
+    sendData = {}
+    console.log(await MsiApi.auth_payment(sendData))
+  }
   CheckProgramVisible.value = false
   }
 }
@@ -240,8 +244,13 @@ onMounted( async () => {
 
 
   <el-dialog v-model="CheckProgramVisible" title="Check Program">
+    <div class="mb-2 flex items-center text-sm">
+    <el-radio-group v-model="Effective">
+      <el-radio label="1" size="large">Effective immediately</el-radio>
+      <el-radio label="2" size="large">Effective date will start in a month</el-radio>
+    </el-radio-group>
+  </div>
     <el-form label-position="left" label-width="100px">
-
       <el-table :data="select_plan" @current-change="handleCurrentChange" highlight-current-row>
         <el-table-column prop="name" label="Program Name" min-width="80" />
         <el-table-column prop="evse" label="EVSE Quantity" min-width="80" />

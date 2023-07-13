@@ -39,6 +39,7 @@ const getEVSEOCPPLogs = async() => {
   }
   let response = await MsiApi.mongoAggregate(queryData)
   if (response.status === 200) {
+    console.log(response)
     ocppErrorData.splice(0, ocppErrorData.length)
     Object.assign(ocppErrorData, response.data.result)
   }
@@ -71,32 +72,28 @@ onMounted(() => {
 </script>
 
 <template>
-
 	<div class="ocpp-error">
     <p class="total-count"> {{ 'Total Count : ' + ocppErrorData.length  }}</p>
 		<div class="date-picker">
 			<el-date-picker v-model="select_time" type="datetimerange" start-placeholder="Start Date" end-placeholder="End Date" :default-time="defaultTime" @change="getEVSEOCPPLogs"/>
 		</div>
 		<el-button class="download" @click="download"> Download </el-button>
-
 		<div class="log-list">
 			<el-table :data="ocppErrorData" style="width: 95%; height:95%" stripe  :cell-style=msi.tb_cell  :header-cell-style=msi.tb_header_cell size="large" v-loading = "isLoading">
           <el-table-column prop="evse_id" label="EVSE ID" min-width="10"/>
           <el-table-column prop="ocpp_errorCode" label="Error Code" min-width="10"/>
-          <el-table-column prop="vendorErrorCode" label="VendorErrorCode" min-width="10"/>
-          <el-table-column prop="ocpp_firmware_status" label="OCPP FW Status" min-width="10"/>
-          <el-table-column prop="ocpp_status" label="OCPP Status" min-width="10">
-          <template #header>
+          <el-table-column prop="vendorErrorCode" label="Vendor Error Code" min-width="10">
+            <template #header>
             <div class="custom-header">
-              <span>OCPP Status</span>
+              <span>System Error Code</span>
               <el-button type="text" size="small" @click="handleButtonClick">?</el-button>
             </div>
           </template>
           </el-table-column>
+          <el-table-column prop="ocpp_firmware_status" label="FW Error Info" min-width="10"/>
           <el-table-column prop="created_date_str" label="Created Time" min-width="10" sortable='sortable' />
 			</el-table>
 		</div>
-
     <el-dialog v-model="ErrorCodeVisible" title="Error Code List">
       <p>-1  No communication between Charging board and HMI</p> 
       <p>1  Initial setting  fault</p> 
@@ -122,9 +119,7 @@ onMounted(() => {
       <p>64  Pile state is abnormal</p> 
       <p>159  Unexpected Discharging</p> 
     </el-dialog>
-
 	</div>
-
 </template>
 
 <style lang="scss">

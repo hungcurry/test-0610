@@ -12,7 +12,6 @@ import { ElMessageBox, ElMessage } from 'element-plus'
 //   let text_arr = []
 //   textarea_en.value = ''
 //   for (let i = 0; i < tariff_elements.length; i++) {
-
 //     for (let j = 0; j < tariff_elements[i].restrictions.day_of_week.length; j++) {
 //       if (tariff_elements[i].restrictions.day_of_week[j] === 'MONDAY')
 //         week += 'MON'
@@ -29,10 +28,8 @@ import { ElMessageBox, ElMessage } from 'element-plus'
 //       else if (tariff_elements[i].restrictions.day_of_week[j] === 'SUNDAY')
 //         week += 'SUN'
 
-//       if (j === tariff_elements[i].restrictions.day_of_week.length - 1)
-//         week += '\n'
-//       else
-//         week += ' / '
+//       if (j === tariff_elements[i].restrictions.day_of_week.length - 1) week += '\n'
+//       else week += ' / '
 //     }
 //     if (tariff_elements[i].restrictions.end_time === '00:00')
 //       tariff_elements[i].restrictions.end_time = '23:59'
@@ -77,19 +74,15 @@ const used_evse = reactive([])
 const TariffData = reactive({})
 const day = [{ label: 'Mon.', value: 'MONDAY' }, { label: 'Tue.', value: 'TUESDAY' }, { label: 'Wed.', value: 'WEDNESDAY' }, { label: 'Thu.', value: 'THURSDAY' },
 { label: 'Fri.', value: 'FRIDAY' }, { label: 'Sat.', value: 'SATURDAY' }, { label: 'Sun.', value: 'SUNDAY' }]
-
-// const tariff_type_opeion = [{value:'AD_HOC_PAYMENT',label:'AD_HOC_PAYMENT'}]
 const tariff_currency_opeion = [{ value: 'TWD', label: 'TWD' }, { value: 'USD', label: 'USD' }, { value: 'JPY', label: 'JPY' }, { value: 'EUR', label: 'EUR' }]
 const tariff_country_code_opeion = [{ value: 'TW', label: 'TW' }, { value: 'US', label: 'US' }, { value: 'JP', label: 'JP' }, { value: 'DE', label: 'DE' }]
-const price_type_opeion = [{ value: 'ENERGY', label: 'Charging By Energy' }, { value: 'TIME', label: 'Charging By Time' }, { value: 'PARKING_TIME', label: 'Parking' }]
+const price_type_opeion = [{ value: 'ENERGY', label: 'Charging By Energy' }, { value: 'TIME', label: 'Charging By Time' }, { value: 'PARKING_TIME', label: 'Parking By Time' }]
 
 const textarea_en = ref('')
 const textarea_zh = ref('')
-const textarea_jp = ref('')
 const tariff_id = route.query.id
 
 const seletcType = (type) => {
-  new_element.value.vat = 5
   if (type === 'ENERGY')
     new_element.value.step_size = 1
   else
@@ -100,26 +93,19 @@ const cancel_tariff = () => {
   router.push({ name: 'tariff' })
 }
 const save_tariff = async () => {
-  let new_tariff_alt_text = [{ language: 'en', text: textarea_en.value }, { language: 'zh', text: textarea_zh.value },
-  { language: 'jp', text: textarea_jp.value }]
+  let new_tariff_alt_text = [{ language: 'en', text: textarea_en.value }, { language: 'zh', text: textarea_zh.value }]
   TariffData.tariff_alt_text = new_tariff_alt_text
   TariffData.elements = tariff_elements
   TariffData.class = 'Tariff'
   TariffData.type = 'AD_HOC_PAYMENT'
   TariffData.party_id = 'MSI'
   if (TariffData.elements.length === 0) {
-  //  await ElMessageBox.confirm('rate is empty, Do you want FREE ?', 'Warning', { confirmButtonText: 'OK', cancelButtonText: 'Cancel', type: 'warning' })
-  //     .then( () => {
     let day_of_week_arr = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY']
     let free_price = [{
       'price_components': [{ type: 'ENERGY', price: 0, vat: 5, step_size: 1 }],
       'restrictions': { start_time: '00:00', end_time: '23:59', max_duration: 0, min_duration: 0, day_of_week: day_of_week_arr }
     }]
     TariffData.elements = free_price
-  // })
-  // }
-  // if (TariffData.elements.length === 0) {
-  //   return
   }
   if (TariffData.min_price_str !== undefined && TariffData.min_price_str !== '') {
     TariffData.min_price = { excl_vat: parseInt(TariffData.min_price_str), incl_vat: parseInt(TariffData.min_price_str) }
@@ -138,6 +124,9 @@ const save_tariff = async () => {
         else {
           for(let i = 0; i < TariffData.elements.length; i++) {
             delete TariffData.elements[i].price_components_type_str
+            delete TariffData.elements[i].price_components_step_size_str
+            delete TariffData.elements[i].restrictions_max_duration_str
+            delete TariffData.elements[i].restrictions_min_duration_str            
           }
           let res = await MsiApi.setCollectionData('patch', 'ocpi', TariffData)
           if (res.status === 200)
@@ -153,14 +142,19 @@ const save_tariff = async () => {
       })
   }
   else {
-    let senddata = Object.assign(TariffData)
     ElMessageBox.confirm('Do you want to create?', 'Warning', { confirmButtonText: 'OK', cancelButtonText: 'Cancel', type: 'warning' })
     .then(async () => {
-      if (senddata.profile_name === undefined) { ElMessage.error('Oops, Profile Name required.') }
-      else if (senddata.country_code === undefined) { ElMessage.error('Oops, Country Code required.') }
-      else if (senddata.currency === undefined) { ElMessage.error('Oops, Currency required.') }
+      if (TariffData.profile_name === undefined) { ElMessage.error('Oops, Profile Name required.') }
+      else if (TariffData.country_code === undefined) { ElMessage.error('Oops, Country Code required.') }
+      else if (TariffData.currency === undefined) { ElMessage.error('Oops, Currency required.') }
       else {
-        let res = await MsiApi.setCollectionData('post', 'ocpi', senddata)
+        for(let i = 0; i < TariffData.elements.length; i++) {
+            delete TariffData.elements[i].price_components_type_str
+            delete TariffData.elements[i].price_components_step_size_str
+            delete TariffData.elements[i].restrictions_max_duration_str
+            delete TariffData.elements[i].restrictions_min_duration_str
+          }
+        let res = await MsiApi.setCollectionData('post', 'ocpi', TariffData)
         console.log(res)
         if (res.status === 201) {
           ElMessage.success(res.data.message)
@@ -177,43 +171,46 @@ const save_tariff = async () => {
   }
 }
 
-const ShowElementDialog = (action, scope) => {
-  element_action.value = action
+const ShowAddElementDialog = () => {
   add_tariff_visible.value = true
-  if (action === 'add') {
-    add_tariff_title.value = 'Add Rate'
-    new_element.value.price_type = ''
-    new_element.value.price_price = 0
-    new_element.value.step_size = 0
-    new_element.value.vat = 0
-    new_element.value.min_duration = 0
-    new_element.value.max_duration = 0
-    new_element.value.start_time = '00:00'
-    new_element.value.end_time = '00:00'
-    new_element.value.day_of_week = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY']
-  }
-  if (action === 'edit') {
-    add_tariff_title.value = 'Edit Rate'
-    modifyIndex.value = scope.$index
-    new_element.value.day_of_week.length =  0
-    new_element.value.price_type = scope.row.price_components[0].type
-    new_element.value.price_price = scope.row.price_components[0].price
-    new_element.value.step_size = scope.row.price_components[0].step_size
-    new_element.value.vat = scope.row.price_components[0].vat
-    new_element.value.min_duration = scope.row.restrictions.min_duration
-    new_element.value.max_duration = scope.row.restrictions.max_duration
-    new_element.value.start_time = scope.row.restrictions.start_time
-    new_element.value.end_time = scope.row.restrictions.end_time
-    for (let i = 0; i < scope.row.restrictions.day_of_week.length; i++) {
-      new_element.value.day_of_week.push(scope.row.restrictions.day_of_week[i]) 
-    }
+  element_action.value = 'add'
+  add_tariff_title.value = 'Add Rate'
+  new_element.value.price_type = ''
+  new_element.value.vat = 5
+  new_element.value.price_price = 0
+  new_element.value.step_size = new_element.value.step_size_str = 1
+  new_element.value.min_duration = new_element.value.max_duration = 0
+  new_element.value.min_duration_str = new_element.value.max_duration_str =  0
+  new_element.value.start_time = new_element.value.end_time = '00:00'
+  new_element.value.day_of_week = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY']
+}
+
+const ShowEditElementDialog = (scope) => {
+  add_tariff_visible.value = true
+  element_action.value = 'edit'
+  add_tariff_title.value = 'Edit Rate'
+  modifyIndex.value = scope.$index
+  new_element.value.day_of_week.length =  0
+  new_element.value.price_type = scope.row.price_components[0].type
+  new_element.value.price_price = scope.row.price_components[0].price
+  if (new_element.value.price_type !== 'ENERGY') 
+    new_element.value.step_size_str = scope.row.price_components[0].step_size / 60 
+  else 
+    new_element.value.step_size_str = scope.row.price_components[0].step_size
+
+  new_element.value.vat = scope.row.price_components[0].vat
+  new_element.value.min_duration_str = scope.row.restrictions.min_duration / 60
+  new_element.value.max_duration_str = scope.row.restrictions.max_duration / 60
+  new_element.value.start_time = scope.row.restrictions.start_time 
+  new_element.value.end_time = scope.row.restrictions.end_time
+  for (let i = 0; i < scope.row.restrictions.day_of_week.length; i++) {
+    new_element.value.day_of_week.push(scope.row.restrictions.day_of_week[i]) 
   }
 }
 
 const editElement = (action) => {
   if (new_element.value.end_time === '00:00')
     new_element.value.end_time = '23:59'
-  console.log(new_element.value.day_of_week)
   let tempArr = []
   for(let i = 0; i < new_element.value.day_of_week.length; i++) {
     tempArr.push(new_element.value.day_of_week[i])
@@ -229,6 +226,9 @@ const editElement = (action) => {
   else if (new_element.value.price_type === "PARKING_TIME")
     new_element.value.type_str = 'Parking By Time'
 
+    new_element.value.min_duration = new_element.value.min_duration_str * 60
+    new_element.value.max_duration = new_element.value.max_duration_str * 60
+    new_element.value.step_size = new_element.value.step_size_str * 60
 
   let modify_element = { price_components:[{ type:new_element.value.price_type, price:new_element.value.price_price,
                                             step_size:new_element.value.step_size, vat:new_element.value.vat} ],
@@ -238,29 +238,42 @@ const editElement = (action) => {
                                           }
   if (action === 'add') {
     let element = JSON.parse(JSON.stringify(modify_element))
-      console.log(element)
-      if (element.price_components[0].type === "ENERGY") 
-        element.price_components_type_str = 'Charging By Energy'
-      else if (element.price_components[0].type === "TIME") 
-        element.price_components_type_str = 'Charging By Time'
-      else if (element.price_components[0].type === "PARKING_TIME") 
-        element.price_components_type_str = 'Parking By Time'        
-      tariff_elements.push(element)
+    if (element.price_components[0].type === "ENERGY") {
+      element.price_components_type_str = 'Charging By Energy'
+      element.price_components_step_size_str = 1 
+    }
+    else if (element.price_components[0].type === "TIME") {
+      element.price_components_type_str = 'Charging By Time'
+      element.price_components_step_size_str = new_element.value.step_size / 60
+    }
+    else if (element.price_components[0].type === "PARKING_TIME") {
+      element.price_components_type_str = 'Parking By Time'
+      element.price_components_step_size_str = new_element.value.step_size / 60
+      element.restrictions_min_duration_str = new_element.value.min_duration / 60
+      element.restrictions_max_duration_str = new_element.value.max_duration / 60
+    }
+    tariff_elements.push(element)
   }
   else if (action === 'edit') {
+    console.log(modify_element)
     tariff_elements[modifyIndex.value] = modify_element
-    if (tariff_elements[modifyIndex.value].price_components[0].type === "ENERGY")
+    if (tariff_elements[modifyIndex.value].price_components[0].type === "ENERGY") {
       tariff_elements[modifyIndex.value].price_components_type_str = 'Charging By Energy'
-    else if (tariff_elements[modifyIndex.value].price_components[0].type === "TIME")
+      tariff_elements[modifyIndex.value].price_components_step_size_str = 1
+    }
+    else if (tariff_elements[modifyIndex.value].price_components[0].type === "TIME") {
       tariff_elements[modifyIndex.value].price_components_type_str = 'Charging By Time'
-    else if (tariff_elements[modifyIndex.value].price_components[0].type === "PARKING_TIME")
+      tariff_elements[modifyIndex.value].price_components_step_size_str = modify_element.price_components[0] / 60
+    }
+    else if (tariff_elements[modifyIndex.value].price_components[0].type === "PARKING_TIME") {
       tariff_elements[modifyIndex.value].price_components_type_str = 'Parking By Time'
+      tariff_elements[modifyIndex.value].price_components_step_size_str = modify_element.price_components[0].step_size / 60
+      tariff_elements[modifyIndex.value].restrictions_min_duration_str = modify_element.restrictions.min_duration / 60
+      tariff_elements[modifyIndex.value].restrictions_max_duration_str = modify_element.restrictions.max_duration / 60
+    }
   }
   else if (action === 'delete') {
     tariff_elements.splice(modifyIndex.value, 1)
-  }
-  else if (action === 'cancel') {
-    console.log('cancel')
   }
   add_tariff_visible.value = false
 }
@@ -277,21 +290,25 @@ onMounted(async () => {
       else if (TariffData.tariff_alt_text[i].language === 'zh') {
         textarea_zh.value = TariffData.tariff_alt_text[i].text
       }
-      else if (TariffData.tariff_alt_text[i].language === 'jp') {
-        textarea_jp.value = TariffData.tariff_alt_text[i].text
-      }
     }
     Object.assign(tariff_elements, TariffData.elements)
+    console.log(tariff_elements)
     for (let i = 0; i < tariff_elements.length; i++) {
-      
-      if (tariff_elements[i].price_components[0].type === "ENERGY")
+      if (tariff_elements[i].price_components[0].type === "ENERGY") {
         tariff_elements[i].price_components_type_str = 'Charging By Energy'
-      else if (tariff_elements[i].price_components[0].type === "TIME")
+        tariff_elements[i].price_components_step_size_str = tariff_elements[i].price_components[0].step_size
+      }
+      else if (tariff_elements[i].price_components[0].type === "TIME") {
         tariff_elements[i].price_components_type_str = 'Charging By Time'
-      else if (tariff_elements[i].price_components[0].type === "PARKING_TIME")
+        tariff_elements[i].price_components_step_size_str = tariff_elements[i].price_components[0].step_size / 60
+      }
+      else if (tariff_elements[i].price_components[0].type === "PARKING_TIME") {
         tariff_elements[i].price_components_type_str = 'Parking By Time'
+        tariff_elements[i].price_components_step_size_str = tariff_elements[i].price_components[0].step_size / 60
+        tariff_elements[i].restrictions_min_duration_str = tariff_elements[i].restrictions.min_duration / 60
+        tariff_elements[i].restrictions_max_duration_str = tariff_elements[i].restrictions.max_duration / 60
+      }
     }
-
     TariffData.min_price_str = TariffData?.min_price?.incl_vat
     TariffData.max_price_str = TariffData?.max_price?.incl_vat
     queryData = {
@@ -330,7 +347,7 @@ onMounted(async () => {
   <div class="tariff-detail">
     <div class="tariff-up">
       <p>Rate Profile Details</p>
-      <el-button class="add-tariff-element-btn" @click="ShowElementDialog('add')"> Add Rate </el-button>
+      <el-button class="add-tariff-element-btn" @click="ShowAddElementDialog"> Add Rate </el-button>
     </div>
     <el-tabs v-model="activeName" class="demo-tabs">
       <el-tab-pane label="General" name="one">
@@ -339,20 +356,13 @@ onMounted(async () => {
             <p>Profile Name</p>
             <el-input v-model="TariffData.profile_name" />
 
-            <!-- 
-            <p>Type</p>
-            <el-select v-model="TariffData.type" class="m-2" placeholder="Select" size="large">
-              <el-option v-for="item in tariff_type_opeion" :key="item.value" :label="item.label" :value="item.value"/>
-            </el-select> 
-            -->
-
             <p>Currency</p>
-            <el-select v-model="TariffData.currency" class="m-2" placeholder="Select" size="large">
+            <el-select v-model="TariffData.currency" placeholder="Select" size="large">
               <el-option v-for="item in tariff_currency_opeion" :key="item.value" :label="item.label"
                 :value="item.value" />
             </el-select>
             <p>Country Code</p>
-            <el-select v-model="TariffData.country_code" class="m-2" placeholder="Select" size="large">
+            <el-select v-model="TariffData.country_code" placeholder="Select" size="large">
               <el-option v-for="item in tariff_country_code_opeion" :key="item.value" :label="item.label"
                 :value="item.value" />
             </el-select>
@@ -381,10 +391,6 @@ onMounted(async () => {
                 <el-input v-model="textarea_zh" :rows="20" type="textarea" placeholder="1. 充電費 平日：星期一到星期五 時間：早上八點到晚上六點費用：一度電10元；時間：晚上六點到早上八點  費用：一度電6元 假日：星期六到星期日 時間：00:00 ~23:59 費用：一度電6元
 2. 停車費 平日：星期一到星期五 時間：早上八點到晚上六點 費用：每小時40元；時間：晚上六點到早上八點 費用：每小時20元 假日：星期六到星期日 時間：00:00 ~23:59 費用：每小時20元" />
               </div>
-              <!-- <div class="tariff-description-1">
-                <p>Japanese</p>
-                <el-input v-model="textarea_jp" :rows="20" type="textarea" placeholder="Please input" />
-              </div> -->
             </div>
           </div>
         </div>
@@ -394,15 +400,17 @@ onMounted(async () => {
         <el-table :data="tariff_elements" style="width: 95%; height:800px" stripe :cell-style=msi.tb_cell
           :header-cell-style=msi.tb_header_cell size="large">
           <el-table-column prop="price_components_type_str" label="Type" min-width="50" />
-          <el-table-column prop="price_components[0].price" label="Price" min-width="50" />
-          <el-table-column prop="price_components[0].vat" label="Vat" min-width="50" />
-          <el-table-column prop="price_components[0].step_size" label="Unit" min-width="50" />
+          <el-table-column prop="price_components[0].price" label="Price" min-width="30" />
+          <el-table-column prop="price_components[0].vat" label="Vat" min-width="30" />
+          <el-table-column prop="price_components_step_size_str" label="Charge Unit" min-width="30" />
           <el-table-column prop="restrictions.start_time" label="Start Time" min-width="50" />
           <el-table-column prop="restrictions.end_time" label="End Time" min-width="50" />
+          <el-table-column prop="restrictions_min_duration_str" label="Active (Minute)" min-width="50" />
+          <el-table-column prop="restrictions_max_duration_str" label="Deactivate (Minute)" min-width="50" />
           <el-table-column prop="restrictions.day_of_week" label="Day Of Week" min-width="50" />
-          <el-table-column>
+          <el-table-column min-width="20">
             <template #default="scope">
-              <el-button @click="ShowElementDialog('edit', scope)"> <font-awesome-icon icon="fa-solid fa-ellipsis" />
+              <el-button @click="ShowEditElementDialog(scope)"> <font-awesome-icon icon="fa-solid fa-ellipsis" />
               </el-button>
             </template>
           </el-table-column>
@@ -424,41 +432,41 @@ onMounted(async () => {
       </div>
       <div v-else>
         <div v-if="new_element.price_type === 'ENERGY'">
-          <p>Price</p>
+          <p>Price (kWh)</p>
           <el-input-number v-model="new_element.price_price" :controls="false" />
-          <p>Unit kWh</p>
-          <el-input-number v-model="new_element.step_size" :controls="false" disabled />
+          <p>Charge Unit (Wh)</p>
+          <el-input-number v-model="new_element.step_size_str" :controls="false" disabled />
         </div>
 
         <div v-else-if="new_element.price_type === 'TIME'">
           <p>Price ($ / hr)</p>
           <el-input-number v-model="new_element.price_price" :controls="false" />
-          <p>Unit (Second)</p>
-          <el-input-number v-model="new_element.step_size" :controls="false" />
-          <!-- <p> {{ 'i.e. ' + (tariff_element.price_components[0].step_size / 60).toFixed(2) + ' Min ' +
-            (new_element.price_price / (3600 / tariff_element.price_components[0].step_size)).toFixed(2) 
-            + ' Dollar ' + 'excl Vat'}}</p> -->
+          <p>Charge Unit (Minute)</p>
+          <el-input-number v-model="new_element.step_size_str" :controls="false" />
+          <!-- <p> {{ 'i.e. ' + new_element.step_size_str + ' Min ' +
+            new_element.price_price /  60 * new_element.step_size_str
+            + ' Dollar ' + 'excl Vat'}}</p>  -->
         </div>
 
         <div v-else-if="new_element.price_type === 'PARKING_TIME'">
           <p>Price ($ / hr)</p>
           <el-input-number v-model="new_element.price_price" :controls="false" />
-          <p>Unit (Second)</p>
-          <el-input-number v-model="new_element.step_size" :controls="false" />
-          <!-- <p> {{ 'i.e. ' + (tariff_element.price_components[0].step_size / 60).toFixed(2) + ' Min ' +
-            (tariff_element.price_components[0].price / (3600 / tariff_element.price_components[0].step_size)).toFixed(2)
+          <p>Charge Unit (Minute)</p>
+          <el-input-number v-model="new_element.step_size_str" :controls="false" />
+          <!-- <p> {{ 'i.e. ' + new_element.step_size_str + ' Min ' +
+            new_element.price_price /  60 * new_element.step_size_str
             + ' Dollar ' + 'excl Vat'}}</p> -->
         </div>
-
-
 
         <p>Vat</p>
         <el-input-number v-model="new_element.vat" :controls="false" />
         <div v-if="new_element.price_type === 'PARKING_TIME'">
-          <p>Min Duration (Second)</p>
-          <el-input-number v-model="new_element.min_duration" :controls="false" />
-          <p>Max Duration (Second)</p>
-          <el-input-number v-model="new_element.max_duration" :controls="false" />
+          <p>Active Time (Minute)</p>
+          <!-- <el-input-number v-model="new_element.min_duration" :controls="false" /> -->
+          <el-input-number v-model="new_element.min_duration_str" :controls="false" />
+          <p>Deactivate Time (Minute)</p>
+          <!-- <el-input-number v-model="new_element.max_duration" :controls="false" /> -->
+          <el-input-number v-model="new_element.max_duration_str" :controls="false" />
         </div>        
         <p>Time</p>
         <el-time-select v-model="new_element.start_time" :max-time="endTime" placeholder="Start time"

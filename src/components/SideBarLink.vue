@@ -9,7 +9,9 @@ import {
   Postcard,
   Location,
   UserFilled,
-  Tools,
+  InfoFilled,
+  EditPen,
+  View
 } from '@element-plus/icons-vue'
 const MStore = useMStore()
 const company = MStore?.permission?.company?.name
@@ -77,29 +79,35 @@ onMounted(async () => {
         <span>Log Monitor</span>
       </template>
       <el-menu-item index="ocpiSession">Charger Log</el-menu-item>
-      <el-menu-item index="ocppError"> OCPP Error </el-menu-item>
+      <el-menu-item index="ocppError"> Error Log </el-menu-item>
     </el-sub-menu>
 
     <el-menu-item index="softwareInfo">
-      <el-icon><Tools /></el-icon>
+      <el-icon><InfoFilled /></el-icon>
       <template #title>
         <span>Software Info</span>
       </template>
     </el-menu-item>
 
     <el-menu-item v-if="dev_member" index="parking">
-      <el-icon><Tools /></el-icon>
-      <span>Parking</span>
+      <el-icon><View /></el-icon>
+      <template #title>
+        <span>Parking</span>
+      </template>
     </el-menu-item>
 
-    <el-menu-item v-if="dev_member" index="test">
-      <el-icon><Tools /></el-icon>
-      <span>Test</span>
-    </el-menu-item>
+    <!-- <el-menu-item v-if="dev_member" index="test">
+      <el-icon><Timer /></el-icon>
+      <template #title>
+        <span>Test</span>
+      </template>
+    </el-menu-item> -->
 
     <el-menu-item v-if="company === 'MSI' && dev_member" index="program">
-      <el-icon><Tools /></el-icon>
-      <span>Program</span>
+      <el-icon><EditPen /></el-icon>
+      <template #title>
+        <span>Program</span>
+      </template>
     </el-menu-item>
   </el-menu>
 </template>

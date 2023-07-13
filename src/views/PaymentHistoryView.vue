@@ -53,7 +53,7 @@
             :header-cell-style="msi.tb_header_cell"
             v-loading.fullscreen.lock="isLoading"
           >
-            <el-table-column label="Locations" align="center" min-width="550">
+            <el-table-column label="Stations" align="center" min-width="550">
               <el-table-column
                 prop="location_name"
                 label="Name"

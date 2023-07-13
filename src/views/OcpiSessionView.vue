@@ -3,8 +3,7 @@ import { ref, reactive, onMounted } from 'vue'
 import ApiFunc from '@/composables/ApiFunc'
 import  {export_json_to_excel}  from '@/composables/Export2Excel'
 import msi from '@/assets/msi_style'
-
-import { useMStore } from "../stores/m_cloud";
+import { useMStore } from "../stores/m_cloud"
 import moment from "moment"
 const MStore = useMStore()
 const MsiApi = ApiFunc()
