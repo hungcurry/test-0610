@@ -166,7 +166,7 @@ const editUserDialog = (action) => {
     ElMessageBox.confirm('Do you want to delete?', 'Warning', { confirmButtonText: 'OK', cancelButtonText: 'Cancel', type: 'warning' })
       .then(async () => {
         console.log(await MsiApi.setCollectionData('delete', 'cpo', sendData))
-        router.push({ name: 'customers' })
+        router.push({ name: 'user' })
       })
       .catch((e) => {
         console.log(e)

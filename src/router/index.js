@@ -62,14 +62,14 @@ const router = createRouter({
           component: EvseView
         },
         {
-          path: 'customers',
-          name: 'customers',
+          path: 'user',
+          name: 'user',
           component: CustomersView
         },
 
         {
-          path: 'customers-detail',
-          name: 'customersDetail',
+          path: 'user-detail',
+          name: 'userDetail',
           component: CustomersDetailView
         },
 
@@ -104,13 +104,13 @@ const router = createRouter({
           component: EvseDetailView
         },        
         {
-          path: 'tariff',
-          name: 'tariff',
+          path: 'rate-plan',
+          name: 'ratePlan',
           component: TariffView
         },
         {
-          path: 'tariff-detail',
-          name: 'tariffDetail',
+          path: 'rate-plan-detail',
+          name: 'ratePlanDetail',
           component: TariffDetailView
         },
         {
@@ -139,8 +139,8 @@ const router = createRouter({
           component: ParkingView
         },
         {
-          path: 'user',
-          name: 'user',
+          path: 'admin-info',
+          name: 'adminInfo',
           component: UserView
         },    
         {

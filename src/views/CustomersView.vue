@@ -63,7 +63,7 @@ const GetPermission = async () => {
 }
 
 const detail_info = (detail) => {
-  router.push({ name: 'customersDetail', query:{id:detail._id} })
+  router.push({ name: 'userDetail', query:{id:detail._id} })
 }
 
 

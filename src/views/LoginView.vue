@@ -137,7 +137,7 @@ onMounted(() => {
         </button>
       </form>
       <div>
-        <p class="text-30px text-white text-center">Version: 0.1.6</p>
+        <p class="text-30px text-white text-center">Version: 0.1.7</p>
         <img class="logo block mx-auto" src="@/assets/img/login_msilogo.png" />
       </div>
     </div>

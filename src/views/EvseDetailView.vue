@@ -188,7 +188,7 @@ onMounted( async () => {
                   <p class="info-value w-50% ml-24px">{{connectorData.max_voltage + ' V '}}</p>
                 </div>   
                 <div class="info-item">
-                  <p class="info-title w-50%">Max Amperage</p>
+                  <p class="info-title w-50%">Max Current</p>
                   <p class="info-value w-50% ml-24px">{{connectorData.max_amperage + ' A '}}</p>
                 </div>   
                 <div class="info-item">

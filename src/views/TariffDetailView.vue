@@ -90,7 +90,7 @@ const seletcType = (type) => {
 }
 
 const cancel_tariff = () => {
-  router.push({ name: 'tariff' })
+  router.push({ name: 'ratePlan' })
 }
 const save_tariff = async () => {
   let new_tariff_alt_text = [{ language: 'en', text: textarea_en.value }, { language: 'zh', text: textarea_zh.value }]
@@ -110,8 +110,14 @@ const save_tariff = async () => {
   if (TariffData.min_price_str !== undefined && TariffData.min_price_str !== '') {
     TariffData.min_price = { excl_vat: parseInt(TariffData.min_price_str), incl_vat: parseInt(TariffData.min_price_str) }
   }
+  else {
+    delete TariffData.min_price
+  }
   if (TariffData.max_price_str !== undefined && TariffData.max_price_str !== '') {
     TariffData.max_price = { excl_vat: parseInt(TariffData.max_price_str), incl_vat: parseInt(TariffData.max_price_str) }
+  }
+  else {
+    delete TariffData.max_price
   }
 
   MsiFunc.deleteEmptyKeys(TariffData)
@@ -134,7 +140,7 @@ const save_tariff = async () => {
           else {
             ElMessage.error(res.data.message)
           }
-          router.push({ name: 'tariff' })
+          router.push({ name: 'ratePlan' })
         }
       })
       .catch((e) => {
@@ -154,7 +160,6 @@ const save_tariff = async () => {
             delete TariffData.elements[i].restrictions_max_duration_str
             delete TariffData.elements[i].restrictions_min_duration_str
           }
-        console.log(TariffData)
         let res = await MsiApi.setCollectionData('post', 'ocpi', TariffData)
         console.log(res)
         if (res.status === 201) {
@@ -163,7 +168,7 @@ const save_tariff = async () => {
         else {
           ElMessage.error(res.data.message)
         }
-        router.push({ name: 'tariff' })
+        router.push({ name: 'ratePlan' })
       }
     })
     .catch((e) => {
@@ -182,7 +187,8 @@ const ShowAddElementDialog = () => {
   new_element.value.step_size = new_element.value.step_size_str = 1
   new_element.value.min_duration = new_element.value.max_duration = 0
   new_element.value.min_duration_str = new_element.value.max_duration_str =  0
-  new_element.value.start_time = new_element.value.end_time = '00:00'
+  new_element.value.start_time = '00:00' 
+  new_element.value.end_time = '23:59'
   new_element.value.day_of_week = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY']
 }
 

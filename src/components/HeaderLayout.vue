@@ -29,7 +29,7 @@ const Chinese = () => {
   i18n.global.locale.value = 'zh_tw'
 }
 const Personal_Info = () => {
-  router.push({ name: 'user' })
+  router.push({ name: 'adminInfo' })
 }
 const logOut = () => {
   router.push({ name: 'login' })

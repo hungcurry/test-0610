@@ -39,7 +39,7 @@ const download = () => {
     'Charging Used Time',
     'Charging kWh',
     'Charging Price',
-    'Total Price',
+    'Final Paid',
     'Method',
     'Created Date',
   ]
@@ -345,7 +345,7 @@ onMounted(async () => {
 
             <el-table-column
               prop="price_str"
-              label="Total Price"
+              label="Final Paid"
               header-align="center"
               align="right"
               sortable

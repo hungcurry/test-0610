@@ -61,7 +61,7 @@ onMounted(async () => {
       </template>
       <el-menu-item index="station" :route="{ path: 'station' }">By Station</el-menu-item>
       <el-menu-item index="evse">By EVSE</el-menu-item>
-      <el-menu-item index="tariff">Rate Plan</el-menu-item>
+      <el-menu-item index="rate-plan">Rate Plan</el-menu-item>
     </el-sub-menu>
 
     <el-sub-menu index="administrator">
@@ -69,7 +69,7 @@ onMounted(async () => {
         <el-icon class="opacity-50"><UserFilled /></el-icon>
         <span>Account Management</span>
       </template>
-      <el-menu-item index="customers">User / Member</el-menu-item>
+      <el-menu-item index="user">RFID User / App Member</el-menu-item>
       <el-menu-item v-if="company === 'MSI'" index="company">Company / CPO</el-menu-item>
       <el-menu-item index="administrator"> m-Cloud Administrator</el-menu-item>
     </el-sub-menu>
