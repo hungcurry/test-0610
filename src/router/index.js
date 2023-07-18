@@ -47,7 +47,7 @@ const router = createRouter({
           meta: { title: 'm-Cloud' }
         },
         {
-          path: 'stationDetail',
+          path: 'station-detail',
           name: 'stationDetail',
           component: StationDetailView
         },
@@ -68,7 +68,7 @@ const router = createRouter({
         },
 
         {
-          path: 'customersDetail',
+          path: 'customers-detail',
           name: 'customersDetail',
           component: CustomersDetailView
         },
@@ -84,22 +84,22 @@ const router = createRouter({
           component: CompanyView
         },
         {
-          path: 'ocpiSession',
+          path: 'ocpi-session',
           name: 'ocpiSession',
           component: OcpiSessionView
         },
         {
-          path: 'stationEdit',
+          path: 'station-edit',
           name: 'stationEdit',
           component: StationEditView
         },
         {
-          path: 'paymentHistory',
-          name: 'paymentHistory',
+          path: 'payment',
+          name: 'payment',
           component: PaymentHistoryView
         },
         {
-          path: 'evseDetail',
+          path: 'evse-detail',
           name: 'evseDetail',
           component: EvseDetailView
         },        
@@ -109,22 +109,22 @@ const router = createRouter({
           component: TariffView
         },
         {
-          path: 'tariffDetail',
+          path: 'tariff-detail',
           name: 'tariffDetail',
           component: TariffDetailView
         },
         {
-          path: 'evseEdit',
+          path: 'evse-edit',
           name: 'evseEdit',
           component: EvseEditView
         },
         {
-          path: 'softwareInfo',
+          path: 'software-info',
           name: 'softwareInfo',
           component: SoftwareInfoView
         },
         {
-          path: 'ocppError',
+          path: 'ocpp-error',
           name: 'ocppError',
           component: OcppErrorView
         },
@@ -192,7 +192,7 @@ router.beforeEach(async to => {
     return '/login'
   }
 
-  if (toPath === '/parking' && MStore.user_data.first_name !== 'Steven' && MStore.user_data.first_name !== 'Leo' && MStore.user_data.first_name !== 'Frank') {
+  if (toPath === '/parking' && MStore.user_data.first_name !== 'Steven' && MStore.user_data.first_name !== 'Leo' && MStore.user_data.first_name !== 'Frank' && MStore.user_data.first_name !== 'Rax') {
     return '/login'
   }
 

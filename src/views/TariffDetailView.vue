@@ -229,7 +229,8 @@ const editElement = (action) => {
 
     new_element.value.min_duration = new_element.value.min_duration_str * 60
     new_element.value.max_duration = new_element.value.max_duration_str * 60
-    new_element.value.step_size = new_element.value.step_size_str * 60
+    if (new_element.value.price_type !== "ENERGY")
+      new_element.value.step_size = new_element.value.step_size_str * 60
 
   let modify_element = { price_components:[{ type:new_element.value.price_type, price:new_element.value.price_price,
                                             step_size:new_element.value.step_size, vat:new_element.value.vat} ],
@@ -418,7 +419,7 @@ onMounted(async () => {
         </el-table>
       </el-tab-pane>
 
-      <el-tab-pane label="Charger list" name="three">
+      <el-tab-pane label="EVSE list" name="three">
         <p v-for="item in used_evse" :key="item" :label="item" :value="item"> {{ item }}</p>
       </el-tab-pane>
     </el-tabs>

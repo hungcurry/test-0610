@@ -64,7 +64,7 @@ const payment_method_option = {
   tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
   legend: { y: 'bottom', x: 'left' }, grid: { left: '2%', right: '3%', bottom: '10%', containLabel: true },
   xAxis: { type: 'value', boundaryGap: [0, 0.01] },
-  yAxis: { type: 'category', data: ['SAMSUNG PAY', 'GOOGLE PAY',  'FREE', 'RFID', 'Credit Card'] },
+  yAxis: { type: 'category', data: ['Samsung Pay', 'Google Pay',  'Free', 'RFID', 'Credit Card'] },
   series: [{ type: 'bar', barWidth: '20%', data: [0, 0, 0, 0], color: "#92a9c4" },
   ]
 }
@@ -186,7 +186,7 @@ const location_type_option = reactive({
 
 const power_times_option = reactive({
   tooltip: { trigger: 'axis' },
-  legend: { data: ['Power', 'Times'] },
+  legend: { data: ['Power (kWh)', 'Times'] },
   grid: { left: '2%', right: '5%', bottom: '3%', containLabel: true },
   xAxis: {
     type: 'category',
@@ -196,7 +196,7 @@ const power_times_option = reactive({
   yAxis: { type: 'value' },
   series: [
     {
-      name: 'Power',
+      name: 'Power (kWh)',
       type: 'line',
       stack: 'Total',
       data: [120, 132, 101, 134, 90, 230, 210],
@@ -213,7 +213,7 @@ const power_times_option = reactive({
 })
 
 const goto_payment = () => {
-  router.push({ name: 'paymentHistory' })
+  router.push({ name: 'payment' })
 }
 
 const date_select = async (select_time) => {
@@ -860,11 +860,10 @@ onUnmounted(() => {
                   </div>
                   <div class="evse-text w-full">
                     <p class="text-secondary mb-4">
-                      <span class="text-32px mr-4">{{ station_count }}</span>
-                      Station
+                      <span class="text-32px mr-4">{{ station_count }}</span>Stations
                     </p>
                     <p class="text-secondary mb-4">
-                      <span class="text-32px mr-4">{{ status_obj.total }} </span>Chargers
+                      <span class="text-32px mr-4">{{ status_obj.total }}</span>EVSEs
                     </p>
                   </div>
                 </div>
@@ -886,7 +885,7 @@ onUnmounted(() => {
                   src="@/assets/img/dashboard_title_error.png"
                   alt="dashboard_title_error"
                 />
-                <p class="text-blue-1200 text-22px ml-8px">Offline / Error EVSE</p>
+                <p class="text-blue-1200 text-22px ml-8px">EVSE Offline / Error Status</p>
               </div>
               <div class="evse-notification-container scrollbar">
                 <p class="mb-4" v-for="value in error_evse" :key="value">

@@ -3,9 +3,22 @@ import i18n from '@/locales'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useMStore } from '../stores/m_cloud'
+
 const route = useRoute()
 const router = useRouter()
 const reset_password_visible = ref(false)
+const MStore = useMStore()
+const dev_member = ref(false)
+if (
+    MStore.user_data.first_name === 'Steven' ||
+    MStore.user_data.first_name === 'Leo' ||
+    MStore.user_data.first_name === 'Frank' ||
+    MStore.user_data.first_name === 'Rax'
+  ) {
+    dev_member.value = true
+  }
+
 
 const English = () => {
   i18n.global.locale.value = 'en_us'
@@ -36,7 +49,7 @@ const emitCallBack = (res) => {
         <!-- <p>{{$t('account')}}</p> -->
         <p>Available</p>
         <img src="@/assets/img/station_charging.png" />
-        <p>Charging / Full Charged</p>
+        <p>Charging</p>
         <img src="@/assets/img/station_offline.png" />
         <p>Offline</p>
         <img src="@/assets/img/station_error.png" />
@@ -49,7 +62,7 @@ const emitCallBack = (res) => {
         <template #dropdown>
           <el-dropdown-menu>
             <el-dropdown-item @click="English()">English</el-dropdown-item>
-            <el-dropdown-item @click="Chinese()">�c��</el-dropdown-item>
+            <el-dropdown-item @click="Chinese()">繁體中文</el-dropdown-item>
           </el-dropdown-menu>
         </template>
       </el-dropdown> -->
@@ -63,7 +76,7 @@ const emitCallBack = (res) => {
           <el-dropdown-menu>
             <el-dropdown-item @click="logOut()">Log Out</el-dropdown-item>
             <el-dropdown-item @click="resetPW()">Reset Password</el-dropdown-item>
-            <!-- <el-dropdown-item @click="Personal_Info()">Personal Info</el-dropdown-item> -->
+            <el-dropdown-item v-if="dev_member" @click="Personal_Info()">Personal Info</el-dropdown-item>
           </el-dropdown-menu>
         </template>
       </el-dropdown>

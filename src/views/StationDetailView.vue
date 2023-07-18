@@ -108,6 +108,42 @@ const StationDetailEvseData = reactive([])
 const StationData = reactive([])
 
 onMounted( async () => {
+
+  let queryData1 = { "database": "OCPI", "collection": "Location", "pipelines": [
+  { "$match": {"id": {"UUID" : station_id }}},
+  { "$project": { "_id": 0} }]}
+  let response1 = await MsiApi.mongoAggregate(queryData1)
+  let evse_obj_arr = []
+  for (let i = 0; i < response1.data.result[0]?.evses?.length; i++) {
+    evse_obj_arr.push({"ObjectId":response1.data.result[0]?.evses?.[i]})
+  }
+
+  let queryData3 = { "database": "CPO", "collection": "ChargePointInfo", "pipelines": [
+    { "$match": {'evse': {"$in": evse_obj_arr}}},
+    { "$project": { "_id": 0} }
+  ]}
+  let response3 = await MsiApi.mongoAggregate(queryData3)
+
+  let hmi_obj_arr = []
+  for (let i = 0; i < response3.data.result.length; i++) {
+    if (response3.data.result[i].hmi != 0)
+    hmi_obj_arr.push({"ObjectId":response3.data.result[i].hmi})
+  }
+  queryData3 = { "database": "CPO", "collection": "HMIControlBoardInfo", "pipelines": [
+    { "$match": {'_id': {"$in": hmi_obj_arr}   }},
+    { "$project": { "_id": 0} }
+  ]}
+  response3 = await MsiApi.mongoAggregate(queryData3)
+  console.log(response3)
+  console.log(response3.data.result[0].hmi_board_sw_version)
+
+  let queryData2 = { "database": "OCPI", "collection": "Location", "pipelines": [
+  { "$match": {'id': {"UUID":station_id}}},
+  { "$project": { "_id": 0, "country_code":0, "directions":0, "id":0, "last_updated":0} }]}
+
+  let response2 = await MsiApi.mongoAggregate(queryData2)
+  console.log(response2)
+
   let jsonData = { "database":"OCPI", "collection":"Location", "query": { "id": { "UUID" : station_id} }}
   let response = await MsiApi.mongoQuery(jsonData)
   StationData.length = 0
@@ -133,169 +169,199 @@ onMounted( async () => {
 
 <template>
   <div class="station-detail">
-    <div class="station-info">
-      <img class="station-img" v-if="StationData.img_str!==undefined" :src="StationData.img_str" >
-      <img class="station-img" v-else src="@/assets/img/null_pic.png">
-      <div class="station-message">
-        <span class="station-name">{{ StationData.name }}</span>
-        <font-awesome-icon class="station-edit-btn" icon="fa-regular fa-pen-to-square" @click="go_to_station_edit_page() "/>
-        <br>
-        
-        <img src="@/assets/img/station_detail_latitude.png" >
-        <!-- <font-awesome-icon icon="fa-solid fa-arrow-right"/> -->
-        <span> {{ StationData.latitude_str }} {{ "," }} {{ StationData.longitude_str }}</span>
-        <br>
-        
-        <!-- <img src="@/assets/img/station_detail_admin.png" >
-        <span>Operator:</span><span>{{ StationData.party_id }}</span>
-        <br> -->
-        <img src="@/assets/img/station_list_type_office1.png" >
-        <span>{{ StationData.country }} {{ StationData.city }}{{ StationData.address }}</span>
-        <br>
-        <!-- <font-awesome-icon icon="fa-solid fa-arrow-right"/>
-        <span>{{ StationData.city }}{{ StationData.address }}</span> -->
+    <div class="container lg pb-40px">
+      <div class="pt-40px pb-20px overflow-x-auto flex">
+        <img class="w-110px h-110px ml-10px mr-20px" v-if="StationData.img_str!==undefined" :src="StationData.img_str" >
+        <img class="w-110px h-110px ml-10px mr-20px" v-else src="@/assets/img/null_pic.png">
+        <div class="flex-col white-space-nowrap">
+          <div class="flex">
+            <span class="station-name mr-20px">{{ StationData.name }}</span>
+            <font-awesome-icon class="station-edit-btn w-32px h-32px" icon="fa-regular fa-pen-to-square" @click="go_to_station_edit_page() "/>
+          </div>
+          <div class="flex mt-16px">
+            <img class="w-20px h-20px mr-10px" src="@/assets/img/station_detail_latitude.png">
+            <span class="line-height-20px"> {{ StationData.latitude_str }} {{ "," }} {{ StationData.longitude_str }}</span>
+          </div>
+          <div class="flex mt-12px">
+            <img class="w-20px h-20px mr-10px" src="@/assets/img/station_list_type_office1.png">
+            <span class="line-height-20px">{{ StationData.country }} {{ StationData.city }}{{ StationData.address }}</span>
+          </div>
+        </div>
       </div>
     </div>
-    <div class="evse-list">
-      <div class="btn-container">
-        <!-- <el-button class="add-charger" @click="addCharger"> Add Charger </el-button> -->
 
-        <el-button v-if="editMode === true" class="edit" @click="updateSW"> Update SW </el-button>
-        <!-- <el-button v-if="editMode === true" class="edit" @click="updateFW " disabled> Update FW </el-button> -->
-        <el-button v-if="editMode === true" class="edit" @click="evseReset('soft') " > Soft Reset </el-button>
-        <el-button v-if="editMode === true" class="edit" @click="evseReset('hard') " > Hard Reset </el-button>
-
-        <el-button class="edit" @click="edit_charger"> {{ edit_button_str }} </el-button>
+    <div class="pl-50px pr-50px pb-40px bg-blue-100 flex-col">
+      <div class="flex md:justify-end pt-24px pb-24px overflow-x-auto">
+        <el-button v-if="editMode === true" class="btn update-button px-30px box-shadow" @click="updateSW"> Update SW </el-button>
+        <!-- <el-button v-if="editMode === true" class="btn update-button px-30px box-shadow" @click="updateFW " disabled> Update FW </el-button> -->
+        <el-button v-if="editMode === true" class="btn soft-reset-button px-30px box-shadow" @click="evseReset('soft')"> Soft Reset </el-button>
+        <el-button v-if="editMode === true" class="btn hard-reset-button px-30px box-shadow" @click="evseReset('hard')"> Hard Reset </el-button>
+        <el-button class="btn px-30px box-shadow" @click="edit_charger" > {{ edit_button_str }}</el-button>
       </div>
-      <div class="list-container">
-        <el-table :data="StationDetailEvseData" style="width: 95%; height:95%" stripe :cell-style=msi_style.tb_cell :header-cell-style=msi_style.tb_header_cell size="large"
-        @selection-change="handleSelectionChange">
-          <el-table-column prop="evse_id" label="EVSE ID" min-width="50"/>
-          <el-table-column prop="floor_level" label="Floor Level" min-width="30"/>
-          <el-table-column prop="status" label="Status" min-width="60" >
-            <template #default="scope">
-                <p class="available" v-if="scope.row.status === 'AVAILABLE'"> {{ "●" + scope.row.status }}</p>
-                <p class="charging" v-else-if="scope.row.status === 'CHARGING'"> {{ "●" + scope.row.status }}</p>
-                <p class="offline" v-else-if="scope.row.status === 'UNKNOWN' "> {{ "●" + scope.row.status }}</p>
-                <p class="error" v-else-if="scope.row.status === 'OUTOFORDER'"> {{ "●" + scope.row.status }}</p>
-              </template>
-          </el-table-column>
-          <el-table-column prop="type_str" label="Type" min-width="30"/>
-          <el-table-column prop="hmi_version" label="SW Ver." min-width="50"/>
-          <el-table-column prop="" label="Latest SW" min-width="40">
+
+      <el-table 
+        :data="StationDetailEvseData" 
+        class="white-space-nowrap text-primary rounded-10px"
+        height="calc(100vh - 400px)"
+        style="width: 100%" 
+        stripe 
+        size="large" 
+        empty=""
+        :cell-style=msi_style.tb_cell 
+        :header-cell-style=msi_style.tb_header_cell 
+        @selection-change="handleSelectionChange"
+      >
+        <el-table-column
+          prop="evse_id"
+          label="EVSE ID"
+          sortable
+          min-width="250"
+        />
+        <el-table-column
+          prop="floor_level"
+          label="Floor Level"
+          sortable
+          min-width="150"
+        />
+        <el-table-column
+          prop="status"
+          label="Status"
+          sortable
+          min-width="200"
+        >
+          <template #default="scope">
+            <p class="available" v-if="scope.row.status === 'AVAILABLE'"> {{ "● " + scope.row.status }}</p>
+            <p class="charging" v-else-if="scope.row.status === 'CHARGING'"> {{ "● " + scope.row.status }}</p>
+            <p class="offline" v-else-if="scope.row.status === 'UNKNOWN' "> {{ "● " + scope.row.status }}</p>
+            <p class="error" v-else-if="scope.row.status === 'OUTOFORDER'"> {{ "● " + scope.row.status }}</p>
+          </template>
+        </el-table-column>
+        <el-table-column
+          prop="type_str"
+          label="Type"
+          sortable
+          min-width="150"
+        />
+        <el-table-column
+          prop="hmi_version"
+          label="SW Ver."
+          sortable
+          min-width="200"
+        />
+        <el-table-column
+          prop=""
+          label="Latest SW"
+          sortable
+          min-width="200"
+        >
           <template #default="scope">
             <p v-if="scope.row.hmi_version === `b'0.1.2.3'`"> {{ "V" }}</p>
           </template>
-          </el-table-column>
-
-          <el-table-column prop="last_updated_str" label="Updated Time" min-width="70" sortable/>
-          <el-table-column v-if="editMode === false" prop="" label="" min-width="30">
+        </el-table-column>
+        <el-table-column
+          prop="last_updated_str"
+          label="Updated Time"
+          sortable
+          min-width="200"
+        />
+        <el-table-column
+          v-if="editMode === false"
+          prop=""
+          label=""
+          align="center"
+          min-width="200"
+        >
           <template #default="scope">
-                <el-button @click="charger_detail(scope.row)"> <font-awesome-icon icon="fa-solid fa-ellipsis" /> </el-button>
+                <el-button class="btn-more" @click="charger_detail(scope.row)"> <font-awesome-icon icon="fa-solid fa-ellipsis" /> </el-button>
           </template>
-          </el-table-column>
-          <el-table-column v-else type="selection" min-width="30">
-          </el-table-column>
+        </el-table-column>
+        <el-table-column
+          v-else
+          type="selection"
+          align="center"
+          min-width="200"
+        />
+      </el-table>
 
-        </el-table>
-      </div>
+      <el-dialog
+        v-model="sw_version_visable" 
+        class="max-w-600px"
+        :show-close="true"
+        width="90%"
+        destroy-on-close
+        center
+      >
+        <template #header="{ titleId, titleClass }">
+          <div class="py-2rem relative bg-blue-100">
+            <h4
+              :id="titleId"
+              :class="titleClass"
+              class="m-0 text-center text-blue-1200 font-400 text-24px line-height-26px"
+            >
+              Update SW
+            </h4>
+          </div>
+        </template>
+        <div class="dialog-context">
+          <p>Now Version {{ fwVersion }}</p>
+        </div>
+        <template #footer>
+          <span class="dialog-footer flex flex-center">
+            <el-button round class="w-48% bg-btn-100 text-white max-w-140px" @click="sw_version_visable = false">Cancel</el-button>
+            <el-button round class="w-48% bg-btn-200 text-white max-w-140px" @click="updateConfirm()">Confirm</el-button>
+          </span>
+        </template>
+      </el-dialog>
     </div>
-    <el-dialog v-model="sw_version_visable" title="Update SW">
-      <p>Now Version {{ fwVersion }}</p>
-      <template #footer>
-        <span class="dialog-footer">
-          <el-button @click="sw_version_visable = false">Cancel</el-button>
-          <el-button type="primary" @click="updateConfirm()">Confirm</el-button>
-        </span>
-      </template>
-    </el-dialog>
   </div>
 </template>
 
 <style lang="scss" scoped>
 .station-detail {
-  height: 100%;
-  .station-info{
-    display: flex;
-    background-color: #ffffff;
-    height: 15%;
-    
-    .station-img{
-      margin: 10px 0 0px 10px;
-      width: 110px;
-      height: 110px;
-    }
-    .station-message {
-      margin: 10px 0 0px 10px;
-      .station-name {
-        font-size: 25px;
-      }
-      .station-edit-btn{
-        font-size: 25px;
-      }
-
-      img {
-        width: 18px;
-        height: 18px;
-      }
-    }
+  .station-name {
+    font-size: 36px;
+    font-weight: bold;
   }
-  .evse-list{
-    background-color:#f3f7fa;
-    height: 85%;
-    display: flex;
-    flex-direction: column;
-    .list-container{
-      margin-left: 40px;
-      height: 90%;
-      .type {
-        font-size: 40px;
-      }
-    }
-    .btn-container{
-      display: flex;
-      justify-content: flex-end;
-      margin-right: 40px;
-      margin-top: 20px;
-      margin-bottom: 20px;
-      .add-charger {
-        width: 160px;
-        height: 30px;
-        font-size: 22px;
-        border-radius: 20px;
-      }
-      .edit {
-        width: 220px;
-        height: 40px;
-        font-size: 18px;
-        border-radius: 20px;
-        background-color: #000000DF;
-        color:#FFFFFF;
-      }
-    }
+  .station-edit-btn {
+    color: var(--secondary);
+  }
+
+
+
+  .btn{
+    width: 20rem;
+    height: 4rem;
+    font-size: 18px;
+    background-color: var(--secondary);
+    color:var(--white);
+    border-radius: 2rem;
+  }
+  .update-button {
+    background-color: var(--blue-900);
+  }
+  .soft-reset-button {
+    background-color: var(--blue-900);
+  }
+  .hard-reset-button {
+    background-color: var(--blue-900);
+  }
+
+  ::-webkit-scrollbar {
+    width: 0.8rem;
+    height: 0.8rem;
+  }
+  ::-webkit-scrollbar-track,
+  ::-webkit-scrollbar-corner {
+    background-color: var(--blue-100);
+  }
+  ::-webkit-scrollbar-thumb {
+    background-color: var(--blue-1000);
+    border-radius: 2rem;
   }
 }
-.el-checkbox {
-    // width: 20px;
-    // height: 20px;
-    .el-checkbox__input.is-checked{
-      .el-checkbox__inner{
-      background-color:#000000;
-    }
-    }
-    .el-checkbox__input {
-      // width: 20px;
-      // height: 20px;
-    .el-checkbox__inner{
-      width: 20px;
-      height: 20px;
-      border-color: #000000;
-    }
-    }
-  }
 
 .available{
-        color: #76bbf4;
+  color: #76bbf4;
 }
 .charging{
   color: #94eadb;

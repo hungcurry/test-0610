@@ -21,12 +21,12 @@ const defaultTime = ref([
 ])
 const defaultTime2 = [new Date(2000, 1, 1, 0, 0, 0), new Date(2000, 2, 1, 23, 59, 59)]
 const filters = [
-  { text: 'CREDIT', value: 'CREDIT' },
+  { text: 'Credit Card', value: 'CREDIT' },
   { text: 'RFID', value: 'RFID' },
-  { text: 'FREE', value: 'FREE' },
-  { text: 'APPLE PAY', value: 'APPLEPAY' },
-  { text: 'GOOGLE PAY', value: 'GOOGLEPAY' },
-  { text: 'SAMSUNG PAY', value: 'SAMSUNGPAY' },
+  { text: 'Free', value: 'FREE' },
+  // { text: 'APPLE PAY', value: 'APPLEPAY' },
+  { text: 'Google Pay', value: 'GOOGLEPAY' },
+  { text: 'Samsung Pay', value: 'SAMSUNGPAY' },
 ]
 
 const download = () => {
@@ -34,11 +34,11 @@ const download = () => {
     'Station Name',
     'Station EVSE ID',
     'Parking Used Time',
-    ' Parking Price',
+    'Parking Price',
     'Parking License Plate',
-    'Charge Used Time',
-    'Charge kWh',
-    'Charge Price',
+    'Charging Used Time',
+    'Charging kWh',
+    'Charging Price',
     'Total Price',
     'Method',
     'Created Date',
@@ -91,15 +91,54 @@ const select_date = async () => {
   console.log(response)
 }
 
+const sortFunc = (obj1, obj2, column) => {
+
+  let convertedNumber1 = undefined
+  let convertedNumber2 = undefined
+  if(column === 'parking_price_str' || column === 'price_str' || column === 'charge_price_str') {   
+    if (obj1[column] !== undefined) {
+      convertedNumber1 = parseInt(obj1[column].replace(/,/g, ""))
+    }
+    if (obj2[column] !== undefined) {
+      convertedNumber2 = parseInt(obj2[column].replace(/,/g, ""))
+    }
+    if (convertedNumber2 === undefined)
+     return -1
+    if (convertedNumber1 > convertedNumber2) {
+      return -1
+    }
+  }
+  else {
+    let at = obj1[column]
+    let bt = obj2[column]
+    if (bt === undefined) {
+      return -1
+    }
+    if (at > bt) {
+      return -1
+    }
+  }
+}
+
+
 const MongoQurey = async (queryData) => {
   isLoading.value = true
   const response = await MsiApi.mongoQuery(queryData)
 
   PaymentData.length = 0
   Object.assign(PaymentData, response.data.all)
-
+  
   for (let i = 0; i < PaymentData.length; i++) {
     PaymentData[i].paymethod_str = PaymentData[i]?.paymethod?.method
+    if (PaymentData[i]?.paymethod?.method === 'GOOGLEPAY')
+      PaymentData[i].paymethod_str = 'Google Pay'
+    else if (PaymentData[i]?.paymethod?.method === 'FREE')
+      PaymentData[i].paymethod_str = 'Free'
+    else if (PaymentData[i]?.paymethod?.method === 'SAMSUNGPAY')
+      PaymentData[i].paymethod_str = 'Samsung Pay'
+    else if (PaymentData[i]?.paymethod?.method === 'CREDIT')
+    PaymentData[i].paymethod_str = 'Credit Card'      
+    
 
     let localTime = new Date(
       new Date(PaymentData[i].created_date).getTime() + MStore.timeZoneOffset * -60000
@@ -225,6 +264,7 @@ onMounted(async () => {
                 align="center"
                 sortable
                 min-width="250"
+                :sort-method="(a, b) => sortFunc(a, b, 'location_name')"
               />
               <el-table-column
                 prop="evse_id"
@@ -232,6 +272,7 @@ onMounted(async () => {
                 align="center"
                 sortable
                 min-width="300"
+                :sort-method="(a, b) => sortFunc(a, b, 'evse_id')"
               />
             </el-table-column>
 
@@ -247,6 +288,7 @@ onMounted(async () => {
                 align="center"
                 sortable
                 min-width="150"
+                :sort-method="(a, b) => sortFunc(a, b, 'parking_time')"
               />
               <el-table-column
                 prop="parking_price_str"
@@ -255,6 +297,7 @@ onMounted(async () => {
                 align="right"
                 sortable
                 min-width="150"
+                :sort-method="(a, b) => sortFunc(a, b, 'parking_price_str')"
               />
               <el-table-column
                 prop="parking_car_num_str"
@@ -262,6 +305,7 @@ onMounted(async () => {
                 align="center"
                 sortable
                 min-width="200"
+                :sort-method="(a, b) => sortFunc(a, b, 'parking_car_num_str')"
               />
             </el-table-column>
 
@@ -277,6 +321,7 @@ onMounted(async () => {
                 align="center"
                 sortable
                 min-width="150"
+                :sort-method="(a, b) => sortFunc(a, b, 'charge_time')"
               />
               <el-table-column
                 prop="charge_energy_str"
@@ -285,6 +330,7 @@ onMounted(async () => {
                 align="right"
                 sortable
                 min-width="150"
+                :sort-method="(a, b) => sortFunc(a, b, 'charge_energy_str')"
               />
               <el-table-column
                 prop="charge_price_str"
@@ -293,6 +339,7 @@ onMounted(async () => {
                 align="right"
                 sortable
                 min-width="150"
+                :sort-method="(a, b) => sortFunc(a, b, 'charge_price_str')"
               />
             </el-table-column>
 
@@ -303,6 +350,7 @@ onMounted(async () => {
               align="right"
               sortable
               min-width="150"
+              :sort-method="(a, b) => sortFunc(a, b, 'price_str')"
             />
 
             <el-table-column
@@ -312,6 +360,8 @@ onMounted(async () => {
               :filters="filters"
               :filter-method="filterTag"
               min-width="150"
+              sortable
+              :sort-method="(a, b) => sortFunc(a, b, 'paymethod_str')"
             />
 
             <el-table-column
@@ -320,6 +370,7 @@ onMounted(async () => {
               align="center"
               sortable
               min-width="250"
+              :sort-method="(a, b) => sortFunc(a, b, 'created_date_str')"
             />
           </el-table>
         </div>

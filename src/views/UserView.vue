@@ -148,16 +148,15 @@ onMounted( async () => {
   }
   if (companyData.name !== 'MSI') {
     queryData  = { "database": "CPO", "collection": "LimitPlan", "pipelines": [
-    { $match: { "name": {"$ne": "MSI-Free"}} }, 
-    { "$project": { "_id": 1, "connector":0} } ]}
+    { $match: { "name": {"$ne": "MSI-Free"}} }]}
   }
   else {
     queryData  = { "database": "CPO", "collection": "LimitPlan", "pipelines": [
-    { $match: { "name": {"$eq": "MSI-Free"}} },  
-    { "$project": { "_id": 1, "connector":0} } ]}
+    { "$project": { "aaa":0} },
+    // { $match: { "name": {"$eq": "MSI-Free"}} }
+  ]}
   }
   response = await MsiApi.mongoAggregate(queryData)
-  
   if (response.status === 200) {
     Object.assign(program_plan, response.data.result )
     for (let i = 0; i < program_plan.length; i++ ) {
@@ -175,8 +174,9 @@ onMounted( async () => {
 </script>
 
 <template>
-<div>
-  <h1>Personal Info</h1>
+<div class="temp">
+  <p class="title">Admin Info</p>
+  <br>
   <el-form label-position="left" label-width="100px">
     <el-form-item label="First Name" >
       <el-input v-model="first_name" style="width: 300px"/>
@@ -188,7 +188,7 @@ onMounted( async () => {
       <el-input v-model="email" style="width: 300px"/>
     </el-form-item>
     <el-form-item label="Credit Card" >
-      <el-button v-if="companyData.name === 'MSI' " @click="add_card" style="width: 300px" disabled> Add Card </el-button>
+      <el-button v-if="companyData.name === 'MSI' " @click="add_card" style="width: 300px" disabled> MSI Not Support Binding Card </el-button>
       <el-button v-else-if="CardData.length !== 0" @click="add_card" style="width: 300px" disabled> Add Card </el-button>
       <el-button v-else @click="add_card" style="width: 300px"> Add Card </el-button>
     </el-form-item>
@@ -224,8 +224,8 @@ onMounted( async () => {
       <el-table-column prop="currency" label="Currency" min-width="80" />
       <el-table-column prop="price" label="Price" min-width="40" />
       <el-table-column>
-        <el-button @click="add_program" disabled v-if="companyData.name === 'MSI' "> <font-awesome-icon icon="fa-solid fa-ellipsis" /></el-button>
-          <el-button @click="add_program" v-else> <font-awesome-icon icon="fa-solid fa-ellipsis" /></el-button>
+        <!-- <el-button @click="add_program" disabled v-if="companyData.name === 'MSI' "> <font-awesome-icon icon="fa-solid fa-ellipsis" /></el-button> -->
+        <el-button @click="add_program" > <font-awesome-icon icon="fa-solid fa-ellipsis" /></el-button>
       </el-table-column>
 
     </el-table>
@@ -292,7 +292,8 @@ onMounted( async () => {
     <template #footer>
       <span class="dialog-footer">
         <el-button @click="cancelCheckProgram">Cancel</el-button>
-        <el-button type="primary" @click="subscribeProgram">Confirm</el-button>
+        <el-button type="primary" v-if="companyData.name === 'MSI' " disabled @click="subscribeProgram">Confirm</el-button>
+        <el-button type="primary" v-else @click="subscribeProgram">Confirm</el-button>
       </span>
     </template>
   
@@ -301,6 +302,13 @@ onMounted( async () => {
 </template>
 
 <style lang="scss" scoped>
+.temp {
+  margin-left: 20px;
+  padding-top: 20px;
+}
+.title {
+  font-size: 30px;
+}
   .el-input {
     --el-input-bg-color: rgb(86, 101, 117);
     --el-input-text-color: rgb(255, 255, 255);

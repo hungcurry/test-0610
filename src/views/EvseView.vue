@@ -192,7 +192,7 @@ onMounted( async() => {
           <el-button v-if="editMode === true" class="btn update-button px-30px box-shadow" @click="updateSW"> Update SW </el-button>
           <el-button v-if="editMode === true" class="btn soft-reset-button px-30px box-shadow" @click="evseReset('soft') "> Soft Reset </el-button>
           <el-button v-if="editMode === true" class="btn hard-reset-button px-30px box-shadow" @click="evseReset('hard') "> Hard Reset </el-button>
-          <el-button class="btn add-charger px-30px box-shadow" @click="add_charger" v-if="editMode === false"> Add Charger</el-button>
+          <el-button class="btn add-charger px-30px box-shadow" @click="add_charger" v-if="editMode === false"> Add EVSE</el-button>
           <el-button class="btn edit px-30px box-shadow" @click="edit" > {{ edit_button_str }}</el-button>
         </div>
       </div>

@@ -12,8 +12,6 @@ import restaurantPng from '@/assets/img/station_list_type_restaurant.png'
 import mallPng from '@/assets/img/station_list_type_mall.png'
 import parkingPng from '@/assets/img/station_list_type_parking.png'
 import trainPng from '@/assets/img/station_list_type_train.png'
-import { ElSelect } from 'element-plus'
-
 
 const MStore = useMStore()
 const MsiApi = ApiFunc()
@@ -80,19 +78,6 @@ const publish_filter = (value, rowData) => {
 }
 
 const LocationData = reactive([])
-const LocationTable = [ 
-                        {label:'Type', value:'facilities', width:'25'}, 
-                        {label:'Name', value:'name', width:'100', sortable:'sortable'},
-                        {label:'Country', value:'country', width:'40', sortable:'sortable'}, 
-                        {label:'City', value:'city', width:'60', sortable:'sortable'},
-                        {label:'Address', value:'address', width:'80', sortable:'sortable'}, 
-                        // {label:'Operator ID', value:'party_id', width:'40', sortable:'sortable'},
-                        {label:'Status', value:'', width:'60', filter:status_filter_item, filter_method:status_filter}, 
-                        {label:'Publish', value:'publish', width:'30', filter:publish_filter_item, filter_method:publish_filter},
-                        // {label:'Parking', value:'parking_str', width:'50'}, 
-                        {label:'', value:'detail', width:'40', type:'button'}
-                      ]
-
 const SideBarInfo = reactive([])
 
 const detail_info = (row) => {
@@ -171,6 +156,10 @@ const setMarker = async () => {
       SideBarInfo.length = 0
       Object.assign(SideBarInfo, LocationData[i])
     })
+    if (LocationData[i].publish === true)
+      LocationData[i].publish_str = 'True'
+    else 
+      LocationData[i].publish_str = 'Flash'
   }
 }
 
@@ -337,7 +326,7 @@ onUnmounted( () =>{
             </el-table-column>
 
             <el-table-column
-              prop="publish"
+              prop="publish_str"
               label="Publish"
               align="center"
               :filters=publish_filter_item

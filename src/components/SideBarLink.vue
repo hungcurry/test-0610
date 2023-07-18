@@ -24,7 +24,8 @@ onMounted(async () => {
   if (
     MStore.user_data.first_name === 'Steven' ||
     MStore.user_data.first_name === 'Leo' ||
-    MStore.user_data.first_name === 'Frank'
+    MStore.user_data.first_name === 'Frank' ||
+    MStore.user_data.first_name === 'Rax'
   ) {
     dev_member.value = true
   }
@@ -46,7 +47,7 @@ onMounted(async () => {
         <span>Dashboard</span>
       </template>
     </el-menu-item>
-    <el-menu-item v-if="user === 'AdminUser' || user === undefined" index="paymentHistory">
+    <el-menu-item v-if="user === 'AdminUser' || user === undefined" index="payment">
       <el-icon><Postcard /></el-icon>
       <template #title>
         <span>Payment</span>
@@ -56,10 +57,10 @@ onMounted(async () => {
     <el-sub-menu index="station">
       <template #title>
         <el-icon><Location /></el-icon>
-        <span>Charger Management</span>
+        <span>EVSE Management</span>
       </template>
       <el-menu-item index="station" :route="{ path: 'station' }">By Station</el-menu-item>
-      <el-menu-item index="evse">By Charger</el-menu-item>
+      <el-menu-item index="evse">By EVSE</el-menu-item>
       <el-menu-item index="tariff">Rate Plan</el-menu-item>
     </el-sub-menu>
 
@@ -78,11 +79,11 @@ onMounted(async () => {
         <el-icon><Calendar /></el-icon>
         <span>Log Monitor</span>
       </template>
-      <el-menu-item index="ocpiSession">Charger Log</el-menu-item>
-      <el-menu-item index="ocppError"> Error Log </el-menu-item>
+      <el-menu-item index="ocpi-session">Charger Log</el-menu-item>
+      <el-menu-item index="ocpp-error"> Error Log </el-menu-item>
     </el-sub-menu>
 
-    <el-menu-item index="softwareInfo">
+    <el-menu-item index="software-info">
       <el-icon><InfoFilled /></el-icon>
       <template #title>
         <span>Software Info</span>

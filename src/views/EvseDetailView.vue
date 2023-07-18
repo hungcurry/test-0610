@@ -193,7 +193,7 @@ onMounted( async () => {
                 </div>   
                 <div class="info-item">
                   <p class="info-title w-50%">Max Electric Power</p>
-                  <p class="info-value w-50% ml-24px">{{connectorData.max_electric_power}} </p>
+                  <p class="info-value w-50% ml-24px">{{ connectorData.max_electric_power / 1000 + ' kW'}} </p>
                 </div>   
                 <div class="info-item">
                   <p class="info-title w-50%">Last Updated</p>
@@ -209,10 +209,10 @@ onMounted( async () => {
                 <h4 class="m-0 ml-8px text-20px text-black-100"> HMI Info</h4>
               </div>
               <div class="container-data h-full md:px-32px">
-                <div class="info-item">
+                <!-- <div class="info-item">
                   <p class="info-title w-50%">Control Board Model</p>
                   <p class="info-value w-50% ml-24px">{{ hmiInfoData.control_board_model_name }} </p>
-                </div>   
+                </div>    -->
                 <div class="info-item">
                   <p class="info-title w-50%">Control Board SN</p>
                   <p class="info-value w-50% ml-24px">{{ hmiInfoData.control_board_sn }} </p>
@@ -221,10 +221,10 @@ onMounted( async () => {
                   <p class="info-title w-50%">Control Board FW Version</p>
                   <p class="info-value w-50% ml-24px">{{ hmiInfoData.control_board_fw_version }} </p>
                 </div>   
-                <div class="info-item">
+                <!-- <div class="info-item">
                   <p class="info-title w-50%">HMI Board Model</p>
                   <p class="info-value w-50% ml-24px">{{ hmiInfoData.hmi_board_model_name }} </p>
-                </div>   
+                </div>    -->
                 <div class="info-item">
                   <p class="info-title w-50%">HMI Board SN</p>
                   <p class="info-value w-50% ml-24px">{{ hmiInfoData.hmi_board_sn }} </p>

@@ -8,7 +8,7 @@ import { useMStore } from "../stores/m_cloud";
 const MStore = useMStore();
 const MsiApi = ApiFunc()
 const parkingData = reactive ([])
-const all_visible = ref(false)
+const all_visible = ref(true)
 const downloadImage = (row) => {
   row.show = true
 }
@@ -45,7 +45,7 @@ const show_all = async() => {
 
 onMounted( async () => {
 
-  let queryData = { "database":"Parking", "collection":"ParkingCarData", "query": {"end_date_time": {"$exists": false} }}
+  let queryData = { "database":"Parking", "collection":"ParkingCarData", "query": {}}
   let response = await MsiApi.mongoQuery(queryData)
   Object.assign(parkingData, response.data.all)
 
@@ -101,4 +101,9 @@ onMounted( async () => {
   </div>
 </template>
 
-<style></style>
+<style scoped>
+.parking {
+  padding-top: 20px;
+  padding-left: 20px;
+}
+</style>

@@ -16,7 +16,7 @@ const evse_id = route.query.evse_id
 const stationName = ref('')
 
 let station_evses = []
-const evse_edit_title = ref('Add Charger')
+const evse_edit_title = ref('Add EVSE')
 
 const connector_obj = reactive({  class:'Connector',standard:'-', format:'-', power_type:'-', 
                                   max_voltage:'0', max_amperage:'0', max_electric_power:'0', tariff_ids:[]})
@@ -108,7 +108,7 @@ onMounted( async()=>{
   response = await MsiApi.mongoQuery(queryData)
   Object.assign(tariff_profile, response.data.all)
   if (evse_id !== undefined) {
-    evse_edit_title.value = 'Edit Charger'
+    evse_edit_title.value = 'Edit EVSE'
 
     queryData = { "database":"OCPI", "collection":"EVSE", "query": { "uid": {"UUID":evse_id} }}
     response = await MsiApi.mongoQuery(queryData)
