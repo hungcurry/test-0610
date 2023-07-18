@@ -107,6 +107,12 @@ const add = (selectType) => {
 const detail_info = (scope,selectType) => {
   swVisible.value = true
   type.value = selectType
+  if (selectType === 'XP012') {
+    dialog_title.value = 'Add SW Release Note'
+  }
+  else if (selectType === 'XP011_BT') {
+    dialog_title.value = 'Add FW Release Note'
+  }
   index.value = scope.$index
   Detail_Data.version = scope.row.version
   Detail_Data.file = scope.row.file

@@ -193,11 +193,11 @@ const saveStation = async () => {
     check_format_success = false
   }
   if (sendData.facilities[0] === undefined) {
-    ElMessage.error('Oops, facilities required.')
+    ElMessage.error('Oops, Station Type required.')
     check_format_success = false
   }
   if (sendData.time_zone === undefined) {
-    ElMessage.error('Oops, time zone required.')
+    ElMessage.error('Oops, Time Zone required.')
     check_format_success = false
   }
   if (check_format_success === true) {

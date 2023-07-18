@@ -5,7 +5,6 @@ import SelectDropdown from '@/components/Input/SelectDropdown.vue'
 import { ref, reactive, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useMStore } from '@/stores/m_cloud'
-import moment from "moment"
 
 const MStore = useMStore()
 const company = MStore?.permission?.company?.name
@@ -34,8 +33,7 @@ const payment_method_obj = reactive({
 })
 const charger_time = reactive({ hr: 0, min: 0, sec: 0 })
 const parking_time = reactive({ hr: 0, min: 0, sec: 0 })
-const station_create_date = moment(MStore.permission.company.created_date).format("YYYY-MM-DD")
-const customers_create_date = moment(MStore.permission.company.created_date).format("YYYY-MM-DD")
+
 let ret_chart = null
 let chart_inst = null
 // selectDropdown
@@ -1104,7 +1102,7 @@ onUnmounted(() => {
             <div class="card-body flex-center h-full text-40px md:text-60px">
               <div class="total-use-time">
                 {{ totalkwh }}
-                <span class="text-24px mr-8px">kW</span>
+                <span class="text-24px mr-8px">kWh</span>
               </div>
             </div>
           </div>
@@ -1118,7 +1116,8 @@ onUnmounted(() => {
             >
               <div>
                 <p class="value">{{ member }}</p>
-                <p class="title">Member</p>
+                <p class="title" v-if="company === 'MSI'">Member</p>
+                <p class="title" v-else>RFID User</p>
               </div>
               <div v-if="company === 'MSI'" class="business">
                 <p class="value">{{ business }}</p>

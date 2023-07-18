@@ -77,7 +77,7 @@ const deleteTariff = async (row) => {
 }
 
 const editTariff = (row) => {
-  router.push({ name: 'tariffDetail', query:{id:row._id} })
+  router.push({ name: 'ratePlanDetail', query:{id:row._id} })
 }
 
 const copyTariff = (row) => {
