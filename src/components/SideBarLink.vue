@@ -42,13 +42,13 @@ onMounted(async () => {
     :collapse="isCollapse"
   >
     <el-menu-item index="dashboard">
-      <el-icon><icon-menu /></el-icon>
+      <el-icon class="opacity-70"><icon-menu /></el-icon>
       <template #title>
         <span>Dashboard</span>
       </template>
     </el-menu-item>
     <el-menu-item v-if="user === 'AdminUser' || user === undefined" index="payment">
-      <el-icon><Postcard /></el-icon>
+      <el-icon class="opacity-50"><Postcard /></el-icon>
       <template #title>
         <span>Payment</span>
       </template>
@@ -66,7 +66,7 @@ onMounted(async () => {
 
     <el-sub-menu index="administrator">
       <template #title>
-        <el-icon><UserFilled /></el-icon>
+        <el-icon class="opacity-50"><UserFilled /></el-icon>
         <span>Account Management</span>
       </template>
       <el-menu-item index="customers">User / Member</el-menu-item>
@@ -76,7 +76,7 @@ onMounted(async () => {
 
     <el-sub-menu index="ocpiSession">
       <template #title>
-        <el-icon><Calendar /></el-icon>
+        <el-icon class="opacity-70"><Calendar /></el-icon>
         <span>Log Monitor</span>
       </template>
       <el-menu-item index="ocpi-session">Charger Log</el-menu-item>
@@ -84,14 +84,14 @@ onMounted(async () => {
     </el-sub-menu>
 
     <el-menu-item index="software-info">
-      <el-icon><InfoFilled /></el-icon>
+      <el-icon class="opacity-50"><InfoFilled /></el-icon>
       <template #title>
         <span>Software Info</span>
       </template>
     </el-menu-item>
 
     <el-menu-item v-if="dev_member" index="parking">
-      <el-icon><View /></el-icon>
+      <el-icon class="opacity-70"><View /></el-icon>
       <template #title>
         <span>Parking</span>
       </template>
@@ -105,7 +105,7 @@ onMounted(async () => {
     </el-menu-item> -->
 
     <el-menu-item v-if="company === 'MSI' && dev_member" index="program">
-      <el-icon><EditPen /></el-icon>
+      <el-icon class="opacity-70"><EditPen /></el-icon>
       <template #title>
         <span>Program</span>
       </template>
@@ -141,5 +141,8 @@ onMounted(async () => {
 .el-menu-vertical-demo:not(.el-menu--collapse) {
   width: 29.5rem;
   min-height: 40rem;
+}
+.el-menu-item.is-active i {
+  opacity: 1;
 }
 </style>

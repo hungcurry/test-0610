@@ -9,7 +9,8 @@ import { onMounted, onUnmounted, ref } from 'vue'
 import { ElMessageBox } from 'element-plus'
 const router = useRouter()
 const sideMenuStore = useSideMenuStore()
-const { layoutRight } = storeToRefs(sideMenuStore)
+const { handleClose } = sideMenuStore
+const { layoutRight, isCollapse } = storeToRefs(sideMenuStore)
 const logoutTime = ref(600)
 let logoutTimer = null
 
@@ -32,7 +33,11 @@ const checkTime = () => {
   if (logoutTime.value <= 0) {
     ElMessageBox.close()
     router.push({ name: 'login' })
+    isCollapse.value = true
   }
+}
+const menuClose = () => {
+  handleClose()
 }
 onMounted(() => {
   logoutTimer = setInterval(checkTime, 1000)
@@ -45,7 +50,7 @@ onUnmounted(() => {
 <template>
   <div class="ems-layout" v-on="{ mousedown: reflashTimer }">
     <SideBar />
-    <div ref="layoutRight" class="layout-right">
+    <div ref="layoutRight" @click.stop="menuClose" class="layout-right">
       <header-layout />
       <main-content />
     </div>
@@ -70,7 +75,7 @@ onUnmounted(() => {
   .layout-right {
     height: 100%;
     flex-grow: 1;
-    padding-left: 6.9rem;
+    padding-left: 7.2rem;
     .main-content {
       width: 100%;
       height: calc(100vh - 60px);

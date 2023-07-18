@@ -264,8 +264,8 @@ onMounted( async () => {
                     </div>
                     <div class="info-item">
                       <p class="info-title">
-                        <span class="font-700 text-blue-900">Rate alt url : </span>
-                        <sapn class="ml-18px">{{ tariffData.tariff_alt_url }}</sapn>
+                        <span class="font-700 text-blue-900">Rate Alt Url : </span>
+                        <span class="ml-18px">{{ tariffData.tariff_alt_url }}</span>
                       </p>
                     </div>
                   </div>

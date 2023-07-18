@@ -30,7 +30,7 @@ const confirm_PW = (state) => {
   if (reset_password1.value === reset_password2.value) {
     let sendData = { password: reset_password2.value }
     MsiApi.resetPW(sendData)
-    emit('closeModal', state)
+    emit('closeModal', state, 'passwordModal')
     resetValue()
   } else {
     ElMessage({
@@ -40,9 +40,11 @@ const confirm_PW = (state) => {
   }
 }
 const closeModal = (state) => {
+  if (!state) {
+    if (reset_password1.value !== '' || reset_password2.value !== '') resetValue()
+  }
   emit('closeModal', state, 'passwordModal')
 }
-
 watchEffect(() => {
   modalVisible.value = props.modal
 })
@@ -71,7 +73,9 @@ onMounted(() => {
           >
             Reset Password
           </h4>
-          <el-icon class="text-gray-4" @click.stop="closeModal(false)"><Close /></el-icon>
+          <el-icon class="text-gray-4" @click.stop="closeModal(false)">
+            <Close />
+          </el-icon>
         </div>
       </template>
       <div class="dialog-context">

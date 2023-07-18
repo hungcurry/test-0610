@@ -41,8 +41,8 @@ watchEffect(() => {
           <el-icon class="text-gray-4" @click.stop="closeModal(false)"><Close /></el-icon>
         </div>
       </template>
-      <div class="dialog-context">
-        <p class="text-base">
+      <div class="dialog-context scrollbar">
+        <p class="text-base pr-10px">
           多麼東京內心嘗試面對空氣裝置給他當前位置事件對不起，常見也就簡單設備擁有幫你風格的錢起來時間蒐集，資訊網親自無比顯得給予居民複雜上漲客服照顧，之下言論，趕緊預防妻子作用字元發展遠遠，醫生平衡基隆預測把它鼓勵都沒錯誤你要白色，英文廣泛社會搜尋路線讓人一邊你的相對賺錢留言名字大廈，發表警察版權所有發展沒有什麼網通今日，評論限制出版想法隨意導演郵箱原始碼神話立場開展強調無疑，角色開放感覺客人阿宅人民共和國門派眼神類別，明年歡迎求助步驟圖文最重要都有想。多麼東京內心嘗試面對空氣裝置給他當前位置事件對不起，常見也就簡單設備擁有幫你風格的錢起來時間蒐集，資訊網親自無比顯得給予居民複雜上漲客服照顧，之下言論，趕緊預防妻子作用字元發展遠遠，醫生平衡基隆預測把它鼓勵都沒錯誤你要白色，英文廣泛社會搜尋路線讓人一邊你的相對賺錢留言名字大廈，發表警察版權所有發展沒有什麼網通今日，評論限制出版想法隨意導演郵箱原始碼神話立場開展強調無疑，角色開放感覺客人阿宅人民共和國門派眼神類別，明年歡迎求助步驟圖文最重要都有想。
         </p>
       </div>
@@ -67,4 +67,18 @@ watchEffect(() => {
   </div>
 </template>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.scrollbar {
+  &::-webkit-scrollbar {
+    width: 0.6rem;
+  }
+  &::-webkit-scrollbar-track,
+  &::-webkit-scrollbar-corner {
+    background-color: var(--blue-100);
+  }
+  &::-webkit-scrollbar-thumb {
+    background-color: var(--gray-300);
+    border-radius: 2rem;
+  }
+}
+</style>

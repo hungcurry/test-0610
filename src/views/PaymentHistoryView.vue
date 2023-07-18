@@ -57,7 +57,7 @@ const download = () => {
     'created_date_str',
   ]
   const data = PaymentData.map((v) => filterVal.map((j) => v[j]))
-  export_json_to_excel({ header: tHeader, data: data, filename: 'PaymentHistory' })
+  export_json_to_excel({ header: tHeader, data: data, filename: 'Payment' })
 }
 
 const filterTag = (value, rowData) => {
@@ -224,7 +224,7 @@ onMounted(async () => {
         >
           <div class="w-full lg:w-auto flex justify-between md:justify-start">
             <el-checkbox
-              class="mr-30px"
+              class="mr-0 md:mr-30px"
               v-model="parking_visible"
               label="Parking"
               size="large"

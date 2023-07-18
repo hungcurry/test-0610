@@ -19,6 +19,7 @@ const sw_version_visable = ref (false)
 const multipleSelection = ref([])
 const fwVersion = ref('')
 const update_file = ref('')
+const swVersion = ref('')
 
 const updateConfirm = async () => {
   let sendData = { "evse_ids": updataEvseId, "location": update_file.value, "retrieveDate": "2022-10-27 12:12:12"}
@@ -109,41 +110,6 @@ const StationData = reactive([])
 
 onMounted( async () => {
 
-  let queryData1 = { "database": "OCPI", "collection": "Location", "pipelines": [
-  { "$match": {"id": {"UUID" : station_id }}},
-  { "$project": { "_id": 0} }]}
-  let response1 = await MsiApi.mongoAggregate(queryData1)
-  let evse_obj_arr = []
-  for (let i = 0; i < response1.data.result[0]?.evses?.length; i++) {
-    evse_obj_arr.push({"ObjectId":response1.data.result[0]?.evses?.[i]})
-  }
-
-  let queryData3 = { "database": "CPO", "collection": "ChargePointInfo", "pipelines": [
-    { "$match": {'evse': {"$in": evse_obj_arr}}},
-    { "$project": { "_id": 0} }
-  ]}
-  let response3 = await MsiApi.mongoAggregate(queryData3)
-
-  let hmi_obj_arr = []
-  for (let i = 0; i < response3.data.result.length; i++) {
-    if (response3.data.result[i].hmi != 0)
-    hmi_obj_arr.push({"ObjectId":response3.data.result[i].hmi})
-  }
-  queryData3 = { "database": "CPO", "collection": "HMIControlBoardInfo", "pipelines": [
-    { "$match": {'_id': {"$in": hmi_obj_arr}   }},
-    { "$project": { "_id": 0} }
-  ]}
-  response3 = await MsiApi.mongoAggregate(queryData3)
-  console.log(response3)
-  console.log(response3.data.result[0].hmi_board_sw_version)
-
-  let queryData2 = { "database": "OCPI", "collection": "Location", "pipelines": [
-  { "$match": {'id': {"UUID":station_id}}},
-  { "$project": { "_id": 0, "country_code":0, "directions":0, "id":0, "last_updated":0} }]}
-
-  let response2 = await MsiApi.mongoAggregate(queryData2)
-  console.log(response2)
-
   let jsonData = { "database":"OCPI", "collection":"Location", "query": { "id": { "UUID" : station_id} }}
   let response = await MsiApi.mongoQuery(jsonData)
   StationData.length = 0
@@ -152,6 +118,45 @@ onMounted( async () => {
   StationData.longitude_str = StationData.coordinates.longitude
   StationDetailEvseData.length = 0 
   Object.assign(StationDetailEvseData, StationData.evses)
+  let evse_obj_arr = []
+  let hmi_obj_arr = []
+  for(let i = 0; i < StationDetailEvseData.length; i++) {
+    evse_obj_arr.push(  {"ObjectId":StationDetailEvseData[i]._id}  )
+  }
+  jsonData = { "database": "CPO", "collection": "ChargePointInfo", "pipelines": [
+    { "$match": {'evse': {"$in": evse_obj_arr}}},
+    { "$project": { "_id": 0} }
+  ]}
+  response = await MsiApi.mongoAggregate(jsonData)
+ 
+  for (let i = 0; i < response.data?.result?.length; i++) {
+    for (let j = 0; j < StationDetailEvseData.length; j++) {
+      if (response.data.result[i].evse === StationDetailEvseData[j]._id) {
+        StationDetailEvseData[j].hmi_Info = response.data.result[i].hmi
+      }
+    }
+  }
+  for(let i = 0; i < StationDetailEvseData.length; i++) {
+    if (StationDetailEvseData[i].hmi_Info != 0)
+      hmi_obj_arr.push(  {"ObjectId":StationDetailEvseData[i].hmi_Info}  )
+  }
+  jsonData = { "database": "CPO", "collection": "HMIControlBoardInfo", "pipelines": [
+    { "$match": {'_id': {"$in": hmi_obj_arr}}},
+    { "$project": { "aaa": 0} }
+  ]}
+  response = await MsiApi.mongoAggregate(jsonData)
+  for (let i = 0; i < StationDetailEvseData.length; i++) {
+    for (let j = 0; j < response.data?.result?.length; j++)
+      if (StationDetailEvseData[i]?.hmi_Info === response.data.result?.[j]?._id) {
+        StationDetailEvseData[i].sw_version = response.data.result?.[j]?.hmi_board_sw_version
+      }
+  }
+
+  jsonData = { "database":"CPO", "collection":"VersionControl", "query": { "type": 'XP012'}}
+  response = await MsiApi.mongoQuery(jsonData)
+  swVersion.value = response.data.all[0].version
+
+
   for (let i = 0; i < StationData.evses.length; i++) {
     if (StationData.evses[i].connectors[0].standard === 'IEC_62196_T1') 
       StationDetailEvseData[i].type_str = 'Type 1'
@@ -243,7 +248,7 @@ onMounted( async () => {
           min-width="150"
         />
         <el-table-column
-          prop="hmi_version"
+          prop="sw_version"
           label="SW Ver."
           sortable
           min-width="200"
@@ -255,7 +260,7 @@ onMounted( async () => {
           min-width="200"
         >
           <template #default="scope">
-            <p v-if="scope.row.hmi_version === `b'0.1.2.3'`"> {{ "V" }}</p>
+            <p v-if="scope.row.sw_version === swVersion"> {{ "V" }}</p>
           </template>
         </el-table-column>
         <el-table-column

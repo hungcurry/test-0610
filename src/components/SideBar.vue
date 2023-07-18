@@ -57,7 +57,7 @@ const menuOpen = () => {
     line-height: 3.2rem;
   }
   .sidebarLink {
-    height: calc(100vh - 18%);
+    height: calc(100vh - 10%);
     overflow-x: hidden;
     overflow-y: scroll;
     box-sizing: border-box;

@@ -105,6 +105,17 @@ const edit = () => {
     edit_button_str.value = 'Update or Restart'
   }
 }
+const sortFunc = (obj1, obj2, column) => {
+  let at = obj1[column]
+  let bt = obj2[column]
+
+  if (bt === undefined) {
+    return -1
+  }
+  if (at > bt) {
+    return -1
+  }
+}
 onMounted( async() => {
   isLoading.value = true
   if (route.query.page === 'unpaired') {
@@ -200,77 +211,258 @@ onMounted( async() => {
       <div class="tabs">
         <el-tabs v-model="activeName" >
           <el-tab-pane label="Paired" name="1" >
-            <el-table class="evse-table" :data="EvseConnectData" style="width: 100%; height:800px" stripe 
-            :cell-style=msi.tb_cell :header-cell-style=msi.tb_header_cell size="large" v-loading.fullscreen.lock="isLoading" @selection-change="handleSelectionChange">
+            <el-table
+              class="evse-table"
+              :data="EvseConnectData"
+              style="width: 100%; height:calc(100vh - 260px)"
+              stripe
+              :cell-style=msi.tb_cell
+              :header-cell-style=msi.tb_header_cell
+              size="large"
+              v-loading.fullscreen.lock="isLoading"
+              @selection-change="handleSelectionChange"
+            >
+              <el-table-column
+                prop="locationName"
+                label="Station"
+                align="center"
+                sortable
+                :sort-method="(a, b) => sortFunc(a, b, 'locationName')"
+                min-width="150"
+              />
+              <el-table-column
+                prop="floor_level"
+                label="Floor Level"
+                align="center"
+                sortable
+                :sort-method="(a, b) => sortFunc(a, b, 'floor_level')"
+                min-width="150"
+              />
+              <el-table-column
+                prop="evse_id"
+                label="EVSE ID"
+                align="center"
+                sortable
+                :sort-method="(a, b) => sortFunc(a, b, 'evse_id')"
+                min-width="300"
+              />
+              <el-table-column
+                prop="status"
+                label="Status"
+                align="center"
+                min-width="150"
+                :filters="status_filter_item"
+                :filter-method="status_filter"
+              >
+                <template #default="scope">
+                  <p
+                    class="available text-center"
+                    v-if="scope.row.status === 'AVAILABLE'"
+                  > {{ "●" + scope.row.status }}</p>
+                  <p
+                    class="charging text-center"
+                    v-else-if="scope.row.status === 'CHARGING'"
+                  > {{ "●" + scope.row.status }}</p>
+                  <p
+                    class="offline text-center"
+                    v-else-if="scope.row.status === 'UNKNOWN'"
+                  > {{ "●" + scope.row.status }}</p>
+                  <p
+                    class="error text-center"
+                    v-else-if="scope.row.status === 'OUTOFORDER'"
+                  > {{ "●" + scope.row.status }}</p>
+                </template>
+              </el-table-column>
 
-              <el-table-column prop="locationName" label="Station" align="center" sortable min-width="150"/>
-              <el-table-column prop="floor_level" label="Floor Level" align="center" sortable min-width="150"/>
-              <!-- <el-table-column prop="physical_reference" label="Charger Label" align="center" sortable min-width="100"/> -->
-              <el-table-column prop="evse_id" label="EVSE ID" align="center" sortable min-width="300"/>
-              <el-table-column prop="status" label="Status" align="center" min-width="150" :filters="status_filter_item" :filter-method="status_filter">
+              <el-table-column
+                prop="hmi_version"
+                label="SW Ver."
+                align="center"
+                sortable
+                :sort-method="(a, b) => sortFunc(a, b, 'hmi_version')"
+                min-width="150"
+              />
+              <el-table-column
+                prop="latest SW"
+                label="Latest SW"
+                align="center"
+                min-width="150"
+              >
                 <template #default="scope">
-                  <p class="available text-center" v-if="scope.row.status === 'AVAILABLE'"> {{ "●" + scope.row.status }}</p>
-                  <p class="charging text-center" v-else-if="scope.row.status === 'CHARGING'"> {{ "●" + scope.row.status }}</p>
-                  <p class="offline text-center" v-else-if="scope.row.status === 'UNKNOWN' "> {{ "●" + scope.row.status }}</p>
-                  <p class="error text-center" v-else-if="scope.row.status === 'OUTOFORDER'"> {{ "●" + scope.row.status }}</p>
+                  <p
+                    class="text-center"
+                    v-if="scope.row.hmi_version === swVersion"
+                  > {{ "V" }}</p>
                 </template>
               </el-table-column>
-              <el-table-column prop="hmi_version" label="SW Ver." align="center" sortable min-width="150"/>
-              <el-table-column prop="" label="Latest SW" align="center"  sortable min-width="150">
+
+              <el-table-column
+                prop="last_updated_str"
+                label="Updated Time"
+                align="center"
+                sortable
+                :sort-method="(a, b) => sortFunc(a, b, 'last_updated_str')"
+                min-width="200"
+              />
+
+              <el-table-column
+                v-if="editMode === false"
+                prop=""
+                label=""
+                align="center"
+                min-width="150"
+              >
                 <template #default="scope">
-                  <p class="text-center" v-if="scope.row.hmi_version === swVersion"> {{ "V" }}</p>
+                  <el-button
+                    class="btn-more"
+                    @click="detail_info(scope.row)"
+                  > <font-awesome-icon icon="fa-solid fa-ellipsis" /> </el-button>
                 </template>
               </el-table-column>
-              <el-table-column prop="last_updated_str" label="Updated Time" align="center"  sortable min-width="200"/>
-              <el-table-column v-if="editMode === false" prop="" label="" align="center"  min-width="150">
-                <template #default="scope">
-                  <el-button class="btn-more" @click="detail_info(scope.row)"> <font-awesome-icon icon="fa-solid fa-ellipsis" /> </el-button>
-                </template>
-              </el-table-column>
-              <el-table-column v-else type="selection" min-width="150" />
+
+              <el-table-column
+                v-else
+                type="selection"
+                align="center"
+                min-width="150"
+              />
             </el-table>
           </el-tab-pane>
           <el-tab-pane label="Unpaired" name="2">
-            <el-table class="evse-table" :data="EvseUnConnectData" style="width: 100%; height:800px" stripe 
-            :cell-style=msi.tb_cell :header-cell-style=msi.tb_header_cell size="large"  v-loading.fullscreen.lock="isLoading" @selection-change="handleSelectionChange">
-              <el-table-column prop="locationName" label="Station" min-width="80"/>
-              <el-table-column prop="floor_level" label="Floor Level" min-width="30"/>
-              <!-- <el-table-column prop="physical_reference" label="Charger Label" min-width="30"/> -->
-              <el-table-column prop="evse_id" label="EVSE ID" min-width="80"/>
-              <el-table-column prop="status" label="Status" min-width="60" :filters="status_filter_item" :filter-method="status_filter">
+            <el-table
+              class="evse-table"
+              :data="EvseUnConnectData"
+              style="width: 100%; height:calc(100vh - 260px)"
+              stripe
+              :cell-style=msi.tb_cell
+              :header-cell-style=msi.tb_header_cell
+              size="large"
+              v-loading.fullscreen.lock="isLoading"
+              @selection-change="handleSelectionChange"
+            >
+              <el-table-column
+                prop="locationName"
+                label="Station"
+                align="center"
+                sortable
+                :sort-method="(a, b) => sortFunc(a, b, 'locationName')"
+                min-width="150"
+              />
+              <el-table-column
+                prop="floor_level"
+                label="Floor Level"
+                align="center"
+                sortable
+                :sort-method="(a, b) => sortFunc(a, b, 'floor_level')"
+                min-width="150"
+              />
+              <el-table-column
+                prop="evse_id"
+                label="EVSE ID"
+                align="center"
+                sortable
+                :sort-method="(a, b) => sortFunc(a, b, 'evse_id')"
+                min-width="300"
+              />
+              <el-table-column
+                prop="status"
+                label="Status"
+                align="center"
+                min-width="150"
+                :filters="status_filter_item"
+                :filter-method="status_filter"
+              >
                 <template #default="scope">
-                    <p class="available" v-if="scope.row.status === 'AVAILABLE'"> {{ "●" + scope.row.status }}</p>
-                    <p class="charging" v-else-if="scope.row.status === 'CHARGING'"> {{ "●" + scope.row.status }}</p>
-                    <p class="offline" v-else-if="scope.row.status === 'UNKNOWN' "> {{ "●" + scope.row.status }}</p>
-                    <p class="error" v-else-if="scope.row.status === 'OUTOFORDER'"> {{ "●" + scope.row.status }}</p>
-                  </template>
+                  <p
+                  class="available text-center"
+                    v-if="scope.row.status === 'AVAILABLE'"
+                  > {{ "●" + scope.row.status }}</p>
+                  <p
+                    class="charging text-center"
+                    v-else-if="scope.row.status === 'CHARGING'"
+                  > {{ "●" + scope.row.status }}</p>
+                  <p
+                    class="offline text-center"
+                    v-else-if="scope.row.status === 'UNKNOWN'"
+                  > {{ "●" + scope.row.status }}</p>
+                  <p
+                    class="error text-center"
+                    v-else-if="scope.row.status === 'OUTOFORDER'"
+                  > {{ "●" + scope.row.status }}</p>
+                </template>
               </el-table-column>
-              <el-table-column prop="hmi_version" label="SW Ver." min-width="50"/>
-              <el-table-column prop="" label="Latest SW" min-width="30">
+              <el-table-column
+                prop="hmi_version"
+                label="SW Ver."
+                sortable
+                align="center"
+                :sort-method="(a, b) => sortFunc(a, b, 'hmi_version')"
+                min-width="150"
+              />
+              <el-table-column
+                prop=""
+                label="Latest SW"
+                align="center"
+                min-width="150"
+              >
                 <template #default="scope">
                   <p v-if="scope.row.hmi_version === swVersion"> {{ "V" }}</p>
                 </template>
               </el-table-column>
-    
-              <el-table-column prop="last_updated_str" label="Updated Time" min-width="50" sortable/>
-              <el-table-column v-if="editMode === false" prop="" label="" min-width="30">
+
+              <el-table-column
+                prop="last_updated_str"
+                label="Updated Time"
+                align="center"
+                sortable
+                :sort-method="(a, b) => sortFunc(a, b, 'last_updated_str')"
+                min-width="200"
+              />
+              <el-table-column
+                v-if="editMode === false"
+                prop=""
+                label=""
+                align="center"
+                min-width="150"
+              >
                 <template #default="scope">
-                  <el-button @click="detail_info(scope.row)"> <font-awesome-icon icon="fa-solid fa-ellipsis" /> </el-button>
+                  <el-button 
+                  class="btn-more"
+                  @click="detail_info(scope.row)"
+                  >
+                  <font-awesome-icon icon="fa-solid fa-ellipsis" /> </el-button>
                 </template>
               </el-table-column>
-              <el-table-column v-else type="selection" min-width="10"/>
+              <el-table-column
+                v-else
+                type="selection"
+                align="center"
+                min-width="150"
+              />
             </el-table>
           </el-tab-pane>
         </el-tabs>
       </div>
 
-      
-      <el-dialog v-model="sw_version_visable" title="Update SW">
-        <p>Now Version {{ swVersion }}</p>
+      <el-dialog v-model="sw_version_visable" class="max-w-600px" width="90%">
+        <template #header="{ titleId, titleClass }">
+          <div class="py-2rem relative bg-blue-100">
+            <h4
+              :id="titleId"
+              :class="titleClass"
+              class="m-0 text-center text-blue-1200 font-400 text-24px line-height-26px"
+            >
+            Update SW
+            </h4>
+          </div>
+        </template>
+        <div class="dialog-context">
+          <p class="text-center">Now Version {{ swVersion }}</p>
+        </div>
         <template #footer>
-          <span class="dialog-footer">
-            <el-button @click="sw_version_visable = false">Cancel</el-button>
-            <el-button type="primary" @click="updateConfirm()">Confirm</el-button>
+          <span class="dialog-footer flex flex-center">
+            <el-button round class="w-48% bg-btn-100 text-white max-w-140px" @click="sw_version_visable = false">Cancel</el-button>
+            <el-button round class="w-48% bg-btn-200 text-white max-w-140px" @click="updateConfirm()">Confirm</el-button>
           </span>
         </template>
       </el-dialog>
@@ -300,18 +492,13 @@ onMounted( async() => {
   .hard-reset-button {
     background-color: var(--blue-900);
   }
-  .el-checkbox {
-    .el-checkbox__inner{
-      background-color:#000000;
-    }
-    .el-checkbox__inner{
-      width: 20px;
-      height: 20px;
-      border-color: #000000;
-    }
+  :deep(.el-table tr) {
+    height: 6.5rem;
   }
-}
-:deep(.el-tabs__item){
-  font-size: 30px !important;
+  .el-checkbox__inner{
+    width: 20px;
+    height: 20px;
+    border-color: #000000;
+  }
 }
 </style>

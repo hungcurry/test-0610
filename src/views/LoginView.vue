@@ -21,7 +21,7 @@ const pwVisible = () => {
 const login = async () => {
   if (checked.value === 'no') {
     ElMessage({
-      message: 'Warning, �о\Ū �Τ��ĳ���p�F��.',
+      message: 'Warning, 請閱讀 用戶協議隱私政策.',
       type: 'warning',
     })
     return
@@ -56,7 +56,6 @@ const emitCallBack = (res, str) => {
   checkboxInput.value.removeAttribute('disabled')
   checked.value = 'yes'
 }
-
 onMounted(() => {
   let targetTimezoneOffset = new Date().getTimezoneOffset()
   MStore.timeZoneOffset = targetTimezoneOffset
@@ -69,9 +68,9 @@ onMounted(() => {
 
 <template>
   <div class="login">
-    <div class="container flex-col flex-center">
-      <form class="flex-col flex-center flex-grow w-100% sm:max-w-460px">
-        <p class="title m-0 mb-10 lg:mb-32.5">{{ $t('m_cloud') }}</p>
+    <div class="outer">
+      <form class="form w-full text-center">
+        <p class="title text-center m-0 my-10 lg:mb-32px">{{ $t('m_cloud') }}</p>
         <label class="account" for="input-accoun">{{ $t('account') }}</label>
         <input
           class="input-account"
@@ -99,7 +98,7 @@ onMounted(() => {
           <img v-else src="@/assets/img/login_unvisible_nor.png" @click="pwVisible()" />
         </div>
         <template v-if="false">
-          <div class="w-full text-right text-[2.2rem] mb-8.8">
+          <div class="w-full text-right text-[2.2rem] mb-4">
             <a
               href="javascript:;"
               class="block secondary-hover leading-normal underline underline-offset-1"
@@ -137,8 +136,10 @@ onMounted(() => {
           {{ $t('log_in') }}
         </button>
       </form>
-      <p class="text-30px text-white">Version: 0.1.6</p>
-      <img class="logo" src="@/assets/img/login_msilogo.png" />
+      <div>
+        <p class="text-30px text-white text-center">Version: 0.1.6</p>
+        <img class="logo block mx-auto" src="@/assets/img/login_msilogo.png" />
+      </div>
     </div>
   </div>
   <PasswordModal :modal="modalobj.passwordModal" @closeModal="emitCallBack" />
@@ -154,6 +155,19 @@ onMounted(() => {
   background-position: center;
   background-size: cover;
   background-image: url('@/assets/img/login_bg.png');
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  .outer {
+    width: 100%;
+    max-width: 460px;
+    padding: 0 15px;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    justify-content: space-around;
+    justify-content: space-evenly;
+  }
   .title {
     font-size: 78px;
     line-height: 90px;
@@ -243,12 +257,6 @@ onMounted(() => {
     border: 0;
     cursor: pointer;
   }
-  .logo {
-    width: 200px;
-    height: 40px;
-    display: block;
-    margin: 0 auto 20px auto;
-  }
 }
 .form-label {
   display: block;
@@ -258,7 +266,6 @@ onMounted(() => {
   font-size: 1.8rem;
   user-select: none;
   color: var(--white);
-  pointer-event: none;
   z-index: 1;
   user-select: none;
   > input {

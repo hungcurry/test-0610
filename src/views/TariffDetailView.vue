@@ -347,279 +347,348 @@ onMounted(async () => {
 
 <template>
   <div class="tariff-detail">
-    <div class="tariff-up">
-      <p>Rate Profile Details</p>
-      <el-button class="add-tariff-element-btn" @click="ShowAddElementDialog"> Add Rate </el-button>
-    </div>
-    <el-tabs v-model="activeName" class="demo-tabs">
-      <el-tab-pane label="General" name="one">
-        <div class="tariff-main">
-          <div class="tariff-left">
-            <p>Profile Name</p>
-            <el-input v-model="TariffData.profile_name" />
+    <div class="container lg flex-col wh-full">
+      <div class="flex justify-between flex-wrap lg:flex-nowrap pt-40px pb-32px">
+        <p class="tariff-detail-title">Rate Profile Details</p>
+        <el-button class="add-tariff-element-btn w-full md:w-auto mt-4 md:mt-0 md:ml-30px box-shadow" @click="ShowAddElementDialog"> Add Rate </el-button>
+      </div>
 
-            <p>Currency</p>
-            <el-select v-model="TariffData.currency" placeholder="Select" size="large">
-              <el-option v-for="item in tariff_currency_opeion" :key="item.value" :label="item.label"
-                :value="item.value" />
-            </el-select>
-            <p>Country Code</p>
-            <el-select v-model="TariffData.country_code" placeholder="Select" size="large">
-              <el-option v-for="item in tariff_country_code_opeion" :key="item.value" :label="item.label"
-                :value="item.value" />
-            </el-select>
-
-            <p>Min Price</p>
-            <el-input v-model="TariffData.min_price_str" />
-            <!-- 
-            <p>Max Price</p>
-            <el-input v-model="TariffData.max_price_str" /> -->
-
-            <!-- <p>Rate URL</p>
-              <el-input v-model="TariffData.tariff_alt_url" /> -->
-            <!-- <p>Operator ID</p>
-            <el-input v-model="TariffData.party_id" />	 -->
-          </div>
-          <div class="tariff-right">
-            <!-- <p>Rate Description</p> <el-button @click="printElement"> Description generator </el-button> -->
-            <div class="tariff-description">
-              <div class="tariff-description-1">
-                <p>English</p>
-                <el-input v-model="textarea_en" :rows="20" type="textarea" placeholder="1. Charging Day of Week: Mon./Tue./Wed./Thu./Fri. Time: 08:00 ~ 18:00 TWD $10/per kWh; Time: 18:00 ~ 07:59 TWD $6/per kWh Day of Week: Sat./Sun. Time: 00:00 ~ 23:59 TWD $6/per kWh 
-2. Parking Day of Week: Mon./Tue./Wed./Thu./Fri. Time: 08:00 ~ 18:00 TWD $40/per hour; Time: 18:00 ~ 07:59 TWD $20/per hour Day of Week: Sat./Sun. Time: 00:00 ~ 23:59 TWD $20/per hour" />
+      <div class="tabs flex-grow">
+        <el-tabs v-model="activeName">
+          <el-tab-pane label="General" name="one">
+            <div class="overflow-x-auto flex pb-24px">
+              <div class="left mt-24px mr-20px">
+                <el-form class="flex-col w-350px">
+                  <el-form-item class="mb-24px sm:w-50% lg-w-full" label="Profile Name">
+                    <el-input v-model.trim="TariffData.profile_name"/>
+                  </el-form-item>
+                  <el-form-item class="mb-24px sm:w-50% lg-w-full" label="Currency">
+                    <el-select v-model="TariffData.currency" placeholder="Select" size="large">
+                      <el-option v-for="item in tariff_currency_opeion" :key="item.value" :label="item.label"
+                        :value="item.value" />
+                    </el-select>
+                  </el-form-item>
+                  <el-form-item class="mb-24px sm:w-50% lg-w-full" label="Country Code">
+                    <el-select v-model="TariffData.country_code" placeholder="Select" size="large">
+                      <el-option v-for="item in tariff_country_code_opeion" :key="item.value" :label="item.label"
+                        :value="item.value" />
+                    </el-select>
+                  </el-form-item>
+                  <el-form-item class="mb-24px sm:w-50% lg-w-full" label="Min Price">
+                    <el-input v-model.trim="TariffData.min_price_str"/>
+                  </el-form-item>
+                </el-form>
               </div>
-              <div class="tariff-description-1">
-                <p>Chinese</p>
-                <el-input v-model="textarea_zh" :rows="20" type="textarea" placeholder="1. 充電費 平日：星期一到星期五 時間：早上八點到晚上六點費用：一度電10元；時間：晚上六點到早上八點  費用：一度電6元 假日：星期六到星期日 時間：00:00 ~23:59 費用：一度電6元
-2. 停車費 平日：星期一到星期五 時間：早上八點到晚上六點 費用：每小時40元；時間：晚上六點到早上八點 費用：每小時20元 假日：星期六到星期日 時間：00:00 ~23:59 費用：每小時20元" />
+  
+              <div class="v-line mr-20px"></div>
+              <div class="right flex mt-24px mr-20px">
+                <div class="flex-col mr-24px">
+                  <p class="mb-12px">English</p>
+                  <el-input 
+                    v-model="textarea_en" 
+                    :rows="20" 
+                    type="textarea" 
+                    class="w-400px"
+                    placeholder="1. Charging Day of Week: Mon./Tue./Wed./Thu./Fri. Time: 08:00 ~ 18:00 TWD $10/per kWh; Time: 18:00 ~ 07:59 TWD $6/per kWh Day of Week: Sat./Sun. Time: 00:00 ~ 23:59 TWD $6/per kWh 
+  2. Parking Day of Week: Mon./Tue./Wed./Thu./Fri. Time: 08:00 ~ 18:00 TWD $40/per hour; Time: 18:00 ~ 07:59 TWD $20/per hour Day of Week: Sat./Sun. Time: 00:00 ~ 23:59 TWD $20/per hour" />
+                </div>
+                <div class="flex-col">
+                  <p class="mb-12px">Chinese</p>
+                  <el-input 
+                    v-model="textarea_zh" 
+                    :rows="20" 
+                    type="textarea" 
+                    class="w-400px"
+                    placeholder="1. 充電費 平日：星期一到星期五 時間：早上八點到晚上六點費用：一度電10元；時間：晚上六點到早上八點  費用：一度電6元 假日：星期六到星期日 時間：00:00 ~23:59 費用：一度電6元
+  2. 停車費 平日：星期一到星期五 時間：早上八點到晚上六點 費用：每小時40元；時間：晚上六點到早上八點 費用：每小時20元 假日：星期六到星期日 時間：00:00 ~23:59 費用：每小時20元" />
+                </div>
               </div>
+
             </div>
+          </el-tab-pane>
+
+
+          <el-tab-pane label="Rate" name="two">
+            <el-table 
+              :data="tariff_elements" 
+              class="white-space-nowrap text-primary"
+              height="calc(100vh - 340px)"
+              style="width: 100%"
+              stripe 
+              size="large"
+              empty=""
+              :cell-style=msi.tb_cell
+              :header-cell-style=msi.tb_header_cell 
+            >
+              <el-table-column
+                prop="price_components_type_str"
+                label="Type"
+                sortable
+                min-width="200"
+              />
+              <el-table-column
+                prop="price_components[0].price"
+                label="Price"
+                sortable
+                min-width="100"
+              />
+              <el-table-column
+                prop="price_components[0].vat"
+                label="Vat"
+                sortable
+                min-width="100"
+              />
+              <el-table-column
+                prop="price_components_step_size_str"
+                label="Unit"
+                sortable
+                min-width="100"
+              />
+              <el-table-column
+                prop="restrictions.start_time"
+                label="Start Time"
+                sortable
+                min-width="150"
+              />
+              <el-table-column
+                prop="restrictions.end_time"
+                label="End Time"
+                sortable
+                min-width="150"
+              />
+              <el-table-column
+                prop="restrictions_min_duration_str"
+                label="Active (Minute)"
+                sortable
+                min-width="200"
+              />
+              <el-table-column
+                prop="restrictions_max_duration_str"
+                label="Deactivate (Minute)"
+                sortable
+                min-width="220"
+              />
+              <el-table-column
+                prop="restrictions.day_of_week"
+                label="Day Of Week"
+                sortable
+                min-width="180"
+              />
+              <el-table-column
+                prop="detail"
+                label=""
+                align="center"
+                min-width="100"
+              >
+                <template #default="scope">
+                  <el-button class="btn-more" @click="ShowEditElementDialog(scope)"> <font-awesome-icon icon="fa-solid fa-ellipsis" />
+                  </el-button>
+                </template>
+              </el-table-column>
+            </el-table>
+          </el-tab-pane>
+
+
+          <el-tab-pane label="EVSE list" name="three">
+            <p v-for="item in used_evse" :key="item" :label="item" :value="item" class="mt-18px"> {{ item }}</p>
+          </el-tab-pane>
+        </el-tabs>
+      </div>
+
+      <div class="flex justify-center mb-44px">
+        <el-button class="button bg-btn-100 mr-44px" @click="cancel_tariff"> Cancel </el-button>
+        <el-button class="button bg-btn-200 mr-44px" @click="save_tariff"> Save </el-button>
+      </div>
+
+      <el-dialog 
+        v-model="add_tariff_visible" 
+        class="max-w-600px"
+        :show-close="true"
+        width="90%"
+        destroy-on-close
+        center
+        draggable
+      >
+        <template #header="{ titleId, titleClass }">
+          <div class="py-2rem relative bg-blue-100">
+            <h4
+              :id="titleId"
+              :class="titleClass"
+              class="m-0 text-center text-blue-1200 font-400 text-24px line-height-26px"
+            >
+              {{ add_tariff_title }}
+            </h4>
           </div>
-        </div>
-      </el-tab-pane>
-
-      <el-tab-pane label="Rate" name="two">
-        <el-table :data="tariff_elements" style="width: 95%; height:800px" stripe :cell-style=msi.tb_cell
-          :header-cell-style=msi.tb_header_cell size="large">
-          <el-table-column prop="price_components_type_str" label="Type" min-width="50" />
-          <el-table-column prop="price_components[0].price" label="Price" min-width="30" />
-          <el-table-column prop="price_components[0].vat" label="Vat" min-width="30" />
-          <el-table-column prop="price_components_step_size_str" label="Unit" min-width="30" />
-          <el-table-column prop="restrictions.start_time" label="Start Time" min-width="50" />
-          <el-table-column prop="restrictions.end_time" label="End Time" min-width="50" />
-          <el-table-column prop="restrictions_min_duration_str" label="Active (Minute)" min-width="50" />
-          <el-table-column prop="restrictions_max_duration_str" label="Deactivate (Minute)" min-width="50" />
-          <el-table-column prop="restrictions.day_of_week" label="Day Of Week" min-width="50" />
-          <el-table-column min-width="20">
-            <template #default="scope">
-              <el-button @click="ShowEditElementDialog(scope)"> <font-awesome-icon icon="fa-solid fa-ellipsis" />
-              </el-button>
-            </template>
-          </el-table-column>
-        </el-table>
-      </el-tab-pane>
-
-      <el-tab-pane label="EVSE list" name="three">
-        <p v-for="item in used_evse" :key="item" :label="item" :value="item"> {{ item }}</p>
-      </el-tab-pane>
-    </el-tabs>
-
-    <el-dialog v-model="add_tariff_visible" :title=add_tariff_title draggable>
-      <p> Type </p>
-      <el-select v-model="new_element.price_type" placeholder="Select" size="large"
-        @change="seletcType">
-        <el-option v-for="item in price_type_opeion" :key="item.value" :label="item.label" :value="item.value" />
-      </el-select>
-      <div v-if="new_element.price_type === ''">
-      </div>
-      <div v-else>
-        <div v-if="new_element.price_type === 'ENERGY'">
-          <p>Price (kWh)</p>
-          <el-input-number v-model="new_element.price_price" :controls="false" />
-          <p>Unit (Wh)</p>
-          <el-input-number v-model="new_element.step_size_str" :controls="false" disabled />
-        </div>
-
-        <div v-else-if="new_element.price_type === 'TIME'">
-          <p>Price ($ / hr)</p>
-          <el-input-number v-model="new_element.price_price" :controls="false" />
-          <p>Unit (Minute)</p>
-          <el-input-number v-model="new_element.step_size_str" :controls="false" />
-          <!-- <p> {{ 'i.e. ' + new_element.step_size_str + ' Min ' +
-            new_element.price_price /  60 * new_element.step_size_str
-            + ' Dollar ' + 'excl Vat'}}</p>  -->
-        </div>
-
-        <div v-else-if="new_element.price_type === 'PARKING_TIME'">
-          <p>Price ($ / hr)</p>
-          <el-input-number v-model="new_element.price_price" :controls="false" />
-          <p>Unit (Minute)</p>
-          <el-input-number v-model="new_element.step_size_str" :controls="false" />
-          <!-- <p> {{ 'i.e. ' + new_element.step_size_str + ' Min ' +
-            new_element.price_price /  60 * new_element.step_size_str
-            + ' Dollar ' + 'excl Vat'}}</p> -->
-        </div>
-
-        <p>Vat</p>
-        <el-input-number v-model="new_element.vat" :controls="false" />
-        <div v-if="new_element.price_type === 'PARKING_TIME'">
-          <p>Active Time (Minute)</p>
-          <!-- <el-input-number v-model="new_element.min_duration" :controls="false" /> -->
-          <el-input-number v-model="new_element.min_duration_str" :controls="false" />
-          <p>Deactivate Time (Minute)</p>
-          <!-- <el-input-number v-model="new_element.max_duration" :controls="false" /> -->
-          <el-input-number v-model="new_element.max_duration_str" :controls="false" />
-        </div>        
-        <p>Time</p>
-        <el-time-select v-model="new_element.start_time" :max-time="new_element.end_time" placeholder="Start time"
-          start="00:00" step="00:30" end="24:00" />
-        <el-time-select v-model="new_element.end_time" :min-time="new_element.start_time" placeholder="End time"
-          start="00:00" step="00:30" end="24:00" />
-
-        <div class="demo-button-style">
-          <el-checkbox-group v-model="new_element.day_of_week" size="large">
-            <el-checkbox-button v-for="week in day" :key="week.value" :label="week.value"> {{ week.label }}
-            </el-checkbox-button>
-          </el-checkbox-group>
-        </div>
-      </div>
-      
-      <template #footer>
-        <el-button @click="editElement('cancel')">Cancel</el-button>
-        <template v-if="element_action === 'add'">
-          <el-button type="primary" @click="editElement('add')">Create</el-button>
         </template>
-        <template v-else>
-          <el-button type="primary" @click="editElement('delete')">Delete</el-button>
-          <el-button type="primary" @click="editElement('edit')">Modify</el-button>
-        </template>
-      </template>
-    </el-dialog>
 
-    <el-button class="cancel-tariff-btn" @click="cancel_tariff"> Cancel </el-button>
-    <el-button class="save-tariff-btn" @click="save_tariff"> Save </el-button>
+        <div class="dialog-context">
+          <el-form class="max-w-500px m-auto">
+            <el-form-item class="mb-24px" label="Type">
+              <el-select v-model="new_element.price_type" placeholder="Select" size="large"
+                @change="seletcType">
+                <el-option v-for="item in price_type_opeion" :key="item.value" :label="item.label" :value="item.value" />
+              </el-select>
+            </el-form-item>
+
+            <div v-if="new_element.price_type === 'ENERGY'">
+              <el-form-item class="mb-24px" label="Price (kWh)">
+                <el-input-number v-model="new_element.price_price" :controls="false" />
+              </el-form-item>
+              <el-form-item class="mb-24px" label="Unit (Wh)">
+                <el-input-number v-model="new_element.step_size_str" :controls="false" disabled />
+              </el-form-item>
+            </div>
+            <div v-else-if="new_element.price_type === 'TIME'">
+              <el-form-item class="mb-24px" label="Price ($ / hr)">
+                <el-input-number v-model="new_element.price_price" :controls="false" />
+              </el-form-item>
+              <el-form-item class="mb-24px" label="Unit (Minute)">
+                <el-input-number v-model="new_element.step_size_str" :controls="false" />
+              </el-form-item>
+
+              <!-- <p> {{ 'i.e. ' + new_element.step_size_str + ' Min ' +
+              new_element.price_price /  60 * new_element.step_size_str
+              + ' Dollar ' + 'excl Vat'}}</p>  -->
+            </div>
+            <div v-else-if="new_element.price_type === 'PARKING_TIME'">
+              <el-form-item class="mb-24px" label="Price ($ / hr)">
+                <el-input-number v-model="new_element.price_price" :controls="false" />
+              </el-form-item>
+              <el-form-item class="mb-24px" label="Unit (Minute)">
+                <el-input-number v-model="new_element.step_size_str" :controls="false" />
+              </el-form-item>
+              <!-- <p> {{ 'i.e. ' + new_element.step_size_str + ' Min ' +
+              new_element.price_price /  60 * new_element.step_size_str
+              + ' Dollar ' + 'excl Vat'}}</p> -->
+            </div>
+
+            <el-form-item class="mb-24px" label="Vat">
+              <el-input-number v-model="new_element.vat" :controls="false" />
+            </el-form-item>
+
+            <div v-if="new_element.price_type === 'PARKING_TIME'">
+              <el-form-item class="mb-24px" label="Active Time (Minute)">
+                <!-- <el-input-number v-model="new_element.min_duration" :controls="false" /> -->
+                <el-input-number v-model="new_element.min_duration_str" :controls="false" />
+              </el-form-item>
+              <el-form-item class="mb-24px" label="Deactivate Time (Minute)">
+                <!-- <el-input-number v-model="new_element.max_duration" :controls="false" /> -->
+                <el-input-number v-model="new_element.max_duration_str" :controls="false" />
+              </el-form-item>
+            </div>
+
+            <el-form-item class="time-select mb-24px" label="Time">
+              <el-time-select v-model="new_element.start_time" :max-time="new_element.end_time" placeholder="Start time"
+            start="00:00" step="00:30" end="24:00" />
+              <el-time-select v-model="new_element.end_time" :min-time="new_element.start_time" placeholder="End time"
+              start="00:00" step="00:30" end="24:00" />
+            </el-form-item>
+
+            <div class="demo-button-style">
+              <el-checkbox-group v-model="new_element.day_of_week" size="large">
+                <el-checkbox-button v-for="week in day" :key="week.value" :label="week.value" class="week-btn"> {{ week.label }}
+                </el-checkbox-button>
+              </el-checkbox-group>
+            </div>
+          </el-form>
+        </div>
+
+        
+        <template #footer>
+          <el-button round class="w-48% bg-btn-100 text-white max-w-140px" @click="editElement('cancel')">Cancel</el-button>
+          <template v-if="element_action === 'add'">
+            <el-button round class="w-48% bg-btn-200 text-white max-w-140px" @click="editElement('add')">Create</el-button>
+          </template>
+          <template v-else>
+            <el-button round class="w-48% bg-btn-100 text-white max-w-140px" @click="editElement('delete')">Delete</el-button>
+            <el-button round class="w-48% bg-btn-200 text-white max-w-140px" @click="editElement('edit')">Modify</el-button>
+          </template>
+        </template>
+      </el-dialog>
+
+    </div>
   </div>
 </template>
 
 <style lang="scss" scoped >
+
 .tariff-detail {
-  width: 100%;
   height: 100%;
-
-  .cancel-tariff-btn {
-    width: 220px;
-    height: 40px;
-    bottom: 40px;
-    // right: 700px;
-    left: 1000px;
-    position: absolute;
-    font-size: 18px;
-    background-color: #000000DF;
-    color: #FFFFFF;
-    border-radius: 20px;
+  .tariff-detail-title {
+    font-size: 36px;
   }
-
-  .save-tariff-btn {
-    width: 220px;
-    height: 40px;
-    bottom: 40px;
-    // left: 800px;
-    left: 1300px;
-    position: absolute;
-    font-size: 18px;
-    background-color: #000000DF;
-    color: #FFFFFF;
-    border-radius: 20px;
+  .add-tariff-element-btn {
+    width: 20rem;
+    height: 4rem;
+    padding: 0.8rem 2rem;
+    font-size: 1.8rem;
+    background-color: var(--secondary);
+    color: var(--white);
+    border-radius: 2rem;
   }
-
-  .tariff-up {
-    height: 50px;
-
-    p {
-      margin: 0;
-      padding: 0;
-      font-size: 40px;
-    }
-
-    // width: 300px;
-    .add-tariff-element-btn {
-      width: 220px;
-      height: 40px;
-      top: 80px;
-      right: 40px;
-      position: absolute;
-      font-size: 18px;
-      background-color: #000000DF;
-      color: #FFFFFF;
-      border-radius: 20px;
-
-    }
-
-    p {
-      margin: 0;
-      padding: 0;
-      font-size: 40px;
+  .v-line {
+    border-left: thick solid rgb(226, 234, 242);
+  }
+  .button {
+    width: 140px;
+    height: 4rem;
+    padding: 0.8rem 2rem;
+    font-size: 1.8rem;
+    color: var(--white);
+    border-radius: 2rem;
+  }
+  .button:hover {
+    color: var(--el-color-info);
+  }
+  .time-select {
+    :deep(.el-input__inner) {
+      padding-left: 20px;
     }
   }
-
-  .tariff-main {
-    display: flex;
-
-    .tariff-left {
-      width: 300px;
-      margin-left: 30px;
-
-      .el-input {
-        width: 250px;
-        --el-input-bg-color: rgb(86, 101, 117);
-        --el-input-text-color: rgb(255, 255, 255);
-      }
+  .week-btn {
+    width: 14%;
+    :deep(.el-checkbox-button__inner) {
+      width: 100%;
     }
-
-    .tariff-right {
-      .tariff-description {
-        display: flex;
-        flex-direction: row;
-        gap: 20px;
-
-        // .tariff-description {
-        //   width: 300px;
-        // }
-        p {
-          width: 400px;
-        }
-      }
-
-      .el-textarea {
-        margin-bottom: 10px;
-      }
-
-    }
-  }
-
-  // .tariff-main1 {
-  // .el-input {
-  // 		width: 250px;
-  // 		--el-input-bg-color: rgb(86, 101, 117);
-  // 		--el-input-text-color: rgb(255, 255, 255);
-  // 	}
-  // margin-left: 30px;
-  // }
-
-  .price-component {
-    width: 300px;
-    margin-left: 30px;
-
-  }
-
-  .price-restrictions {
-    width: 500px;
-    margin-left: 30px;
   }
 }
 
-.demo-button-style {
-  margin-top: 24px;
+.el-form-item {
+  display: block;
+}
+:deep(.el-form-item__label) {
+  display: block;
+  font-size: 1.6rem;
+}
+:deep(.el-input__wrapper) {
+  height: 38px;
+  width: 50%;
+  .el-icon {
+    top: 0;
+    right: 0;
+    color: var(--white);
+    width: 2rem;
+  }
+  @media (min-width: 992px) {
+    width: 350px
+  }
+}
+
+:deep(.el-icon.el-input__prefix-icon) {
+  top: 18px;
+  left: 10px;
+}
+
+
+::-webkit-scrollbar {
+  width: 0.8rem;
+  height: 0.8rem;
+}
+::-webkit-scrollbar-thumb {
+  background-color: var(--gray-300);
+}
+::-webkit-scrollbar-thumb {
+  border-radius: 2rem;
 }
 
 .el-table {

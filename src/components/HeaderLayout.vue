@@ -4,7 +4,8 @@ import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useMStore } from '../stores/m_cloud'
-
+import { storeToRefs } from 'pinia'
+import { useSideMenuStore } from '@/stores/sidemenu'
 const route = useRoute()
 const router = useRouter()
 const reset_password_visible = ref(false)
@@ -18,7 +19,8 @@ if (
   ) {
     dev_member.value = true
   }
-
+const sideMenuStore = useSideMenuStore()
+const { isCollapse } = storeToRefs(sideMenuStore)
 
 const English = () => {
   i18n.global.locale.value = 'en_us'
@@ -31,6 +33,7 @@ const Personal_Info = () => {
 }
 const logOut = () => {
   router.push({ name: 'login' })
+  isCollapse.value = true
 }
 const resetPW = () => {
   reset_password_visible.value = true
