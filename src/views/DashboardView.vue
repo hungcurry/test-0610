@@ -1,13 +1,16 @@
 <script setup>
 import * as echarts from 'echarts'
 import ApiFunc from '@/composables/ApiFunc'
-import SelectDropdown from '@/components/Input/SelectDropdown.vue'
+// import SelectDropdown from '@/components/Input/SelectDropdown.vue'
 import { ref, reactive, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useMStore } from '@/stores/m_cloud'
 
+import { useI18n } from "vue-i18n"
+const { t } = useI18n()
 const MStore = useMStore()
 const company = MStore?.permission?.company?.name
+const user = MStore?.permission?.user?.name
 const router = useRouter()
 const MsiApi = ApiFunc()
 const income = ref(0)
@@ -265,9 +268,8 @@ const queryTotalUsedPower = async (select_time1) => {
     ],
   }
   let response = await MsiApi.mongoAggregate(queryData)
-  if (parseInt(response?.data?.result?.[0]?.totalkwh)) {
-    totalkwh.value = parseInt(response?.data?.result?.[0]?.totalkwh)
-    totalkwh.value = totalkwh.value / 1000
+  if (response?.data?.result?.[0]?.totalkwh) {
+    totalkwh.value = parseInt(response?.data?.result?.[0]?.totalkwh * 1000) / 1000
   }
 }
 
@@ -925,8 +927,8 @@ onUnmounted(() => {
           />
         </SelectDropdown>
       </div> -->
-
-      <p class="m-0 text-20px text-blue-1200 py-20px text-center">Real-time Status</p>
+      
+      <p class="m-0 text-20px text-blue-1200 py-20px text-center">{{ t('real_time_status') }}</p>
       <el-row class="realtimeStatus" :gutter="30">
         <el-col class="mb-24px lg:mb-0" :xs="24" :md="12">
           <div class="evse-status">
@@ -1079,7 +1081,7 @@ onUnmounted(() => {
             <div class="evse-title flex items-center pb-16px md:pb-20px">
               <font-awesome-icon class="w-24px h-24px" icon="fa-solid fa-coins" />
               <p class="text-blue-1200 text-22px ml-8px">Income</p>
-              <el-button v-if="company === 'MSI'" class="ellipsis" @click="goto_payment">
+              <el-button v-if="user === 'AdminUser' || user === undefined" class="ellipsis" @click="goto_payment">
                 <font-awesome-icon icon="fa-solid fa-ellipsis"
               /></el-button>
             </div>

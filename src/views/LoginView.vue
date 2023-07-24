@@ -13,7 +13,7 @@ const router = useRouter()
 const pw_type = ref('password')
 const account = ref('')
 const password = ref('')
-
+const m_cloud_version = ref('0.1.7')
 const pwVisible = () => {
   if (pw_type.value === 'password') pw_type.value = 'text'
   else pw_type.value = 'password'
@@ -137,7 +137,7 @@ onMounted(() => {
         </button>
       </form>
       <div>
-        <p class="text-30px text-white text-center">Version: 0.1.7</p>
+        <p class="text-30px text-white text-center">{{ $t('version')  + ':' +  m_cloud_version }}</p>
         <img class="logo block mx-auto" src="@/assets/img/login_msilogo.png" />
       </div>
     </div>

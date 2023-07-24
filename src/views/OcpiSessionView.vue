@@ -17,7 +17,6 @@ const filters = [
   { text: 'Invalid', value: 'INVALID' },
   { text: 'Active', value: 'ACTIVE' },
   { text: 'Pending', value: 'PENDING' },
-  { text: 'Reservation', value: 'RESERVATION' },
 ]
 const filterTag = (value, rowData) => {
   return rowData.status === value
@@ -46,6 +45,15 @@ const download = () => {
 
 
 const select_date = async () => {
+
+  if (select_time.value === null) 
+    select_time.value = [new Date(1970, 1, 1, 0, 0, 0), new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59)]
+  if (select_time.value?.[0] === undefined) {
+    select_time.value[0] = [new Date(1970, 1, 1, 0, 0, 0) ,]
+  }
+  if (select_time.value?.[1] === undefined) {
+    select_time.value[1] = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59)
+  }
 
   let queryData = { "database":"OCPI", "collection":"Session", "pipelines": [ 
     {
@@ -160,8 +168,6 @@ onMounted( async() => {
               prop="status"
               label="Status"
               align="center"
-              sortable
-              :sort-method="(a, b) => sortFunc(a, b, 'status')"
               :filters="filters"
               :filter-method="filterTag"
               min-width="200"
@@ -240,4 +246,23 @@ onMounted( async() => {
   }
 }
 
+
+
+:deep(.el-table-filter__list) {
+  display: flex;
+  justify-content: flex-end;
+}
+
+:deep(.el-table-filter__bottom) {
+  order: 2;
+}
+
+:deep(.el-table-filter__confirm) {
+  order: 1;
+}
+
+.el-table-filter__bottom,
+:deep(.el-table-filter__confirm) {
+  margin-left: 8px; /* 為了在按鈕之間增加一些間距 */
+}
 </style>

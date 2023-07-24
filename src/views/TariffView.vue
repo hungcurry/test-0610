@@ -1,5 +1,5 @@
 <script setup>
-import { ref, reactive, onMounted} from 'vue'
+import {  reactive, onMounted} from 'vue'
 import {useRouter } from 'vue-router'
 import ApiFunc from '@/composables/ApiFunc'
 import msi from '@/assets/msi_style'
@@ -9,12 +9,12 @@ import { ElMessageBox,ElMessage } from 'element-plus'
 const router = useRouter()
 const MsiApi = ApiFunc()
 const TariffData = reactive([])
-const day = ['Mon.', 'Tue.', 'Wed.', 'Thu', 'Fri.', 'Sat.', 'Sun.']
-const tariff_select = ref ('Charging')
-const charging_select = ref ('Time')
-const addTariffFormVisible = ref(false)
-const TariffOptions = [ { value: 'Charging', label: 'Charging',}, {value: 'Parking',label: 'Parking',}  ]
-const ChargingOptions = [{ value: 'Time', label:'by Time'}, { value: 'Energy', label:'by Energy'}]
+// const day = ['Mon.', 'Tue.', 'Wed.', 'Thu', 'Fri.', 'Sat.', 'Sun.']
+// const tariff_select = ref ('Charging')
+// const charging_select = ref ('Time')
+// const addTariffFormVisible = ref(false)
+// const TariffOptions = [ { value: 'Charging', label: 'Charging',}, {value: 'Parking',label: 'Parking',}  ]
+// const ChargingOptions = [{ value: 'Time', label:'by Time'}, { value: 'Energy', label:'by Energy'}]
 
 const sortFunc = (obj1, obj2, column) => {
   let at = obj1[column]
@@ -197,7 +197,6 @@ onMounted( async() => {
                 <el-button link type="primary" size="large" @click="editTariff(scope.row)">
                   <font-awesome-icon icon="fa-regular fa-pen-to-square" />
                 </el-button>
-
               </template>
             </el-table-column>
           </el-table>
@@ -206,10 +205,7 @@ onMounted( async() => {
     </div>
   </div>
 
-
-
     <!-- 
-
     <el-dialog v-model="addTariffFormVisible" title="Add Rate" draggable>
       <p> Tariff Type </p>
       <el-select v-model="tariff_select" class="m-2" placeholder="Select" size="large">

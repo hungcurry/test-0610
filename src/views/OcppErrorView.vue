@@ -10,7 +10,7 @@ import { QuestionFilled } from '@element-plus/icons-vue'
 const MStore = useMStore()
 const now = new Date()
 const select_time = ref([ new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0), new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59)])
-const defaultTime = [new Date(2000, 1, 1, 0, 0, 0), new Date(2000, 1, 1, 23, 59, 59)]
+const defaultTime = ref([new Date(2000, 1, 1, 0, 0, 0), new Date(2000, 1, 1, 23, 59, 59)])
 const isLoading = ref(false)
 const MsiApi = ApiFunc()
 const ocppErrorData = reactive([])
@@ -33,17 +33,23 @@ const handleButtonClick = () => {
 }
 
 const getEVSEOCPPLogs = async() => {
-  
   isLoading.value = true
-
+  if (select_time.value === null) 
+    select_time.value = [new Date(1970, 1, 1, 0, 0, 0), new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59)]
+  if (select_time.value?.[0] === undefined) {
+    select_time.value[0] = [new Date(1970, 1, 1, 0, 0, 0) ,]
+  }
+  if (select_time.value?.[1] === undefined) {
+    select_time.value[1] = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59)
+  }
   let queryData = {
     "database": "CPO", "collection": "EVSEOCPPLogs", "pipelines": [
       {
         "$match": {
           "$expr": {
             "$and": [
-              { "$gte": ["$created_date", { "$dateFromString": { "dateString": select_time.value[0] } }] },
-              { "$lte": ["$created_date", { "$dateFromString": { "dateString": select_time.value[1] } }] }]
+              { "$gte": ["$created_date", { "$dateFromString": { "dateString": select_time.value?.[0] } }] },
+              { "$lte": ["$created_date", { "$dateFromString": { "dateString": select_time.value?.[1] } }] }]
           }
         }
       },
@@ -71,7 +77,7 @@ const getEVSEOCPPLogs = async() => {
 }
 
 const download = () => {
-  const tHeader = ['EVSE ID', 'Error Code', 'VendorErrorCode', 'OCPP FW Status','Created Time']
+  const tHeader = ['EVSE ID', 'Error Code', 'System Error Code', 'FW Error Info','Created Time']
   const filterVal = ['evse_id', 'ocpp_errorCode', 'vendorErrorCode', 'ocpp_firmware_status','created_date_str']
   const data = ocppErrorData.map(v => filterVal.map(j => v[j]))
   export_json_to_excel ({ header: tHeader, data: data, filename: 'OCPP Error' })

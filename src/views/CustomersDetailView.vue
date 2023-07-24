@@ -27,8 +27,14 @@ const rfidData = reactive({ rfid: '', cash: 0, enable: true, nickname: '' })
 const rfid_title = ref('Add RFID')
 
 const clearEvseList = async () => {
-  let sendData = { 'class': 'UserData', 'pk': userData._id, 'evse_list': [] }
-  console.log(await MsiApi.setCollectionData('patch', 'cpo', sendData))
+  ElMessageBox.confirm('Do you want to delete?', 'Warning', { confirmButtonText: 'OK', cancelButtonText: 'Cancel', type: 'warning' })
+      .then(async () => {
+        let sendData = { 'class': 'UserData', 'pk': userData._id, 'evse_list': [] }
+        console.log(await MsiApi.setCollectionData('patch', 'cpo', sendData))
+      })
+      .catch((e) => {
+        console.log(e)
+      })
 }
 
 const binding_card_detail = () => {
@@ -196,7 +202,9 @@ onMounted(async () => {
   userData.paylistArrObj = []
   userData.evse_list_id = ''
   for (let i = 0; i < userData.evse_list.length; i++) {
-    userData.evse_list_id += userData.evse_list?.[i]?.evseId + ' / '
+    userData.evse_list_id += userData.evse_list?.[i]?.evseId 
+    if (userData.evse_list.length > 1)
+      userData.evse_list_id + ' / '
   }
   await GetPermission()
 
@@ -317,7 +325,7 @@ onMounted(async () => {
                     <span class="line-height-24px">Real-time Info</span>
                   </div>
                   <div class="flex mt-16px">
-                    <p class="w-50% line-height-32px">EVSE Info</p>
+                    <p class="w-50% line-height-32px">Occupied EVSE</p>
                     <p class="line-height-32px">{{ userData.evse_list_id }}</p>
                     <el-button 
                       v-if="company === 'MSI'" 
@@ -420,14 +428,14 @@ onMounted(async () => {
                   v-loading.fullscreen.lock="isLoading"
                 >
                   <el-table-column
-                    prop="evse_id"
-                    label="EVSE ID"
+                    prop="location_name"
+                    label="Station Name"
                     sortable
                     min-width="200"
                   />
                   <el-table-column
-                    prop="location_name"
-                    label="Station Name"
+                    prop="evse_id"
+                    label="EVSE ID"
                     sortable
                     min-width="200"
                   />

@@ -80,7 +80,21 @@ const editCompany = async (action) => {
   CompanyFormVisible.value = false
   companyData.invoice.owner = 'ezPay'
   companyData.payment.owner = 'NewebPay'
+  let check_format_success = true
+  const regex = /^[0-9a-zA-Z-]+$/
+
+  if (regex.test(companyData.tax_id === false)) {
+    check_format_success = false
+    ElMessage.error('Oops, Tax ID format error.')
+  }
+  if (companyData.name === undefined || companyData.name === '') {  
+    check_format_success = false
+    ElMessage.error('Oops, Name required.')
+  }
+  
   if (edit_mode.value === 'create') {
+    if (check_format_success === false)
+      return
     if (action === 'confirm') {
       let sendData = {  class : 'CompanyInformation', name: companyData.name,
                         country:companyData.country, party_id:companyData.party_id,
@@ -90,24 +104,22 @@ const editCompany = async (action) => {
                         address:companyData.address, phone:companyData.phone,
                         tax_id:companyData.tax_id
                       }
-      if (sendData.name === undefined || sendData.name === '') {  
-        ElMessage.error('Oops, Name required.')
-        return
-      }
-      ElMessageBox.confirm('Do you want to create?','Warning', {confirmButtonText: 'OK', cancelButtonText: 'Cancel', type: 'warning'})
-      .then(async () => {
-        let res = await MsiApi.setCollectionData('post', 'cpo', sendData)
-        if (res.status === 201) {
-          let queryData = { "database":"CPO", "collection":"CompanyInformation", "query": {}}
-          await MongoQurey(queryData)
-        }
-      })
-      .catch((e)=>{
-        console.log(e)
-      })
+        ElMessageBox.confirm('Do you want to create?','Warning', {confirmButtonText: 'OK', cancelButtonText: 'Cancel', type: 'warning'})
+        .then(async () => {
+          let res = await MsiApi.setCollectionData('post', 'cpo', sendData)
+          if (res.status === 201) {
+            let queryData = { "database":"CPO", "collection":"CompanyInformation", "query": {}}
+            await MongoQurey(queryData)
+          }
+        })
+        .catch((e)=>{
+          console.log(e)
+        })
     }
   }
   else if (edit_mode.value === 'edit'){
+    if (check_format_success === false)
+      return
     if (action === 'confirm') {
       let sendData = {  class : 'CompanyInformation', pk: companyData._id,name: companyData.name, 
                         country:companyData.country, party_id:companyData.party_id,
@@ -279,7 +291,7 @@ onMounted( async() => {
           </template>
           <div class="dialog-context">
             <el-form class="max-w-500px m-auto">
-              <el-form-item class="mb-24px" label="Company Name">
+              <el-form-item class="mb-24px" label="Name">
                 <el-input v-model.trim="companyData.name" />
               </el-form-item>
 

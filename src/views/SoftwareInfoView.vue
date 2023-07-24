@@ -65,8 +65,29 @@ const confirm = async (mode) => {
         else {
           send_release_note[index.value] = { version:Detail_Data.version, file:Detail_Data.file, description:Detail_Data.description, update_time: new Date()}
         }
-        let sendData = { 'class' : 'VersionControl', 'pk': response.data.all[0]._id, 'release_note' : send_release_note, }
-        console.log(await MsiApi.setCollectionData('patch', 'cpo', sendData))
+        let duplicate = {flag:false, i:0,j:0}
+        for (let i = 0; i < send_release_note.length; i++) {
+          for (let j = 0; j < send_release_note.length; j++) {
+            if ( i === j) {
+              break
+            }
+            else {
+              if (send_release_note[i].version === send_release_note[j].version) {
+                duplicate.flag = true
+                duplicate.i = i
+                duplicate.j = j
+              }
+            }
+          }
+        }
+
+        if (duplicate.flag === false ) {
+          let sendData = { 'class' : 'VersionControl', 'pk': response.data.all[0]._id, 'release_note' : send_release_note, }
+          console.log(await MsiApi.setCollectionData('patch', 'cpo', sendData))
+        }
+        else {
+          ElMessage.error( 'index ' + duplicate.i + ' index ' + duplicate.j + ' duplicate')
+        }
         swVisible.value = false
     }
       response = await MsiApi.mongoQuery(queryData)
@@ -108,10 +129,10 @@ const detail_info = (scope,selectType) => {
   swVisible.value = true
   type.value = selectType
   if (selectType === 'XP012') {
-    dialog_title.value = 'Add SW Release Note'
+    dialog_title.value = 'Edit SW Release Note'
   }
   else if (selectType === 'XP011_BT') {
-    dialog_title.value = 'Add FW Release Note'
+    dialog_title.value = 'Edit FW Release Note'
   }
   index.value = scope.$index
   Detail_Data.version = scope.row.version

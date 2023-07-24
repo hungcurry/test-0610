@@ -10,7 +10,7 @@ const MsiApi = ApiFunc()
 const route = useRoute()
 const router = useRouter()
 const station_id = route.query.id
-const Coordinates2Addr = ref('')
+// const Coordinates2Addr = ref('')
 const edit_title = ref('Edit Station')
 
 const getCoordinates = async () => {
@@ -25,32 +25,21 @@ const getTimeZone = async () => {
   StationData.time_zone = res.data.data.timeZoneId
 }
 
-const getAddress = async () => {
-  let res = await MsiApi.getAddress(StationData.latitude_str, StationData.longitude_str)
-  Coordinates2Addr.value = res.data.data.results[0].formatted_address
-}
+// const getAddress = async () => {
+//   let res = await MsiApi.getAddress(StationData.latitude_str, StationData.longitude_str)
+//   Coordinates2Addr.value = res.data.data.results[0].formatted_address
+// }
 
-const change_country_code = (item) => {
-  if (item.country === 'Germany') {
-    StationData.country_code = 'DE'
-  }
-  else if (item.country === 'Japan') {
-    StationData.country_code = 'JP'
-  }
-  else if (item.country === 'Taiwan') {
-    StationData.country_code = 'TW'
-    StationData.time_zone = 'Asia/Taipei'
-  }
-  else if (item.country === 'United States') {
-    StationData.country_code = 'US'
-  }
+const change_country_code = (country) => {
+  const findObj = country_list.find(item => item.value === country)
+  StationData.country_code = findObj.country_code
 }
 
 const facilities_type = [{ value: 'HOTEL', label: 'Hotel' }, { value: 'RESTAURANT', label: 'Restaurant' },
 { value: 'MALL', label: 'Mall' }, { value: 'SUPERMARKET', label: 'Super Market' },
 // { value: 'TAXI_STAND', label: 'Public transportation' }, 
 // { value: 'FUEL_STATION', label: 'Fuel station' },
-{ value: 'PARKING_LOT', label: 'Parking lot' }, { value: 'WIFI', label: 'Others' },
+{ value: 'PARKING_LOT', label: 'Parking Lot' }, { value: 'WIFI', label: 'Others' },
 ]
 
 const taiwan_city = [
@@ -64,8 +53,19 @@ const taiwan_city = [
   { value: '連江縣', label: '連江縣' },
 ]
 
-const country_list = [{ value: 'Germany', label: 'Germany', country_code: 'DE' }, { value: 'Japan', label: 'Japan', country_code: 'JP' },
-{ value: 'Taiwan', label: 'Taiwan', country_code: 'TW' }, { value: 'United States', label: 'United States', country_code: 'US' },
+const country_list = [
+{ value: 'Canada', label: 'Canada', country_code: 'CA' },
+{ value: 'China', label: 'China', country_code: 'CN' },
+{ value: 'France', label: 'France', country_code: 'FR' },
+{ value: 'Germany', label: 'Germany', country_code: 'DE' }, 
+{ value: 'Italy', label: 'Italy', country_code: 'IT' },
+{ value: 'Japan', label: 'Japan', country_code: 'JP' },
+{ value: 'Portugal	', label: 'Portugal	', country_code: 'PT' },
+{ value: 'South Korea', label: 'South Korea', country_code: 'KR' },
+{ value: 'Spain', label: 'Spain', country_code: 'ES' },
+{ value: 'Taiwan', label: 'Taiwan', country_code: 'TW' }, 
+{ value: 'United States', label: 'United States', country_code: 'US' },
+{ value: 'United Kingdom', label: 'United Kingdom', country_code: 'UK' },
 ]
 
 const select_all = ref(true)
@@ -279,11 +279,11 @@ onMounted(async () => {
                 <img class="w-180px h-180px mr-30px" v-else src="@/assets/img/null_pic.png">
     
                   <el-form class="w-full min-w-190px">
-                    <el-form-item label="Station Name">
+                    <el-form-item label="Name">
                       <el-input v-model.trim="StationData.name" />
                     </el-form-item>
     
-                    <el-form-item label="Station Type">
+                    <el-form-item label="Type">
                       <el-select
                         class="el-select" 
                         v-model="StationData.facilities_str" 
@@ -329,7 +329,7 @@ onMounted(async () => {
                         v-model="StationData.country" 
                         placeholder="Select" 
                         size="large"
-                        @change="change_country_code(StationData)"
+                        @change="change_country_code(StationData.country)"
                       >
                       <el-option v-for="item in country_list" :key="item.value" :label="item.label" :value="item.value" />
                       </el-select>

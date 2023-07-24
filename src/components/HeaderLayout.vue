@@ -3,22 +3,11 @@ import i18n from '@/locales'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useMStore } from '../stores/m_cloud'
 import { storeToRefs } from 'pinia'
 import { useSideMenuStore } from '@/stores/sidemenu'
 const route = useRoute()
 const router = useRouter()
 const reset_password_visible = ref(false)
-const MStore = useMStore()
-const dev_member = ref(false)
-if (
-    MStore.user_data.first_name === 'Steven' ||
-    MStore.user_data.first_name === 'Leo' ||
-    MStore.user_data.first_name === 'Frank' ||
-    MStore.user_data.first_name === 'Rax'
-  ) {
-    dev_member.value = true
-  }
 const sideMenuStore = useSideMenuStore()
 const { isCollapse } = storeToRefs(sideMenuStore)
 
@@ -79,7 +68,7 @@ const emitCallBack = (res) => {
           <el-dropdown-menu>
             <el-dropdown-item @click="logOut()">Log Out</el-dropdown-item>
             <el-dropdown-item @click="resetPW()">Reset Password</el-dropdown-item>
-            <el-dropdown-item v-if="dev_member" @click="Personal_Info()">Personal Info</el-dropdown-item>
+            <el-dropdown-item @click="Personal_Info()">Personal Info</el-dropdown-item>
           </el-dropdown-menu>
         </template>
       </el-dropdown>

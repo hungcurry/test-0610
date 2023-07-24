@@ -360,8 +360,6 @@ onMounted(async () => {
               :filters="filters"
               :filter-method="filterTag"
               min-width="150"
-              sortable
-              :sort-method="(a, b) => sortFunc(a, b, 'paymethod_str')"
             />
 
             <el-table-column

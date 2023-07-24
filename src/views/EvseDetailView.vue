@@ -62,17 +62,28 @@ onMounted( async () => {
   queryData = { "database":"OCPI", "collection":"Connector", "query": { "_id": { "ObjectId" : evseData?.connectors?.[0]?._id}}}
   response = await MsiApi.mongoQuery(queryData)
   Object.assign(connectorData, response.data.all[0]) 
-
+  
+    if (connectorData.standard === 'IEC_62196_T1') 
+      connectorData.type_str = 'Type 1 (J1772)'
+    else if (connectorData.standard === 'IEC_62196_T2')
+      connectorData.type_str = 'Tyep 2 (Mennekes)' 
+    else if (connectorData.standard === 'IEC_62196_T1_COMBO')
+      connectorData.type_str = 'CCS1 Combo' 
+    else
+    connectorData.type_str = connectorData.standard
+  
   localEndTime =  new Date( (new Date(connectorData.last_updated).getTime()) + ((MStore.timeZoneOffset ) * -60000))
   connectorData.last_updated_str = (moment(localEndTime).format("YYYY-MM-DD HH:mm:ss"))
 
   queryData = { "database":"CPO", "collection":"ChargePointInfo", "query": { "evse": { "ObjectId" : evseData?._id}}}
   response = await MsiApi.mongoQuery(queryData)
   Object.assign(chargePointInfoData, response.data.all[0])
+  hmiInfoData.max_amperage = 0
   if(chargePointInfoData.hmi !== '') {
     queryData = { "database":"CPO", "collection":"HMIControlBoardInfo", "query": { "_id": { "ObjectId" : chargePointInfoData?.hmi}}}    
     response = await MsiApi.mongoQuery(queryData)
-    Object.assign(hmiInfoData, response.data.all[0])
+    Object.assign(hmiInfoData, response.data.all[0])    
+    hmiInfoData.max_amperage = (hmiInfoData.minmax_current.split(" ").map(hex => parseInt(hex, 16)))[7]
   }
   queryData = { "database":"OCPI", "collection":"Location", "query": {  "evses" : {"$in": [  {"ObjectId" : evseData?._id }]}  }}
   response = await MsiApi.mongoQuery(queryData)
@@ -95,6 +106,12 @@ onMounted( async () => {
   tariffData.tariff_alt_text_str = tariffData.tariff_alt_text[0].text
   
   Object.assign(tariff_elements, tariffData.elements )
+  for (let i = 0; i < tariff_elements.length; i++) {
+    if (tariff_elements[i].price_components[0].type !== 'ENERGY')
+      tariff_elements[i].step_size_str = tariff_elements[i].price_components[0].step_size / 60
+    else 
+      tariff_elements[i].step_size_str = tariff_elements[i].price_components[0].step_size
+  }
 })
 </script>
 
@@ -173,7 +190,7 @@ onMounted( async () => {
                 </div>    -->
                 <div class="info-item">
                   <p class="info-title w-50%">Type</p>
-                  <p class="info-value w-50% ml-24px">{{ connectorData.standard }} </p>
+                  <p class="info-value w-50% ml-24px">{{ connectorData.type_str }} </p>
                 </div>   
                 <!-- <div class="info-item">
                   <p class="info-title w-50%">Format</p>
@@ -187,8 +204,14 @@ onMounted( async () => {
                   <p class="info-title w-50%">Max Voltage</p>
                   <p class="info-value w-50% ml-24px">{{connectorData.max_voltage + ' V '}}</p>
                 </div>   
+
                 <div class="info-item">
                   <p class="info-title w-50%">Max Current</p>
+                  <p class="info-value w-50% ml-24px">{{hmiInfoData.max_amperage + ' A '}}</p>
+                </div>   
+
+                <div class="info-item">
+                  <p class="info-title w-50%">Output Current</p>
                   <p class="info-value w-50% ml-24px">{{connectorData.max_amperage + ' A '}}</p>
                 </div>   
                 <div class="info-item">
@@ -262,12 +285,12 @@ onMounted( async () => {
                         <span class="ml-18px">{{ tariffData.profile_name }}</span>
                       </p>
                     </div>
-                    <div class="info-item">
+                    <!-- <div class="info-item">
                       <p class="info-title">
                         <span class="font-700 text-blue-900">Rate Alt Url : </span>
                         <span class="ml-18px">{{ tariffData.tariff_alt_url }}</span>
                       </p>
-                    </div>
+                    </div> -->
                   </div>
                 </div>
                 <div class="tariff-right lg:w-70%">
@@ -284,7 +307,7 @@ onMounted( async () => {
                 <el-table-column prop="price_components[0].type" label="Type" min-width="130"/>
                 <el-table-column prop="price_components[0].price" label="Price" min-width="80"/>
                 <el-table-column prop="price_components[0].vat" label="Vat" min-width="80"/>
-                <el-table-column prop="price_components[0].step_size" label="Unit" min-width="120"/>
+                <el-table-column prop="step_size_str" label="Unit" min-width="120"/>
                 <el-table-column prop="restrictions.start_time" label="Start Time" min-width="120"/>
                 <el-table-column prop="restrictions.end_time" label="End Time" min-width="120"/>
                 <el-table-column prop="restrictions.day_of_week" label="Day Of Week" min-width="300"/>

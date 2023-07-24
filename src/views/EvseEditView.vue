@@ -24,6 +24,8 @@ const evse_obj = reactive({  class:'EVSE', evse_id:'', status:'UNKNOWN', connect
 const router = useRouter()
 const selectTariffObj = {}
 
+const max_amperage = ref(0)
+
 const selectTariff = (select_id) =>{
   selectTariffObj.length = 0
   for (let i = 0; i < tariff_profile.length; i++) {
@@ -51,6 +53,10 @@ const SaveEvseEdit = async () => {
     if (connector_obj.tariff_ids[0] === undefined) {
       check_format_success = false
       ElMessage.error('Oops, Rate Profile required.')
+    }
+    if (evse_obj.floor_level.length > 4 ) {
+      check_format_success = false
+      ElMessage.error('Oops, Floor Level characters exceeds the maximum length of 4.')
     }
 
     if (check_format_success === true) {
@@ -87,6 +93,19 @@ const SaveEvseEdit = async () => {
     connector_obj.tariff_ids[0] = (select_profile.value)
     evse_obj.id = evse_obj.uid
 
+    if (evse_obj.evse_id === undefined ) {
+      check_format_success = false
+      ElMessage.error('Oops, EVSE ID required.')
+    }
+    if (connector_obj.tariff_ids[0] === undefined) {
+      check_format_success = false
+      ElMessage.error('Oops, Rate Profile required.')
+    }
+    if (evse_obj.floor_level.length > 4 ) {
+      check_format_success = false
+      ElMessage.error('Oops, Floor Level characters exceeds the maximum length of 4.')
+    }
+    if (check_format_success === true) {
     ElMessageBox.confirm('Do you want to modify?','Warning', {confirmButtonText: 'OK', cancelButtonText: 'Cancel', type: 'warning'})
       .then(async () => {
         await MsiApi.setCollectionData('patch', 'ocpi', connector_obj)
@@ -97,6 +116,7 @@ const SaveEvseEdit = async () => {
       .catch((e)=>{
         console.log(e)
       })
+    }
   }
 }
 
@@ -107,6 +127,17 @@ onMounted( async()=>{
   queryData = { "database":"OCPI", "collection":"Tariff", "query": {}}
   response = await MsiApi.mongoQuery(queryData)
   Object.assign(tariff_profile, response.data.all)
+  for (let i = 0; i < tariff_profile.length; i++) {
+    for (let j = 0; j < tariff_profile[i].elements.length; j++) {
+      if (tariff_profile[i].elements[j].price_components[0].type !== 'ENERGY') {
+        tariff_profile[i].elements[j].price_components[0].step_size_str = tariff_profile[i].elements[j].price_components[0].step_size / 60
+      }
+      else {
+        tariff_profile[i].elements[j].price_components[0].step_size_str = tariff_profile[i].elements[j].price_components[0].step_size
+      }
+    }
+    // tariff_profile[i].
+  }
   if (evse_id !== undefined) {
     evse_edit_title.value = 'Edit EVSE'
 
@@ -138,6 +169,14 @@ onMounted( async()=>{
     station_evses.push(response.data.all[0]?.evses[i]._id)
   }
   stationName.value = response.data.all[0]?.name
+
+  queryData = { "database":"CPO", "collection":"ChargePointInfo", "query": { "evse": { "ObjectId" : evse_obj._id}}}
+  response = await MsiApi.mongoQuery(queryData)
+  if(response.data.all[0]?.hmi !== '') {
+    queryData = { "database":"CPO", "collection":"HMIControlBoardInfo", "query": { "_id": { "ObjectId" : response.data.all[0].hmi}}}    
+    response = await MsiApi.mongoQuery(queryData)
+    max_amperage.value = (response.data.all[0].minmax_current.split(" ").map(hex => parseInt(hex, 16)))[7]
+  }
 })
 </script>
 
@@ -184,18 +223,22 @@ onMounted( async()=>{
             <p class="connector-title">Max Voltage</p>
             <p class="connector-value"> {{ connector_obj.max_voltage + 'V'}} </p>
           </div>  
+
           <div class="connector-item">
             <p class="connector-title">Max Current</p>
-            
-            <p class="connector-value"> {{ connector_obj.max_amperage + 'A' }}</p>
+            <p class="connector-value"> {{ max_amperage + 'A'}} </p>
+          </div>  
 
-            <!-- <el-input v-model="connector_obj.max_amperage"></el-input>  -->
-            <!-- <span> A </span> -->
-            
+          <div class="connector-item">
+            <p class="connector-title">Output Current</p>            
+            <!-- <p class="connector-value"> {{ connector_obj.max_amperage + 'A' }}</p> -->
+            <el-input v-model="connector_obj.max_amperage" />
+            <span>A</span>
+
           </div>  
           <div class="connector-item">
             <p class="connector-title">Max Electric Power</p>
-            <p class="connector-value"> {{ connector_obj.max_electric_power + 'W' }}</p>
+            <p class="connector-value"> {{ connector_obj.max_electric_power / 1000 + ' kW' }}</p>
           </div>  
 
         </div>  
@@ -221,7 +264,7 @@ onMounted( async()=>{
           <p class="tariff-value">NONE</p>
         </div> -->
         <div class="tariff-item">
-          <p class="tariff-title">Rate alt text</p>
+          <p class="tariff-title">Rate Alt Text</p>
           <p class="tariff-value"></p>
         </div>
 
@@ -231,7 +274,7 @@ onMounted( async()=>{
           <el-table-column prop="price_components[0].type" label="Type" min-width="50"/>
           <el-table-column prop="price_components[0].price" label="Price" min-width="50"/>
           <el-table-column prop="price_components[0].vat" label="Vat" min-width="50"/>
-          <el-table-column prop="price_components[0].step_size" label="Unit" min-width="50"/>
+          <el-table-column prop="price_components[0].step_size_str" label="Unit" min-width="50"/>
           <el-table-column prop="restrictions.start_time" label="Start Time" min-width="50"/>
           <el-table-column prop="restrictions.end_time" label="End Time" min-width="50"/>
           <el-table-column prop="restrictions.day_of_week" label="Day Of Week" min-width="50"/>

@@ -17,12 +17,6 @@ const UserData = reactive([])
 const user_type = reactive([])
 const editAdminData = reactive([])
 
-const UserTable = [{ label: 'First Name', value: 'first_name', width: '80' }, { label: 'Last Name', value: 'last_name', width: '80' },
-{ label: 'E-mail', value: 'email', width: '80' }, { label: 'Phone', value: 'phone', width: '80' },
-{ label: 'Permission', value: 'permission_str', width: '80' }, { label: 'Updated Date', value: 'updated_date_str', width: '80' },
-{ label: '', value: 'detail', width: '80', type: 'button' }
-]
-
 const sortFunc = (obj1, obj2, column) => {
   let at = obj1[column]
   let bt = obj2[column]

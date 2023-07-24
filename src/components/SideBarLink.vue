@@ -22,10 +22,7 @@ const { isCollapse } = storeToRefs(sideMenuStore)
 
 onMounted(async () => {
   if (
-    MStore.user_data.first_name === 'Steven' ||
-    MStore.user_data.first_name === 'Leo' ||
-    MStore.user_data.first_name === 'Frank' ||
-    MStore.user_data.first_name === 'Rax'
+    MStore.user_data.first_name === 'Steven'
   ) {
     dev_member.value = true
   }
@@ -62,6 +59,7 @@ onMounted(async () => {
       <el-menu-item index="station" :route="{ path: 'station' }">By Station</el-menu-item>
       <el-menu-item index="evse">By EVSE</el-menu-item>
       <el-menu-item index="rate-plan">Rate Plan</el-menu-item>
+      <el-menu-item v-if="dev_member" index="charging-profile">Charging Profile</el-menu-item>
     </el-sub-menu>
 
     <el-sub-menu index="administrator">
@@ -79,7 +77,7 @@ onMounted(async () => {
         <el-icon class="opacity-70"><Calendar /></el-icon>
         <span>Log Monitor</span>
       </template>
-      <el-menu-item index="ocpi-session">Charger Log</el-menu-item>
+      <el-menu-item index="ocpi-session">EVSE Log</el-menu-item>
       <el-menu-item index="ocpp-error"> Error Log </el-menu-item>
     </el-sub-menu>
 
@@ -90,7 +88,7 @@ onMounted(async () => {
       </template>
     </el-menu-item>
 
-    <el-menu-item v-if="dev_member" index="parking">
+    <el-menu-item index="parking">
       <el-icon class="opacity-70"><View /></el-icon>
       <template #title>
         <span>Parking</span>
@@ -104,7 +102,7 @@ onMounted(async () => {
       </template>
     </el-menu-item> -->
 
-    <el-menu-item v-if="company === 'MSI' && dev_member" index="program">
+    <el-menu-item v-if="company === 'MSI'" index="program">
       <el-icon class="opacity-70"><EditPen /></el-icon>
       <template #title>
         <span>Program</span>

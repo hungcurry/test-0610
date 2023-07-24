@@ -31,13 +31,6 @@ const sortFunc = (obj1, obj2, column) => {
   }
 }
 
-const UserTable = [
-  {label:'First Name', value:'first_name', width:'40'}, {label:'Last Name', value:'last_name', width:'40'}, 
-  {label:'E-mail', value:'email', width:'80'}, {label:'EVSE List', value:'evse_list_str', width:'40'}, 
-  {label:'Used Times', value:'payment_length', width:'30'}, {label:'Updated Date', value:'updated_date_str', width:'80'}, 
-  {label:'', value:'detail', width:'20', type:'button'}
-]
-
 const GetPermission = async () => {
   let queryData = { "database":"CPO", "collection":"UserPermission", "query": {}}
   let response = await MsiApi.mongoQuery(queryData)
@@ -96,7 +89,9 @@ const MongoQurey = async (queryData) => {
     UserData[i].payment_length = UserData[i]?.payment_history?.length
     UserData[i].evse_list_str = ''
     for (let j = 0; j < UserData[i]?.evse_list?.length; j++) {
-      UserData[i].evse_list_str += UserData[i]?.evse_list[j]?.evseId + ' / '
+      UserData[i].evse_list_str += UserData[i]?.evse_list[j]?.evseId 
+      if (UserData[i]?.evse_list?.length > 1)
+      UserData[i].evse_list_str + ' / '
     }
   }
   isLoading.value = false
@@ -191,7 +186,7 @@ onMounted( async() => {
             />
             <el-table-column
               prop="evse_list_str"
-              label="EVSE List"
+              label="Occupied EVSE"
               align="center"
               sortable
               :sort-method="(a, b) => sortFunc(a, b, 'evse_list_str')"

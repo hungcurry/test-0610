@@ -159,10 +159,12 @@ onMounted( async () => {
 
   for (let i = 0; i < StationData.evses.length; i++) {
     if (StationData.evses[i].connectors[0].standard === 'IEC_62196_T1') 
-      StationDetailEvseData[i].type_str = 'Type 1'
+      StationDetailEvseData[i].type_str = 'Type 1 (J1772)'
     else if (StationData.evses[i].connectors[0].standard === 'IEC_62196_T2')
-      StationDetailEvseData[i].type_str = 'Tyep 2'
-    else 
+      StationDetailEvseData[i].type_str = 'Tyep 2 (Mennekes)' 
+    else if (StationData.evses[i].connectors[0].standard === 'IEC_62196_T1_COMBO')
+      StationDetailEvseData[i].type_str = 'CCS1 Combo' 
+    else
       StationDetailEvseData[i].type_str = StationData.evses[i].connectors[0].standard
     let localEndTime =  new Date( (new Date(StationData.evses[i].last_updated).getTime()) + ((MStore.timeZoneOffset ) * -60000))
     StationDetailEvseData[i].last_updated_str = (moment(localEndTime).format("YYYY-MM-DD HH:mm:ss"))

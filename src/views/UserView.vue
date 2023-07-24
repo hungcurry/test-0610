@@ -32,7 +32,7 @@ const cancelProgram = () => {
 const subscribeProgram = async () => {
   check_format_success = true
     if (companyData.name === undefined || companyData.name === '') {
-    ElMessage.error('Oops, Company name required.')
+    ElMessage.error('Oops, Name required.')
     check_format_success = false
   }
   if (companyData.address_str === undefined || companyData.address_str === '') {
@@ -48,7 +48,7 @@ const subscribeProgram = async () => {
     check_format_success = false
   }
   if (companyData.tax_id === undefined || companyData.tax_id === '') {
-    ElMessage.error('Oops, Tax required.')
+    ElMessage.error('Oops, Tax ID required.')
     check_format_success = false
   }
   if (check_format_success === true) {
@@ -127,7 +127,6 @@ onMounted( async () => {
     { $match:  { "name": { "$eq": companyData.name } } }, { "$project": { "_id": 1, "upgrade_manager": 1 } }
   ]}
   response = await MsiApi.mongoAggregate(queryData)
-  console.log(response)
   if (response.status === 200) {
     companyId = response.data.result[0]._id
     upgrade_manager = response.data.result[0]?.upgrade_manager
@@ -184,7 +183,7 @@ onMounted( async () => {
     <el-form-item label="Last Name" >
       <el-input v-model="last_name" style="width: 300px"/>
     </el-form-item>
-    <el-form-item label="Email Name" >
+    <el-form-item label="E-mail" >
       <el-input v-model="email" style="width: 300px"/>
     </el-form-item>
     <el-form-item label="Credit Card" >
@@ -214,7 +213,7 @@ onMounted( async () => {
       <el-table :data="ProgramData" style="width: 80%; " stripe :cell-style=msi.tb_cell
       :header-cell-style=msi.tb_header_cell size="large">
       
-      <el-table-column prop="name" label="Program Name" min-width="80" />
+      <el-table-column prop="name" label="Name" min-width="80" />
       <el-table-column prop="location" label="Location" min-width="60" />
       <el-table-column prop="evse" label="EVSE Quantity" min-width="80" />
       <el-table-column prop="connector" label="Connector" min-width="60"/>
@@ -234,7 +233,7 @@ onMounted( async () => {
 
   <el-dialog v-model="ProgramVisible" title="Select Program">
     <el-table :data="program_plan" @current-change="handleCurrentChange" highlight-current-row>
-      <el-table-column prop="name" label="Program Name" min-width="80" />
+      <el-table-column prop="name" label="Name" min-width="80" />
       <el-table-column prop="location" label="Location" min-width="60" />
       <el-table-column prop="evse" label="EVSE Quantity" min-width="80" />
       <el-table-column prop="connector" label="Connector" min-width="60"/>
@@ -262,7 +261,7 @@ onMounted( async () => {
   </div>
     <el-form label-position="left" label-width="100px">
       <el-table :data="select_plan" @current-change="handleCurrentChange" highlight-current-row>
-        <el-table-column prop="name" label="Program Name" min-width="80" />
+        <el-table-column prop="name" label="Name" min-width="80" />
       <el-table-column prop="location" label="Location" min-width="60" />
       <el-table-column prop="evse" label="EVSE Quantity" min-width="80" />
       <el-table-column prop="connector" label="Connector" min-width="60"/>
@@ -282,10 +281,10 @@ onMounted( async () => {
       <el-form-item label="Phone" >
         <el-input v-model="companyData.phone" style="width: 300px"/>
       </el-form-item>
-      <el-form-item label="Tax" >
+      <el-form-item label="Tax ID" >
         <el-input v-model="companyData.tax_id" style="width: 300px"/>
       </el-form-item>
-      <el-form-item label="Email" >
+      <el-form-item label="E-mail" >
         <el-input v-model="companyData.email" style="width: 300px"/>
       </el-form-item>
     </el-form>

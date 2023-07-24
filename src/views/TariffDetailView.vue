@@ -68,8 +68,6 @@ const activeName = ref('one')
 const add_tariff_title = ref('Add Rate')
 const add_tariff_visible = ref(false)
 const modifyIndex = ref(0)
-const startTime = ref('')
-const endTime = ref('')
 const used_evse = reactive([])
 const TariffData = reactive({})
 const day = [{ label: 'Mon.', value: 'MONDAY' }, { label: 'Tue.', value: 'TUESDAY' }, { label: 'Wed.', value: 'WEDNESDAY' }, { label: 'Thu.', value: 'THURSDAY' },
@@ -161,7 +159,6 @@ const save_tariff = async () => {
             delete TariffData.elements[i].restrictions_min_duration_str
           }
         let res = await MsiApi.setCollectionData('post', 'ocpi', TariffData)
-        console.log(res)
         if (res.status === 201) {
           ElMessage.success(res.data.message)
         }
@@ -237,7 +234,6 @@ const editElement = (action) => {
     new_element.value.max_duration = new_element.value.max_duration_str * 60
     if (new_element.value.price_type !== "ENERGY")
       new_element.value.step_size = new_element.value.step_size_str * 60
-
   let modify_element = { price_components:[{ type:new_element.value.price_type, price:new_element.value.price_price,
                                             step_size:new_element.value.step_size, vat:new_element.value.vat} ],
                                             restrictions:{ min_duration:new_element.value.min_duration, max_duration:new_element.value.max_duration,
@@ -249,6 +245,7 @@ const editElement = (action) => {
     if (element.price_components[0].type === "ENERGY") {
       element.price_components_type_str = 'Charging By Energy'
       element.price_components_step_size_str = 1 
+      element.price_components[0].step_size = 1 
     }
     else if (element.price_components[0].type === "TIME") {
       element.price_components_type_str = 'Charging By Time'
@@ -263,15 +260,15 @@ const editElement = (action) => {
     tariff_elements.push(element)
   }
   else if (action === 'edit') {
-    console.log(modify_element)
     tariff_elements[modifyIndex.value] = modify_element
     if (tariff_elements[modifyIndex.value].price_components[0].type === "ENERGY") {
       tariff_elements[modifyIndex.value].price_components_type_str = 'Charging By Energy'
       tariff_elements[modifyIndex.value].price_components_step_size_str = 1
+      tariff_elements[modifyIndex.value].price_components[0].step_size = 1
     }
     else if (tariff_elements[modifyIndex.value].price_components[0].type === "TIME") {
       tariff_elements[modifyIndex.value].price_components_type_str = 'Charging By Time'
-      tariff_elements[modifyIndex.value].price_components_step_size_str = modify_element.price_components[0] / 60
+      tariff_elements[modifyIndex.value].price_components_step_size_str = modify_element.price_components[0].step_size / 60
     }
     else if (tariff_elements[modifyIndex.value].price_components[0].type === "PARKING_TIME") {
       tariff_elements[modifyIndex.value].price_components_type_str = 'Parking By Time'
@@ -280,6 +277,7 @@ const editElement = (action) => {
       tariff_elements[modifyIndex.value].restrictions_max_duration_str = modify_element.restrictions.max_duration / 60
     }
   }
+
   else if (action === 'delete') {
     tariff_elements.splice(modifyIndex.value, 1)
   }
@@ -300,7 +298,6 @@ onMounted(async () => {
       }
     }
     Object.assign(tariff_elements, TariffData.elements)
-    console.log(tariff_elements)
     for (let i = 0; i < tariff_elements.length; i++) {
       if (tariff_elements[i].price_components[0].type === "ENERGY") {
         tariff_elements[i].price_components_type_str = 'Charging By Energy'
@@ -494,8 +491,7 @@ onMounted(async () => {
             </el-table>
           </el-tab-pane>
 
-
-          <el-tab-pane label="EVSE list" name="three">
+          <el-tab-pane label="EVSE List" name="three">
             <p v-for="item in used_evse" :key="item" :label="item" :value="item" class="mt-18px"> {{ item }}</p>
           </el-tab-pane>
         </el-tabs>

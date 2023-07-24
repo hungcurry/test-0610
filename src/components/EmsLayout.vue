@@ -11,26 +11,28 @@ const router = useRouter()
 const sideMenuStore = useSideMenuStore()
 const { handleClose } = sideMenuStore
 const { layoutRight, isCollapse } = storeToRefs(sideMenuStore)
-const logoutTime = ref(600)
+const counter = ref(0)
+const logoutTime = ref(0)
+logoutTime.value = (Date.now() / 1000) + 600
 let logoutTimer = null
 
 const reflashTimer = () => {
-  logoutTime.value = 600
+  logoutTime.value = (Date.now() / 1000) + 600
 }
 const open = () => {
   ElMessageBox.alert('System is about to log out, Please click "OK" resume', 'Title', {
     confirmButtonText: 'OK',
     callback: () => {
-      logoutTime.value = 600
+      logoutTime.value (Date.now() / 1000) + 600
     },
   })
 }
+
 const checkTime = () => {
-  logoutTime.value--
-  if (logoutTime.value === 30) {
+  counter.value = parseInt(logoutTime.value) - parseInt(Date.now() / 1000 )
+  if ( parseInt((logoutTime.value - Date.now() / 1000)) == 30  )
     open()
-  }
-  if (logoutTime.value <= 0) {
+  if ( Date.now() / 1000 >= logoutTime.value) {
     ElMessageBox.close()
     router.push({ name: 'login' })
     isCollapse.value = true
@@ -54,7 +56,7 @@ onUnmounted(() => {
       <header-layout />
       <main-content />
     </div>
-    <p class="logout">{{ logoutTime }}</p>
+    <p class="logout">{{ counter }}</p>
   </div>
 </template>
 
@@ -89,8 +91,5 @@ onUnmounted(() => {
     color: #c5cdd8;
     z-index: 99;
   }
-}
-.layout-right.open {
-  // padding-left: 30rem;
 }
 </style>

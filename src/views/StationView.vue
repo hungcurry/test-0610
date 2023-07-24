@@ -26,7 +26,7 @@ const facilities_filter_item = [
   { text:'Restaurant', value: 'RESTAURANT'},
   { text:'Mall', value: 'MALL'},
   { text:'Super Market', value: 'SUPERMARKET'}, 
-  { text:'Parking lot', value: 'PARKING_LOT'},
+  { text:'Parking Lot', value: 'PARKING_LOT'},
   { text:'Others', value: 'WIFI'},
 ]
 const publish_filter_item = [{ text:'True', value: true}, { text:'False', value: false}]
@@ -34,6 +34,7 @@ const status_filter_item = [{ text:'AVAILABLE', value: 'AVAILABLE'}, { text:'CHA
                             { text:'UNKNOWN', value: 'UNKNOWN'}, { text:'ERROR', value: 'ERROR'}]
 let map1 = null
 let mode = route.query.mode
+const google = window.google
 
 const sortFunc = (obj1, obj2, column) => {
   let at = obj1[column]

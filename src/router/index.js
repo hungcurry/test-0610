@@ -25,6 +25,7 @@ import TestView from '@/views/TestView.vue'
 import ParkingView from '@/views/ParkingView.vue'
 import UserView from '@/views/UserView.vue'
 import ProgramView from '@/views/ProgramView.vue'
+import ChargeProfileView from '@/views/ChargeProfileView.vue'
 
 
 const router = createRouter({
@@ -148,6 +149,11 @@ const router = createRouter({
           name: 'program',
           component: ProgramView
         },       
+        {
+          path: 'charging-profile',
+          name: 'chargingProfile',
+          component: ChargeProfileView
+        },       
       ]
     }
   ]
@@ -191,16 +197,9 @@ router.beforeEach(async to => {
   if (toPath === '/program' && MStore.permission.company.name !== 'MSI' ) {
     return '/login'
   }
-
-  if (toPath === '/parking' && MStore.user_data.first_name !== 'Steven' && MStore.user_data.first_name !== 'Leo' && MStore.user_data.first_name !== 'Frank' && MStore.user_data.first_name !== 'Rax') {
+  if (toPath === '/test' && MStore.user_data.first_name !== 'Steven' ) {
     return '/login'
   }
-
-  if (toPath === '/test' && MStore.user_data.first_name !== 'Steven' && MStore.user_data.first_name !== 'Leo' && MStore.user_data.first_name !== 'Frank' ) {
-    return '/login'
-  }
-
-
 })
 
 export default router
