@@ -2,6 +2,7 @@
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { ref, reactive, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import  {export_json_to_excel}  from '@/composables/Export2Excel'
 import ApiFunc from '@/composables/ApiFunc'
 import msi from '@/assets/msi_style'
 import { ElMessageBox, ElMessage } from 'element-plus'
@@ -26,15 +27,112 @@ const user_type = reactive([])
 const rfidData = reactive({ rfid: '', cash: 0, enable: true, nickname: '' })
 const rfid_title = ref('Add RFID')
 
+const isLoading_skeleton = ref(true)
+const parking_visible = ref(true)
+const charging_visible = ref(true)
+const now = new Date()
+const defaultTime = [new Date(2000, 1, 1, 0, 0, 0), new Date(2000, 1, 1, 23, 59, 59)]
+const select_time = ref([ new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0), new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59)])
+const download = () => {
+  const tHeader = ['EVSE ID','Station Name','Price', 'Currency', 'Created Time']
+  const filterVal = ['evse_id','location_name','price', 'currency', 'created_date_str']
+  const data = paymentData.map(v => filterVal.map(j => v[j]))
+  export_json_to_excel ({ header: tHeader, data: data, filename: 'User Payment' })
+}
+const select_date = async () => {
+  let queryData = { "database": "CPO", "collection": "PaymentHistory", 
+    "pipelines": [ 
+      {
+        "$match": {
+          "$expr": { 
+            "$and" : [ 
+              { "$gte" : [ "$created_date", { "$dateFromString": {"dateString": select_time.value[0]}}]},
+              { "$lte" : [ "$created_date", { "$dateFromString": {"dateString": select_time.value[1]}}]}
+            ]
+          }
+        }
+      },
+    ]
+  }
+  let localEndTime = ''
+  let response = await MsiApi.mongoAggregate(queryData)
+  let PaymentDataAll = []
+  PaymentDataAll = response.data.result
+  paymentData.length = 0
+  let cost_str = 0
+  let charge_time_sec = 0
+  let charge_kwh = 0
+
+  for (let i = 0; i < userData?.payment_history?.length; i++) {
+    for (let j = 0; j < PaymentDataAll.length; j++) {
+      if (userData.payment_history[i] === PaymentDataAll[j]._id) {
+        paymentData.push(PaymentDataAll[j])
+      }
+    }
+  }
+  for (let i = 0; i < paymentData.length; i++) {
+    localEndTime =  new Date( (new Date(paymentData[i].created_date).getTime()) + ((MStore.timeZoneOffset ) * -60000))
+    paymentData[i].created_date_str = (moment(localEndTime).format("YYYY-MM-DD HH:mm:ss"))
+    paymentData.amount_str = paymentData.length
+    cost_str += paymentData[i].price
+    paymentData[i].price_str = paymentData[i].price.toLocaleString()
+    for (let j = 0; j < paymentData[i].operator_types.length; j++) {
+      if (paymentData[i].operator_types[j].type === 'charge') {
+        charge_time_sec += paymentData[i].operator_types[j].time
+        charge_kwh += paymentData[i].operator_types[j].kwh
+        let time = moment.duration(paymentData[i].operator_types[j].time, 'seconds')
+        paymentData[i].charge_time_str = moment({ h: time.hours(), m: time.minutes(), s: time.seconds(), }).format('HH:mm:ss')
+        paymentData[i].charge_price_str = paymentData[i].operator_types[j].price.toLocaleString()
+        paymentData[i].charge_kwh_str = paymentData[i].operator_types[j].kwh
+      }
+      else if (paymentData[i].operator_types[j].type === 'parking') {
+        let time = moment.duration(paymentData[i].operator_types[j].time, 'seconds')
+        paymentData[i].parking_time_str = moment({ h: time.hours(), m: time.minutes(), s: time.seconds(), }).format('HH:mm:ss')
+        paymentData[i].parking_price_str = paymentData[i].operator_types[j].price.toLocaleString()
+        paymentData[i].parking_car_number_str = paymentData[i].operator_types[j].car_num
+      }
+    }
+  }
+  paymentData.cost_str = cost_str
+  paymentData.charge_kwh = charge_kwh
+  paymentData.charge_hr = moment( {h:moment.duration(charge_time_sec, 'second').hours()}).format('HH')
+  paymentData.charge_min = moment( {m:moment.duration(charge_time_sec, 'second').minutes()}).format('mm')
+  paymentData.charge_sec = moment( {s:moment.duration(charge_time_sec, 'second').hours()}).format('ss')
+
+  console.log(paymentData)
+}
+const sortFunc = (obj1, obj2, column) => {
+  let convertedNumber1 = undefined
+  let convertedNumber2 = undefined
+  if(column === 'parking_price_str' || column === 'price_str' || column === 'charge_price_str') {   
+    if (obj1[column] !== undefined) {
+      convertedNumber1 = parseInt(obj1[column].replace(/,/g, ""))
+    }
+    if (obj2[column] !== undefined) {
+      convertedNumber2 = parseInt(obj2[column].replace(/,/g, ""))
+    }
+    if (convertedNumber2 === undefined)
+    return -1
+    if (convertedNumber1 > convertedNumber2) {
+      return -1
+    }
+  }
+  else {
+    let at = obj1[column]
+    let bt = obj2[column]
+    if (bt === undefined) {
+      return -1
+    }
+    if (at > bt) {
+      return -1
+    }
+  }
+}
+
+
 const clearEvseList = async () => {
-  ElMessageBox.confirm('Do you want to delete?', 'Warning', { confirmButtonText: 'OK', cancelButtonText: 'Cancel', type: 'warning' })
-      .then(async () => {
-        let sendData = { 'class': 'UserData', 'pk': userData._id, 'evse_list': [] }
-        console.log(await MsiApi.setCollectionData('patch', 'cpo', sendData))
-      })
-      .catch((e) => {
-        console.log(e)
-      })
+  let sendData = { 'class': 'UserData', 'pk': userData._id, 'evse_list': [] }
+  console.log(await MsiApi.setCollectionData('patch', 'cpo', sendData))
 }
 
 const binding_card_detail = () => {
@@ -48,14 +146,14 @@ const device_detail = () => {
 const card_detail = (data) => {
   rfid_title.value= 'Edit RFID'
   EditRfidFormVisible.value = true
-  modify_card_index.value = data.$index
-  rfidData.rfid = data.row.rfid
-  rfidData.cash = data.row.cash
-  rfidData.enable = data.row.enable
-  rfidData.nickname = data.row.nickname
+  modify_card_index.value = userData.rfids.indexOf(data)
+  rfidData.rfid = data.rfid
+  rfidData.cash = data.cash
+  rfidData.enable = data.enable
+  rfidData.nickname = data.nickname
 }
 
-const confirmRfid = async (confirm) => {
+const confirmRfid = async (confirm, index) => {
 
   // const hex_pair= rfidData.rfid.match(/.{1,2}/g)
   // const reversedHexPairs = hex_pair.reverse().map(pair => pair.split('').join(''));  
@@ -85,6 +183,9 @@ const confirmRfid = async (confirm) => {
   else if (confirm === 'delete') {
     ElMessageBox.confirm('Do you want to delete?', 'Warning', { confirmButtonText: 'OK', cancelButtonText: 'Cancel', type: 'warning' })
       .then(async () => {
+        if (index !== undefined) {
+          modify_card_index.value = index
+        }
         userData.rfids.splice(modify_card_index.value, 1)
         let sendData = { 'class': 'UserData', 'pk': userData._id, 'rfids': userData.rfids }
         await MsiApi.setCollectionData('patch', 'cpo', sendData)
@@ -202,9 +303,7 @@ onMounted(async () => {
   userData.paylistArrObj = []
   userData.evse_list_id = ''
   for (let i = 0; i < userData.evse_list.length; i++) {
-    userData.evse_list_id += userData.evse_list?.[i]?.evseId 
-    if (userData.evse_list.length > 1)
-      userData.evse_list_id + ' / '
+    userData.evse_list_id += userData.evse_list?.[i]?.evseId + ' / '
   }
   await GetPermission()
 
@@ -235,10 +334,21 @@ onMounted(async () => {
     paymentData[i].created_date_str = (moment(localEndTime).format("YYYY-MM-DD HH:mm:ss"))
     paymentData.amount_str = paymentData.length
     cost_str += paymentData[i].price
+    paymentData[i].price_str = paymentData[i].price.toLocaleString()
     for (let j = 0; j < paymentData[i].operator_types.length; j++) {
       if (paymentData[i].operator_types[j].type === 'charge') {
         charge_time_sec += paymentData[i].operator_types[j].time
         charge_kwh += paymentData[i].operator_types[j].kwh
+        let time = moment.duration(paymentData[i].operator_types[j].time, 'seconds')
+        paymentData[i].charge_time_str = moment({ h: time.hours(), m: time.minutes(), s: time.seconds(), }).format('HH:mm:ss')
+        paymentData[i].charge_price_str = paymentData[i].operator_types[j].price.toLocaleString()
+        paymentData[i].charge_kwh_str = paymentData[i].operator_types[j].kwh
+      }
+      else if (paymentData[i].operator_types[j].type === 'parking') {
+        let time = moment.duration(paymentData[i].operator_types[j].time, 'seconds')
+        paymentData[i].parking_time_str = moment({ h: time.hours(), m: time.minutes(), s: time.seconds(), }).format('HH:mm:ss')
+        paymentData[i].parking_price_str = paymentData[i].operator_types[j].price.toLocaleString()
+        paymentData[i].parking_car_number_str = paymentData[i].operator_types[j].car_num
       }
     }
   }
@@ -247,6 +357,8 @@ onMounted(async () => {
   paymentData.charge_hr = moment( {h:moment.duration(charge_time_sec, 'second').hours()}).format('HH')
   paymentData.charge_min = moment( {m:moment.duration(charge_time_sec, 'second').minutes()}).format('mm')
   paymentData.charge_sec = moment( {s:moment.duration(charge_time_sec, 'second').hours()}).format('ss')
+
+  setTimeout(isLoading_skeleton.value = false , 3000)
 })
 
 </script>
@@ -254,157 +366,175 @@ onMounted(async () => {
 <template>
   <div class="customers-detail">
     <div class="container lg pb-40px">
-      <p class="customers-title pt-24px pb-32px"> {{ userData.first_name + ' ' + userData.last_name }} </p>
+      <p class="text-36px pt-24px pb-32px"> {{ userData.first_name + ' ' + userData.last_name }} </p>
       
       <div class="tabs">
         <el-tabs v-model="activeName">
           <el-tab-pane label="General" name="first" >
-            <div class="overflow-x-auto scrollbar">
-              <div class="card grid grid-cols-3 grid-rows-3 gap-24px pb-24px pr-12px">
-                <div class="general-info col-span-2 row-span-3 card-rounded box-shadow">
+            <div class="flex flex-col 2xl:flex-row">
+
+              <div class="general-info overflow-x-auto scrollbar p-24px pl-0px">
+                <div class="card-container card-rounded box-shadow">
                   <div class="flex justify-between">
                     <div class="flex">
                       <font-awesome-icon class="icon w-24px h-24px mr-8px" icon="fa-regular fa-user"/>
                       <span class="line-height-24px">General Info</span>
                     </div>
-                    <font-awesome-icon class="general-edit-btn w-32px h-32px" icon="fa-regular fa-pen-to-square" @click="editUser()"/>
+                    <el-button link type="primary" @click="editUser()">
+                      <font-awesome-icon class="text-gray-300 w-32px h-32px" icon="fa-regular fa-pen-to-square" />
+                    </el-button>
                   </div>
-                  <div class="flex">
-                    <div class="w-50% mt-16px">
-                      <div class="flex mb-8px">
-                        <p class="general-info-item">Email</p>
-                        <p class="line-height-32px">{{ userData.email }}</p>
+                  <div class="flex-col lg:flex-row">
+                    <el-skeleton :rows="8" v-if="isLoading_skeleton" />
+                    <div v-if="isLoading_skeleton === false" class="mt-16px lg:w-50%">
+                      <div class="mb-8px">
+                        <span class="info-item">Email</span>
+                        <span class="line-height-32px">{{ userData.email }}</span>
                       </div>
     
-                      <div class="flex mb-8px">
-                        <p class="general-info-item">Phone</p>
-                        <p class="line-height-32px">{{ userData.phone }}</p>
+                      <div class="mb-8px">
+                        <span class="info-item">Phone</span>
+                        <span class="line-height-32px">{{ userData.phone }}</span>
                       </div>
     
-                      <div class="flex mb-8px">
-                        <p class="general-info-item">Country</p>
-                        <p class="line-height-32px">{{ userData.country }}</p>
+                      <div class="mb-8px">
+                        <span class="info-item">Country</span>
+                        <span class="line-height-32px">{{ userData.country }}</span>
                       </div>
     
-                      <div class="flex mb-8px">
-                        <p class="general-info-item">Language</p>
-                        <p class="line-height-32px">{{ userData.language }}</p>
+                      <div class="mb-8px">
+                        <span class="info-item">Language</span>
+                        <span class="line-height-32px">{{ userData.language }}</span>
                       </div>
     
-                      <div class="flex mb-8px">
-                        <p class="general-info-item">Permission</p>
-                        <p class="line-height-32px">{{ userData.permission_str }}</p>
+                      <div class="mb-8px">
+                        <span class="info-item">Permission</span>
+                        <span class="line-height-32px">{{ userData.permission_str }}</span>
                       </div>
     
-                      <div class="flex mb-8px">
-                        <p class="general-info-item">Updated Date</p>
-                        <p class="line-height-32px">{{ userData.updated_date_str }}</p>
+                      <div class="mb-8px">
+                        <span class="info-item white-space-nowrap">Updated Date</span>
+                        <span class="line-height-32px white-space-nowrap">{{ userData.updated_date_str }}</span>
                       </div>
     
-                      <div class="flex mb-8px">
-                        <p class="general-info-item">Created Date</p>
-                        <p class="line-height-32px">{{ userData.created_date_str }}</p>
+                      <div class="mb-8px">
+                        <span class="info-item white-space-nowrap">Created Date</span>
+                        <span class="line-height-32px white-space-nowrap">{{ userData.created_date_str }}</span>
                       </div>
                     </div>
-                    <div class="w-50% mt-16px">
+                    <div v-if="isLoading_skeleton === false" class="mt-0px lg:mt-16px lg:50%">
                       <div class="flex mb-8px">
-                        <p class="general-info-item">Binding Cards</p>
+                        <span class="info-item">Binding Cards</span>
                         <el-button round class="button" @click="binding_card_detail"> Card Detail</el-button>
                       </div>
     
                       <div class="flex mb-8px">
-                        <p class="general-info-item">Device</p>
+                        <span class="info-item">Device</span>
                         <el-button round class="button" @click="device_detail"> Device Detail</el-button>
                       </div>
                     </div>
                   </div>
                 </div>
-                <div class="real-time-info col-span-1 row-span-1 card-rounded box-shadow">
-                  <div class="flex">
-                    <img class="icon w-24px h-24px mr-8px" src="@/assets/img/customer_time.png" alt="">
-                    <span class="line-height-24px">Real-time Info</span>
-                  </div>
-                  <div class="flex mt-16px">
-                    <p class="w-50% line-height-32px">Occupied EVSE</p>
-                    <p class="line-height-32px">{{ userData.evse_list_id }}</p>
-                    <el-button 
-                      v-if="company === 'MSI'" 
-                      round
-                      class="ml-15px w-100px"
-                      @click="clearEvseList"
-                    >
-                      <font-awesome-icon class="mr-8px" icon="fa-solid fa-gear" /> 
-                      Clear
-                    </el-button>
-                  </div>
-                  <div class="flex mt-8px">
-                    <p class="w-50% line-height-32px">Status</p>
-                    <p class="line-height-32px">{{ }}</p>
-                  </div>
-                </div>
-                <div class="total-record-info col-span-1 row-span-2 card-rounded box-shadow">
-                  <div class="flex">
-                    <font-awesome-icon class="icon w-24px h-24px mr-8px" icon="fa-solid fa-chart-line" />
-                    <span class="line-height-24px">Total Record</span>
-                  </div>
+              </div>
 
-                  <div class="flex mt-16px">
-                    <p class="w-50% line-height-32px">Total Used Power</p>
-                    <p class="line-height-32px">{{ paymentData.charge_kwh }}</p>
-                  </div>
-                  <div class="flex mt-8px">
-                    <p class="w-50% line-height-32px">Total Cost</p>
-                    <p class="line-height-32px">{{ paymentData.cost_str }}</p>
-                  </div>
-                  <div class="flex mt-8px">
-                    <p class="w-50% line-height-32px">Total Times</p>
-                    <p class="line-height-32px">{{ paymentData.amount_str }}</p>
-                  </div>
-                  <div class="flex mt-8px">
-                    <p class="w-50% line-height-32px">Total Charging Time</p>
-                    <p class="line-height-32px">{{ paymentData.charge_hr + ":" + paymentData.charge_min + ":" + paymentData.charge_sec }}</p>
-                  </div>
-                </div>
-
-                <div class="rfid-info col-span-3 row-span-1 card-rounded box-shadow">
-                  <div class="flex justify-between">
+              <div class="flex-col w-full  2xl:flex-col 2xl:w-40%">
+                <div class="real-time-info overflow-x-auto scrollbar p-24px pl-0px">
+                  <div class="card-container card-rounded box-shadow">
                     <div class="flex">
-                      <img class="icon w-24px h-24px mr-8px" src="@/assets/img/customer_rfid.png" alt="">
-                      <span class="line-height-24px">RFID</span>
+                      <img class="icon w-24px h-24px mr-8px" src="@/assets/img/customer_time.png" alt="">
+                      <span class="line-height-24px">Real-time Info</span>
                     </div>
-                    <el-button 
-                      class="button h-32px w-150px" 
-                      round
-                      @click="editRfid"
-                    >
-                      <!-- <font-awesome-icon class="mr-8px" icon="fa-solid fa-gear" /> -->
-                      Add RFID
-                    </el-button>
+                    <el-skeleton :rows="2" v-if="isLoading_skeleton" class="mt-16px" />
+                    <div v-if="isLoading_skeleton === false" class="flex mt-16px">
+                      <sapn class="info-item">Occupied EVSE</sapn>
+                      <p class="line-height-32px">{{ userData.evse_list_id }}</p>
+                      <el-button 
+                        v-if="company === 'MSI'" 
+                        round
+                        class="button ml-15px w-100px"
+                        @click="clearEvseList"
+                      >
+                        <font-awesome-icon class="mr-8px" icon="fa-solid fa-gear" /> 
+                        Clear
+                      </el-button>
+                    </div>
+                    <div v-if="isLoading_skeleton === false" class="mt-8px">
+                      <sapn class="info-item">Status</sapn>
+                      <sapn class="line-height-32px">{{ }}</sapn>
+                    </div>
                   </div>
-                  <div class="flex flex-wrap">
-                    <div 
-                      v-for="item in userData.rfids"
-                      class="rfid-card box-shadow"
-                    >
-                      <div class="h-99px">
-                        <div class="flex justify-between">
-                          <span class="rfid-number pt-16px pb-16px pl-16px pr-16px">{{ item.rfid }}</span>
-                          <div class="pt-5px pr-16px">
-                            <el-button link type="primary" size="large" @click="confirmRfid('delete')" >
-                              <img class="rfid-edit-btn" src="@/assets/img/tariff_delete1.png" alt="">
-                            </el-button>
-                            <el-button link type="primary" size="large" @click="card_detail(item)">
-                              <font-awesome-icon class="rfid-edit-btn" icon="fa-regular fa-pen-to-square" />
-                            </el-button>
-                          </div>
+                </div>
+
+                <div class="total-record-info overflow-x-auto scrollbar p-24px pl-0px">
+                  <div class="card-container card-rounded box-shadow">
+                    <div class="flex">
+                      <font-awesome-icon class="icon w-24px h-24px mr-8px" icon="fa-solid fa-chart-line" />
+                      <span class="line-height-24px">Total Record</span>
+                    </div>
+  
+                    <el-skeleton :rows="3" v-if="isLoading_skeleton" class="mt-16px" />
+                    
+                    <div v-if="isLoading_skeleton === false" class="mt-16px">
+                      <sapn class="info-item">Total Used Power</sapn>
+                      <sapn class="line-height-32px">{{ paymentData.charge_kwh }}</sapn>
+                    </div>
+                    <div v-if="isLoading_skeleton === false" class="mt-8px">
+                      <sapn class="info-item">Total Cost</sapn>
+                      <sapn class="line-height-32px">{{ paymentData.cost_str }}</sapn>
+                    </div>
+                    <div v-if="isLoading_skeleton === false" class="mt-8px">
+                      <sapn class="info-item">Total Times</sapn>
+                      <sapn class="line-height-32px">{{ paymentData.amount_str }}</sapn>
+                    </div>
+                    <div v-if="isLoading_skeleton === false" class="mt-8px">
+                      <sapn class="info-item">Total Charging Time</sapn>
+                      <sapn class="line-height-32px">{{ paymentData.charge_hr + ":" + paymentData.charge_min + ":" + paymentData.charge_sec }}</sapn>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="rfid-info overflow-x-auto scrollbar p-24px pl-0px">
+              <div class="card-container card-rounded box-shadow">
+                <div class="flex justify-between mb-24px min-w-250px">
+                  <div class="flex">
+                    <img class="icon w-24px h-24px mr-8px" src="@/assets/img/customer_rfid.png" alt="">
+                    <span class="line-height-24px">RFID</span>
+                  </div>
+                  <el-button 
+                    class="button h-32px w-150px" 
+                    round
+                    @click="editRfid"
+                  >
+                    <!-- <font-awesome-icon class="mr-8px" icon="fa-solid fa-gear" /> -->
+                    Add RFID
+                  </el-button>
+                </div>
+                <div class="flex flex-wrap">
+                  <div 
+                    v-for="(item, index) in userData.rfids"
+                    :key="item.value"
+                    class="rfid-card box-shadow"
+                  >
+                    <div class="h-99px">
+                      <div class="flex justify-between">
+                        <span class="text-16px pt-16px pb-16px pl-16px pr-16px">{{ item.rfid }}</span>
+                        <div class="pt-5px pr-16px">
+                          <el-button link type="primary" size="large" @click="confirmRfid('delete', index)" >
+                            <img class="text-blue-1100 w-24px h-24px" src="@/assets/img/tariff_delete1.png" alt="">
+                          </el-button>
+                          <el-button link type="primary" size="large" @click="card_detail(item)">
+                            <font-awesome-icon class="text-blue-1100 w-24px h-24px" icon="fa-regular fa-pen-to-square" />
+                          </el-button>
                         </div>
-                        <p class="rfid-name pl-16px">{{ item.nickname }}</p>
                       </div>
-                      <div class="rfid-card-down bg-blue-100 h-50px rounded-b-10px">
-                        <p class="pl-16px pr-16px">$ {{ item.cash }}</p>
-                        <p class="enable pl-16px pr-16px" v-if="item.enable"> Enable</p>
-                        <p class="disable pl-16px pr-16px" v-else> Disable</p>
-                      </div>
+                      <p class="text-24px pl-16px">{{ item.nickname }}</p>
+                    </div>
+                    <div class="rfid-card-down bg-blue-100 h-50px rounded-b-10px">
+                      <p class="pl-16px pr-16px">$ {{ item.cash }}</p>
+                      <p class="enable pl-16px pr-16px" v-if="item.enable"> Enable</p>
+                      <p class="disable pl-16px pr-16px" v-else> Disable</p>
                     </div>
                   </div>
                 </div>
@@ -413,49 +543,147 @@ onMounted(async () => {
           </el-tab-pane>
 
           <el-tab-pane label="Payment" name="second">
+
+            <div class="flex justify-between flex-wrap lg:flex-nowrap pt-24px pb-32px">
+              <div class="date-picker w-full">
+                <el-date-picker 
+                  v-model="select_time" 
+                  class="mr-16px"
+                  type="datetimerange" 
+                  range-separator="-"
+                  :prefix-icon="Calendar"
+                  start-placeholder="Start Date" 
+                  end-placeholder="End Date" 
+                  @change="select_date()"
+                  :default-time="defaultTime" 
+                  />
+              </div>
+
+              <div class="w-full mt-4 md:mt-8 lg:mt-0 md:flex justify-between lg:justify-end items-center">
+                <!-- <p class="total-count box-shadow"> {{ 'Total Count : ' + paymentData.length  }}</p> -->
+                <div class="checkbox-container w-full lg:w-auto flex justify-between md:justify-start">
+                  <el-checkbox class="mr-0 md:mr-30px" v-model="parking_visible" label="Parking" />
+                  <el-checkbox v-model="charging_visible" label="Charging" />
+                </div>
+                <el-button class="download-btn w-full md:w-auto mt-4 md:mt-0 md:ml-30px box-shadow" @click="download">
+                  <span class="lg:hidden">Download</span>
+                  <img
+                    class="w-24px h-24px ml-10px lg:ml-0"
+                    src="@/assets/img/station_download.png"
+                    alt="station_download"
+                  />
+                </el-button>
+              </div>
+            </div>
+
             <div class="overflow-x-auto">
-              <div class="pb-40px">
+              <div class="">
                 <el-table 
                   :data="paymentData"
                   class="white-space-nowrap text-primary"
-                  height="calc(100vh - 220px)"
+                  height="calc(100vh - 350px)"
                   style="width: 100%"
                   stripe
                   size="large"
-                  empty=""
                   :cell-style="msi.tb_cell"
                   :header-cell-style="msi.tb_header_cell"
                   v-loading.fullscreen.lock="isLoading"
                 >
-                  <el-table-column
+                <el-table-column
                     prop="location_name"
                     label="Station Name"
                     sortable
+                    :sort-method="(a, b) => sortFunc(a, b, 'location_name')"
+                    align="center"
                     min-width="200"
                   />
                   <el-table-column
                     prop="evse_id"
                     label="EVSE ID"
                     sortable
+                    :sort-method="(a, b) => sortFunc(a, b, 'evse_id')"
+                    align="center"
                     min-width="200"
                   />
                   <el-table-column
-                    prop="price"
-                    label="Price"
+                    v-if="parking_visible"
+                    label="Parking"
+                    align="center"
+                    min-width="450"
+                  >
+                    <el-table-column
+                      prop="parking_time_str"
+                      label="Used Time"
+                      align="center"
+                      sortable
+                      :sort-method="(a, b) => sortFunc(a, b, 'parking_time_str')"
+                      min-width="150"
+                    />
+                    <el-table-column
+                      prop="parking_price_str"
+                      label="Price"
+                      align="center"
+                      sortable
+                      :sort-method="(a, b) => sortFunc(a, b, 'parking_price_str')"
+                      min-width="150"
+                    />
+                  </el-table-column>
+
+                  <el-table-column
+                    v-if="charging_visible"
+                    label="Charging"
+                    align="center"
+                    min-width="450"
+                  >
+                    <el-table-column
+                      prop="charge_kwh_str"
+                      label="kWh"
+                      align="center"
+                      sortable
+                      :sort-method="(a, b) => sortFunc(a, b, 'charge_kwh_str')"
+                      min-width="150"
+                    />
+                    <el-table-column
+                      prop="charge_price_str"
+                      label="Price"
+                      align="center"
+                      sortable
+                      :sort-method="(a, b) => sortFunc(a, b, 'charge_price_str')"
+                      min-width="150"
+                    />
+                  </el-table-column>
+
+                  <el-table-column
+                    prop="price_str"
+                    label="Final Paid"
                     sortable
+                    :sort-method="(a, b) => sortFunc(a, b, 'price_str')"
+                    align="center"
+                    min-width="150"
+                  />
+                  <el-table-column
+                    prop="paymethod.method"
+                    label="Payment Method"
+                    sortable
+                    :sort-method="(a, b) => sortFunc(a, b, 'paymethod.method')"
+                    align="center"
                     min-width="200"
                   />
                   <el-table-column
                     prop="currency"
                     label="Currency"
                     sortable
-                    min-width="200"
+                    :sort-method="(a, b) => sortFunc(a, b, 'currency')"
+                    align="center"
+                    min-width="150"
                   />
                   <el-table-column
                     prop="created_date_str"
                     label="Created Time"
                     sortable
-                    min-width="200"
+                    :sort-method="(a, b) => sortFunc(a, b, 'created_date_str')"
+                    align="center"
+                    min-width="250"
                   />
                 </el-table>
               </div>
@@ -550,9 +778,9 @@ onMounted(async () => {
         </div>
         <template #footer>
           <span class="dialog-footer flex flex-center">
-            <el-button v-if="modify_card_index!==-1" round class="w-48% bg-btn-100 text-white max-w-140px" @click="confirmRfid('delete')">Delete</el-button>
-            <el-button round class="w-48% bg-btn-100 text-white max-w-140px" @click="confirmRfid('cancel')">Cancel</el-button>
-            <el-button round class="w-48% bg-btn-200 text-white max-w-140px" @click="confirmRfid('confirm')"> Confirm</el-button>
+            <el-button v-if="modify_card_index!==-1" round class="w-48% bg-btn-100 text-white max-w-140px" @click="confirmRfid('delete', undefined)">Delete</el-button>
+            <el-button round class="w-48% bg-btn-100 text-white max-w-140px" @click="confirmRfid('cancel', undefined)">Cancel</el-button>
+            <el-button round class="w-48% bg-btn-200 text-white max-w-140px" @click="confirmRfid('confirm', undefined)"> Confirm</el-button>
           </span>
         </template>
       </el-dialog>
@@ -619,44 +847,47 @@ onMounted(async () => {
 
 <style lang="scss" scoped >
 .customers-detail {
-  .customers-title {
-    font-size: 36px;
-  }
-  .general-info {
+
+  .card-container {
+    height: 100%;
     border: 2px solid var(--gray-100);
-    .general-edit-btn {
-      color: var(--gray-300);
-    }
-    .general-info-item {
-      width: 150px;
-      line-height: 32px;
+    min-width: fit-content;
+  }
+  .info-item {
+    display: inline-block;
+    width: fit-content;
+    min-width: 150px;
+    line-height: 32px;
+    margin-right: 24px;
+  }
+
+  .general-info {
+    @media (min-width: 1400px) {
+      width: 60%;
     }
   }
   .real-time-info {
-    border: 2px solid var(--gray-100);
+    width: 100%;
+    @media (min-width: 1400px) {
+      width: 100%;
+    }
   }
   .total-record-info {
-    border: 2px solid var(--gray-100);
+    width: 100%;
+    @media (min-width: 1400px) {
+      width: 100%;
+    }
   }
   .rfid-info {
-    border: 2px solid var(--gray-100);
     .rfid-card {
-      width: 354px;
+      width: 300px;
       height: 150px;
       border-radius: 16px;
       margin: 0 20px 20px 0;
       border: 2px solid var(--gray-100);
+      @media (min-width: 992px) {
+        width: 354px;
     }
-    .rfid-edit-btn {
-      color: var(--blue-1100);
-      width: 24px;
-      height: 24px;
-    }
-    .rfid-number {
-      font-size: 16px;
-    }
-    .rfid-name {
-      font-size: 24px;
     }
     .rfid-card-down {
       border-top: 2px solid var(--gray-200);
@@ -667,19 +898,64 @@ onMounted(async () => {
   }
 
 
-  .card {
-    width: 176rem;
-    grid-template-rows: 18rem 18rem 1fr;
-  }
-
   .enable {
+    font-weight: 600;
     color: var(--blue-800);
   }
   .disable {
+    font-weight: 600;
     color: var(--Error);
   }
   .icon {
     color: var(--blue-1100);
+  }
+  .button {
+    width: 15rem;
+    padding: 0.8rem 2rem;
+    font-size: 1.8rem;
+    color: var(--secondary);
+    border-color: var(--secondary);
+    border-radius: 2rem;
+  }
+  .download-btn {
+    height: 4rem;
+    padding: 0.8rem 2rem;
+    font-size: 1.8rem;
+    background-color: var(--secondary);
+    color: var(--white);
+    border-radius: 2rem;
+  }
+  .total-count {
+    line-height: 40px;
+    background-color: var(--blue-200);
+    border-radius: 2rem;
+    padding: 0 2rem;
+    cursor: default;
+  }
+
+  .checkbox-container {
+    .el-checkbox {
+        --el-checkbox-input-border: 0.2rem solid;
+      }
+    :deep(.el-checkbox__label) {
+      font-size: 1.8rem;
+      color: var(--blue-900);
+    }
+    :deep(.el-checkbox__inner) {
+      width: 1.8rem;
+      height: 1.8rem;
+      color: var(--blue-900);
+    }
+    :deep(.el-checkbox__inner::after) {
+      border: 0.2rem solid var(--blue-900);
+      border-left: 0;
+      border-top: 0;
+      top: 0.1rem;
+      left: 0.5rem;
+    }
+    :deep(.el-checkbox__input.is-checked .el-checkbox__inner) {
+      background-color: transparent;
+    }
   }
 }
 

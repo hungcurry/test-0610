@@ -8,7 +8,6 @@ import { ElMessage } from 'element-plus'
 import moment from "moment"
 import { useMStore } from "../stores/m_cloud"
 const MStore = useMStore()
-
 const route = useRoute()
 const router = useRouter()
 const MsiApi = ApiFunc()
@@ -34,7 +33,6 @@ const updateConfirm = async () => {
     console.log(response)
   }
 }
-
 const updateSW = async() => {
   sw_version_visable.value = true
   let queryData = { "database":"CPO", "collection":"VersionControl", "query": { "type": 'XP012'}}
@@ -52,15 +50,12 @@ const updateSW = async() => {
     return
   }
 }
-
 const go_to_station_edit_page = () => {
   router.push({ name: 'stationEdit', query: {id:station_id} })
 }
-
 const handleSelectionChange = (val) => {
   multipleSelection.value = val
 }
-
 const edit_button_str = ref('Update or Restart')
 // const addCharger = (row) => {
 //   router.push({ name: 'evseEdit', query: {station_id:station_id, evse_id:row.uid} })
@@ -88,8 +83,6 @@ const evseReset = (type) => {
       })
   }
 }
-
-
 const edit_charger = () => {
   if (editMode.value === true) {
     editMode.value = false
@@ -100,11 +93,9 @@ const edit_charger = () => {
     edit_button_str.value = 'Cancel'
   }
 }
-
 const charger_detail = (row) => {
   router.push({ name: 'evseDetail', query: {station_id:station_id, evse_id:row.uid} })
 }
-
 const StationDetailEvseData = reactive([])
 const StationData = reactive([])
 
@@ -116,6 +107,7 @@ onMounted( async () => {
   Object.assign(StationData, response.data.all[0])
   StationData.latitude_str = StationData.coordinates.latitude
   StationData.longitude_str = StationData.coordinates.longitude
+  StationData.last_updated_str = (moment(StationData.last_updated).format("YYYY-MM-DD HH:mm:ss"))
   StationDetailEvseData.length = 0 
   Object.assign(StationDetailEvseData, StationData.evses)
   let evse_obj_arr = []
@@ -175,120 +167,190 @@ onMounted( async () => {
 </script>
 
 <template>
-  <div class="station-detail">
-    <div class="container lg pb-40px">
+  <div class="station-detail wh-full flex-col">
+    <div class="container lg">
       <div class="pt-40px pb-20px overflow-x-auto flex">
-        <img class="w-110px h-110px ml-10px mr-20px" v-if="StationData.img_str!==undefined" :src="StationData.img_str" >
-        <img class="w-110px h-110px ml-10px mr-20px" v-else src="@/assets/img/null_pic.png">
-        <div class="flex-col white-space-nowrap">
-          <div class="flex">
-            <span class="station-name mr-20px">{{ StationData.name }}</span>
-            <font-awesome-icon class="station-edit-btn w-32px h-32px" icon="fa-regular fa-pen-to-square" @click="go_to_station_edit_page() "/>
+        <img class="w-110px h-110px mr-20px" v-if="StationData.img_str!==undefined" :src="StationData.img_str" >
+        <img class="w-110px h-110px mr-20px" v-else src="@/assets/img/null_pic.png">
+        <div class="flex-col white-space-nowrap w-full text-blue-1200 text-20px">
+          <div class="flex justify-between">
+            <div class="flex">
+              <span class="station-name text-36px font-bold mr-20px">{{ StationData.name }}</span>
+              <font-awesome-icon class="text-secondary w-32px h-32px" icon="fa-regular fa-pen-to-square" @click="go_to_station_edit_page() "/>
+            </div>
+            <p class="text-20px text-blue-900 ml-24px">Last Updated : {{ StationData.last_updated_str }} </p>
           </div>
+
           <div class="flex mt-16px">
-            <img class="w-20px h-20px mr-10px" src="@/assets/img/station_detail_latitude.png">
-            <span class="line-height-20px"> {{ StationData.latitude_str }} {{ "," }} {{ StationData.longitude_str }}</span>
-          </div>
-          <div class="flex mt-12px">
-            <img class="w-20px h-20px mr-10px" src="@/assets/img/station_list_type_office1.png">
+            <img class="w-20px h-20px mr-10px" src="@/assets/img/station_listmode_location.png">
             <span class="line-height-20px">{{ StationData.country }} {{ StationData.city }}{{ StationData.address }}</span>
           </div>
+          
+          <div class="flex flex-row mt-12px text20px">
+            <div class="flex mr-40px">
+              <img class="w-20px h-20px mr-10px" src="@/assets/img/station_detail_latitude.png">
+              <span class="line-height-20px"> {{ StationData.latitude_str }} {{ "," }} {{ StationData.longitude_str }}</span>
+            </div>
+            <div class="flex mr-40px">
+              <img class="w-20px h-20px mr-10px" src="@/assets/img/station_list_type_office1.png">
+              <span class="line-height-20px">Location Type : 
+                <span v-for="(item, index) in StationData.facilities" class="line-height-20px">
+                  <span v-if="index !== 0">, </span>
+                  {{ item }}
+                </span>
+              </span>
+            </div>
+
+            <div v-if="StationData.publish" class="flex">
+              <img class="w-20px h-20px mr-10px filter-blue-1200" src="@/assets/img/login_visible_pre.png">
+              <span class="line-height-20px">Published</span>
+            </div>
+            <div v-else class="flex">
+              <img class="w-20px h-20px mr-10px filter-blue-1200" src="@/assets/img/login_unvisible_pre.png">
+              <span class="line-height-20px">Unpublished</span>
+            </div>
+          </div>
+
         </div>
       </div>
     </div>
 
-    <div class="pl-50px pr-50px pb-40px bg-blue-100 flex-col">
-      <div class="flex md:justify-end pt-24px pb-24px overflow-x-auto">
-        <el-button v-if="editMode === true" class="btn update-button px-30px box-shadow" @click="updateSW"> Update SW </el-button>
-        <!-- <el-button v-if="editMode === true" class="btn update-button px-30px box-shadow" @click="updateFW " disabled> Update FW </el-button> -->
-        <el-button v-if="editMode === true" class="btn soft-reset-button px-30px box-shadow" @click="evseReset('soft')"> Soft Reset </el-button>
-        <el-button v-if="editMode === true" class="btn hard-reset-button px-30px box-shadow" @click="evseReset('hard')"> Hard Reset </el-button>
-        <el-button class="btn px-30px box-shadow" @click="edit_charger" > {{ edit_button_str }}</el-button>
+    <el-collapse accordion class="collapse">
+      <el-collapse-item name="1">
+        <div class="flex flex-wrap pt-20px pb-20px text-blue-1200 text-20px white-space-nowrap overflow-x-auto">
+          <div class="collapse-left mr-20px pl-10%">
+            <div class="flex mb-12px">
+              <img class="w-20px h-20px mr-16px" src="@/assets/img/station_detail_id.png">
+              <span class="line-height-20px"> Location ID : {{ StationData.id }} </span>
+            </div>
+            <div class="flex mb-12px">
+              <img class="w-20px h-20px mr-16px" src="@/assets/img/station_detail_admin.png">
+              <span class="line-height-20px"> Operator : {{ StationData.party_id }} </span>
+            </div>
+            <!-- <div class="flex mb-12px">
+              <img class="w-20px h-20px mr-16px" src="@/assets/img/station_detail_id.png">
+              <span class="line-height-20px"> Operator ID : {{ StationData.party_id }} </span>
+            </div> -->
+          </div>
+
+          <div class="collapse-right pl-10%">
+            <!-- <div class="flex mb-12px">
+              <img class="w-20px h-20px mr-16px" src="@/assets/img/station_detail_owner.png">
+              <span class="line-height-20px"> Owner : {{  }} </span>
+            </div> -->
+            <!-- <div class="flex mb-12px">
+              <img class="w-20px h-20px mr-16px" src="@/assets/img/station_detail_car.png">
+              <span class="line-height-20px"> Parking Lot : {{  }} </span>
+            </div> -->
+            <!-- <div class="flex mb-12px">
+              <img class="w-20px h-20px mr-16px" src="@/assets/img/station_detail_note.png">
+              <span class="line-height-20px"> Note : {{  }} </span>
+            </div> -->
+          </div>
+        </div>
+      </el-collapse-item>
+    </el-collapse>
+
+    <div class="pb-40px bg-blue-100 flex-grow">
+      <div class="container lg">
+        <div class="flex md:justify-end pt-24px pb-24px overflow-x-auto">
+          <el-button v-if="editMode === true" class="btn-secondary shrink-0 update-button px-30px box-shadow" @click="updateSW"> Update SW </el-button>
+          <!-- <el-button v-if="editMode === true" class="btn-secondary shrink-0 update-button px-30px box-shadow" @click="updateFW " disabled> Update FW </el-button> -->
+          <el-button v-if="editMode === true" class="btn-secondary shrink-0 soft-reset-button px-30px box-shadow" @click="evseReset('soft')"> Soft Reset </el-button>
+          <el-button v-if="editMode === true" class="btn-secondary shrink-0 hard-reset-button px-30px box-shadow" @click="evseReset('hard')"> Hard Reset </el-button>
+          <el-button class="btn-secondary shrink-0  px-30px box-shadow" @click="edit_charger" > {{ edit_button_str }}</el-button>
+        </div>
+
+        <div class="px-14px bg-white rounded-2xl">
+          <el-table 
+            :data="StationDetailEvseData" 
+            class="white-space-nowrap text-primary rounded-10px"
+            height="calc(100vh - 520px)"
+            style="width: 100%" 
+            stripe 
+            size="large" 
+            empty=""
+            :cell-style=msi_style.tb_cell 
+            :header-cell-style=msi_style.tb_header_cell 
+            @selection-change="handleSelectionChange"
+          >
+            <el-table-column
+              prop="evse_id"
+              label="EVSE ID"
+              sortable
+              min-width="250"
+            />
+            <el-table-column
+              prop="floor_level"
+              label="Floor Level"
+              sortable
+              min-width="150"
+            />
+            <el-table-column
+              prop="status"
+              label="Status"
+              sortable
+              min-width="200"
+            >
+              <template #default="scope">
+                <p class="available" v-if="scope.row.status === 'AVAILABLE'"> {{ "● " + scope.row.status }}</p>
+                <p class="charging" v-else-if="scope.row.status === 'CHARGING'"> {{ "● " + scope.row.status }}</p>
+                <p class="offline" v-else-if="scope.row.status === 'UNKNOWN' "> {{ "● " + scope.row.status }}</p>
+                <p class="error" v-else-if="scope.row.status === 'OUTOFORDER'"> {{ "● " + scope.row.status }}</p>
+              </template>
+            </el-table-column>
+            <el-table-column
+              prop="type_str"
+              label="Type"
+              sortable
+              min-width="150"
+            />
+            <el-table-column
+              prop="sw_version"
+              label="SW Ver."
+              sortable
+              min-width="200"
+            />
+            <el-table-column
+              prop=""
+              label="Latest SW"
+              sortable
+              min-width="200"
+            >
+              <template #default="scope">
+                <p v-if="scope.row.sw_version === swVersion"> {{ "V" }}</p>
+              </template>
+            </el-table-column>
+            <el-table-column
+              prop="last_updated_str"
+              label="Updated Time"
+              sortable
+              min-width="200"
+            />
+            <el-table-column
+              v-if="editMode === false"
+              prop=""
+              label=""
+              align="center"
+              min-width="200"
+            >
+              <template #default="scope">
+                    <el-button class="btn-more" @click="charger_detail(scope.row)"> <font-awesome-icon icon="fa-solid fa-ellipsis" /> </el-button>
+              </template>
+            </el-table-column>
+            <el-table-column
+              v-else
+              type="selection"
+              align="center"
+              min-width="200"
+            />
+          </el-table>
+        </div>
       </div>
 
-      <el-table 
-        :data="StationDetailEvseData" 
-        class="white-space-nowrap text-primary rounded-10px"
-        height="calc(100vh - 400px)"
-        style="width: 100%" 
-        stripe 
-        size="large" 
-        empty=""
-        :cell-style=msi_style.tb_cell 
-        :header-cell-style=msi_style.tb_header_cell 
-        @selection-change="handleSelectionChange"
-      >
-        <el-table-column
-          prop="evse_id"
-          label="EVSE ID"
-          sortable
-          min-width="250"
-        />
-        <el-table-column
-          prop="floor_level"
-          label="Floor Level"
-          sortable
-          min-width="150"
-        />
-        <el-table-column
-          prop="status"
-          label="Status"
-          sortable
-          min-width="200"
-        >
-          <template #default="scope">
-            <p class="available" v-if="scope.row.status === 'AVAILABLE'"> {{ "● " + scope.row.status }}</p>
-            <p class="charging" v-else-if="scope.row.status === 'CHARGING'"> {{ "● " + scope.row.status }}</p>
-            <p class="offline" v-else-if="scope.row.status === 'UNKNOWN' "> {{ "● " + scope.row.status }}</p>
-            <p class="error" v-else-if="scope.row.status === 'OUTOFORDER'"> {{ "● " + scope.row.status }}</p>
-          </template>
-        </el-table-column>
-        <el-table-column
-          prop="type_str"
-          label="Type"
-          sortable
-          min-width="150"
-        />
-        <el-table-column
-          prop="sw_version"
-          label="SW Ver."
-          sortable
-          min-width="200"
-        />
-        <el-table-column
-          prop=""
-          label="Latest SW"
-          sortable
-          min-width="200"
-        >
-          <template #default="scope">
-            <p v-if="scope.row.sw_version === swVersion"> {{ "V" }}</p>
-          </template>
-        </el-table-column>
-        <el-table-column
-          prop="last_updated_str"
-          label="Updated Time"
-          sortable
-          min-width="200"
-        />
-        <el-table-column
-          v-if="editMode === false"
-          prop=""
-          label=""
-          align="center"
-          min-width="200"
-        >
-          <template #default="scope">
-                <el-button class="btn-more" @click="charger_detail(scope.row)"> <font-awesome-icon icon="fa-solid fa-ellipsis" /> </el-button>
-          </template>
-        </el-table-column>
-        <el-table-column
-          v-else
-          type="selection"
-          align="center"
-          min-width="200"
-        />
-      </el-table>
+
+
+
 
       <el-dialog
         v-model="sw_version_visable" 
@@ -310,7 +372,7 @@ onMounted( async () => {
           </div>
         </template>
         <div class="dialog-context">
-          <p>Now Version {{ fwVersion }}</p>
+          <p class="text-center">Now Version {{ fwVersion }}</p>
         </div>
         <template #footer>
           <span class="dialog-footer flex flex-center">
@@ -325,23 +387,26 @@ onMounted( async () => {
 
 <style lang="scss" scoped>
 .station-detail {
-  .station-name {
-    font-size: 36px;
-    font-weight: bold;
+  .container {
+    height: auto;
   }
-  .station-edit-btn {
-    color: var(--secondary);
-  }
-
-
-
-  .btn{
-    width: 20rem;
-    height: 4rem;
-    font-size: 18px;
-    background-color: var(--secondary);
-    color:var(--white);
-    border-radius: 2rem;
+  .collapse {
+    :deep(.el-collapse-item__header) {
+      height: 20px;
+      background-color: var(--gray-200);
+    }
+    :deep(.el-collapse-item__arrow) {
+      margin: auto;
+      transform: rotate(90deg);
+    }
+    :deep(.el-collapse-item__arrow.is-active) {
+      transform: rotate(-90deg);
+    }
+    :deep(.el-collapse-item__content) {
+      background-color: var(--gray-100);
+      padding-bottom: 0;
+      // height: 120px;
+    }
   }
   .update-button {
     background-color: var(--blue-900);
@@ -352,7 +417,12 @@ onMounted( async () => {
   .hard-reset-button {
     background-color: var(--blue-900);
   }
-
+  .filter-blue-1200 {
+    filter: brightness(65%) saturate(100%);
+  }
+  :deep(.el-table tr) {
+    height: 6.5rem;
+  }
   ::-webkit-scrollbar {
     width: 0.8rem;
     height: 0.8rem;
@@ -365,18 +435,5 @@ onMounted( async () => {
     background-color: var(--blue-1000);
     border-radius: 2rem;
   }
-}
-
-.available{
-  color: #76bbf4;
-}
-.charging{
-  color: #94eadb;
-}
-.offline{
-  color: #bcbcbc;
-}
-.error{
-  color: #ef8879;
 }
 </style>

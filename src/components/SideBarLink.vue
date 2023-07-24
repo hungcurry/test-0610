@@ -72,12 +72,12 @@ onMounted(async () => {
       <el-menu-item index="administrator"> m-Cloud Administrator</el-menu-item>
     </el-sub-menu>
 
-    <el-sub-menu index="ocpiSession">
+    <el-sub-menu index="evse-log">
       <template #title>
         <el-icon class="opacity-70"><Calendar /></el-icon>
         <span>Log Monitor</span>
       </template>
-      <el-menu-item index="ocpi-session">EVSE Log</el-menu-item>
+      <el-menu-item index="evse-log">EVSE Log</el-menu-item>
       <el-menu-item index="ocpp-error"> Error Log </el-menu-item>
     </el-sub-menu>
 

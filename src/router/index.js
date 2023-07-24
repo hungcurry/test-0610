@@ -85,7 +85,7 @@ const router = createRouter({
           component: CompanyView
         },
         {
-          path: 'ocpi-session',
+          path: 'evse-log',
           name: 'ocpiSession',
           component: OcpiSessionView
         },
