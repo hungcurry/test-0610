@@ -95,20 +95,22 @@ const sortFunc = (obj1, obj2, column) => {
 
   let convertedNumber1 = undefined
   let convertedNumber2 = undefined
-  if(column === 'parking_price_str' || column === 'price_str' || column === 'charge_price_str') {   
+  if (
+    column === 'parking_price_str' ||
+    column === 'price_str' ||
+    column === 'charge_price_str'
+  ) {
     if (obj1[column] !== undefined) {
-      convertedNumber1 = parseInt(obj1[column].replace(/,/g, ""))
+      convertedNumber1 = parseFloat(obj1[column].replace(/,/g, ''))
     }
     if (obj2[column] !== undefined) {
-      convertedNumber2 = parseInt(obj2[column].replace(/,/g, ""))
+      convertedNumber2 = parseFloat(obj2[column].replace(/,/g, ''))
     }
-    if (convertedNumber2 === undefined)
-     return -1
+    if (convertedNumber2 === undefined) return -1
     if (convertedNumber1 > convertedNumber2) {
       return -1
     }
-  }
-  else {
+  } else {
     let at = obj1[column]
     let bt = obj2[column]
     if (bt === undefined) {
@@ -119,7 +121,6 @@ const sortFunc = (obj1, obj2, column) => {
     }
   }
 }
-
 
 const MongoQurey = async (queryData) => {
   isLoading.value = true

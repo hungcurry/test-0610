@@ -45,6 +45,11 @@
     }
   }
 }
+.el-picker__popper.el-popper .el-popper__arrow::before {
+  border: 0.1px solid var(--blue-1100);
+  background: var(--blue-1100);
+}
+// arrow
 .el-date-range-picker {
   width: 36rem;
   @media (min-width: 768px) {

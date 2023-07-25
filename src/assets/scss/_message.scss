@@ -1,0 +1,8 @@
+.el-message-box {
+  --el-messagebox-content-color: var(--white);
+  background-color: var(--blue-1200);
+  border: .3rem solid var(--blue-700);
+  .el-message-box__title {
+    color: var(--white);
+  }
+}

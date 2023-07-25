@@ -109,7 +109,6 @@ const addUser = async (action, visible) => {
     .then(async () => {
       isLoading.value = true
       let res = await MsiApi.register_member(sendData)
-      console.log(res)
       if (res.status === 200) {
         ElMessage.error('email already exists')
       }
@@ -145,7 +144,7 @@ onMounted( async() => {
             <el-button :icon="Search" @click="search" />
           </template>
         </el-input>
-        <el-button class="add-user-btn" @click="addUser('', true)"> Add User </el-button>
+        <el-button class="btn-secondary box-shadow" @click="addUser('', true)"> Add User </el-button>
       </div>
       <div class="overflow-x-auto">
         <div class="customer-list pb-40px">
@@ -249,7 +248,7 @@ onMounted( async() => {
                   <el-input v-model.trim="newUser.last_name" />
                 </el-form-item>
               </div>
-              <el-form-item class="mb-24px" label="Email">
+              <el-form-item class="mb-24px" label="E-mail">
                 <el-input v-model.trim="newUser.email" />
               </el-form-item>
             </el-form>
@@ -308,16 +307,6 @@ onMounted( async() => {
     :deep(.el-icon) {
       color: black;
     }
-  }
-  .add-user-btn {
-    width: 15rem;
-    height: 4rem;
-    padding: 0.8rem 2rem;
-    font-size: 1.8rem;
-    background-color: var(--secondary);
-    color: var(--white);
-    border-radius: 2rem;
-    box-shadow: 0.7rem 1.1rem 1.2rem rgba(146, 169, 196, 0.25) !important;
   }
   .el-form-item {
     display: block;

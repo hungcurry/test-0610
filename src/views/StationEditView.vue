@@ -260,65 +260,64 @@ onMounted(async () => {
 
 <template>
   <div class="station-edit">
-    <div class="container lg pb-20px">
+    <div class="container lg flex-col">
       <div class="page-title flex flex-wrap lg:flex-nowrap pt-40px pb-32px">
         <p>{{ edit_title }}</p>
       </div>
 
-      <div class="flex-col main-container">
-        <div class="flex-grow">
-          <div class="overflow-x-auto flex pb-32px">
-            <div class="flex-col pr-40px">
-              <div class="flex">
-                <img class="mr-8px" src="@/assets/img/station_edit_stationdetail.png" alt="">
-                <p class="text-secondary">Station Details</p>
-              </div>
-              
-              <div class="flex mt-24px ml-30px">
-                <img class="w-180px h-180px mr-30px" v-if="StationData.img_str !== undefined" :src="StationData.img_str">
-                <img class="w-180px h-180px mr-30px" v-else src="@/assets/img/null_pic.png">
-    
+      <div class="flex-grow mb-44px">
+        <div class="overflow-x-auto h-full flex">
+          <div class="lg:w-50% flex-col pr-40px">
+            <div class="flex">
+              <img class="mr-8px" src="@/assets/img/station_edit_stationdetail.png" alt="">
+              <p class="text-secondary">Station Details</p>
+            </div>
+            
+            <div class="flex mt-24px ml-30px">
+              <img class="w-180px h-180px mr-30px" v-if="StationData.img_str !== undefined" :src="StationData.img_str">
+              <img class="w-180px h-180px mr-30px" v-else src="@/assets/img/null_pic.png">
+  
                   <el-form class="w-full min-w-190px">
                     <el-form-item label="Name">
                       <el-input v-model.trim="StationData.name" />
                     </el-form-item>
     
                     <el-form-item label="Type">
-                      <el-select
-                        class="el-select" 
-                        v-model="StationData.facilities_str" 
-                        placeholder="Select" 
-                        size="large"
-                      >
-                      <el-option v-for="item in facilities_type" :key="item.value" :label="item.label" :value="item.value" />
-                      </el-select>
-                    </el-form-item>
-    
-                    <!-- <el-form-item label="Owner">
-                      <el-input v-model.trim="StationData.owner_name_string" />
-                    </el-form-item> -->
-                    <!-- <el-form-item label="Operator">
-                      <el-input v-model.trim="StationData.operator_name_string" />
-                    </el-form-item> -->
-                    <!-- <el-form-item label="Operator ID">
-                      <el-input v-model.trim="StationData.party_id" />
-                    </el-form-item> -->
-                    <!-- <el-form-item label="Note / Description">
-                      <el-input v-model.trim="StationData.directions_str" />
-                    </el-form-item> -->
-    
-                    <el-checkbox v-model="StationData.publish" label="Publish" size="large" />
-                    <!-- <el-checkbox v-model="StationData.parking_type_enable" label="Parking Lot" size="large" /> -->
-                    <!-- <el-checkbox v-model="StationData.charging_when_closed" label="Charging when place is closed"></el-checkbox> -->
-                  </el-form>
-              </div>
-    
-              <div class="v-line1"></div>
-    
-              <div class="flex mt-24px">
-                <img class="mr-8px" src="@/assets/img/station_edit_location.png" alt="">
-                <p class="text-secondary">Location</p>
-              </div>
+                    <el-select
+                      class="el-select w-full" 
+                      v-model="StationData.facilities_str" 
+                      placeholder="Select" 
+                      size="large"
+                    >
+                    <el-option v-for="item in facilities_type" :key="item.value" :label="item.label" :value="item.value" />
+                    </el-select>
+                  </el-form-item>
+  
+                  <!-- <el-form-item label="Owner">
+                    <el-input v-model.trim="StationData.owner_name_string" />
+                  </el-form-item> -->
+                  <!-- <el-form-item label="Operator">
+                    <el-input v-model.trim="StationData.operator_name_string" />
+                  </el-form-item> -->
+                  <!-- <el-form-item label="Operator ID">
+                    <el-input v-model.trim="StationData.party_id" />
+                  </el-form-item> -->
+                  <!-- <el-form-item label="Note / Description">
+                    <el-input v-model.trim="StationData.directions_str" />
+                  </el-form-item> -->
+  
+                  <el-checkbox v-model="StationData.publish" label="Publish" size="large" />
+                  <!-- <el-checkbox v-model="StationData.parking_type_enable" label="Parking Lot" size="large" /> -->
+                  <!-- <el-checkbox v-model="StationData.charging_when_closed" label="Charging when place is closed"></el-checkbox> -->
+                </el-form>
+            </div>
+  
+            <div class="v-line1"></div>
+  
+            <div class="flex mt-24px">
+              <img class="mr-8px" src="@/assets/img/station_edit_location.png" alt="">
+              <p class="text-secondary">Location</p>
+            </div>
     
               <div class="flex mt-24px ml-30px">
                 <el-form class="w-full min-w-190px">
@@ -330,133 +329,130 @@ onMounted(async () => {
                         placeholder="Select" 
                         size="large"
                         @change="change_country_code(StationData.country)"
-                      >
-                      <el-option v-for="item in country_list" :key="item.value" :label="item.label" :value="item.value" />
-                      </el-select>
-                    </el-form-item>
-                    <!-- <el-form-item label="Postal Code" class="mr-20px w-190px">
-                      <el-input v-model="StationData.postal_code"></el-input>
-                    </el-form-item> -->
-                    <!-- <el-button class="location-button" @click="getAddress"> Get Address </el-button> -->
-                  </div>
-    
-                  <div class="flex" id="Address+City">
-                    <el-form-item label="Address" class="mr-20px">
-                      <el-input v-model="StationData.address" placeholder="EX: 中和區立德街69號"></el-input>
-                    </el-form-item>
-                    <el-form-item label="City">
-                      <el-select v-if="StationData.country === 'Taiwan'"
-                        class="el-select w-190px" 
-                        v-model="StationData.city" 
-                        placeholder="Select" 
-                        size="large"
-                      >
-                        <el-option v-for="item in taiwan_city" :key="item.value" :label="item.label" :value="item.value" />
-                      </el-select>
-                      <el-input v-else v-model.trim="StationData.city" class="w-190px" />
-                    </el-form-item>
-                  </div>
-    
-                  <div class="flex" id="Address+City(En)">
-                    <el-form-item label="Address (En)" class="mr-20px">
-                      <el-input v-model="StationData.address1"></el-input>
-                    </el-form-item>
-                    <el-form-item label="City (En)">
-                      <el-input v-model="StationData.city1" class="w-190px"></el-input>
-                    </el-form-item>
-                  </div>
-    
-                  <div class="flex flex-items-end" id="Latitude+Longitude">
-                    <el-form-item label="Latitude" class="mr-20px w-150px">
-                      <el-input v-model="StationData.latitude_str" placeholder="EX: 25.007678"></el-input>
-                    </el-form-item>
-                    <el-form-item label="Longitude" class="mr-20px w-150px">
-                      <el-input v-model="StationData.longitude_str" placeholder="EX: 121.487396"></el-input>
-                    </el-form-item>
-                    <el-button class="location-button" @click="getCoordinates"> Get Coordinates </el-button>
-                  </div>
-                  
-                  <div class="flex flex-items-end" id="TimeZone">
-                    <el-form-item label="Time Zone" class="mr-20px w-150px">
-                      <el-input v-model="StationData.time_zone"></el-input>
-                    </el-form-item>
-                    <el-button class="location-button" @click="getTimeZone"> Get Time Zone </el-button>
-                  </div>
+                    >
+                    <el-option v-for="item in country_list" :key="item.value" :label="item.label" :value="item.value" />
+                    </el-select>
+                  </el-form-item>
+                  <!-- <el-form-item label="Postal Code" class="mr-20px w-190px">
+                    <el-input v-model="StationData.postal_code"></el-input>
+                  </el-form-item> -->
+                  <!-- <el-button class="location-button" @click="getAddress"> Get Address </el-button> -->
+                </div>
+  
+                <div class="flex" id="Address+City">
+                  <el-form-item label="Address" class="mr-20px w-full">
+                    <el-input v-model="StationData.address" placeholder="EX: 中和區立德街69號"></el-input>
+                  </el-form-item>
+                  <el-form-item label="City">
+                    <el-select v-if="StationData.country === 'Taiwan'"
+                      class="el-select w-190px" 
+                      v-model="StationData.city" 
+                      placeholder="Select" 
+                      size="large"
+                    >
+                      <el-option v-for="item in taiwan_city" :key="item.value" :label="item.label" :value="item.value" />
+                    </el-select>
+                    <el-input v-else v-model.trim="StationData.city" class="w-190px" />
+                  </el-form-item>
+                </div>
+  
+                <div class="flex" id="Address+City(En)">
+                  <el-form-item label="Address (En)" class="mr-20px w-full">
+                    <el-input v-model="StationData.address1"></el-input>
+                  </el-form-item>
+                  <el-form-item label="City (En)">
+                    <el-input v-model="StationData.city1" class="w-190px"></el-input>
+                  </el-form-item>
+                </div>
+  
+                <div class="flex flex-items-end" id="Latitude+Longitude">
+                  <el-form-item label="Latitude" class="mr-20px w-150px">
+                    <el-input v-model="StationData.latitude_str" placeholder="EX: 25.007678"></el-input>
+                  </el-form-item>
+                  <el-form-item label="Longitude" class="mr-20px w-150px">
+                    <el-input v-model="StationData.longitude_str" placeholder="EX: 121.487396"></el-input>
+                  </el-form-item>
+                  <el-button class="location-button" @click="getCoordinates"> Get Coordinates </el-button>
+                </div>
+                
+                <div class="flex flex-items-end" id="TimeZone">
+                  <el-form-item label="Time Zone" class="mr-20px w-150px">
+                    <el-input v-model="StationData.time_zone"></el-input>
+                  </el-form-item>
+                  <el-button class="location-button" @click="getTimeZone"> Get Time Zone </el-button>
+                </div>
 
-                  <!-- <div class="flex flex-items-end" id="getAddress">
-                    <p> {{ Coordinates2Addr }}</p>
-                    <el-button class="location-button" @click="getAddress"> Get Address </el-button>
-                  </div> -->
+                <!-- <div class="flex flex-items-end" id="getAddress">
+                  <p> {{ Coordinates2Addr }}</p>
+                  <el-button class="location-button" @click="getAddress"> Get Address </el-button>
+                </div> -->
 
-                </el-form>
+              </el-form>
+            </div>
+          </div>
+          <div class="v-line"></div>
+          <div class="lg:w-50% disable-block flex-col pl-40px pr-40px ">
+            <div class="flex justify-between mb-44px">
+              <div class="flex">
+                <img class="mr-8px w-20px h-20px" src="@/assets/img/station_edit_building.png" alt="">
+                <p class="text-secondary">Businese Details</p>
+              </div>
+              <el-switch v-model="select_all" size="large" inactive-text="Select All" disabled/>
+            </div>
+            <div class="week-container pr-40px flex-grow min-w-300px">
+              <div class="week">
+                <!-- <el-checkbox v-model="w0check" label="" size="large" :disabled = "!select_all" @change="change_all_week"/> -->
+                <el-checkbox v-model="w0check" label="" size="large" disabled @change="change_all_week"/>
+                <span class="text">All</span>
+                <!-- <el-slider v-model="w0val" range :max="24" :disabled = "!select_all" @change="change_all_time"/> -->
+                <el-slider v-model="w0val" range :max="24" disabled @change="change_all_time"/>
+              </div>
+              <div class="week">
+                <el-checkbox v-model="w1check" label="" size="large" :disabled = "select_all"/>
+                <span class="text">Mon.</span>
+                <el-slider v-model="w1val" range :max="24" :disabled = "select_all"/>
+              </div>
+              <div class="week">
+                <el-checkbox v-model="w2check" label="" size="large" :disabled = "select_all"/>
+                <span class="text">Tue.</span>
+                <el-slider v-model="w2val" range :max="24" :disabled = "select_all"/>
+              </div>
+              <div class="week">
+                <el-checkbox v-model="w3check" label="" size="large" :disabled = "select_all"/>
+                <span class="text">Wed.</span>
+                <el-slider v-model="w3val" range :max="24" :disabled = "select_all"/>
+              </div>
+              <div class="week">
+                <el-checkbox v-model="w4check" label="" size="large" :disabled = "select_all"/>
+                <span class="text">Thu.</span>
+                <el-slider v-model="w4val" range :max="24" :disabled = "select_all"/>
+              </div>
+              <div class="week">
+                <el-checkbox v-model="w5check" label="" size="large" :disabled = "select_all"/>
+                <span class="text">Fri.</span>
+                <el-slider v-model="w5val" range :max="24" :disabled = "select_all"/>
+              </div>
+              <div class="week">
+                <el-checkbox v-model="w6check" label="" size="large" :disabled = "select_all"/>
+                <span class="text">Sat.</span>
+                <el-slider v-model="w6val" range :max="24" :disabled = "select_all"/>
+              </div>
+              <div class="week">
+                <el-checkbox v-model="w7check" label="" size="large" :disabled = "select_all"/>
+                <span class="text">Sun.</span>
+                <el-slider v-model="w7val" range :max="24" :marks="marks" :disabled = "select_all"/>
               </div>
             </div>
-            <div class="v-line"></div>
-
-            <div class="disable-block flex-col pl-40px pr-40px flex-grow">
-              <div class="flex justify-between mb-44px">
-                <div class="flex">
-                  <img class="mr-8px w-20px h-20px" src="@/assets/img/station_edit_building.png" alt="">
-                  <p class="text-secondary">Businese Details</p>
-                </div>
-                <el-switch v-model="select_all" size="large" inactive-text="Select All" disabled/>
-              </div>
-              <div class="week-container pr-40px flex-grow min-w-300px">
-                <div class="week">
-                  <!-- <el-checkbox v-model="w0check" label="" size="large" :disabled = "!select_all" @change="change_all_week"/> -->
-                  <el-checkbox v-model="w0check" label="" size="large" disabled @change="change_all_week"/>
-                  <span class="text">All</span>
-                  <!-- <el-slider v-model="w0val" range :max="24" :disabled = "!select_all" @change="change_all_time"/> -->
-                  <el-slider v-model="w0val" range :max="24" disabled @change="change_all_time"/>
-                </div>
-                <div class="week">
-                  <el-checkbox v-model="w1check" label="" size="large" :disabled = "select_all"/>
-                  <span class="text">Mon.</span>
-                  <el-slider v-model="w1val" range :max="24" :disabled = "select_all"/>
-                </div>
-                <div class="week">
-                  <el-checkbox v-model="w2check" label="" size="large" :disabled = "select_all"/>
-                  <span class="text">Tue.</span>
-                  <el-slider v-model="w2val" range :max="24" :disabled = "select_all"/>
-                </div>
-                <div class="week">
-                  <el-checkbox v-model="w3check" label="" size="large" :disabled = "select_all"/>
-                  <span class="text">Wed.</span>
-                  <el-slider v-model="w3val" range :max="24" :disabled = "select_all"/>
-                </div>
-                <div class="week">
-                  <el-checkbox v-model="w4check" label="" size="large" :disabled = "select_all"/>
-                  <span class="text">Thu.</span>
-                  <el-slider v-model="w4val" range :max="24" :disabled = "select_all"/>
-                </div>
-                <div class="week">
-                  <el-checkbox v-model="w5check" label="" size="large" :disabled = "select_all"/>
-                  <span class="text">Fri.</span>
-                  <el-slider v-model="w5val" range :max="24" :disabled = "select_all"/>
-                </div>
-                <div class="week">
-                  <el-checkbox v-model="w6check" label="" size="large" :disabled = "select_all"/>
-                  <span class="text">Sat.</span>
-                  <el-slider v-model="w6val" range :max="24" :disabled = "select_all"/>
-                </div>
-                <div class="week">
-                  <el-checkbox v-model="w7check" label="" size="large" :disabled = "select_all"/>
-                  <span class="text">Sun.</span>
-                  <el-slider v-model="w7val" range :max="24" :marks="marks" :disabled = "select_all"/>
-                </div>
-              </div>
-            </div>
-
           </div>
         </div>
-  
-        <div class="flex flex-justify-center mt-10px mb-44px">
-          <el-button class="button bg-btn-100 mr-44px" v-if="station_id" @click="deleteStation"> Delete </el-button>
-          <el-button class="button bg-btn-100 mr-44px" @click="backStation"> Cancel </el-button>
-          <el-button class="button bg-btn-200" @click="saveStation"> Save </el-button>
-        </div>
-
       </div>
+
+      <div class="flex flex-justify-center pb-40px">
+        <el-button class="btn-secondary bg-btn-100 md:mr-44px" v-if="station_id" @click="deleteStation"> Delete </el-button>
+        <el-button class="btn-secondary bg-btn-100 md:mr-44px" @click="backStation"> Cancel </el-button>
+        <el-button class="btn-secondary" @click="saveStation"> Save </el-button>
+      </div>
+
     </div>
   </div>
 </template>
@@ -470,11 +466,14 @@ onMounted(async () => {
   .main-container {
     height: calc(100% - 100px);
   }
-
   .el-form {
     width: 250px;
     @media (min-width: 768px) {
-      width: 400px;
+      width: 100%;
+      min-width: 40rem ;
+    }
+    @media (min-width: 992px) {
+      min-width: initial ;
     }
   }
   .el-form-item {
@@ -489,10 +488,9 @@ onMounted(async () => {
     width: 250px;
     height: 30px;
     @media (min-width: 768px) {
-      width: 400px;
+      width: 100%;
     }
   }
-
   .v-line {
     border-left: thick solid rgb(226, 234, 242);
   }
@@ -501,19 +499,9 @@ onMounted(async () => {
     border-top: thick solid rgb(226, 234, 242);
     height: 10px;
   }
-
-  .button {
-    width: 140px;
-    height: 4rem;
-    padding: 0.8rem 2rem;
-    font-size: 1.8rem;
-    color: var(--white);
-    border-radius: 2rem;
-  }
   .button:hover {
     color: var(--el-color-info);
   }
-
   .week {
     display: flex;
     flex-direction: row;
@@ -524,8 +512,6 @@ onMounted(async () => {
       width: 100px;
     }
   }
-
-
   ::-webkit-scrollbar {
     width: 0.8rem;
     height: 0.8rem;

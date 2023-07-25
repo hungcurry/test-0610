@@ -62,6 +62,11 @@ a {
       padding-right: 4rem;
     }
   }
+  &.full {
+    max-width: 100%;
+    padding-left: 0rem;
+    padding-right: 0rem;
+  }
 }
 .el-card__body {
   height: 100%;

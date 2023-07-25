@@ -133,8 +133,10 @@ onMounted( async () => {
             <div class="text-right">
               <p class="location-name text-right mb-20px">{{ locationData.name }}</p>
               <p class="location-addr text-right mb-20px">{{ locationData.country + ' ' + locationData.city + locationData.address }}</p>
-              <el-button type="primary" class="delete bg-secondary px-30px min" @click="deleteEvse"> Delete </el-button>
-              <el-button type="primary" class="edit bg-secondary px-30px min" @click="edit"> Edit </el-button>
+              <div class="flex justify-end">
+                <el-button type="primary" class="btn-secondary box-shadow delete" @click="deleteEvse"> Delete </el-button>
+                <el-button type="primary" class="btn-secondary box-shadow edit" @click="edit"> Edit </el-button>
+              </div>
             </div>
           </el-col>
         </el-row>
@@ -335,20 +337,6 @@ onMounted( async () => {
       color:var(--white);
       border-radius: 20px;
     }
-    .edit {
-      width: 220px;
-      height: 40px;
-      font-size: 18px;
-      color:var(--white);
-      border-radius: 20px;
-    }
-    .delete {
-      width: 220px;
-      height: 40px;
-      font-size: 18px;
-      color:var(--white);
-      border-radius: 20px;
-    }  
     .evse-id{
       font-size: 36px;
     }

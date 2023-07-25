@@ -1,8 +1,8 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useMStore } from "../stores/m_cloud"
+import i18n from '@/locales'
 import ApiFunc from '@/composables/ApiFunc'
 import EmsLayout from '@/components/EmsLayout.vue'
-
 import LoginView from '../views/LoginView.vue'
 import DashboardView from '@/views/DashboardView.vue'
 import StationView from '@/views/StationView.vue'
@@ -160,6 +160,10 @@ const router = createRouter({
 })
 
 router.beforeEach(async to => {
+
+  if (navigator.language === 'zh-TW') i18n.global.locale.value = 'zh_tw'
+  else i18n.global.locale.value = 'en_us'
+
   if (to.meta.title) {
     document.title = to.meta.title
   }
@@ -197,6 +201,11 @@ router.beforeEach(async to => {
   if (toPath === '/program' && MStore.permission.company.name !== 'MSI' ) {
     return '/login'
   }
+  
+  if (toPath === '/parking' && MStore.permission.company.name !== 'MSI' ) {
+    return '/login'
+  }
+
   if (toPath === '/test' && MStore.user_data.first_name !== 'Steven' ) {
     return '/login'
   }

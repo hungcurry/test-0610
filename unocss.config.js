@@ -23,8 +23,10 @@ export default defineConfig({
       // ===================
       'btn-primary':
         'text-2.2rem shrink-0 min-w-150px hover:bg-blue-800 hover:text-white h-40px',
+      'btn-secondary':
+        'w-20rem h-4rem text-18px bg-secondary text-white rounded-2rem hover:bg-blue-800 focus:bg-blue-800 hover:text-white focus:text-white',
       'btn-more': 'bg-btn-300 text-blue-1200 hover:bg-btn-300 px-20px py-16px focus:bg-btn-300 focus:text-blue-1200',
-      'btn-Release': 'bg-blue-900 text-white hover:bg-blue-900 hover:text-white focus:bg-blue-900 focus:text-white',
+      'btn-info': 'bg-blue-900 text-white hover:bg-blue-900 hover:text-white focus:bg-blue-900 focus:text-white',
       'secondary-hover': 'text-secondary hover:text-blue-500',
     },
   ],

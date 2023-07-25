@@ -1,8 +1,9 @@
 <script setup>
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, watch } from 'vue'
 import { useMStore } from '../stores/m_cloud'
 import { storeToRefs } from 'pinia'
 import { useSideMenuStore } from '@/stores/sidemenu'
+import { useRoute } from 'vue-router'
 import {
   Menu as IconMenu,
   Calendar,
@@ -11,27 +12,40 @@ import {
   UserFilled,
   InfoFilled,
   EditPen,
-  View
+  View,
 } from '@element-plus/icons-vue'
 const MStore = useMStore()
 const company = MStore?.permission?.company?.name
 const user = MStore?.permission?.user?.name
 const dev_member = ref(false)
 const sideMenuStore = useSideMenuStore()
+const route = useRoute()
+const path = ref('')
 const { isCollapse } = storeToRefs(sideMenuStore)
 
+const pathResetHandler = () => {
+  path.value = route.path
+  watch(
+    () => route.path,
+    (newV) => {
+      path.value = newV
+    }
+  )
+  path.value = path.value.slice(1)
+}
 onMounted(async () => {
   if (
     MStore.user_data.first_name === 'Steven'
   ) {
     dev_member.value = true
   }
+  pathResetHandler()
 })
 </script>
 
 <template>
   <el-menu
-    default-active="dashboard"
+    :default-active="path"
     class="el-menu-vertical-demo"
     text-color="#fff"
     active-text-color="#61a8d8"
@@ -53,13 +67,14 @@ onMounted(async () => {
 
     <el-sub-menu index="station">
       <template #title>
-        <el-icon><Location /></el-icon>
+        <el-icon class="opacity-70"><Location /></el-icon>
         <span>EVSE Management</span>
       </template>
-      <el-menu-item index="station" :route="{ path: 'station' }">By Station</el-menu-item>
-      <el-menu-item index="evse">By EVSE</el-menu-item>
-      <el-menu-item index="rate-plan">Rate Plan</el-menu-item>
-      <el-menu-item v-if="dev_member" index="charging-profile">Charging Profile</el-menu-item>
+      <el-menu-item class="collapse" index="station" :route="{ path: 'station' }"
+        >By Station</el-menu-item
+      >
+      <el-menu-item class="collapse" index="evse">By EVSE</el-menu-item>
+      <el-menu-item class="collapse" index="rate-plan">Rate Plan</el-menu-item>
     </el-sub-menu>
 
     <el-sub-menu index="administrator">
@@ -67,9 +82,13 @@ onMounted(async () => {
         <el-icon class="opacity-50"><UserFilled /></el-icon>
         <span>Account Management</span>
       </template>
-      <el-menu-item index="user">RFID User / App Member</el-menu-item>
-      <el-menu-item v-if="company === 'MSI'" index="company">Company / CPO</el-menu-item>
-      <el-menu-item index="administrator"> m-Cloud Administrator</el-menu-item>
+      <el-menu-item class="collapse" index="user">RFID User / App Member</el-menu-item>
+      <el-menu-item class="collapse" v-if="company === 'MSI'" index="company"
+        >Company / CPO</el-menu-item
+      >
+      <el-menu-item class="collapse" index="administrator">
+        m-Cloud Administrator</el-menu-item
+      >
     </el-sub-menu>
 
     <el-sub-menu index="evse-log">
@@ -77,8 +96,8 @@ onMounted(async () => {
         <el-icon class="opacity-70"><Calendar /></el-icon>
         <span>Log Monitor</span>
       </template>
-      <el-menu-item index="evse-log">EVSE Log</el-menu-item>
-      <el-menu-item index="ocpp-error"> Error Log </el-menu-item>
+      <el-menu-item class="collapse" index="evse-log">EVSE Log</el-menu-item>
+      <el-menu-item class="collapse" index="ocpp-error"> Error Log </el-menu-item>
     </el-sub-menu>
 
     <el-menu-item index="software-info">
@@ -88,7 +107,7 @@ onMounted(async () => {
       </template>
     </el-menu-item>
 
-    <el-menu-item index="parking">
+    <el-menu-item v-if="company === 'MSI'" index="parking">
       <el-icon class="opacity-70"><View /></el-icon>
       <template #title>
         <span>Parking</span>
@@ -116,8 +135,9 @@ onMounted(async () => {
 .el-sub-menu {
   margin: 0;
   margin-bottom: 1.2rem;
+  font-size: 1.5rem;
   span {
-    font-size: 1.6rem;
+    font-size: 1.5rem;
   }
 }
 .el-menu,
@@ -142,5 +162,10 @@ onMounted(async () => {
 }
 .el-menu-item.is-active i {
   opacity: 1;
+}
+// �ĤG�h���padding
+.el-menu--vertical:not(.el-menu--collapse):not(.el-menu--popup-container)
+  .el-menu-item.collapse {
+  padding-left: 5rem;
 }
 </style>

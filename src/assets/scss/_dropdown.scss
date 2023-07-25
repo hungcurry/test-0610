@@ -1,0 +1,16 @@
+.el-dropdown-menu {
+  background-color: var(--blue-1200);
+  color: var(--white);
+  .el-dropdown-menu__item {
+    color: var(--white);
+    &:hover,&.hover {
+      background-color: var(--primary);
+      color: var(--white);
+    }
+  }
+}
+// arrow
+.el-dropdown__popper.el-popper .el-popper__arrow::before {
+  border: 0.1px solid var(--blue-1200);
+  background: var(--blue-1200);
+}

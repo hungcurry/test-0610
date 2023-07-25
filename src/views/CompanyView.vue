@@ -186,7 +186,7 @@ onMounted( async() => {
             <el-button :icon="Search" @click="search" />
           </template>
         </el-input>
-        <el-button class="add-user-btn" @click="AddCompany"> Add Company </el-button>
+        <el-button class="btn-secondary box-shadow" @click="AddCompany"> Add Company </el-button>
       </div>
 
       <div class="overflow-x-auto">
@@ -418,16 +418,6 @@ onMounted( async() => {
     :deep(.el-icon) {
       color: black;
     }
-  }
-  .add-user-btn {
-    width: 15rem;
-    height: 4rem;
-    padding: 0.8rem 2rem;
-    font-size: 1.8rem;
-    background-color: var(--secondary);
-    color: var(--white);
-    border-radius: 2rem;
-    box-shadow: 0.7rem 1.1rem 1.2rem rgba(146, 169, 196, 0.25) !important;
   }
   .el-form-item {
     display: block;

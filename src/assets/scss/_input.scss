@@ -12,3 +12,18 @@ input:-webkit-autofill:active {
     color: var(--white);
   }
 }
+// select
+.el-select-dropdown {
+  background-color: var(--blue-1200);
+  color: var(--white);
+  .el-select-dropdown__item {
+    color: var(--white);
+    &:hover,&.hover {
+      background-color: var(--primary);
+    }
+  }
+  .el-select-dropdown__item.selected {
+    color: var(--el-color-primary);
+    font-weight: 700;
+  }
+}

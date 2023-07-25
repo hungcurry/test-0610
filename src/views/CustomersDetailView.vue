@@ -98,18 +98,16 @@ const select_date = async () => {
   paymentData.charge_hr = moment( {h:moment.duration(charge_time_sec, 'second').hours()}).format('HH')
   paymentData.charge_min = moment( {m:moment.duration(charge_time_sec, 'second').minutes()}).format('mm')
   paymentData.charge_sec = moment( {s:moment.duration(charge_time_sec, 'second').hours()}).format('ss')
-
-  console.log(paymentData)
 }
 const sortFunc = (obj1, obj2, column) => {
   let convertedNumber1 = undefined
   let convertedNumber2 = undefined
   if(column === 'parking_price_str' || column === 'price_str' || column === 'charge_price_str') {   
     if (obj1[column] !== undefined) {
-      convertedNumber1 = parseInt(obj1[column].replace(/,/g, ""))
+      convertedNumber1 = parseFloat(obj1[column].replace(/,/g, ""))
     }
     if (obj2[column] !== undefined) {
-      convertedNumber2 = parseInt(obj2[column].replace(/,/g, ""))
+      convertedNumber2 = parseFloat(obj2[column].replace(/,/g, ""))
     }
     if (convertedNumber2 === undefined)
     return -1
@@ -719,7 +717,7 @@ onMounted(async () => {
               <el-input v-model="userDataMod.last_name" />
             </el-form-item>
             <el-form-item label="E-Mail">
-              <el-input v-model="userDataMod.email" />
+              <el-input v-model="userDataMod.email" disabled/>
             </el-form-item>
             <el-form-item label="Phone">
               <el-input v-model="userDataMod.phone" />
@@ -778,7 +776,7 @@ onMounted(async () => {
         </div>
         <template #footer>
           <span class="dialog-footer flex flex-center">
-            <el-button v-if="modify_card_index!==-1" round class="w-48% bg-btn-100 text-white max-w-140px" @click="confirmRfid('delete', undefined)">Delete</el-button>
+            <!-- <el-button v-if="modify_card_index!==-1" round class="w-48% bg-btn-100 text-white max-w-140px" @click="confirmRfid('delete', undefined)">Delete</el-button> -->
             <el-button round class="w-48% bg-btn-100 text-white max-w-140px" @click="confirmRfid('cancel', undefined)">Cancel</el-button>
             <el-button round class="w-48% bg-btn-200 text-white max-w-140px" @click="confirmRfid('confirm', undefined)"> Confirm</el-button>
           </span>

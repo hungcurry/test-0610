@@ -1,50 +1,62 @@
 <script setup>
-import { ref, reactive, onMounted} from 'vue'
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import msi from '@/assets/msi_style'
 import ApiFunc from '@/composables/ApiFunc'
+import { ref, reactive, onMounted } from 'vue'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { ElMessage, ElMessageBox } from 'element-plus'
+
 const MsiApi = ApiFunc()
 const ProgramData = reactive([])
 const program_dialog_visible = ref(false)
 const dialog_title = ref('Add Program')
 const ProgramMod = reactive({})
-
+const isLoading = ref(false)
 
 const deleteDialog = async () => {
-  let sendData = { 'class' : 'LimitPlan', 'pk' : ProgramMod._id }
+  let sendData = { class: 'LimitPlan', pk: ProgramMod._id }
   let res = undefined
 
-  ElMessageBox.confirm('Do you want to delete program?', 'Warning', { confirmButtonText: 'OK', cancelButtonText: 'Cancel', type: 'warning' })
-    .then(async () => {
-      res = await MsiApi.setCollectionData('delete', 'cpo', sendData)
-      if (res.status === 200) {
-        program_dialog_visible.value = false
-        ElMessage.success ('Delete Success')
-        await getLimitPlan()
-      }
-      else {
-        ElMessage.error(res.data.message)
-      }
-    })
+  ElMessageBox.confirm('Do you want to delete program?', 'Warning', {
+    confirmButtonText: 'OK',
+    cancelButtonText: 'Cancel',
+    type: 'warning',
+  }).then(async () => {
+    res = await MsiApi.setCollectionData('delete', 'cpo', sendData)
+    if (res.status === 200) {
+      program_dialog_visible.value = false
+      ElMessage.success('Delete Success')
+      await getLimitPlan()
+    } else {
+      ElMessage.error(res.data.message)
+    }
+  })
 }
-
 const cancelDialog = () => {
   program_dialog_visible.value = false
 }
 const confirmDialog = async () => {
   let check_format_success = true
   let res = undefined
-  let sendData = { 'class': 'LimitPlan', 'pk': ProgramMod._id, 'name': ProgramMod.name, 'location': ProgramMod.location, 'evse': ProgramMod.evse,
-                  'connector': ProgramMod.connector, 'tariff': ProgramMod.tariff, 'user': ProgramMod.user, 'admin_user': ProgramMod.admin_user,
-                  'currency': ProgramMod.currency, 'price': ProgramMod.price }
+  let sendData = {
+    class: 'LimitPlan',
+    pk: ProgramMod._id,
+    name: ProgramMod.name,
+    location: ProgramMod.location,
+    evse: ProgramMod.evse,
+    connector: ProgramMod.connector,
+    tariff: ProgramMod.tariff,
+    user: ProgramMod.user,
+    admin_user: ProgramMod.admin_user,
+    currency: ProgramMod.currency,
+    price: ProgramMod.price,
+  }
 
   if (ProgramMod.name === undefined || ProgramMod.name === '') {
     ElMessage.error('Oops, Name required.')
     check_format_success = false
   }
   if (ProgramMod.location === undefined || ProgramMod.location === '') {
-    ElMessage.error('Oops, Location required.')
+    ElMessage.error('Oops, Station required.')
     check_format_success = false
   }
   if (ProgramMod.evse === undefined || ProgramMod.evse === '') {
@@ -66,48 +78,49 @@ const confirmDialog = async () => {
   if (ProgramMod.admin_user === undefined || ProgramMod.admin_user === '') {
     ElMessage.error('Oops, Admin User required.')
     check_format_success = false
-  }    
+  }
   if (ProgramMod.currency === undefined || ProgramMod.currency === '') {
     ElMessage.error('Oops, Currency required.')
     check_format_success = false
-  }    
+  }
   if (ProgramMod.price === undefined || ProgramMod.price === '') {
     ElMessage.error('Oops, Price required.')
     check_format_success = false
-  }    
+  }
   if (check_format_success === true) {
     if (ProgramMod._id) {
-    ElMessageBox.confirm('Do you want to edit program?', 'Warning', { confirmButtonText: 'OK', cancelButtonText: 'Cancel', type: 'warning' })
-      .then(async () => {
+      ElMessageBox.confirm('Do you want to edit program?', 'Warning', {
+        confirmButtonText: 'OK',
+        cancelButtonText: 'Cancel',
+        type: 'warning',
+      }).then(async () => {
         res = await MsiApi.setCollectionData('patch', 'cpo', sendData)
         if (res.status === 200) {
-            program_dialog_visible.value = false
-            ElMessage.success ('Edit success')
-            await getLimitPlan()
-          }
-        else {
-          ElMessage.error (res.data.message)
+          program_dialog_visible.value = false
+          ElMessage.success('Edit success')
+          await getLimitPlan()
+        } else {
+          ElMessage.error(res.data.message)
         }
       })
-  }
-    else {
-      ElMessageBox.confirm('Do you want to create program?', 'Warning', { confirmButtonText: 'OK', cancelButtonText: 'Cancel', type: 'warning' })
-        .then(async () => {
-          res = await MsiApi.setCollectionData('post', 'cpo', sendData)
-              if (res.status === 201) {
-              program_dialog_visible.value = false
-              ElMessage.success ('Create success')
-              await getLimitPlan()
-            }
-            else {
-              ElMessage.error (res.data.message)
-            }
-        })
+    } else {
+      ElMessageBox.confirm('Do you want to create program?', 'Warning', {
+        confirmButtonText: 'OK',
+        cancelButtonText: 'Cancel',
+        type: 'warning',
+      }).then(async () => {
+        res = await MsiApi.setCollectionData('post', 'cpo', sendData)
+        if (res.status === 201) {
+          program_dialog_visible.value = false
+          ElMessage.success('Create success')
+          await getLimitPlan()
+        } else {
+          ElMessage.error(res.data.message)
+        }
+      })
     }
   }
-
 }
-
 const add_program = async () => {
   dialog_title.value = 'Add Program'
   program_dialog_visible.value = true
@@ -121,13 +134,9 @@ const add_program = async () => {
   ProgramMod.currency = 'TWD'
   ProgramMod.price = 0
   ProgramMod._id = undefined
-
 }
-
-const detail_info = async(scope) => {
+const detail_info = async (scope) => {
   dialog_title.value = 'Edit Program'
-  console.log(scope)
-  console.log(scope.row)
   program_dialog_visible.value = true
   ProgramMod._id = scope.row._id
   ProgramMod.name = scope.row.name
@@ -140,137 +149,203 @@ const detail_info = async(scope) => {
   ProgramMod.currency = scope.row.currency
   ProgramMod.price = scope.row.price
 }
-const isLoading = ref(false)
-
-const getLimitPlan = async() => {
-  let queryData = { "database":"CPO", "collection":"LimitPlan", "query": {}}
+const getLimitPlan = async () => {
+  let queryData = { database: 'CPO', collection: 'LimitPlan', query: {} }
   isLoading.value = true
   let res = await MsiApi.mongoQuery(queryData)
   if (res.status === 200) {
     ProgramData.length = 0
-    Object.assign(ProgramData, res.data.all) 
-  }
-  else {
+    Object.assign(ProgramData, res.data.all)
+  } else {
     ElMessage.error(res.data.message)
   }
   isLoading.value = false
 }
-
-onMounted( async() => {
+onMounted(async () => {
   await getLimitPlan()
 })
-
 </script>
 
 <template>
   <div class="program">
-    <el-button class="add-program" @click="add_program"> Add Program</el-button>
-    <el-table class="program-table" :data="ProgramData" style="width: 95%; height:80%" stripe 
-      :cell-style=msi.tb_cell :header-cell-style=msi.tb_header_cell size="large" v-loading="isLoading">
-      <el-table-column prop="name" label="Name" min-width="10"/>
-      <el-table-column prop="location" label="Location" min-width="15"/>
-      <el-table-column prop="evse" label="EVSE" min-width="10"/>
-      <el-table-column prop="connector" label="Connector" min-width="10"/>
-      <el-table-column prop="tariff" label="Rate Plan" min-width="10"/>
-      <el-table-column prop="user" label="User" min-width="10"/>
-      <el-table-column prop="admin_user" label="Administrator" min-width="10"/>
-      <el-table-column prop="currency" label="Currency" min-width="10"/>
-      <el-table-column prop="price" label="Price" min-width="10"/>
-      <el-table-column  prop="" label="" min-width="5">
-        <template #default="scope">
-          <el-button v-if="scope.row.name === 'MSI-Free'" disabled @click="detail_info(scope)"> <font-awesome-icon icon="fa-solid fa-ellipsis" /> </el-button>
-          <el-button v-else @click="detail_info(scope)"> <font-awesome-icon icon="fa-solid fa-ellipsis" /> </el-button>
-        </template>
-      </el-table-column>
-    </el-table>
-  
-    <el-dialog v-model="program_dialog_visible"  width="20%">
-      <template #header="{}">
-        <strong class="dialog-title" :id="titleId">{{ dialog_title }}</strong>
+    <div class="container lg">
+      <div class="flex justify-end flex-wrap lg:flex-nowrap pt-40px pb-32px">
+        <el-button class="btn-secondary shrink-0 box-shadow" @click="add_program">
+          Add Program</el-button
+        >
+      </div>
+      <div class="overflow-x-auto pb-40px">
+        <el-table
+          :data="ProgramData"
+          class="white-space-nowrap text-primary"
+          height="calc(100vh - 220px)"
+          style="width: 100%"
+          stripe
+          size="large"
+          :cell-style="msi.tb_cell"
+          :header-cell-style="msi.tb_header_cell"
+          v-loading.fullscreen.lock="isLoading"
+        >
+          <el-table-column
+            prop="name"
+            label="Name"
+            align="center"
+            sortable
+            min-width="150"
+          />
+          <el-table-column
+            prop="location"
+            label="Station"
+            align="center"
+            sortable
+            min-width="150"
+          />
+          <el-table-column
+            prop="evse"
+            label="EVSE"
+            align="center"
+            sortable
+            min-width="150"
+          />
+          <el-table-column
+            prop="connector"
+            label="Connector"
+            align="center"
+            sortable
+            min-width="150"
+          />
+          <el-table-column
+            prop="tariff"
+            label="Rate Plan"
+            align="center"
+            sortable
+            min-width="150"
+          />
+          <el-table-column
+            prop="user"
+            label="User"
+            align="center"
+            sortable
+            min-width="150"
+          />
+          <el-table-column
+            prop="admin_user"
+            label="Administrator"
+            align="center"
+            sortable
+            min-width="200"
+          />
+          <el-table-column
+            prop="currency"
+            label="Currency"
+            align="center"
+            sortable
+            min-width="150"
+          />
+          <el-table-column
+            prop="price"
+            label="Price"
+            align="center"
+            sortable
+            min-width="150"
+          />
+          <el-table-column prop="" label="" align="center" min-width="100">
+            <template #default="scope">
+              <el-button
+                v-if="scope.row.name === 'MSI-Free'"
+                disabled
+                class="btn-more"
+                @click="detail_info(scope)"
+              >
+                <font-awesome-icon icon="fa-solid fa-ellipsis" />
+              </el-button>
+              <el-button class="btn-more" v-else @click="detail_info(scope)">
+                <font-awesome-icon icon="fa-solid fa-ellipsis" />
+              </el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+      </div>
+    </div>
+    <el-dialog
+      append-to-body
+      v-model="program_dialog_visible"
+      class="max-w-600px"
+      width="90%"
+    >
+      <template #header="{ titleId, titleClass }">
+        <div class="py-2rem relative bg-blue-100">
+          <h4
+            :id="titleId"
+            :class="titleClass"
+            class="m-0 text-center text-blue-1200 font-400 text-20px lg:text-24px line-height-26px"
+          >
+            {{ dialog_title }}
+          </h4>
+        </div>
       </template>
-      <el-form label-position="left" label-width="100px">
-        <el-form-item label="Name">
-          <el-input v-model="ProgramMod.name"/>
-        </el-form-item>
-        <el-form-item label="Station">
-          <el-input v-model="ProgramMod.location"/>
-        </el-form-item>
-        <el-form-item label="EVSE">
-          <el-input v-model="ProgramMod.evse"/>
-        </el-form-item>
-        <el-form-item label="Connector">
-          <el-input v-model="ProgramMod.connector"/>
-        </el-form-item>
-        <el-form-item label="Rate Plan">
-          <el-input v-model="ProgramMod.tariff"/>
-        </el-form-item>
-        <el-form-item label="User">
-          <el-input v-model="ProgramMod.user"/>
-        </el-form-item>
-        <el-form-item label="Administrator">
-          <el-input v-model="ProgramMod.admin_user"/>
-        </el-form-item>
-        <el-form-item label="Currency">
-          <el-input v-model="ProgramMod.currency"/>
-        </el-form-item>
-        <el-form-item label="Price">
-          <el-input v-model="ProgramMod.price"/>
-        </el-form-item>
-      </el-form>
-      
+      <div class="dialog-context">
+        <el-form class="pr-10px" label-position="left" label-width="100px">
+          <el-form-item label="Name">
+            <el-input v-model="ProgramMod.name" />
+          </el-form-item>
+          <el-form-item label="Station">
+            <el-input v-model="ProgramMod.location" />
+          </el-form-item>
+          <el-form-item label="EVSE">
+            <el-input v-model="ProgramMod.evse" />
+          </el-form-item>
+          <el-form-item label="Connector">
+            <el-input v-model="ProgramMod.connector" />
+          </el-form-item>
+          <el-form-item label="Rate Plan">
+            <el-input v-model="ProgramMod.tariff" />
+          </el-form-item>
+          <el-form-item label="User">
+            <el-input v-model="ProgramMod.user" />
+          </el-form-item>
+          <el-form-item label="Administrator">
+            <el-input v-model="ProgramMod.admin_user" />
+          </el-form-item>
+          <el-form-item label="Currency">
+            <el-input v-model="ProgramMod.currency" />
+          </el-form-item>
+          <el-form-item label="Price">
+            <el-input v-model="ProgramMod.price" />
+          </el-form-item>
+        </el-form>
+      </div>
       <template #footer>
-        <span class="dialog-footer">
-          <el-button @click="cancelDialog">Cancel</el-button>
-          <el-button v-if="dialog_title === 'Edit Program'" @click="deleteDialog">Delete</el-button>
-          <el-button type="primary" @click="confirmDialog">Confirm</el-button>
+        <span class="dialog-footer flex flex-center">
+          <el-button
+            round
+            class="w-48% bg-btn-100 text-white max-w-140px"
+            @click="cancelDialog"
+            >Cancel</el-button
+          >
+          <el-button
+            round
+            class="w-48% bg-btn-100 text-white max-w-140px"
+            v-if="dialog_title === 'Edit Program'"
+            @click="deleteDialog"
+            >Delete</el-button
+          >
+          <el-button
+            round
+            class="w-48% bg-btn-200 text-white max-w-140px"
+            @click="confirmDialog"
+            >Confirm</el-button
+          >
         </span>
       </template>
-
     </el-dialog>
   </div>
-
 </template>
 
 <style lang="scss" scoped>
-
 .program {
-  padding: 0px;
-  margin: 0px;
   position: relative;
   width: 100%;
   height: 100%;
-
-  .program-table {
-    padding: 0px;
-    margin: 0px;
-    top: 100px;
-    margin-left: 20px;
-  //   margin: 20px 20px 20px 20px ;
-  }
-
-  .add-program {
-    padding: 0px;
-    margin: 0px;
-    width: 220px;
-    height: 40px;
-    top: 20px;
-    right : 60px;
-    position: absolute;
-    font-size: 18px;
-    background-color: #000000DF;
-    color:#FFFFFF;
-    border-radius: 20px;
-  }
 }
-.el-input {
-    --el-input-bg-color: rgb(86, 101, 117);
-    --el-input-text-color: rgb(255, 255, 255);
-  }
-
-.dialog-title {
-  padding: 0px;
-  margin: 0px;
-  font-size: 20px;
-}
-
 </style>

@@ -27,7 +27,6 @@ const updateConfirm = async () => {
   const response = await MsiApi.updateFw(sendData)
   if (response.status === 200) {
     sw_version_visable.value = false
-    console.log(response)
   }
   else {
     console.log(response)
@@ -62,7 +61,6 @@ const edit_button_str = ref('Update or Restart')
 // }
 
 const evseReset = (type) => {
-  console.log(updataEvseId)
   updataEvseId.length = 0
   for (let i = 0; i < multipleSelection.value.length; i++) {
     updataEvseId.push(multipleSelection.value[i].evse_id)
@@ -193,7 +191,7 @@ onMounted( async () => {
             </div>
             <div class="flex mr-40px">
               <img class="w-20px h-20px mr-10px" src="@/assets/img/station_list_type_office1.png">
-              <span class="line-height-20px">Location Type : 
+              <span class="line-height-20px">Station Type : 
                 <span v-for="(item, index) in StationData.facilities" class="line-height-20px">
                   <span v-if="index !== 0">, </span>
                   {{ item }}
@@ -221,7 +219,7 @@ onMounted( async () => {
           <div class="collapse-left mr-20px pl-10%">
             <div class="flex mb-12px">
               <img class="w-20px h-20px mr-16px" src="@/assets/img/station_detail_id.png">
-              <span class="line-height-20px"> Location ID : {{ StationData.id }} </span>
+              <span class="line-height-20px"> Station ID : {{ StationData.id }} </span>
             </div>
             <div class="flex mb-12px">
               <img class="w-20px h-20px mr-16px" src="@/assets/img/station_detail_admin.png">

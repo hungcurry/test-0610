@@ -46,10 +46,6 @@
 }
 
 $colors: (
-  'CREDIT': var(--Available),
-  'RFID': var(--Charging),
-  'APPLEPAY': var(--Offline),
-  'GOOGLEPAY': var(--Error),
   'AVAILABLE': var(--Available),
   'CHARGING': var(--Charging),
   'UNKNOWN': var(--Offline),

@@ -1,5 +1,5 @@
 <script setup>
-import {  reactive, onMounted} from 'vue'
+import {  reactive, onMounted, ref} from 'vue'
 import {useRouter } from 'vue-router'
 import ApiFunc from '@/composables/ApiFunc'
 import msi from '@/assets/msi_style'
@@ -9,6 +9,7 @@ import { ElMessageBox,ElMessage } from 'element-plus'
 const router = useRouter()
 const MsiApi = ApiFunc()
 const TariffData = reactive([])
+const isLoading = ref(false)
 // const day = ['Mon.', 'Tue.', 'Wed.', 'Thu', 'Fri.', 'Sat.', 'Sun.']
 // const tariff_select = ref ('Charging')
 // const charging_select = ref ('Time')
@@ -112,6 +113,7 @@ const copyTariff = (row) => {
 }
 
 onMounted( async() => {
+  isLoading.value = true
   let queryData = { "database":"OCPI", "collection":"Tariff", "query": {}}
   let response = await MsiApi.mongoQuery(queryData)
   Object.assign(TariffData, response.data.all) 
@@ -121,6 +123,7 @@ onMounted( async() => {
     TariffData[i].min_price_str = TariffData[i]?.min_price?.incl_vat
     TariffData[i].max_price_str = TariffData[i]?.max_price?.incl_vat
   }
+  isLoading.value = false
 })
 
 </script>
@@ -129,7 +132,7 @@ onMounted( async() => {
   <div class="tariff">
     <div class="container lg">
       <div class="flex flex-justify-end flex-wrap lg:flex-nowrap pt-40px pb-32px">
-        <el-button class="add-tariff" @click="editTariff"> Add Rate Plan </el-button>
+        <el-button class="btn-secondary box-shadow" @click="editTariff"> Add Rate Plan </el-button>
       </div>
 
       <div class="overflow-x-auto">
@@ -254,18 +257,7 @@ onMounted( async() => {
 </template>
   
 <style lang="scss" scoped>
-
 .tariff {
-  .add-tariff {
-    width: 15rem;
-    height: 4rem;
-    padding: 0.8rem 2rem;
-    font-size: 1.8rem;
-    background-color: var(--secondary);
-    color: var(--white);
-    border-radius: 2rem;
-    box-shadow: 0.7rem 1.1rem 1.2rem rgba(146, 169, 196, 0.25) !important;
-  }
   :deep(.svg-inline--fa) {
     height: 1.8em;
     filter: brightness(65%) saturate(100%);
@@ -292,5 +284,4 @@ onMounted( async() => {
 //   border-radius: 20px;
 // }
 }
-
 </style>

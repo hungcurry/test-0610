@@ -17,7 +17,7 @@ const English = () => {
 const Chinese = () => {
   i18n.global.locale.value = 'zh_tw'
 }
-const Personal_Info = () => {
+const Admin_Info = () => {
   router.push({ name: 'adminInfo' })
 }
 const logOut = () => {
@@ -33,22 +33,30 @@ const emitCallBack = (res) => {
 </script>
 
 <template>
-  <div class="header-layout">
-    <div class="left-header">
-      <div class="station_map" v-if="route.path === '/station'">
+  <div class="header-layout overflow-x-auto">
+    <div class="left-header flex-grow">
+      <ul class="station_map list-none hidden md:flex items-center m-0 px-15px md:px-40px" v-if="route.path === '/station'">
         <!-- <div class="station_map" > -->
-        <img src="@/assets/img/station_available.png" />
         <!-- <p>{{$t('account')}}</p> -->
-        <p>Available</p>
-        <img src="@/assets/img/station_charging.png" />
-        <p>Charging</p>
-        <img src="@/assets/img/station_offline.png" />
-        <p>Offline</p>
-        <img src="@/assets/img/station_error.png" />
-        <p>Error</p>
-      </div>
+        <li class="flex items-center mr-20px">
+          <img class="w-36px mr-10px" src="@/assets/img/station_available.png" />
+          <p class="text-16px text-blue-1200">Available</p>
+        </li>
+        <li class="flex items-center mr-20px">
+          <img class="w-36px mr-10px" src="@/assets/img/station_charging.png" />
+          <p class="text-16px text-blue-1200">Charging</p>
+        </li>
+        <li class="flex items-center mr-20px">
+          <img class="w-36px mr-10px" src="@/assets/img/station_offline.png" />
+          <p class="text-16px text-blue-1200">Offline</p>
+        </li>
+        <li class="flex items-center mr-0px">
+          <img class="w-36px mr-10px" src="@/assets/img/station_error.png" />
+          <p class="text-16px text-blue-1200">Error</p>
+        </li>
+      </ul>
     </div>
-    <div class="common-header">
+    <div class="common-header shrink-0">
       <!-- <el-dropdown>
         <el-button class="user"><font-awesome-icon icon="fa-solid fa-user" /></el-button>
         <template #dropdown>
@@ -60,7 +68,7 @@ const emitCallBack = (res) => {
       </el-dropdown> -->
 
       <!-- <el-button class="gear"><font-awesome-icon icon="fa-solid fa-gear" /></el-button>
-      <el-button class="bell"><font-awesome-icon icon="fa-solid fa-bell" /></el-button> -->
+      <el-button class="bell m-0"><font-awesome-icon icon="fa-solid fa-bell" /></el-button> -->
 
       <el-dropdown trigger="click">
         <el-button class="user"><font-awesome-icon icon="fa-solid fa-user" /></el-button>
@@ -68,7 +76,7 @@ const emitCallBack = (res) => {
           <el-dropdown-menu>
             <el-dropdown-item @click="logOut()">Log Out</el-dropdown-item>
             <el-dropdown-item @click="resetPW()">Reset Password</el-dropdown-item>
-            <el-dropdown-item @click="Personal_Info()">Personal Info</el-dropdown-item>
+            <el-dropdown-item @click="Admin_Info()">Admin Info</el-dropdown-item>
           </el-dropdown-menu>
         </template>
       </el-dropdown>
@@ -88,38 +96,15 @@ const emitCallBack = (res) => {
   position: sticky;
   top: 0;
   right: 0;
-  z-index: 98;
-  .station_map {
-    display: flex;
-    align-items: center;
-    margin-left: 20px;
-    img {
-      width: 36px;
-      height: 36px;
-    }
-    p {
-      font-size: 18px;
-      margin-right: 40px;
-      color: #414c58;
-    }
-  }
-  .gear {
+  z-index: 90;
+  .gear,.bell,.user {
     width: 60px;
     height: 60px;
     background-color: transparent;
     border-style: none;
   }
-  .bell {
-    width: 60px;
-    height: 60px;
-    background-color: transparent;
-    border-style: none;
-  }
-  .user {
-    width: 60px;
-    height: 60px;
-    background-color: transparent;
-    border-style: none;
+  .el-button + .el-button {
+    margin-left: 0px;
   }
 }
 </style>

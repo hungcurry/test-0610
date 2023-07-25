@@ -30,13 +30,9 @@ const sortFunc = (obj1, obj2, column) => {
 }
 
 const setPermission = (permission_id) => {
-  
-  console.log(permission_id)
-
   if (AddAdminFormVisible.value === true) {
     AddAdminData.permission_id = permission_id
   }
-
   else if (EditAdminFormVisible.value === true) {
     editAdminData.permission_id = permission_id
   }
@@ -46,7 +42,6 @@ const detail_info = (detail) => {
   EditAdminFormVisible.value = true
   editAdminData.length = 0
   Object.assign(editAdminData, UserData[detail.$index])
-  console.log(editAdminData?.permission?.user)
   editAdminData.permission_id = editAdminData?.permission?.user
   if (editAdminData.permission.edit === 1) {
     editAdminData.permission_edit = true
@@ -102,7 +97,6 @@ const AddAdmin = async (action, visable) => {
   AddAdminFormVisible.value = visable
   let check_format_success = true
   if (action === 'confirm') {
-    console.log(AddAdminData.permission_edit)
     let edit = AddAdminData.permission_edit ? 1 : 3
     let sendData = {
       first_name: AddAdminData.first_name, last_name: AddAdminData.last_name,
@@ -208,7 +202,7 @@ onMounted(async () => {
   <div class="customer">
     <div class="container lg">
       <div class="flex flex-justify-end flex-wrap lg:flex-nowrap pt-40px pb-32px">
-        <el-button class="add-user-btn" @click="addAdminUser"> Add Admin </el-button>
+        <el-button class="btn-secondary box-shadow" @click="addAdminUser"> Add Admin </el-button>
       </div>
 
       <div class="overflow-x-auto">
@@ -321,8 +315,8 @@ onMounted(async () => {
                 <el-input v-model.trim="AddAdminData.last_name" />
               </el-form-item>
 
-              <el-form-item class="mb-24px" label="Email">
-                <el-input v-model.trim="AddAdminData.email" />
+              <el-form-item class="mb-24px" label="E-mail">
+                <el-input v-model.trim="AddAdminData.email"/>
               </el-form-item>
 
               <el-form-item class="mb-24px" label="Phone">
@@ -401,8 +395,8 @@ onMounted(async () => {
                 <el-input v-model.trim="editAdminData.last_name" />
               </el-form-item>
 
-              <el-form-item class="mb-24px" label="Email">
-                <el-input v-model.trim="editAdminData.email" />
+              <el-form-item class="mb-24px" label="E-mail">
+                <el-input v-model.trim="editAdminData.email" disabled/>
               </el-form-item>
 
               <el-form-item class="mb-24px" label="Phone">
@@ -464,17 +458,6 @@ onMounted(async () => {
 
 <style lang="scss" scoped>
 .customer {
-
-  .add-user-btn {
-    width: 15rem;
-    height: 4rem;
-    padding: 0.8rem 2rem;
-    font-size: 1.8rem;
-    background-color: var(--secondary);
-    color: var(--white);
-    border-radius: 2rem;
-    box-shadow: 0.7rem 1.1rem 1.2rem rgba(146, 169, 196, 0.25) !important;
-  }
   .el-form-item {
     display: block;
   }
