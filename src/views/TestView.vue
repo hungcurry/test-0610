@@ -5,6 +5,20 @@ import interactionPlugin from '@fullcalendar/interaction'
 import timeGridPlugin from '@fullcalendar/timegrid'
 import ApiFunc from '@/composables/ApiFunc'
 import { onMounted, reactive, ref } from 'vue'
+// import axios from 'axios'
+import * as echarts from 'echarts'
+
+const location_map = ref(null)
+
+
+// const chartDom = document.getElementById('main');
+
+let option;
+
+
+
+
+
 const MsiApi = ApiFunc()
 const calendarRef = ref()
 const calendarRef1 = ref()
@@ -203,10 +217,128 @@ const calendarOptions1 = reactive({
 
 let daysOfWeek = []
 
+
+
+const drawChart = () => {
+  const myChart = echarts.init(location_map.value)
+  const option1 = {
+    tooltip: {
+      formatter: function (data) {
+        if (data.value === 0) { return 'Available' }
+        if (data.value === 1) { return 'Charging' }
+        if (data.value === 2) { return 'unknown'} }
+    },
+    visualMap: {
+      type: 'piecewise', splitNumber : 4, left: 'center', bottom: '10%', min: 0, max: 3, orient: 'horizontal',
+      realtime: true, calculable: true, showLabel:true,  itemGap:30,
+      pieces:[ {value: 0, label:'AVAILABLE' }, {value: 1, label:'CHARGING' }, {value: 2, label:'UNKNOWN' }, {value: 3, label:'FOCUS' }],
+      inRange: {color: [ '#22B14C', '#FFC90E', '#ED1C24', '#6DD0CD']},
+      textStyle: {color : '#FFFFFF'},
+    },
+    series: [ { name: 'Location', type: 'map', map: 'LocationMap', roam: false,
+              emphasis: { label: { show: false }, itemStyle :{areaColor: '#6DD0CD'} }, selectedMode: false,
+              data: [ { name: 'A1', value: 0, }, { name: 'A2', value: 1, }, { name: 'A3', value: 2, }, { name: 'A4', value: 2, },
+                      { name: 'A5', value: 2, }, { name: 'B1', value: 2, }, { name: 'B2', value: 2, }, { name: 'B3', value: 2, },
+                      { name: 'B4', value: 2, }, { name: 'B5', value: 2, }, { name: 'C1', value: 2, }, { name: 'C2', value: 2, },
+                      { name: 'C3', value: 2, }, { name: 'C4', value: 2, }, { name: 'C5', value: 2, }] }]
+  }
+  myChart.setOption(option1)
+}
+
+
+const test11 = async () => {
+
+  echarts.registerMap('LocationMap', { svg: "https://storage.googleapis.com/msi-common/pic/pic2.svg"})
+
+}
+
+
+// const drawLocationMap = async (locationPicUrl) => {
+  
+
+//   // let response = await axios.get(locationPicUrl)
+//   // console. log(response)
+  
+//   drawChart()
+// }
+
 onMounted(async () => {
-  let queryData = { "database": "OCPI", "collection": "Tariff", "query": {} }
-  let res = await MsiApi.mongoQuery(queryData)
-  Object.assign(tariff_profile, res.data.all)
+  // let queryData = { "database": "OCPI", "collection": "Tariff", "query": {} }
+  // let res = await MsiApi.mongoQuery(queryData)
+  // Object.assign(tariff_profile, res.data.all)
+
+  // await test11()
+  // drawLocationMap()
+  // drawChart()
+  // await drawLocationMap('https://storage.googleapis.com/msi-common/pic/pic2.svg')
+
+
+  const myChart = echarts.init(location_map.value);
+
+
+
+
+
+
+
+
+
+
+  fetch('google10/msi-common/pic/pic2.svg')
+    .then(response => response.text())
+    .then(svg => {
+      // 註冊 SVG 地圖資料
+      echarts.registerMap('LocationMap', { svg: svg });
+
+      // 定義 echarts 圖表的配置
+      option = {
+        tooltip: {},
+        visualMap: {
+          left: 'center',
+          bottom: '10%',
+          min: 5,
+          max: 100,
+          orient: 'horizontal',
+          text: ['', 'Price'],
+          realtime: true,
+          calculable: true,
+          inRange: {
+            color: ['#dbac00', '#db6e00', '#cf0000']
+          }
+        },
+        series: [
+          {
+            name: 'French Beef Cuts',
+            type: 'map',
+            map: 'LocationMap',
+            roam: true,
+            emphasis: {
+              label: {
+                show: false
+              }
+            },
+            selectedMode: false,
+            data: [
+              { name: 'Queue', value: 15 },
+              { name: 'Langue', value: 35 },
+            ]
+          }
+        ]
+      };
+
+      // 設定 echarts 圖表的配置
+      myChart.setOption(option);
+    });
+
+
+
+
+
+
+
+
+
+
 
 })
 
@@ -214,7 +346,19 @@ onMounted(async () => {
 
 <template>
   <div class='demo-app'>
-    <div class='demo-app-main'>
+
+    <!-- <img src="https://storage.googleapis.com/msi-common/pic/pic2.svg" alt=""> -->
+
+    <!-- <div class="location-map" id="location-map" ref="location_map"></div> -->
+
+
+
+    <div>
+    <!-- 將 echarts 的 DOM 標記為 "main"，方便在 JavaScript 中獲取對應的 DOM 元素 -->
+    <div id="main" style="width: 600px; height: 400px;" ref="location_map"></div>
+  </div>
+
+    <!-- <div class='demo-app-main'>
       <FullCalendar class='demo-app-calendar fc-event1' :options='calendarOptions' ref="calendarRef">
       </FullCalendar>
       <br>
@@ -227,7 +371,7 @@ onMounted(async () => {
       <el-select class="el-select" v-model="select_profile" placeholder="Select" size="large" @change="selectTariff">
         <el-option v-for="item in tariff_profile" :key="item.value" :label="item.profile_name" :value="item.id" />
       </el-select>
-    </div>
+    </div> -->
   </div>
 </template>
 

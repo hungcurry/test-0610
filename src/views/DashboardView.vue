@@ -2,24 +2,24 @@
 import * as echarts from 'echarts'
 import ApiFunc from '@/composables/ApiFunc'
 // import SelectDropdown from '@/components/Input/SelectDropdown.vue'
-import { ref, reactive, onMounted, onUnmounted } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useMStore } from '@/stores/m_cloud'
-
+import moment from "moment"
 import { useI18n } from "vue-i18n"
+
 const { t } = useI18n()
 const MStore = useMStore()
 const company = MStore?.permission?.company?.name
 const user = MStore?.permission?.user?.name
 const router = useRouter()
 const MsiApi = ApiFunc()
-const income = ref(0)
-
-const error_evse = reactive([])
 const ref_payment_chart = ref()
 const ref_location_type = ref()
 const ref_power_time = ref()
 const ref_evse_status = ref()
+const error_evse = reactive([])
+const income = ref(0)
 const visitor = ref(0)
 const ev_life = ref(0)
 const rfid = ref(0)
@@ -27,18 +27,11 @@ const member = ref(0)
 const business = ref(0)
 const totalkwh = ref(0)
 const station_count = ref(0)
-const payment_method_obj = reactive({
-  credit: 0,
-  rfid: 0,
-  free: 0,
-  googlepay: 0,
-  samsungpay: 0,
-})
+
 const charger_time = reactive({ hr: 0, min: 0, sec: 0 })
 const parking_time = reactive({ hr: 0, min: 0, sec: 0 })
+const status_obj = reactive({ Available: 0, Charging: 0, Offline: 0, Error: 0})
 
-let ret_chart = null
-let chart_inst = null
 // selectDropdown
 // const select_country = ref('Country')
 // const select_city = ref('City')
@@ -65,7 +58,7 @@ let chart_inst = null
 //   { value: 'Option4' },
 //   { value: 'Option5' },
 // ])
-const status_obj = reactive({ Available: 0, Charging: 0, Offline: 0, Error: 0})
+
 
 const payment_method_option = {
   tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
@@ -136,7 +129,7 @@ const location_type_option = reactive({
   yAxis: { type: 'category', data: [''] },
   series: [
     {
-      name: 'Hotel',
+      name: t('hotel'),
       type: 'bar',
       stack: 'total',
       label: { show: true },
@@ -145,7 +138,7 @@ const location_type_option = reactive({
       color: '#566575',
     },
     {
-      name: 'Restaurant',
+      name: t('restaurant'),
       type: 'bar',
       stack: 'total',
       label: { show: true },
@@ -154,7 +147,7 @@ const location_type_option = reactive({
       color: '#92a9c4',
     },
     {
-      name: 'Mall',
+      name: t('mall'),
       type: 'bar',
       stack: 'total',
       label: { show: true },
@@ -163,7 +156,7 @@ const location_type_option = reactive({
       color: '#414c58',
     },
     {
-      name: 'Super Market',
+      name: t('super_market'),
       type: 'bar',
       stack: 'total',
       label: { show: true },
@@ -172,7 +165,7 @@ const location_type_option = reactive({
       color: '#7e8c9c',
     },
     {
-      name: 'Parking Lot',
+      name: t('parking_log'),
       type: 'bar',
       stack: 'total',
       label: { show: true },
@@ -181,7 +174,7 @@ const location_type_option = reactive({
       color: '#90a9bf',
     },
     {
-      name: 'Others',
+      name: t('others'),
       type: 'bar',
       stack: 'total',
       label: { show: true },
@@ -223,7 +216,6 @@ const power_times_option = reactive({
 const goto_payment = () => {
   router.push({ name: 'payment' })
 }
-
 const date_select = async (select_time) => {
   const now = new Date()
   let select_time1 = null
@@ -243,86 +235,99 @@ const date_select = async (select_time) => {
   queryTotalUsedPower(select_time1)
 }
 
+let isFetchingTotalUsedPower = false
+
 const queryTotalUsedPower = async (select_time1) => {
-  totalkwh.value = 0
-  if (select_time1 === undefined) select_time1 = new Date(1970, 1, 1)
-  let queryData = {
-    database: 'OCPI',
-    collection: 'Session',
-    pipelines: [
-      {
-        $match: {
-          $expr: {
-            $and: [
-              {
-                $gte: [
-                  '$last_updated',
-                  { $dateFromString: { dateString: select_time1 } },
-                ],
-              },
-            ],
+  if (!isFetchingTotalUsedPower) {
+    isFetchingTotalUsedPower = true
+    totalkwh.value = '-'
+    if (select_time1 === undefined) select_time1 = new Date(1970, 1, 1)
+    let queryData = {
+      database: 'OCPI',
+      collection: 'Session',
+      pipelines: [
+        {
+          $match: {
+            $expr: {
+              $and: [
+                {
+                  $gte: [
+                    '$last_updated',
+                    { $dateFromString: { dateString: select_time1 } },
+                  ],
+                },
+              ],
+            },
           },
         },
-      },
-      { $group: { _id: null, totalkwh: { $sum: '$kwh' } } },
-    ],
-  }
-  let response = await MsiApi.mongoAggregate(queryData)
-  if (response?.data?.result?.[0]?.totalkwh) {
-    totalkwh.value = parseInt(response?.data?.result?.[0]?.totalkwh * 1000) / 1000
+        { $group: { _id: null, totalkwh: { $sum: '$kwh' } } },
+      ],
+    }
+    let response = await MsiApi.mongoAggregate(queryData)
+    totalkwh.value = 0
+    if (response?.data?.result?.[0]?.totalkwh) {
+      totalkwh.value = parseInt(response?.data?.result?.[0]?.totalkwh * 1000) / 1000
+    }
+    isFetchingTotalUsedPower = false
   }
 }
 
+let isFetchingTotalUsedTime = false
 const queryTotalUsedTime = async (select_time1) => {
-  parking_time.sec = parking_time.hr = parking_time.min = 0
-  charger_time.sec = charger_time.hr = charger_time.min = 0
-  if (select_time1 === undefined) select_time1 = new Date(1970, 1, 1)
-  let queryData = {
-    database: 'CPO',
-    collection: 'PaymentHistory',
-    pipelines: [
-      {
-        $match: {
-          $expr: {
-            $and: [
-              {
-                $gte: [
-                  '$created_date',
-                  { $dateFromString: { dateString: select_time1 } },
-                ],
-              },
-            ],
+  if (!isFetchingTotalUsedTime) {
+    parking_time.min = parking_time.hr = charger_time.min = charger_time.hr = '-'
+    parking_time.sec = charger_time.sec = 0
+    isFetchingTotalUsedTime = true 
+    if (select_time1 === undefined) select_time1 = new Date(1970, 1, 1)
+    let queryData = {
+      database: 'CPO',
+      collection: 'PaymentHistory',
+      pipelines: [
+        {
+          $match: {
+            $expr: {
+              $and: [
+                {
+                  $gte: [
+                    '$created_date',
+                    { $dateFromString: { dateString: select_time1 } },
+                  ],
+                },
+              ],
+            },
           },
         },
-      },
-      { $project: { _id: 0, operator_types: 1 } },
-    ],
-  }
+        { $project: { _id: 0, operator_types: 1 } },
+      ],
+    }
 
-  let response = await MsiApi.mongoAggregate(queryData)
-
-  for (let i = 0; i < response?.data?.result?.length; i++) {
-    for (let j = 0; j < response.data.result[i]?.operator_types?.length; j++) {
-      if (response.data.result[i]?.operator_types[j]?.type === 'charge') {
-        charger_time.sec =
-          charger_time.sec + response.data.result[i]?.operator_types[j]?.time
-      } else {
-        parking_time.sec =
-          parking_time.sec + response.data.result[i]?.operator_types[j]?.time
+    let response = await MsiApi.mongoAggregate(queryData)
+    for (let i = 0; i < response?.data?.result?.length; i++) {
+      for (let j = 0; j < response.data.result[i]?.operator_types?.length; j++) {
+        if (response.data.result[i]?.operator_types[j]?.type === 'charge') {
+          charger_time.sec += response.data.result[i]?.operator_types[j]?.time
+        } else {
+          parking_time.sec += response.data.result[i]?.operator_types[j]?.time
+        }
       }
     }
+    let duration = moment.duration(charger_time.sec, 'seconds')
+    charger_time.hr = Math.floor(duration.asHours())
+    charger_time.min = duration.minutes();
+
+    duration = moment.duration(parking_time.sec, 'seconds')
+    parking_time.hr = Math.floor(duration.asHours())
+    parking_time.min = duration.minutes()
+    isFetchingTotalUsedTime = false
   }
-  charger_time.min = charger_time.sec / 60
-  charger_time.hr = parseInt(charger_time.min / 60)
-  charger_time.min = parseInt(charger_time.min % 60)
-  parking_time.min = parking_time.sec / 60
-  parking_time.hr = parseInt(parking_time.min / 60)
-  parking_time.min = parseInt(parking_time.min % 60)
 }
 
+let isFetchingTotalUsedTimes = false
+
 const queryTotalUsedTimes = async (select_time1) => {
-  rfid.value = visitor.value = income.value = ev_life.value = 0
-  payment_method_obj.credit = payment_method_obj.rfid = payment_method_obj.applepay = payment_method_obj.googlepay = payment_method_obj.samsungpay = payment_method_obj.free = 0
+  if (!isFetchingTotalUsedTimes) {
+    isFetchingTotalUsedTimes = true
+  rfid.value = visitor.value = income.value = ev_life.value = '-'
 
   if (select_time1 === undefined) select_time1 = new Date(1970, 1, 1)
   let queryData = {
@@ -370,8 +375,10 @@ const queryTotalUsedTimes = async (select_time1) => {
       },
     ],
   }
-  let response = await MsiApi.mongoAggregate(queryData)
 
+  
+  let response = await MsiApi.mongoAggregate(queryData)
+  rfid.value = visitor.value = ev_life.value = income.value = 0
   if (typeof response.data.result[0].RFID[0]?.RFID === 'number')
     rfid.value = response.data.result[0].RFID[0]?.RFID
   if (typeof response.data.result[0].guestEmail[0]?.guestEmail === 'number')
@@ -381,15 +388,19 @@ const queryTotalUsedTimes = async (select_time1) => {
       response.data.result[0].totalCount[0]?.totalCount - rfid.value - visitor.value
   if (typeof response.data.result[0].income[0]?.income === 'number')
     income.value = response.data.result[0].income[0]?.income.toLocaleString()
-
+  
+  let payment_method_obj = {
+    credit: 0,
+    rfid: 0,
+    free: 0,
+    googlepay: 0,
+    samsungpay: 0,
+  }
   payment_method_obj.credit = response.data.result[0].CREDIT[0]?.CREDIT
   payment_method_obj.rfid = response.data.result[0].RFID[0]?.RFID
-  payment_method_obj.applepay = response.data.result[0].APPLEPAY[0]?.APPLEPAY
   payment_method_obj.googlepay = response.data.result[0].GOOGLEPAY[0]?.GOOGLEPAY
   payment_method_obj.samsungpay = response.data.result[0].SAMSUNGPAY[0]?.SAMSUNGPAY
   payment_method_obj.free = response.data.result[0].FREE[0]?.FREE
-
-  ret_chart = ref_payment_chart.value
 
   payment_method_option.series[0].data = [
     payment_method_obj.samsungpay,
@@ -398,16 +409,15 @@ const queryTotalUsedTimes = async (select_time1) => {
     payment_method_obj.rfid,
     payment_method_obj.credit,
   ]
-  echarts.dispose(ret_chart)
-  chart_inst = echarts.init(ret_chart)
-  payment_method_option && chart_inst.setOption(payment_method_option)
+  
+  if (echarts.getInstanceByDom(ref_payment_chart.value) !== undefined)
+    echarts.dispose(ref_payment_chart.value)
+  let payment_chart = echarts.init(ref_payment_chart.value)
+  payment_method_option && payment_chart.setOption(payment_method_option)
+  isFetchingTotalUsedTimes = false
 }
-
-onMounted(async () => {
-  queryTotalUsedTimes()
-  queryTotalUsedPower()
-  queryTotalUsedTime()
-
+}
+const queryEvseStatus = async () => {
   let queryData = {
     database: 'OCPI',
     collection: 'EVSE',
@@ -437,12 +447,97 @@ onMounted(async () => {
   if (response.data.result[0]?.OUTOFORDER[0]?.OUTOFORDER)
     status_obj.Error = response.data.result[0].OUTOFORDER[0]?.OUTOFORDER
 
+  evse_status_option.series[0].data = [
+    { value: status_obj.Available, name: 'Available' },
+    { value: status_obj.Charging, name: 'Charging' },
+    { value: status_obj.Offline, name: 'Offline' },
+    { value: status_obj.Error, name: 'Error' },
+  ]
+
+  let evse_status_chart = echarts.init(ref_evse_status.value)
+  evse_status_option && evse_status_chart.setOption(evse_status_option)
+}
+
+const queryCustomers = async () => {
+  let queryData = {
+    database: 'CPO',
+    collection: 'UserData',
+    pipelines: [{ $count: 'memberCount' }],
+  }
+  let response = await MsiApi.mongoAggregate(queryData)
+  if(response?.data?.result?.[0]?.memberCount)
+    member.value = response?.data?.result?.[0]?.memberCount
+
   queryData = {
+    database: 'CPO',
+    collection: 'CompanyInformation',
+    pipelines: [{ $count: 'companyCount' }],
+  }
+  response = await MsiApi.mongoAggregate(queryData)
+  business.value = response.data.result[0].companyCount
+}
+
+const queryLast7dayUsed = async () => {
+
+  let today = new Date()
+  today.setHours(0, 0, 0, 0)
+  let dates = Array.from({ length: 8 }, (_, index) => new Date(today.getTime() - index * 24 * 60 * 60 * 1000))
+
+  let pipeline = [
+  {
+    $facet: {},
+  },
+  ]
+  
+  for (let i = 0; i < dates.length - 1; i++) {
+    let dateString1 = dates[i]
+    let dateString0 = dates[i + 1]
+    let matchStage = {
+      $match: {
+        $expr: {
+          $and: [
+            { $gte: ['$start_date_time', { $dateFromString: { dateString: dateString0 } }] },
+            { $lt: ['$end_date_time', { $dateFromString: { dateString: dateString1 } }] },
+          ],
+        },
+      },
+    }
+    pipeline[0]['$facet']['date' + (i + 1)] = [matchStage, { $project: { _id: 0, kwh: 1 } }]
+  }
+
+  let aggregateQuery = {
+    database: 'OCPI',
+    collection: 'Session',
+    pipelines: pipeline,
+  }
+
+  let result = await MsiApi.mongoAggregate(aggregateQuery)
+  let dateKeys = Object.keys(result.data.result[0])
+
+  for (let i = 0; i < dateKeys.length; i++) {
+    let dateKey = dateKeys[i]
+    let sumkwh = result.data.result[0][dateKey].reduce((acc, item) => acc + item.kwh, 0)
+    power_times_option.series[0].data[dateKeys.length-i-1] = parseInt(sumkwh)
+    power_times_option.series[1].data[dateKeys.length-i-1] = result.data.result[0][dateKey].length
+  }
+
+  for (let i = 1; i < dates.length; i++) {
+    power_times_option.xAxis.data[7-i]  = 
+    new Date(dates[i]).getMonth() + 1 + '/' + new Date(dates[i]).getDate() + '(' + new Date(dates[i]).toLocaleDateString('en-US', { weekday: 'short' }) + '.)'
+  }
+  
+  let power_time_type = echarts.init(ref_power_time.value)
+  power_times_option && power_time_type.setOption(power_times_option)
+}
+
+const queryEvseError = async() =>
+{
+  let queryData = {
     database: 'OCPI',
     collection: 'Location',
     pipelines: [{ $project: { _id: 0, evses: 1, name: 1, id: 1 } }],
   }
-  response = await MsiApi.mongoAggregate(queryData)
+  let response = await MsiApi.mongoAggregate(queryData)
   let locationData = response.data.result
   queryData = {
     database: 'OCPI',
@@ -487,7 +582,7 @@ onMounted(async () => {
             unknown_count: 1,
             url:
               import.meta.env.VITE_BASE_URL +
-              '/stationDetail?id=' +
+              '/station-detail?id=' +
               EvseData[i].locationId,
           })
         else
@@ -496,7 +591,7 @@ onMounted(async () => {
             id: EvseData[i].locationId,
             error_count: 0,
             unknown_count: 1,
-            url: '/stationDetail?id=' + EvseData[i].locationId,
+            url: '/station-detail?id=' + EvseData[i].locationId,
           })
       else if (EvseData[i].status === 'OUTOFORDER')
         if (import.meta.env.VITE_BASE_URL !== undefined)
@@ -507,7 +602,7 @@ onMounted(async () => {
             unknown_count: 0,
             url:
               import.meta.env.VITE_BASE_URL +
-              '/stationDetail?id=' +
+              '/station-detail?id=' +
               EvseData[i].locationId,
           })
         else
@@ -516,7 +611,7 @@ onMounted(async () => {
             id: EvseData[i].locationId,
             error_count: 1,
             unknown_count: 0,
-            url: '/stationDetail?id=' + EvseData[i].locationId,
+            url: '/station-detail?id=' + EvseData[i].locationId,
           })
     }
   }
@@ -529,36 +624,16 @@ onMounted(async () => {
       break
     }
   }
+}
 
-  queryData = {
-    database: 'CPO',
-    collection: 'UserData',
-    pipelines: [{ $count: 'memberCount' }],
-  }
-  response = await MsiApi.mongoAggregate(queryData)
-  if(response?.data?.result?.[0]?.memberCount)
-    member.value = response?.data?.result?.[0]?.memberCount
-
-  queryData = {
-    database: 'CPO',
-    collection: 'CompanyInformation',
-    pipelines: [{ $count: 'companyCount' }],
-  }
-  response = await MsiApi.mongoAggregate(queryData)
-  business.value = response?.data?.result?.[0]?.companyCount
-
-  let ret_chart = null
-  let chart_inst = null
-
-  ret_chart = ref_location_type.value
-
-  queryData = {
+const queryStationType = async () => 
+{
+  let queryData = {
     database: 'OCPI',
     collection: 'Location',
-    pipelines: [{ $project: { _id: 0 } }],
+    pipelines: [{ $project: { _id: 0, facilities: 1 } }],
   }
-
-  response = await MsiApi.mongoAggregate(queryData)
+  let response = await MsiApi.mongoAggregate(queryData)
   station_count.value = response?.data?.result?.length
 
   let facilities = {
@@ -569,7 +644,6 @@ onMounted(async () => {
     parking_lot: 0,
     others: 0,
   }
-
   for (let i = 0; i < response?.data?.result?.length; i++) {
     if (response?.data?.result?.[i]?.facilities?.[0] === 'HOTEL') {
       facilities.hotel++
@@ -581,307 +655,26 @@ onMounted(async () => {
       facilities.super_market++
     } else if (response?.data?.result?.[i]?.facilities?.[0] === 'PARKING_LOT') {
       facilities.parking_lot++
-    } else if (response?.data?.result?.[i]?.facilities?.[0] === 'WIFI') {
+    } else {
       facilities.others++
     }
   }
-  location_type_option.series[0].data[0] = facilities.hotel
-  location_type_option.series[1].data[0] = facilities.restaurant
-  location_type_option.series[2].data[0] = facilities.mall
-  location_type_option.series[3].data[0] = facilities.super_market
-  location_type_option.series[4].data[0] = facilities.parking_lot
-  location_type_option.series[5].data[0] = facilities.others
-
-  chart_inst = echarts.init(ret_chart)
-  location_type_option && chart_inst.setOption(location_type_option)
-
-  ret_chart = ref_power_time.value
-  queryData = {
-    database: 'CPO',
-    collection: 'CompanyInformation',
-    pipelines: [{ $count: 'companyCount' }],
+  for(let i = 0; i < Object.keys(facilities).length; i++) {
+    location_type_option.series[i].data[0] = Object.values(facilities)[i]
   }
-  response = await MsiApi.mongoAggregate(queryData)
-  business.value = response.data.result[0].companyCount
+  let location_type = echarts.init(ref_location_type.value)
+  location_type_option && location_type.setOption(location_type_option)
+}
 
-  const now = new Date()
-  let today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-  let date0 = new Date(today.getTime() - 0 * 24 * 60 * 60 * 1000)
-  let date1 = new Date(today.getTime() - 1 * 24 * 60 * 60 * 1000)
-  let date2 = new Date(today.getTime() - 2 * 24 * 60 * 60 * 1000)
-  let date3 = new Date(today.getTime() - 3 * 24 * 60 * 60 * 1000)
-  let date4 = new Date(today.getTime() - 4 * 24 * 60 * 60 * 1000)
-  let date5 = new Date(today.getTime() - 5 * 24 * 60 * 60 * 1000)
-  let date6 = new Date(today.getTime() - 6 * 24 * 60 * 60 * 1000)
-  let date7 = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000)
-
-  let use_power_time_obj = {
-    date1: { power: 0, times: 0 },
-    date2: { power: 0, times: 0 },
-    date3: { power: 0, times: 0 },
-    date4: { power: 0, times: 0 },
-    date5: { power: 0, times: 0 },
-    date6: { power: 0, times: 0 },
-    date7: { power: 0, times: 0 },
-  }
-
-  queryData = {
-    database: 'OCPI',
-    collection: 'Session',
-    pipelines: [
-      {
-        $match: {
-          $expr: {
-            $and: [
-              { $gte: ['$start_date_time', { $dateFromString: { dateString: date7 } }] },
-              { $lt: ['$end_date_time', { $dateFromString: { dateString: date6 } }] },
-            ],
-          },
-        },
-      },
-      { $project: { _id: 0, kwh: 1 } },
-    ],
-  }
-  response = await MsiApi.mongoAggregate(queryData)
-
-  use_power_time_obj.date7.times = response.data.result.length
-  for (let i = 0; i < response.data.result.length; i++) {
-    use_power_time_obj.date7.power += response.data.result[i].kwh
-  }
-
-  queryData = {
-    database: 'OCPI',
-    collection: 'Session',
-    pipelines: [
-      {
-        $match: {
-          $expr: {
-            $and: [
-              { $gte: ['$start_date_time', { $dateFromString: { dateString: date6 } }] },
-              { $lt: ['$end_date_time', { $dateFromString: { dateString: date5 } }] },
-            ],
-          },
-        },
-      },
-      { $project: { _id: 0, kwh: 1 } },
-    ],
-  }
-  response = await MsiApi.mongoAggregate(queryData)
-
-  use_power_time_obj.date6.times = response.data.result.length
-  for (let i = 0; i < response.data.result.length; i++) {
-    use_power_time_obj.date6.power += response.data.result[i].kwh
-  }
-
-  queryData = {
-    database: 'OCPI',
-    collection: 'Session',
-    pipelines: [
-      {
-        $match: {
-          $expr: {
-            $and: [
-              { $gte: ['$start_date_time', { $dateFromString: { dateString: date5 } }] },
-              { $lt: ['$end_date_time', { $dateFromString: { dateString: date4 } }] },
-            ],
-          },
-        },
-      },
-      { $project: { _id: 0, kwh: 1 } },
-    ],
-  }
-  response = await MsiApi.mongoAggregate(queryData)
-
-  use_power_time_obj.date5.times = response.data.result.length
-  for (let i = 0; i < response.data.result.length; i++) {
-    use_power_time_obj.date5.power += response.data.result[i].kwh
-  }
-  queryData = {
-    database: 'OCPI',
-    collection: 'Session',
-    pipelines: [
-      {
-        $match: {
-          $expr: {
-            $and: [
-              { $gte: ['$start_date_time', { $dateFromString: { dateString: date4 } }] },
-              { $lt: ['$end_date_time', { $dateFromString: { dateString: date3 } }] },
-            ],
-          },
-        },
-      },
-      { $project: { _id: 0, kwh: 1 } },
-    ],
-  }
-  response = await MsiApi.mongoAggregate(queryData)
-
-  use_power_time_obj.date4.times = response.data.result.length
-  for (let i = 0; i < response.data.result.length; i++) {
-    use_power_time_obj.date4.power += response.data.result[i].kwh
-  }
-  queryData = {
-    database: 'OCPI',
-    collection: 'Session',
-    pipelines: [
-      {
-        $match: {
-          $expr: {
-            $and: [
-              { $gte: ['$start_date_time', { $dateFromString: { dateString: date3 } }] },
-              { $lt: ['$end_date_time', { $dateFromString: { dateString: date2 } }] },
-            ],
-          },
-        },
-      },
-      { $project: { _id: 0, kwh: 1 } },
-    ],
-  }
-  response = await MsiApi.mongoAggregate(queryData)
-
-  use_power_time_obj.date3.times = response.data.result.length
-  for (let i = 0; i < response.data.result.length; i++) {
-    use_power_time_obj.date3.power += response.data.result[i].kwh
-  }
-  queryData = {
-    database: 'OCPI',
-    collection: 'Session',
-    pipelines: [
-      {
-        $match: {
-          $expr: {
-            $and: [
-              { $gte: ['$start_date_time', { $dateFromString: { dateString: date2 } }] },
-              { $lt: ['$end_date_time', { $dateFromString: { dateString: date1 } }] },
-            ],
-          },
-        },
-      },
-      { $project: { _id: 0, kwh: 1 } },
-    ],
-  }
-  response = await MsiApi.mongoAggregate(queryData)
-
-  use_power_time_obj.date2.times = response.data.result.length
-  for (let i = 0; i < response.data.result.length; i++) {
-    use_power_time_obj.date2.power += response.data.result[i].kwh
-  }
-  queryData = {
-    database: 'OCPI',
-    collection: 'Session',
-    pipelines: [
-      {
-        $match: {
-          $expr: {
-            $and: [
-              { $gte: ['$start_date_time', { $dateFromString: { dateString: date1 } }] },
-              { $lt: ['$end_date_time', { $dateFromString: { dateString: date0 } }] },
-            ],
-          },
-        },
-      },
-      { $project: { _id: 0, kwh: 1 } },
-    ],
-  }
-  response = await MsiApi.mongoAggregate(queryData)
-
-  use_power_time_obj.date1.times = response.data.result.length
-  for (let i = 0; i < response.data.result.length; i++) {
-    use_power_time_obj.date1.power += response.data.result[i].kwh
-  }
-  power_times_option.series[0].data[0] = parseInt(use_power_time_obj.date7.power)
-  power_times_option.series[0].data[1] = parseInt(use_power_time_obj.date6.power)
-  power_times_option.series[0].data[2] = parseInt(use_power_time_obj.date5.power)
-  power_times_option.series[0].data[3] = parseInt(use_power_time_obj.date4.power)
-  power_times_option.series[0].data[4] = parseInt(use_power_time_obj.date3.power)
-  power_times_option.series[0].data[5] = parseInt(use_power_time_obj.date2.power)
-  power_times_option.series[0].data[6] = parseInt(use_power_time_obj.date1.power)
-
-  power_times_option.series[1].data[0] = use_power_time_obj.date7.times
-  power_times_option.series[1].data[1] = use_power_time_obj.date6.times
-  power_times_option.series[1].data[2] = use_power_time_obj.date5.times
-  power_times_option.series[1].data[3] = use_power_time_obj.date4.times
-  power_times_option.series[1].data[4] = use_power_time_obj.date3.times
-  power_times_option.series[1].data[5] = use_power_time_obj.date2.times
-  power_times_option.series[1].data[6] = use_power_time_obj.date1.times
-
-  power_times_option.xAxis.data[6] =
-    new Date(date1).getMonth() +
-    1 +
-    '/' +
-    new Date(date1).getDate() +
-    '(' +
-    new Date(date1).toLocaleDateString('en-US', { weekday: 'short' }) +
-    '.)'
-  power_times_option.xAxis.data[5] =
-    new Date(date2).getMonth() +
-    1 +
-    '/' +
-    new Date(date2).getDate() +
-    '(' +
-    new Date(date2).toLocaleDateString('en-US', { weekday: 'short' }) +
-    '.)'
-  power_times_option.xAxis.data[4] =
-    new Date(date3).getMonth() +
-    1 +
-    '/' +
-    new Date(date3).getDate() +
-    '(' +
-    new Date(date3).toLocaleDateString('en-US', { weekday: 'short' }) +
-    '.)'
-  power_times_option.xAxis.data[3] =
-    new Date(date4).getMonth() +
-    1 +
-    '/' +
-    new Date(date4).getDate() +
-    '(' +
-    new Date(date4).toLocaleDateString('en-US', { weekday: 'short' }) +
-    '.)'
-  power_times_option.xAxis.data[2] =
-    new Date(date5).getMonth() +
-    1 +
-    '/' +
-    new Date(date5).getDate() +
-    '(' +
-    new Date(date5).toLocaleDateString('en-US', { weekday: 'short' }) +
-    '.)'
-  power_times_option.xAxis.data[1] =
-    new Date(date6).getMonth() +
-    1 +
-    '/' +
-    new Date(date6).getDate() +
-    '(' +
-    new Date(date6).toLocaleDateString('en-US', { weekday: 'short' }) +
-    '.)'
-  power_times_option.xAxis.data[0] =
-    new Date(date7).getMonth() +
-    1 +
-    '/' +
-    new Date(date7).getDate() +
-    '(' +
-    new Date(date7).toLocaleDateString('en-US', { weekday: 'short' }) +
-    '.)'
-
-  chart_inst = echarts.init(ret_chart)
-  power_times_option && chart_inst.setOption(power_times_option)
-
-  ret_chart = ref_evse_status.value
-  evse_status_option.series[0].data = [
-    { value: status_obj.Available, name: 'Available' },
-    { value: status_obj.Charging, name: 'Charging' },
-    { value: status_obj.Offline, name: 'Offline' },
-    { value: status_obj.Error, name: 'Error' },
-  ]
-  chart_inst = echarts.init(ret_chart)
-
-  evse_status_option && chart_inst.setOption(evse_status_option)
-
-  window.addEventListener('resize', () => {
-    chart_inst.resize()
-  })
-})
-
-onUnmounted(() => {
-  window.removeEventListener('resize', () => chart_inst.resize())
+onMounted(async () => {
+  queryEvseStatus()
+  queryEvseError()
+  queryTotalUsedTime()
+  queryTotalUsedTimes()
+  queryTotalUsedPower()
+  queryCustomers()
+  queryLast7dayUsed()
+  queryStationType()
 })
 </script>
 
@@ -940,14 +733,14 @@ onUnmounted(() => {
                       src="@/assets/img/dashboard_title_status.png"
                       alt="dashboard_title_status"
                     />
-                    <p class="text-blue-1200 text-22px ml-8px">EVSE Status</p>
+                    <p class="text-blue-1200 text-22px ml-8px"> {{ t('evse_status') }}</p>
                   </div>
                   <div class="evse-text w-full">
                     <p class="text-secondary mb-4">
-                      <span class="text-32px mr-4">{{ station_count }}</span>Stations
+                      <span class="text-32px mr-4">{{ station_count }}</span>{{t('stations')}}
                     </p>
                     <p class="text-secondary mb-4">
-                      <span class="text-32px mr-4">{{ status_obj.total }}</span>EVSEs
+                      <span class="text-32px mr-4">{{ status_obj.total }}</span>{{t('evses')}}
                     </p>
                   </div>
                 </div>
@@ -969,7 +762,7 @@ onUnmounted(() => {
                   src="@/assets/img/dashboard_title_error.png"
                   alt="dashboard_title_error"
                 />
-                <p class="text-blue-1200 text-22px ml-8px">EVSE Offline / Error Status</p>
+                <p class="text-blue-1200 text-22px ml-8px">{{t('evse_offline_error_status')}}</p>
               </div>
               <div class="evse-notification-container scrollbar">
                 <p class="mb-4" v-for="value in error_evse" :key="value">
@@ -990,7 +783,7 @@ onUnmounted(() => {
     <!-- ------------------------------------- -->
     <div class="container md pb-20px bg-blue-100">
       <p class="m-0 text-20px text-blue-1200 pt-20px pb-24px text-center">
-        Analysis Dashboard
+        {{t('analysis_dashboard')}}
       </p>
       <div class="pb-24px">
         <div class="scrollbar overflow-x-auto">
@@ -1001,7 +794,7 @@ onUnmounted(() => {
               class="btn-primary"
               @click="date_select('all')"
             >
-              All
+            {{t('all')}}
             </el-button>
             <el-button
               type="primary"
@@ -1009,7 +802,7 @@ onUnmounted(() => {
               class="btn-primary"
               @click="date_select('today')"
             >
-              Today
+            {{t('today')}}
             </el-button>
             <el-button
               type="primary"
@@ -1017,7 +810,7 @@ onUnmounted(() => {
               class="btn-primary"
               @click="date_select('week')"
             >
-              This Week
+            {{t('this_week')}}
             </el-button>
             <el-button
               type="primary"
@@ -1025,7 +818,7 @@ onUnmounted(() => {
               class="btn-primary"
               @click="date_select('month')"
             >
-              This Month</el-button
+            {{t('this_month')}}</el-button
             >
           </div>
         </div>
@@ -1039,16 +832,16 @@ onUnmounted(() => {
                 alt="dashboard_title_time"
               />
               <p class="text-blue-1200 text-22px ml-8px">
-                Total Used Time (Charging / Parking)
+                {{t('total_used_time_charging_parking')}}
               </p>
             </div>
             <div class="card-body flex-center h-full text-40px md:text-60px">
               <div class="total-use-time">
-                {{ charger_time.hr }} <span class="text-24px mr-8px">hr</span>
-                {{ charger_time.min }} <span class="text-24px mr-8px">min</span>
+                {{ charger_time.hr }} <span class="text-24px mr-8px">{{t('hr')}}</span>
+                {{ charger_time.min }} <span class="text-24px mr-8px">{{t('min')}}</span>
                 <span class="text-24px ml-8px">/</span>
-                {{ parking_time.hr }} <span class="text-24px mr-8px">hr</span>
-                {{ parking_time.min }} <span class="text-24px mr-8px">min</span>
+                {{ parking_time.hr }} <span class="text-24px mr-8px">{{t('hr')}}</span>
+                {{ parking_time.min }} <span class="text-24px mr-8px">{{t('min')}}</span>
               </div>
             </div>
           </div>
@@ -1058,7 +851,7 @@ onUnmounted(() => {
                 class="w-24px h-24px"
                 icon="fa-regular fa-calendar-check"
               />
-              <p class="text-blue-1200 text-22px ml-8px">Total Used Times</p>
+              <p class="text-blue-1200 text-22px ml-8px">{{t('total_used_times')}}</p>
             </div>
             <div
               class="card-body flex-center h-full text-40px md:text-60px justify-evenly"
@@ -1080,7 +873,7 @@ onUnmounted(() => {
           <div class="income flex-col card-rounded box-shadow">
             <div class="evse-title flex items-center pb-16px md:pb-20px">
               <font-awesome-icon class="w-24px h-24px" icon="fa-solid fa-coins" />
-              <p class="text-blue-1200 text-22px ml-8px">Income</p>
+              <p class="text-blue-1200 text-22px ml-8px">{{t('income')}}</p>
               <el-button v-if="user === 'AdminUser' || user === undefined" class="ellipsis" @click="goto_payment">
                 <font-awesome-icon icon="fa-solid fa-ellipsis"
               /></el-button>
@@ -1099,31 +892,35 @@ onUnmounted(() => {
                 src="@/assets/img/dashboard_title_amount.png"
                 alt="dashboard_title_amount"
               />
-              <p class="text-blue-1200 text-22px ml-8px">Total Used Power</p>
+              <p class="text-blue-1200 text-22px ml-8px">{{t('total_used_power')}}</p>
             </div>
             <div class="card-body flex-center h-full text-40px md:text-60px">
               <div class="total-use-time">
                 {{ totalkwh }}
-                <span class="text-24px mr-8px">kWh</span>
+                <span class="text-24px mr-8px">{{t('kwh')}}</span>
               </div>
             </div>
           </div>
           <div class="customers flex-col card-rounded box-shadow">
             <div class="evse-title flex items-center pb-16px md:pb-20px">
               <font-awesome-icon class="w-24px h-24px" icon="fa-regular fa-user" />
-              <p class="text-blue-1200 text-22px ml-8px" style="white-space:nowrap">Customers <span style="font-size: 21px;"> {{'(From data created until now)'}} </span></p>
+              <p class="text-blue-1200 text-22px ml-8px" style="white-space:nowrap">{{t('customers')}} <span style="font-size: 21px;"> {{t('from_data_created_until_now')}} </span></p>
             </div>
             <div
               class="card-body flex-center h-full text-40px md:text-60px justify-evenly"
             >
               <div>
                 <p class="value">{{ member }}</p>
-                <p class="title" v-if="company === 'MSI'">Member</p>
-                <p class="title" v-else>RFID User</p>
+                <p class="title" v-if="company === 'MSI'">
+                  {{t('member')}}
+                </p>
+                <p class="title" v-else>
+                  {{t('rfid_user')}}
+                </p>
               </div>
               <div v-if="company === 'MSI'" class="business">
                 <p class="value">{{ business }}</p>
-                <p class="title">CPO</p>
+                <p class="title">{{t('cpo')}}</p>
               </div>
             </div>
           </div>
@@ -1133,7 +930,7 @@ onUnmounted(() => {
                 src="@/assets/img/dashboard_title_locationtype.png"
                 alt="dashboard_title_locationtype"
               />
-              <p class="text-blue-1200 text-22px ml-8px" style="white-space:nowrap" >Station Type of Usage {{'(From data created until now)'}}</p>
+              <p class="text-blue-1200 text-22px ml-8px" style="white-space:nowrap" >{{t('station_type_of_usage')}} {{t('from_data_created_until_now')}}</p>
             </div>
             <div class="card-body flex-center h-full text-40px md:text-60px">
               <div ref="ref_location_type" class="location-type"></div>
@@ -1145,7 +942,7 @@ onUnmounted(() => {
                 src="@/assets/img/dashboard_title_power.png"
                 alt="dashboard_title_power"
               />
-              <p class="text-blue-1200 text-22px ml-8px">Used Power & Times (Last 7 days)</p>
+              <p class="text-blue-1200 text-22px ml-8px">{{t('used_power_time_last_7_days')}}</p>
             </div>
             <div class="card-body flex-center h-full text-40px md:text-60px">
               <div ref="ref_power_time" class="power-time flex-grow"></div>
@@ -1154,7 +951,7 @@ onUnmounted(() => {
           <div class="payment-method flex-col card-rounded box-shadow col-span-2">
             <div class="evse-title flex items-center pb-16px md:pb-20px">
               <font-awesome-icon class="w-24px h-24px" icon="fa-regular fa-credit-card" />
-              <p class="text-blue-1200 text-22px ml-8px">Payment Method</p>
+              <p class="text-blue-1200 text-22px ml-8px">{{t('payment_method')}}</p>
             </div>
             <div class="card-body flex-center h-full text-40px md:text-60px">
               <div ref="ref_payment_chart" class="payment-chart"></div>

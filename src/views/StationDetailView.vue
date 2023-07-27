@@ -98,7 +98,6 @@ const StationDetailEvseData = reactive([])
 const StationData = reactive([])
 
 onMounted( async () => {
-
   let jsonData = { "database":"OCPI", "collection":"Location", "query": { "id": { "UUID" : station_id} }}
   let response = await MsiApi.mongoQuery(jsonData)
   StationData.length = 0

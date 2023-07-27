@@ -185,7 +185,7 @@ onMounted( async() => {
             />
             <el-table-column
               prop="evse_list_str"
-              label="Occupied EVSE"
+              label="Occupied EVSE ID"
               align="center"
               sortable
               :sort-method="(a, b) => sortFunc(a, b, 'evse_list_str')"

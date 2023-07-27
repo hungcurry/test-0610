@@ -23,7 +23,7 @@ const open = () => {
   ElMessageBox.alert('System is about to log out, Please click "OK" resume', 'Title', {
     confirmButtonText: 'OK',
     callback: () => {
-      logoutTime.value (Date.now() / 1000) + 600
+      reflashTimer()
     },
   })
 }

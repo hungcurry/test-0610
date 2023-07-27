@@ -40,12 +40,21 @@ export default ({ mode }) => {
     server: {
       proxy: {
         '/api10': {
-          target: 'https://dev-evse.msi.com',
+          target: 'https://evse.msi.com',
           // target: 'https://m-cloud.msi.com',
           changeOrigin: true,
           rewrite: (path) => path.replace(/^\/api10/, ''),
           secure: false,
         },
+
+        '/google10': {
+          target: 'https://storage.googleapis.com',
+          // target: 'https://m-cloud.msi.com',
+          changeOrigin: true,
+          rewrite: (path) => path.replace(/^\/google10/, ''),
+          secure: false,
+        },
+
       },
       open: true,
       port: 8080,

@@ -16,14 +16,7 @@ const input = ref('')
 const companyData = reactive([])
 const isLoading = ref(false)
 const company_title = ref('Add Company Info')
-const UserTable = [ {label:'Name', value:'name', width:'80'},  
-// {label:'Operator ID', value:'party_id', width:'60'}, 
-                    {label:'Country', value:'country', width:'60'}, {label:'City', value:'city', width:'60'}, 
-                    {label:'Address', value:'address', width:'80'}, {label:'Phone', value:'phone', width:'60'}, 
-                    // {label:'Remark', value:'remark', width:'80'}, 
-                    {label:'Tax ID', value:'tax_id', width:'40'}, 
-                    {label:'Updated Date', value:'updated_date_str', width:'80'}, {label:'', value:'detail', width:'40', type:'button'}
-                  ]
+const company = MStore?.permission?.company?.name
   
 const AddCompany = () => {
   company_title.value = 'Add Company Info'
@@ -33,6 +26,7 @@ const AddCompany = () => {
   edit_mode.value = 'create'
   companyData.payment = {hashIV:'', hashKey:'', merchantId:'', owner:''}
   companyData.invoice = {hashIV:'', hashKey:'', merchantId:'', owner:''}
+  companyData.upgrade_manager = {enable:true}
 }
 
 const sortFunc = (obj1, obj2, column) => {
@@ -83,7 +77,7 @@ const editCompany = async (action) => {
   let check_format_success = true
   const regex = /^[0-9a-zA-Z-]+$/
 
-  if (regex.test(companyData.tax_id === false)) {
+  if (regex.test(companyData.tax_id) === false) {
     check_format_success = false
     ElMessage.error('Oops, Tax ID format error.')
   }
@@ -102,7 +96,8 @@ const editCompany = async (action) => {
                         // remark:companyData.remark,
                         invoice:companyData.invoice, payment:companyData.payment,
                         address:companyData.address, phone:companyData.phone,
-                        tax_id:companyData.tax_id
+                        tax_id:companyData.tax_id,
+                        upgrade_manager:companyData.upgrade_manager
                       }
         ElMessageBox.confirm('Do you want to create?','Warning', {confirmButtonText: 'OK', cancelButtonText: 'Cancel', type: 'warning'})
         .then(async () => {
@@ -311,7 +306,7 @@ onMounted( async() => {
                 <el-input v-model.trim="companyData.address" />
               </el-form-item>
 
-              <el-form-item class="mb-24px" label="Tax">
+              <el-form-item class="mb-24px" label="Tax ID">
                 <el-input v-model.trim="companyData.tax_id" />
               </el-form-item>
 
@@ -354,6 +349,10 @@ onMounted( async() => {
               <!-- <el-form-item class="mb-24px" label="Payment Owner">
                 <el-input v-model.trim="companyData.payment.owner" />
               </el-form-item> -->
+
+              <el-form-item v-if="company === 'MSI'" class="mb-24px" label="Active">
+                <el-switch v-model="companyData.upgrade_manager.enable" />
+              </el-form-item>
             </el-form>
           </div>
           <template #footer>

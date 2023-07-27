@@ -163,7 +163,7 @@ const setMarker = async () => {
       Object.assign(SideBarInfo, LocationData[i])
     })
     if (LocationData[i].publish === true) LocationData[i].publish_str = 'True'
-    else LocationData[i].publish_str = 'Flash'
+    else LocationData[i].publish_str = 'False'
   }
 }
 const displayLayout = () => {
