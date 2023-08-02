@@ -66,10 +66,17 @@ const handleTabClick = (tab) => {
       price_type_opeion = [{ value: 'PARKING_TIME', label: 'Parking By Time' }]
       fillFullCalendar()
       break
+    
+    default :
+      price_type_opeion = [{ value: 'ENERGY', label: 'Charging By Energy' }, { value: 'TIME', label: 'Charging By Time' }, { value: 'PARKING_TIME', label: 'Parking By Time' }]
+      break
   }
 }
 const openDialog = () => {
   unexpectedCloseDialog = true
+  if (activeName.value === 'four') {
+    new_element.value.price_type = 'PARKING_TIME'
+  }
 }
 const closeDialog = () => {
   if (unexpectedCloseDialog === true) {
@@ -188,9 +195,14 @@ const handleEventCreate = (selectInfo) => {
   }
 
   // e.g. Mon 18:00 ~ Tue 06:00 -> Mon 18:00 ~ Tue 23:59
-  if (startTime > endTime) {
+  if (startTime >= endTime) {
     endTime = '23:59'
   }
+  // else if (startTime === endTime) {
+  //   ElMessage({ type: 'error', message: "The start time can't overlap with the end time" })
+  //   calendarApi.unselect()
+  //   return
+  // }
 
   // calendarApi.unselect() // clear date selection
   tempEvent = calendarApi.addEvent({
@@ -324,11 +336,11 @@ const handleEventContent = (arg) => {
 
 const chargingCalendarOptions = reactive({
   plugins: [interactionPlugin, dayGridPlugin, timeGridPlugin],
-  height: '609px',  // 602px
+  height: 'auto',  // 609px 602px
   initialView: 'timeGridWeek',
   editable: false,
   selectMirror: true,
-  selectable: true,
+  selectable: false,  // true
   allDaySlot: false,
   firstDay: 1,
   headerToolbar: false,
@@ -355,7 +367,7 @@ const chargingCalendarOptions = reactive({
   eventColor: '#fff',
   eventTextColor: '#000',
   eventClick: handleEventClick,
-  select: handleEventCreate,
+  // select: handleEventCreate,
   eventContent: handleEventContent,
   eventMouseEnter: handleEventMouseEnter,
   // editable: true,
@@ -364,11 +376,11 @@ const chargingCalendarOptions = reactive({
 })
 const parkingCalendarOptions = reactive({
   plugins: [interactionPlugin, dayGridPlugin, timeGridPlugin],
-  height: '609px',
+  height: 'auto',    // 609px 602px
   initialView: 'timeGridWeek',
   editable: false,
   selectMirror: true,
-  selectable: true,
+  selectable: false,   // true
   allDaySlot: false,
   firstDay: 1,
   headerToolbar: false,
@@ -395,7 +407,7 @@ const parkingCalendarOptions = reactive({
   eventColor: '#fff',
   eventTextColor: '#000',
   eventClick: handleEventClick,
-  select: handleEventCreate,
+  // select: handleEventCreate,
   eventContent: handleEventContent,
   eventMouseEnter: handleEventMouseEnter,
 })
@@ -467,12 +479,10 @@ const TariffData = reactive({})
 const day = [{ label: 'Mon.', value: 'MONDAY' }, { label: 'Tue.', value: 'TUESDAY' }, { label: 'Wed.', value: 'WEDNESDAY' }, { label: 'Thu.', value: 'THURSDAY' },
 { label: 'Fri.', value: 'FRIDAY' }, { label: 'Sat.', value: 'SATURDAY' }, { label: 'Sun.', value: 'SUNDAY' }]
 const tariff_currency_opeion = [{ value: 'TWD', label: 'TWD' }, { value: 'USD', label: 'USD' }, { value: 'JPY', label: 'JPY' }, { value: 'EUR', label: 'EUR' }]
-const tariff_country_code_opeion = [{ value: 'TW', label: 'TW' }, { value: 'US', label: 'US' }, { value: 'JP', label: 'JP' }, { value: 'DE', label: 'DE' }]
 let price_type_opeion = [{ value: 'ENERGY', label: 'Charging By Energy' }, { value: 'TIME', label: 'Charging By Time' }, { value: 'PARKING_TIME', label: 'Parking By Time' }]
 
 const addLanguage = ref(0)
 const addLanguage_select = reactive([])
-const language_select = ref ('')
 const languageOptions = [ {value: 'English', label: 'English',}, {value: 'Chinese',label: 'Chinese',}, {value: 'Japanese', label: 'Japanese',}  ]
 const textarea_en = ref('')
 const textarea_zh = ref('')
@@ -519,6 +529,7 @@ const save_tariff = async () => {
   TariffData.class = 'Tariff'
   TariffData.type = 'AD_HOC_PAYMENT'
   TariffData.party_id = 'MSI'
+  TariffData.country_code = 'TW'
   if (TariffData.elements.length === 0) {
     let day_of_week_arr = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY']
     let free_price = [{
@@ -551,7 +562,6 @@ const save_tariff = async () => {
 
         save_status.value = true
         if (TariffData.profile_name === undefined) { ElMessage.error('Oops, Profile Name required.') }
-        else if (TariffData.country_code === undefined) { ElMessage.error('Oops, Country Code required.') }
         else if (TariffData.currency === undefined) { ElMessage.error('Oops, Currency required.') }
         else {
           for(let i = 0; i < TariffData.elements.length; i++) {
@@ -580,7 +590,6 @@ const save_tariff = async () => {
       MsiFunc.deleteEmptyKeys(TariffData)
       save_status.value = true
       if (TariffData.profile_name === undefined) { ElMessage.error('Oops, Profile Name required.') }
-      else if (TariffData.country_code === undefined) { ElMessage.error('Oops, Country Code required.') }
       else if (TariffData.currency === undefined) { ElMessage.error('Oops, Currency required.') }
       else {
         for(let i = 0; i < TariffData.elements.length; i++) {
@@ -861,12 +870,6 @@ onMounted(async () => {
                   <el-form-item class="mb-24px lg-w-full" label="Currency">
                     <el-select v-model="TariffData.currency" placeholder="Select" size="large" class="w-full 2xl:w-350px">
                       <el-option v-for="item in tariff_currency_opeion" :key="item.value" :label="item.label"
-                        :value="item.value" />
-                    </el-select>
-                  </el-form-item>
-                  <el-form-item class="mb-24px lg-w-full" label="Country Code">
-                    <el-select v-model="TariffData.country_code" placeholder="Select" size="large" class="w-full 2xl:w-350px">
-                      <el-option v-for="item in tariff_country_code_opeion" :key="item.value" :label="item.label"
                         :value="item.value" />
                     </el-select>
                   </el-form-item>

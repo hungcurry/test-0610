@@ -163,7 +163,7 @@ onMounted(async () => {
 .el-menu-item.is-active i {
   opacity: 1;
 }
-// �ĤG�h���padding
+// 第二層選單padding
 .el-menu--vertical:not(.el-menu--collapse):not(.el-menu--popup-container)
   .el-menu-item.collapse {
   padding-left: 5rem;

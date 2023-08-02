@@ -246,7 +246,7 @@ onMounted( async () => {
 
     <div class="pb-40px bg-blue-100 flex-grow">
       <div class="container lg">
-        <div class="flex md:justify-end pt-24px pb-24px overflow-x-auto">
+        <div class="flex lg:justify-end pt-24px pb-24px overflow-x-auto">
           <el-button v-if="editMode === true" class="btn-secondary shrink-0 update-button px-30px box-shadow" @click="updateSW"> Update SW </el-button>
           <!-- <el-button v-if="editMode === true" class="btn-secondary shrink-0 update-button px-30px box-shadow" @click="updateFW " disabled> Update FW </el-button> -->
           <el-button v-if="editMode === true" class="btn-secondary shrink-0 soft-reset-button px-30px box-shadow" @click="evseReset('soft')"> Soft Reset </el-button>
