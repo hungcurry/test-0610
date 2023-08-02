@@ -39,6 +39,10 @@ export default
     mall: 'Mall',
     super_market: 'Super Market',
     parking_log:'Parking Lot',
-    others:'Others'
+    others:'Others',
 
+    available:'Available',
+    charging:'Charging',
+    offline:'Offline',
+    error:'Error'
 }

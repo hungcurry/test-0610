@@ -105,7 +105,7 @@ const AddAdmin = async (action, visable) => {
     }
 
     if (AddAdminData.email === undefined || AddAdminData.email === '') {
-      ElMessage.error('Oops, Email required.')
+      ElMessage.error('Oops, E-mail required.')
       check_format_success = false
     }
     if (AddAdminData.first_name === undefined || AddAdminData.first_name === '') {
@@ -117,7 +117,7 @@ const AddAdmin = async (action, visable) => {
       check_format_success = false
     }
     if (AddAdminData.permission_id === undefined || AddAdminData.permission_id === '') {
-      ElMessage.error('Oops, Permission name required.')
+      ElMessage.error('Oops, Permission required.')
       check_format_success = false
     }
 
@@ -138,6 +138,7 @@ const AddAdmin = async (action, visable) => {
         })
         .catch((e) => {
           console.log(e)
+          isLoading.value = false
         })
     }
   }

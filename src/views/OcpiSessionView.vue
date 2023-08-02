@@ -163,6 +163,7 @@ onMounted( async() => {
             :cell-style="msi.tb_cell"
             :header-cell-style="msi.tb_header_cell"
             v-loading.fullscreen.lock="isLoading"
+            :default-sort="{ prop: 'start_date_local_time', order: 'ascending' }"
           >
             <el-table-column
               prop="status"

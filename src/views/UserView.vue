@@ -174,7 +174,7 @@ onMounted(async () => {
   if (response.status === 200) {
     Object.assign(program_plan, response.data.result)
     for (let i = 0; i < program_plan.length; i++) {
-      if (program_plan[i]._id === upgrade_manager.subscribe.plan) {
+      if (program_plan[i]._id === upgrade_manager?.subscribe?.plan) {
         Object.assign(ProgramData, [program_plan[i]])
         break
       }

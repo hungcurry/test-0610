@@ -63,6 +63,19 @@ onMounted(async () => {
   let response = await MsiApi.mongoQuery(queryData)
   Object.assign(parkingData, response.data.all)
 
+  // console.log(parkingData)
+
+
+  // queryData = {
+  //   database: 'Parking',
+  //   collection: 'ParkingCarData',
+  //   pipelines: [{ $project: { _id: 1} }],
+  // }
+  // console.log(queryData)
+  // response = await MsiApi.mongoAggregate(queryData)
+  // console.log(response)
+
+
   queryData = {
     database: 'OCPI',
     collection: 'Location',
@@ -112,6 +125,7 @@ onMounted(async () => {
           :cell-style="msi.tb_cell"
           :header-cell-style="msi.tb_header_cell"
           v-loading.fullscreen.lock="isLoading"
+          :default-sort="{ prop: 'start_date_local_time', order: 'ascending' }"
         >
           <el-table-column
             prop="station_str"
@@ -165,13 +179,6 @@ onMounted(async () => {
             </template>
           </el-table-column>
 
-          <!-- <el-table-column prop="created_date" label="created_date" min-width="80"/>
-          <el-table-column prop="model_cr_ver" label="model_cr_ver" min-width="80"/>
-          <el-table-column prop="model_lp_ver" label="model_lp_ver" min-width="80"/>
-          <el-table-column prop="paymentHistoryInfo" label="paymentHistoryInfo" min-width="80"/>
-          <el-table-column prop="sensor_type" label="sensor_type" min-width="80"/>
-          <el-table-column prop="updated_date" label="updated_date" min-width="80"/>
-          <el-table-column prop="_id" label="_id" min-width="80"/> -->
         </el-table>
       </div>
     </div>

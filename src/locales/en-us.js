@@ -5,9 +5,11 @@ export default
     account : "Account",
     password : "Password",
     forgot_password : 'Forgot Password',
-    log_in : 'Log in',
     //login
+    log_in : 'Log in',
     version : 'Version',
+    oops_account_or_password_error : 'Oops! "Account or Password" is Error.',
+
     //dashboard
     real_time_status : 'Real Time Status',
     evse_status :'EVSE Status',
@@ -39,7 +41,12 @@ export default
     mall: 'Mall',
     super_market: 'Super Market',
     parking_log:'Parking Lot',
-    others:'Others'
+    others:'Others',
+
+    available:'Available',
+    charging:'Charging',
+    offline:'Offline',
+    error:'Error'
 
     //payment
     //station

@@ -116,9 +116,20 @@ const seletcType = (type) => {
 const cancel_tariff = () => {
   router.push({ name: 'ratePlan' })
 }
+
+function removeObjectIfPropertyEmpty(arr, prop) {
+  arr = arr.filter(item => item[prop] !== undefined && item[prop] !== '');
+  return arr;
+}
+const propToCheck = 'text';
+
 const save_tariff = async () => {
   let new_tariff_alt_text = [{ language: 'en', text: textarea_en.value }, { language: 'zh', text: textarea_zh.value }, { language: 'jp', text: textarea_jp.value }]
   // TariffData.tariff_alt_text = new_tariff_alt_text
+  
+  new_tariff_alt_text = removeObjectIfPropertyEmpty(new_tariff_alt_text, propToCheck);
+  console.log(new_tariff_alt_text)
+
   TariffData.elements = tariff_elements
   TariffData.class = 'Tariff'
   TariffData.type = 'AD_HOC_PAYMENT'
@@ -247,6 +258,7 @@ const ShowEditElementDialog = (scope) => {
 }
 
 const editElement = (action) => {
+  let check_format_success = true
   if (new_element.value.end_time === '00:00')
     new_element.value.end_time = '23:59'
   let tempArr = []
@@ -291,7 +303,12 @@ const editElement = (action) => {
       element.restrictions_min_duration_str = new_element.value.min_duration / 60
       element.restrictions_max_duration_str = new_element.value.max_duration / 60
     }
-    tariff_elements.push(element)
+    else {
+      ElMessage.error('Oops, Type required.')
+      check_format_success = false
+    }
+    if (check_format_success !== false)
+      tariff_elements.push(element)
   }
   else if (action === 'edit') {
     tariff_elements[modifyIndex.value] = modify_element
@@ -310,11 +327,21 @@ const editElement = (action) => {
       tariff_elements[modifyIndex.value].restrictions_min_duration_str = modify_element.restrictions.min_duration / 60
       tariff_elements[modifyIndex.value].restrictions_max_duration_str = modify_element.restrictions.max_duration / 60
     }
+    else {
+      ElMessage.error('Oops, Type required.')
+      check_format_success = false
+    }
   }
   else if (action === 'delete') {
     tariff_elements.splice(modifyIndex.value, 1)
+    add_tariff_visible.value = false
   }
-  add_tariff_visible.value = false
+  else if (action === 'cancel') {
+    add_tariff_visible.value = false
+  }
+  if (check_format_success === true) {
+    add_tariff_visible.value = false
+  }
 }
 
 onMounted(async () => {

@@ -19,11 +19,11 @@ const company_title = ref('Add Company Info')
 const company = MStore?.permission?.company?.name
   
 const AddCompany = () => {
+  CompanyFormVisible.value = true
+  edit_mode.value = 'create'
   company_title.value = 'Add Company Info'
   for (let key in companyData)
     companyData[key] = ''
-  CompanyFormVisible.value=true
-  edit_mode.value = 'create'
   companyData.payment = {hashIV:'', hashKey:'', merchantId:'', owner:''}
   companyData.invoice = {hashIV:'', hashKey:'', merchantId:'', owner:''}
   companyData.upgrade_manager = {enable:true}
@@ -49,11 +49,9 @@ const search = async () => {
   else {
     queryData = { "database":"CPO", "collection":"CompanyInformation", "query": {
       "$or" : [ {"name":{"$regex": input.value ,"$options":"i"} } , 
-                // {"party_id":{"$regex": input.value ,"$options":"i"} } , 
                 {"country":{"$regex": input.value ,"$options":"i"} } , {"city":{"$regex": input.value ,"$options":"i"} } , 
                 {"address":{"$regex": input.value ,"$options":"i"} } , {"phone":{"$regex": input.value ,"$options":"i"} } , 
-                // {"remark":{"$regex": input.value ,"$options":"i"} } , 
-                // {"tax_id":{"$regex": input.value ,"$options":"i"} } , 
+                {"tax_id":{"$regex": input.value ,"$options":"i"} } , 
                 {"updated_date_str":{"$regex": input.value ,"$options":"i"} } , 
               ]
     }}
@@ -71,7 +69,6 @@ const detail_info = (detail) => {
 }
 
 const editCompany = async (action) => {
-  CompanyFormVisible.value = false
   companyData.invoice.owner = 'ezPay'
   companyData.payment.owner = 'NewebPay'
   let check_format_success = true
@@ -85,11 +82,11 @@ const editCompany = async (action) => {
     check_format_success = false
     ElMessage.error('Oops, Name required.')
   }
-  
   if (edit_mode.value === 'create') {
     if (check_format_success === false)
       return
     if (action === 'confirm') {
+      CompanyFormVisible.value = false
       let sendData = {  class : 'CompanyInformation', name: companyData.name,
                         country:companyData.country, party_id:companyData.party_id,
                         city:companyData.city, detail:companyData.detail, 
@@ -116,6 +113,7 @@ const editCompany = async (action) => {
     if (check_format_success === false)
       return
     if (action === 'confirm') {
+      CompanyFormVisible.value = false
       let sendData = {  class : 'CompanyInformation', pk: companyData._id,name: companyData.name, 
                         country:companyData.country, party_id:companyData.party_id,
                         city:companyData.city, detail:companyData.detail, 
@@ -137,6 +135,7 @@ const editCompany = async (action) => {
       }) 
     }
     else if (action === 'delete') {
+      CompanyFormVisible.value = false
       let sendData = { class : 'CompanyInformation', pk : companyData._id }
       ElMessageBox.confirm('Do you want to delete?','Warning', {confirmButtonText: 'OK', cancelButtonText: 'Cancel', type: 'warning'})
       .then(async () => {

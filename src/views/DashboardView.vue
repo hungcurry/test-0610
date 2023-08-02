@@ -89,12 +89,6 @@ const evse_status_option = reactive({
       label: { show: false, position: 'center' },
       color: ['#537ebc', '#64bfae', '#b1b1b1', '#ef8879'],
       labelLine: { show: false },
-      data: [
-        { value: status_obj.Available, name: 'Available' },
-        { value: status_obj.Charging, name: 'Charging' },
-        { value: status_obj.Offline, name: 'Offline' },
-        { value: status_obj.Error, name: 'Error' },
-      ],
     },
   ],
   media: [
@@ -448,10 +442,10 @@ const queryEvseStatus = async () => {
     status_obj.Error = response.data.result[0].OUTOFORDER[0]?.OUTOFORDER
 
   evse_status_option.series[0].data = [
-    { value: status_obj.Available, name: 'Available' },
-    { value: status_obj.Charging, name: 'Charging' },
-    { value: status_obj.Offline, name: 'Offline' },
-    { value: status_obj.Error, name: 'Error' },
+    { value: status_obj.Available, name: t('available') },
+    { value: status_obj.Charging, name: t('charging') },
+    { value: status_obj.Offline, name: t('offline') },
+    { value: status_obj.Error, name: t('error') },
   ]
 
   let evse_status_chart = echarts.init(ref_evse_status.value)

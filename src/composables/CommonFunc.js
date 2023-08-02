@@ -11,5 +11,22 @@ export default function () {
       }
     }
   }
-  return { deleteEmptyKeys }
+
+
+  const  setAllValuesToUndefinedRecursive = (obj) => {
+    for (let key in obj) {
+      // console.log(Object.prototype.hasOwnProperty.call(key))
+      if (Object.prototype.hasOwnProperty.call(obj, key)) {
+        if (typeof obj[key] === 'object' && obj[key] !== null) {
+          setAllValuesToUndefinedRecursive(obj[key]);
+        } else {
+          obj[key] = undefined;
+        }
+      }
+    }
+  }
+
+
+
+  return { deleteEmptyKeys, setAllValuesToUndefinedRecursive }
 }

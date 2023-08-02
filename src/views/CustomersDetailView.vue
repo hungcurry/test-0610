@@ -163,9 +163,20 @@ const confirmRfid = async (confirm, index) => {
   // const reversedHexPairs = hex_pair.reverse().map(pair => pair.split('').join(''));  
   // const reversedHex = reversedHexPairs.join('');
   // console.log(reversedHex)
+  let check_format_success = true
 
-  EditRfidFormVisible.value = false
   if (confirm === 'confirm') {
+    if (rfidData.rfid === "") {
+      ElMessage.error('Oops, Number required.')  
+      check_format_success = false
+    }
+    if (rfidData.cash === "") {
+      ElMessage.error('Oops, Cash required.')  
+      check_format_success = false
+    }
+    if (check_format_success === false)
+      return
+    EditRfidFormVisible.value = false
     if (modify_card_index.value === -1) {
       userData.rfids.push({
         rfid: rfidData.rfid.toUpperCase(), cash: parseInt(rfidData.cash),
@@ -198,6 +209,8 @@ const confirmRfid = async (confirm, index) => {
         console.log(e)
       })
   }
+  else if (confirm === 'cancel')
+    EditRfidFormVisible.value = false
 }
 
 const GetPermission = async () => {
@@ -309,7 +322,7 @@ onMounted(async () => {
   for (let i = 0; i < userData.evse_list.length; i++) {
     userData.evse_list_id += userData.evse_list?.[i]?.evseId 
     if (userData.evse_list.length > 1)
-      userData.evse_list_id + ' / '
+      userData.evse_list_id += '/'
   }
   await GetPermission()
 
@@ -784,7 +797,6 @@ onMounted(async () => {
         </div>
         <template #footer>
           <span class="dialog-footer flex flex-center">
-            <!-- <el-button v-if="modify_card_index!==-1" round class="w-48% bg-btn-100 text-white max-w-140px" @click="confirmRfid('delete', undefined)">Delete</el-button> -->
             <el-button round class="w-48% bg-btn-100 text-white max-w-140px" @click="confirmRfid('cancel', undefined)">Cancel</el-button>
             <el-button round class="w-48% bg-btn-200 text-white max-w-140px" @click="confirmRfid('confirm', undefined)"> Confirm</el-button>
           </span>

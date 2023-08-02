@@ -91,46 +91,69 @@ const MongoQurey = async (queryData) => {
     for (let j = 0; j < UserData[i]?.evse_list?.length; j++) {
       UserData[i].evse_list_str += UserData[i]?.evse_list[j]?.evseId 
       if (UserData[i]?.evse_list?.length > 1)
-      UserData[i].evse_list_str + ' / '
+      UserData[i].evse_list_str += ' / '
     }
   }
   isLoading.value = false
   return response
 }
 
-const addUser = async (action, visible) => {
-  dialogFormVisible.value = visible
+const addUser = async () => {
+    dialogFormVisible.value = true
+    newUser.first_name = newUser.last_name = newUser.email = ''
+}
 
+const addUserDialog = async (action) => {
+  let check_format_success = true
   if (action === 'confirm') {
     let sendData = {'first_name' : newUser.first_name, 'last_name' : newUser.last_name,
      'email' : newUser.email, 'password': newUser.password, company:MStore.permission.company.name} 
-    
-    ElMessageBox.confirm('Do you want to create?','Warning', {confirmButtonText: 'OK', cancelButtonText: 'Cancel', type: 'warning'})
-    .then(async () => {
-      isLoading.value = true
-      let res = await MsiApi.register_member(sendData)
-      if (res.status === 200) {
-        ElMessage.error('email already exists')
-      }
-      else if (res.status === 201) {
-        let queryData = { "database":"CPO", "collection":"UserData", "query": {}}
-        await MongoQurey(queryData)
-      }
-      else { 
-        ElMessage.error(res.data.message)
-      }
-      isLoading.value = false
-    })
-    .catch((e)=>{
-      ElMessage.error(e)
-    })
+    if (newUser.first_name === '') {
+      ElMessage.error('Oops, First Name required.')
+      check_format_success = false
+    }
+    if (newUser.last_name === ''){
+      ElMessage.error('Oops, Last Name required.')
+      check_format_success = false
+    }
+    if (newUser.email === ''){
+      ElMessage.error('Oops, E-mail required.')
+      check_format_success = false
+    }
+    if (check_format_success === true)  {
+      dialogFormVisible.value = false
+      ElMessageBox.confirm('Do you want to create?','Warning', {confirmButtonText: 'OK', cancelButtonText: 'Cancel', type: 'warning'})
+      .then(async () => {
+        isLoading.value = true
+        let res = await MsiApi.register_member(sendData)
+        if (res.status === 200) {
+          ElMessage.error('email already exists')
+        }
+        else if (res.status === 201) {
+          let queryData = { "database":"CPO", "collection":"UserData", "query": {}}
+          await MongoQurey(queryData)
+        }
+        else { 
+          ElMessage.error(res.data.message)
+        }
+        isLoading.value = false
+      })
+      .catch((e)=>{
+        ElMessage.error(e)
+      })
+    }
   }
-  newUser.first_name = newUser.last_name = newUser.email = ''
+  else if (action === 'cancel') {
+    dialogFormVisible.value = false
+  }
 }
 
 onMounted( async() => {
-    let queryData = { "database":"CPO", "collection":"UserData", "query": {}}
-    console.log( await MongoQurey(queryData))
+  let queryData = { "database":"CPO", "collection":"UserData", "query": {}}
+  console.log( await MongoQurey(queryData))
+  queryData = { database: 'CPO', collection: 'UserData', pipelines: [{ $project: { _id: 1, email: 1, first_name: 1, last_name: 1, payment_length:1, updated_date: 1,   } }]  }
+  let response = await MsiApi.mongoAggregate(queryData)
+  console.log(response)
     GetPermission()
 })
 </script>
@@ -144,7 +167,7 @@ onMounted( async() => {
             <el-button :icon="Search" @click="search" />
           </template>
         </el-input>
-        <el-button class="btn-secondary box-shadow" @click="addUser('', true)"> Add User </el-button>
+        <el-button class="btn-secondary box-shadow" @click="addUser"> Add User </el-button>
       </div>
       <div class="overflow-x-auto">
         <div class="customer-list pb-40px">
@@ -258,13 +281,13 @@ onMounted( async() => {
               <el-button
                 round
                 class="w-48% bg-btn-100 text-white max-w-140px"
-                @click.stop="addUser('cancel', false)"
+                @click.stop="addUserDialog('cancel')"
                 >Cancel</el-button
               >
               <el-button
                 round
                 class="w-48% bg-btn-200 text-white max-w-140px"
-                @click.stop="addUser('confirm', false)"
+                @click.stop="addUserDialog('confirm')"
               >
                 Confirm
               </el-button>

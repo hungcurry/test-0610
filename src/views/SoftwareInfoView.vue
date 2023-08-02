@@ -296,7 +296,7 @@ onMounted(async () => {
               min-width="100"
             >
               <template #default="scope">
-                <el-button class="btn-Release" @click="release(scope, 'XP011_BT')"
+                <el-button class="btn-info" @click="release(scope, 'XP011_BT')"
                   >Release</el-button
                 >
               </template>

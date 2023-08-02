@@ -6,7 +6,9 @@ import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { useMStore } from '@/stores/m_cloud'
+import { useI18n } from "vue-i18n"
 
+const { t } = useI18n()
 const MStore = useMStore()
 const MsiApi = ApiFunc()
 const router = useRouter()
@@ -35,7 +37,7 @@ const login = async () => {
   if (response.status === 200) {
     router.push({ name: 'dashboard' })
   } else if (response.status === 400 || response.status === 404) {
-    ElMessage.error('Oops, Account or Password Error.')
+    ElMessage.error(t('oops_account_or_password_error'))
   } else {
     ElMessage.error('Error.')
   }
@@ -68,8 +70,8 @@ onMounted(() => {
   <div class="login">
     <div class="outer">
       <form class="form w-full text-center">
-        <p class="title text-center m-0 my-10 lg:mb-32px">{{ $t('m_cloud') }}</p>
-        <label class="account" for="input-accoun">{{ $t('account') }}</label>
+        <p class="title text-center m-0 my-10 lg:mb-32px">{{ t('m_cloud') }}</p>
+        <label class="account" for="input-accoun">{{ t('account') }}</label>
         <input
           class="input-account"
           id="input-accoun"
@@ -77,7 +79,7 @@ onMounted(() => {
           autocomplete
           v-model.trim="account"
         />
-        <label class="password" for="input-password">{{ $t('password') }}</label>
+        <label class="password" for="input-password">{{ t('password') }}</label>
         <div class="pw-container mb-20 lg:mb-25">
           <input
             class="input-password"
@@ -131,11 +133,11 @@ onMounted(() => {
           </label>
         </template>
         <button type="button" class="log-in" @click="login()">
-          {{ $t('log_in') }}
+          {{ t('log_in') }}
         </button>
       </form>
       <div>
-        <p class="text-30px text-white text-center">{{ $t('version')  + ':' +  m_cloud_version }}</p>
+        <p class="text-30px text-white text-center">{{ t('version')  + ':' +  m_cloud_version }}</p>
         <img class="logo block mx-auto" src="@/assets/img/login_msilogo.png" />
       </div>
     </div>

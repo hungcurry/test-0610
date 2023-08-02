@@ -132,6 +132,7 @@ onMounted(() => {
             :cell-style="msi.tb_cell"
             :header-cell-style="msi.tb_header_cell"
             v-loading.fullscreen.lock="isLoading"
+            :default-sort="{ prop: 'created_date_str', order: 'ascending' }"
           >
             <el-table-column
               prop="evse_id"

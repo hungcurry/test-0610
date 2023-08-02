@@ -247,7 +247,7 @@ onMounted(async () => {
       </div>
       <div class="overflow-x-auto">
         <div class="payment-list pb-40px">
-          <el-table
+          <el-table 
             :data="PaymentData"
             class="white-space-nowrap text-primary"
             height="calc(100vh - 220px)"
@@ -257,6 +257,7 @@ onMounted(async () => {
             :cell-style="msi.tb_cell"
             :header-cell-style="msi.tb_header_cell"
             v-loading.fullscreen.lock="isLoading"
+            :default-sort="{ prop: 'created_date_str', order: 'ascending' }"
           >
             <el-table-column label="Station" align="center" min-width="550">
               <el-table-column

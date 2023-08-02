@@ -188,7 +188,7 @@ onMounted( async () => {
               <img class="w-20px h-20px mr-10px" src="@/assets/img/station_detail_latitude.png">
               <span class="line-height-20px"> {{ StationData.latitude_str }} {{ "," }} {{ StationData.longitude_str }}</span>
             </div>
-            <div class="flex mr-40px">
+            <!-- <div class="flex mr-40px">
               <img class="w-20px h-20px mr-10px" src="@/assets/img/station_list_type_office1.png">
               <span class="line-height-20px">Station Type : 
                 <span v-for="(item, index) in StationData.facilities" class="line-height-20px">
@@ -196,7 +196,7 @@ onMounted( async () => {
                   {{ item }}
                 </span>
               </span>
-            </div>
+            </div> -->
 
             <div v-if="StationData.publish" class="flex">
               <img class="w-20px h-20px mr-10px filter-blue-1200" src="@/assets/img/login_visible_pre.png">
@@ -211,7 +211,7 @@ onMounted( async () => {
         </div>
       </div>
     </div>
-
+<!-- 
     <el-collapse accordion class="collapse">
       <el-collapse-item name="1">
         <div class="flex flex-wrap pt-20px pb-20px text-blue-1200 text-20px white-space-nowrap overflow-x-auto">
@@ -224,29 +224,25 @@ onMounted( async () => {
               <img class="w-20px h-20px mr-16px" src="@/assets/img/station_detail_admin.png">
               <span class="line-height-20px"> Operator : {{ StationData.party_id }} </span>
             </div>
-            <!-- <div class="flex mb-12px">
-              <img class="w-20px h-20px mr-16px" src="@/assets/img/station_detail_id.png">
-              <span class="line-height-20px"> Operator ID : {{ StationData.party_id }} </span>
-            </div> -->
           </div>
 
           <div class="collapse-right pl-10%">
-            <!-- <div class="flex mb-12px">
+            <div class="flex mb-12px">
               <img class="w-20px h-20px mr-16px" src="@/assets/img/station_detail_owner.png">
               <span class="line-height-20px"> Owner : {{  }} </span>
-            </div> -->
-            <!-- <div class="flex mb-12px">
+            </div>
+            <div class="flex mb-12px">
               <img class="w-20px h-20px mr-16px" src="@/assets/img/station_detail_car.png">
               <span class="line-height-20px"> Parking Lot : {{  }} </span>
-            </div> -->
-            <!-- <div class="flex mb-12px">
+            </div>
+            <div class="flex mb-12px">
               <img class="w-20px h-20px mr-16px" src="@/assets/img/station_detail_note.png">
               <span class="line-height-20px"> Note : {{  }} </span>
-            </div> -->
+            </div>
           </div>
         </div>
       </el-collapse-item>
-    </el-collapse>
+    </el-collapse> -->
 
     <div class="pb-40px bg-blue-100 flex-grow">
       <div class="container lg">
