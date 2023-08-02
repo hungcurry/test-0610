@@ -11,8 +11,6 @@ export default function () {
       }
     }
   }
-
-
   const  setAllValuesToUndefinedRecursive = (obj) => {
     for (let key in obj) {
       // console.log(Object.prototype.hasOwnProperty.call(key))
@@ -25,8 +23,5 @@ export default function () {
       }
     }
   }
-
-
-
   return { deleteEmptyKeys, setAllValuesToUndefinedRecursive }
 }
