@@ -88,10 +88,17 @@ const MongoQurey = async (queryData) => {
     UserData[i].updated_date_str = (moment(localEndTime).format("YYYY-MM-DD HH:mm:ss"))
     UserData[i].payment_length = UserData[i]?.payment_history?.length
     UserData[i].evse_list_str = ''
+    UserData[i].evse_list_str_detail = ''
+    if (UserData[i]?.evse_list[0]?.evseId) {
+      UserData[i].evse_list_str += UserData[i]?.evse_list[0]?.evseId 
+    }
+    if (UserData[i]?.evse_list?.length > 1) {
+      UserData[i].evse_list_str += ' / ...'
+    }
     for (let j = 0; j < UserData[i]?.evse_list?.length; j++) {
-      UserData[i].evse_list_str += UserData[i]?.evse_list[j]?.evseId 
+      UserData[i].evse_list_str_detail += UserData[i]?.evse_list[j]?.evseId 
       if (UserData[i]?.evse_list?.length > 1)
-      UserData[i].evse_list_str += ' / '
+      UserData[i].evse_list_str_detail + ' /<br> '
     }
   }
   isLoading.value = false
@@ -212,8 +219,21 @@ onMounted( async() => {
               align="center"
               sortable
               :sort-method="(a, b) => sortFunc(a, b, 'evse_list_str')"
-              min-width="150"
-            />
+              min-width="250"
+            >
+              <template #default="scope">
+                <span v-if="scope.row.evse_list_str_detail === ''">{{ scope.row.evse_list_str }}</span>
+                <el-tooltip v-else placement="bottom-start">
+                  <template #content>
+                    <div v-html="scope.row.evse_list_str_detail"></div>
+                    <!-- <div class="max-h-300px overflow-y-auto w-200px text-16px line-height-30px"> {{ scope.row.evse_list_str_detail }} </div> -->
+                  </template>
+                  <el-button class="overflow-hidden evse-tooltip-btn">
+                    <span class="font-400 text-1.8rem line-height-2rem text-black-200"> {{ scope.row.evse_list_str }} </span>
+                  </el-button>
+                </el-tooltip>
+              </template>
+            </el-table-column>
             <el-table-column
               prop="payment_length"
               label="Used Times"
@@ -331,6 +351,9 @@ onMounted( async() => {
       color: black;
     }
   }
+  .evse-tooltip-btn {
+    background-color: unset;
+  }
   .el-form-item {
     display: block;
   }
@@ -338,6 +361,17 @@ onMounted( async() => {
     display: block;
     font-size: 1.6rem;
   }
+}
+
+::-webkit-scrollbar {
+  width: 0.8rem;
+  height: 0.8rem;
+}
+::-webkit-scrollbar-thumb {
+  background-color: var(--gray-300);
+}
+::-webkit-scrollbar-thumb {
+  border-radius: 2rem;
 }
 
 </style>

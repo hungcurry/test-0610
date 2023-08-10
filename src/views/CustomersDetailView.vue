@@ -319,10 +319,17 @@ onMounted(async () => {
   userData.paylist = userData.binding_cards?.paylist
   userData.paylistArrObj = []
   userData.evse_list_id = ''
+  userData.evse_list_id_detail = ''
+  if (userData.evse_list[0]?.evseId) {
+    userData.evse_list_id += userData.evse_list[0]?.evseId 
+  }
+  if (userData?.evse_list?.length > 1) {
+    userData.evse_list_id += ' / ...'
+  }
   for (let i = 0; i < userData.evse_list.length; i++) {
-    userData.evse_list_id += userData.evse_list?.[i]?.evseId 
+    userData.evse_list_id_detail += userData.evse_list?.[i]?.evseId 
     if (userData.evse_list.length > 1)
-      userData.evse_list_id += '/'
+    userData.evse_list_id_detail + ' /<br> '
   }
   await GetPermission()
 
@@ -466,7 +473,16 @@ onMounted(async () => {
                     <el-skeleton :rows="2" v-if="isLoading_skeleton" class="mt-16px" />
                     <div v-if="isLoading_skeleton === false" class="flex mt-16px">
                       <sapn class="info-item">Occupied EVSE ID</sapn>
-                      <p class="line-height-32px">{{ userData.evse_list_id }}</p>
+                      <p v-if="userData.evse_list_id_detail === ''" class="line-height-32px">{{ userData.evse_list_id }}</p>
+                      <el-tooltip v-else placement="bottom-start">
+                        <template #content>
+                          <div v-html="userData.evse_list_id_detail"></div>
+                          <!-- <div class="max-h-300px overflow-y-auto w-200px text-16px line-height-32px"> {{ userData.evse_list_id_detail }} </div> -->
+                        </template>
+                        <el-button class="overflow-hidden border-0 evse-tooltip-btn">
+                          <span class="font-400 text-16px line-height-32px text-black-200"> {{ userData.evse_list_id }} </span>
+                        </el-button>
+                      </el-tooltip>
                       <el-button 
                         v-if="company === 'MSI'" 
                         round

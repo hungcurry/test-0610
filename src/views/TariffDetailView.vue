@@ -19,11 +19,11 @@ const isCalendarMounted = ref(false)
 const chargingCalendarRef = ref()
 const parkingCalendarRef = ref()
 const tariffObj = reactive([])
+const multiTime = reactive([])
 const charging_bgColor = '#61a8d8'
 const parking_bgColor = '#94eadb'
 
-let unexpectedCloseDialog = false
-let tempEvent = undefined
+let eventCount = 1
 let pressCloseIcon = false  // for Calendar close button
 const removeCalendarEvent = () => {
   pressCloseIcon = true
@@ -73,19 +73,12 @@ const handleTabClick = (tab) => {
   }
 }
 const openDialog = () => {
-  unexpectedCloseDialog = true
   if (activeName.value === 'four') {
     new_element.value.price_type = 'PARKING_TIME'
   }
 }
 const closeDialog = () => {
-  if (unexpectedCloseDialog === true) {
-    if (element_action.value === 'add' && tempEvent !== undefined) {
-      tempEvent.remove()
-      tempEvent = undefined
-    }
-    unexpectedCloseDialog = false
-  }
+  fillFullCalendar()
 }
 
 const fillFullCalendar = () => {
@@ -183,6 +176,27 @@ const handleEventCreate = (selectInfo) => {
   let endDay = new Date(selectInfo.end).getDay()
   let startTime = moment(new Date(selectInfo.start)).format("HH:mm")
   let endTime = moment(new Date(selectInfo.end)).format("HH:mm")
+  let startTimeStr = selectInfo.startStr 
+  let endTimeStr = selectInfo.endStr
+
+  let firstDayCount = 1
+  let continueDayCount = 0
+  let lastDayCount = 0
+
+  let firstStartTimeStr = ''
+  let firstEndTimeStr = ''
+  let secondStartTimeStr = ''
+  let secondEndTimeStr = ''
+  let thirdStartTimeStr = ''
+  let thirdEndTimeStr = ''
+
+  eventCount = 1
+  // calendarApi.unselect() // clear date selection
+  calendarApi.addEvent({
+    title: 'test',
+    start: startTimeStr,
+    end: endTimeStr,
+  })
 
   // Set Sunday number as 7 
   if (startDay === 0) startDay = 7
@@ -194,23 +208,115 @@ const handleEventCreate = (selectInfo) => {
     endDay === 1? endDay = 7 : endDay-=1
   }
 
-  // e.g. Mon 18:00 ~ Tue 06:00 -> Mon 18:00 ~ Tue 23:59
-  if (startTime >= endTime) {
-    endTime = '23:59'
+  // set eventCount = 1 / 2 / 3, and firstDayCount / continueDayCount / lastDayCount
+  if (startDay !== endDay) {
+    if (startTime === '00:00' && endTime === '23:59') {
+      eventCount = 1
+      firstDayCount = endDay-startDay + 1
+    }
+    else if (startTime === '00:00' || endTime === '23:59' || (endDay-startDay) === 1){
+      eventCount = 2
+      if (startTime === '00:00') {
+        firstDayCount = endDay-startDay
+        lastDayCount = 1
+      }
+      else {
+        firstDayCount = 1
+        lastDayCount = endDay-startDay
+      }
+    }
+    else {
+      eventCount = 3
+      firstDayCount = 1
+      continueDayCount = endDay-startDay - 1
+      lastDayCount = 1
+    }
   }
-  // else if (startTime === endTime) {
-  //   ElMessage({ type: 'error', message: "The start time can't overlap with the end time" })
-  //   calendarApi.unselect()
-  //   return
-  // }
 
-  // calendarApi.unselect() // clear date selection
-  tempEvent = calendarApi.addEvent({
-    title: 'test',
-    start: selectInfo.startStr,
-    end: selectInfo.endStr,
-  })
-  
+  for (let i=0; i<eventCount; i++) {
+    let timeZone = selectInfo.startStr.split("+")[1]
+
+    // First event, set new_element
+    if (i === 0) {
+      if (eventCount !== 1) {
+        if (firstDayCount === 1) {  // set endTimeStr as the next day of startStr, and endTime is 00:00
+          let date = new Date(selectInfo.startStr)
+          let nextTime = date.getTime() + 24*60*60*1000
+          let tempTime = new Date(nextTime).toLocaleString()
+          let nextDate = tempTime.replaceAll('/', '-').split(' ')[0]
+          
+          firstStartTimeStr = selectInfo.startStr
+          firstEndTimeStr = endTimeStr = nextDate + 'T00:00:00' + timeZone
+        }
+        else {    // set endTimeStr as the next day of endStr, and endTime is 00:00
+          let date = new Date(selectInfo.endStr)
+          let nextTime = date.getTime() + 24*60*60*1000
+          let tempTime = new Date(nextTime).toLocaleString()
+          let nextDate = tempTime.replaceAll('/', '-').split(' ')[0]
+          
+          firstStartTimeStr = selectInfo.startStr
+          firstEndTimeStr = endTimeStr = nextDate + 'T00:00:00' + timeZone
+        }
+        startTime = moment(new Date(selectInfo.start)).format("HH:mm")
+        endTime = '23:59'
+      }
+      new_element.value.start_time = startTime
+      new_element.value.end_time = endTime
+      new_element.value.day_of_week = []
+      for (let j=0; j<firstDayCount; j++) {
+        let day = startDay + j
+        if (day === 1) new_element.value.day_of_week.push('MONDAY')
+        if (day === 2) new_element.value.day_of_week.push('TUESDAY')
+        if (day === 3) new_element.value.day_of_week.push('WEDNESDAY')
+        if (day === 4) new_element.value.day_of_week.push('THURSDAY')
+        if (day === 5) new_element.value.day_of_week.push('FRIDAY')
+        if (day === 6) new_element.value.day_of_week.push('SATURDAY')
+        if (day === 7) new_element.value.day_of_week.push('SUNDAY')
+      }
+    }
+    // Continue event, set multiTime
+    else if (i !== eventCount-1) {
+      secondStartTimeStr = startTimeStr = firstEndTimeStr
+      secondEndTimeStr = endTimeStr = selectInfo.endStr.split("T")[0] + 'T00:00:00' + timeZone
+      startTime = '00:00'
+      endTime = '23:59'
+      multiTime[i-1] = []
+      multiTime[i-1].start_time = startTime
+      multiTime[i-1].end_time = endTime
+      multiTime[i-1].day_of_week = []
+      for (let j=0; j<continueDayCount; j++) {
+        let day = startDay + firstDayCount + j
+        if (day === 1) multiTime[i-1].day_of_week.push('MONDAY')
+        if (day === 2) multiTime[i-1].day_of_week.push('TUESDAY')
+        if (day === 3) multiTime[i-1].day_of_week.push('WEDNESDAY')
+        if (day === 4) multiTime[i-1].day_of_week.push('THURSDAY')
+        if (day === 5) multiTime[i-1].day_of_week.push('FRIDAY')
+        if (day === 6) multiTime[i-1].day_of_week.push('SATURDAY')
+        if (day === 7) multiTime[i-1].day_of_week.push('SUNDAY')
+      }
+    }
+    // Last event, set multiTime
+    else {
+      thirdStartTimeStr = startTimeStr = secondEndTimeStr
+      thirdEndTimeStr = endTimeStr = selectInfo.endStr
+      startTime = '00:00'
+      endTime = moment(new Date(selectInfo.end)).format("HH:mm")
+      multiTime[i-1] = []
+      multiTime[i-1].start_time = startTime
+      multiTime[i-1].end_time = endTime
+      multiTime[i-1].day_of_week = []
+      for (let j=0; j<lastDayCount; j++) {
+        let day = startDay + firstDayCount + continueDayCount + j
+        if (day === 1) multiTime[i-1].day_of_week.push('MONDAY')
+        if (day === 2) multiTime[i-1].day_of_week.push('TUESDAY')
+        if (day === 3) multiTime[i-1].day_of_week.push('WEDNESDAY')
+        if (day === 4) multiTime[i-1].day_of_week.push('THURSDAY')
+        if (day === 5) multiTime[i-1].day_of_week.push('FRIDAY')
+        if (day === 6) multiTime[i-1].day_of_week.push('SATURDAY')
+        if (day === 7) multiTime[i-1].day_of_week.push('SUNDAY')
+      }
+    }
+  }
   add_tariff_visible.value = true
   element_action.value = 'add'
   add_tariff_title.value = 'Add Rate'
@@ -220,23 +326,8 @@ const handleEventCreate = (selectInfo) => {
   new_element.value.step_size = new_element.value.step_size_str = 1
   new_element.value.min_duration = new_element.value.max_duration = 0
   new_element.value.min_duration_str = new_element.value.max_duration_str =  0
-  new_element.value.start_time = startTime
-  new_element.value.end_time = endTime
-
-  new_element.value.day_of_week = []
-  for (let i=0; i<=(endDay-startDay); i++) {
-    let day = startDay + i
-    if (day === 1) new_element.value.day_of_week.push('MONDAY')
-    if (day === 2) new_element.value.day_of_week.push('TUESDAY')
-    if (day === 3) new_element.value.day_of_week.push('WEDNESDAY')
-    if (day === 4) new_element.value.day_of_week.push('THURSDAY')
-    if (day === 5) new_element.value.day_of_week.push('FRIDAY')
-    if (day === 6) new_element.value.day_of_week.push('SATURDAY')
-    if (day === 7) new_element.value.day_of_week.push('SUNDAY')
-  }
 }
 const handleEventEdit = (clickInfo) => {
-  tempEvent = clickInfo
   add_tariff_visible.value = true
   element_action.value = 'edit'
   add_tariff_title.value = 'Edit Rate'
@@ -340,7 +431,8 @@ const chargingCalendarOptions = reactive({
   initialView: 'timeGridWeek',
   editable: false,
   selectMirror: true,
-  selectable: false,  // true
+  selectable: true,
+  selectOverlap: false,
   allDaySlot: false,
   firstDay: 1,
   headerToolbar: false,
@@ -367,7 +459,7 @@ const chargingCalendarOptions = reactive({
   eventColor: '#fff',
   eventTextColor: '#000',
   eventClick: handleEventClick,
-  // select: handleEventCreate,
+  select: handleEventCreate,
   eventContent: handleEventContent,
   eventMouseEnter: handleEventMouseEnter,
   // editable: true,
@@ -380,7 +472,8 @@ const parkingCalendarOptions = reactive({
   initialView: 'timeGridWeek',
   editable: false,
   selectMirror: true,
-  selectable: false,   // true
+  selectable: true,
+  selectOverlap: false,
   allDaySlot: false,
   firstDay: 1,
   headerToolbar: false,
@@ -407,7 +500,7 @@ const parkingCalendarOptions = reactive({
   eventColor: '#fff',
   eventTextColor: '#000',
   eventClick: handleEventClick,
-  // select: handleEventCreate,
+  select: handleEventCreate,
   eventContent: handleEventContent,
   eventMouseEnter: handleEventMouseEnter,
 })
@@ -653,7 +746,6 @@ const ShowEditElementDialog = (scope) => {
 }
 
 const editElement = (action) => {
-  unexpectedCloseDialog = false
   if (new_element.value.end_time === '00:00')
     new_element.value.end_time = '23:59'
   let tempArr = []
@@ -682,29 +774,45 @@ const editElement = (action) => {
                                             }
                                           }
   if (action === 'add') {
-    let element = JSON.parse(JSON.stringify(modify_element))
-    if (element.price_components[0].type === "ENERGY") {
-      element.price_components_type_str = 'Charging By Energy'
-      element.price_components_step_size_str = 1 
-      element.price_components[0].step_size = 1 
+    for (let i=0; i<eventCount; i++) {
+      if (i !== 0) {
+        tempArr = []
+        for(let j = 0; j < multiTime[i-1].day_of_week.length; j++) {
+          tempArr.push(multiTime[i-1].day_of_week[j])
+        }
+        modify_element = {
+          price_components:[{ type:new_element.value.price_type, price:new_element.value.price_price,
+            step_size:new_element.value.step_size, vat:new_element.value.vat} ],
+          restrictions:{ min_duration:new_element.value.min_duration, max_duration:new_element.value.max_duration,
+            start_time:multiTime[i-1].start_time, end_time:multiTime[i-1].end_time, day_of_week:tempArr
+          }
+        }
+      }
+    
+      let element = JSON.parse(JSON.stringify(modify_element))
+      if (element.price_components[0].type === "ENERGY") {
+        element.price_components_type_str = 'Charging By Energy'
+        element.price_components_step_size_str = 1 
+        element.price_components[0].step_size = 1 
+      }
+      else if (element.price_components[0].type === "TIME") {
+        element.price_components_type_str = 'Charging By Time'
+        element.price_components_step_size_str = new_element.value.step_size / 60
+      }
+      else if (element.price_components[0].type === "PARKING_TIME") {
+        element.price_components_type_str = 'Parking By Time'
+        element.price_components_step_size_str = new_element.value.step_size / 60
+        element.restrictions_min_duration_str = new_element.value.min_duration / 60
+        element.restrictions_max_duration_str = new_element.value.max_duration / 60
+      }
+      else if (element.price_components[0].type === '') {   // Invalid data, don't push to tariff_elements
+        add_tariff_visible.value = false
+        eventCount = 1
+        return
+      }
+      tariff_elements.push(element)
     }
-    else if (element.price_components[0].type === "TIME") {
-      element.price_components_type_str = 'Charging By Time'
-      element.price_components_step_size_str = new_element.value.step_size / 60
-    }
-    else if (element.price_components[0].type === "PARKING_TIME") {
-      element.price_components_type_str = 'Parking By Time'
-      element.price_components_step_size_str = new_element.value.step_size / 60
-      element.restrictions_min_duration_str = new_element.value.min_duration / 60
-      element.restrictions_max_duration_str = new_element.value.max_duration / 60
-    }
-    else if (element.price_components[0].type === '') {   // Invalid data, don't push to tariff_elements
-      add_tariff_visible.value = false
-      fillFullCalendar()
-      return
-    }
-    tariff_elements.push(element)
-    fillFullCalendar()
+    eventCount = 1
   }
   else if (action === 'edit') {
     tariff_elements[modifyIndex.value] = modify_element
@@ -723,22 +831,9 @@ const editElement = (action) => {
       tariff_elements[modifyIndex.value].restrictions_min_duration_str = modify_element.restrictions.min_duration / 60
       tariff_elements[modifyIndex.value].restrictions_max_duration_str = modify_element.restrictions.max_duration / 60
     }
-    fillFullCalendar()
   }
   else if (action === 'delete') {
     tariff_elements.splice(modifyIndex.value, 1)
-
-    if (tempEvent !== undefined) {
-      tempEvent.event.remove()
-      tempEvent = undefined
-      fillFullCalendar()
-    }
-  }
-  else if (action === 'cancel') {
-    if (element_action.value === 'add' && tempEvent !== undefined) {
-      tempEvent.remove()
-      tempEvent = undefined
-    }
   }
   add_tariff_visible.value = false
 }
@@ -753,7 +848,6 @@ const status_filter = (value, rowData) => {
   return rowData.status === value
 }
 const goToEvseDetail = async(detail) => {
-  console.log(detail)
   let queryData = {
     database: 'OCPI',
     collection: 'Location',
@@ -1200,21 +1294,43 @@ onMounted(async () => {
 
             <div class="v-line1 mt-12px mb-12px"></div>
 
-            <el-form-item class="time-select mb-24px" label="Time">
-              <div class="flex justify-between flex-items-center w-full">
-                <el-time-select v-model="new_element.start_time" :max-time="new_element.end_time" placeholder="Start time" class="w-220px"
-              start="00:00" step="00:30" end="24:00" />
-                <div class="time-line"></div>
-                <el-time-select v-model="new_element.end_time" :min-time="new_element.start_time" placeholder="End time" class="w-220px"
-                start="00:00" step="00:30" end="24:00" />
+            <div v-for="(item, index) in eventCount">
+              <div v-if="index === 0">
+                <el-form-item class="time-select mb-24px" label="Time">
+                  <div class="flex justify-between flex-items-center w-full">
+                    <el-time-select v-model="new_element.start_time" :max-time="new_element.end_time" placeholder="Start time" class="w-220px"
+                  start="00:00" step="00:30" end="24:00" />
+                    <div class="time-line"></div>
+                    <el-time-select v-model="new_element.end_time" :min-time="new_element.start_time" placeholder="End time" class="w-220px"
+                    start="00:00" step="00:30" end="24:00" />
+                  </div>
+                </el-form-item>
+                <el-form-item class="time-select mb-24px" label="Applied Day of Week">
+                  <el-checkbox-group v-model="new_element.day_of_week" size="large" class="w-full flex justify-between" fill="#414c58">
+                    <el-checkbox-button v-for="week in day" :key="week.value" :label="week.value" class="week-btn"> {{ week.label }}
+                    </el-checkbox-button>
+                  </el-checkbox-group>
+                </el-form-item>
               </div>
-            </el-form-item>
-            <el-form-item class="time-select mb-24px" label="Applied Day of Week">
-              <el-checkbox-group v-model="new_element.day_of_week" size="large" class="w-full flex justify-between" fill="#414c58">
-                <el-checkbox-button v-for="week in day" :key="week.value" :label="week.value" class="week-btn"> {{ week.label }}
-                </el-checkbox-button>
-              </el-checkbox-group>
-            </el-form-item>
+              <div v-else>
+                <div class="v-line2"></div>
+                <el-form-item class="time-select mb-24px" label="Time">
+                  <div class="flex justify-between flex-items-center w-full">
+                    <el-time-select v-model="multiTime[index-1].start_time" :max-time="multiTime[index-1].end_time" placeholder="Start time" class="w-220px"
+                  start="00:00" step="00:30" end="24:00" />
+                    <div class="time-line"></div>
+                    <el-time-select v-model="multiTime[index-1].end_time" :min-time="multiTime[index-1].start_time" placeholder="End time" class="w-220px"
+                    start="00:00" step="00:30" end="24:00" />
+                  </div>
+                </el-form-item>
+                <el-form-item class="time-select mb-24px" label="Applied Day of Week">
+                  <el-checkbox-group v-model="multiTime[index-1].day_of_week" size="large" class="w-full flex justify-between" fill="#414c58">
+                    <el-checkbox-button v-for="week in day" :key="week.value" :label="week.value" class="week-btn"> {{ week.label }}
+                    </el-checkbox-button>
+                  </el-checkbox-group>
+                </el-form-item>
+              </div>
+            </div>
 
             <div class="v-line1 mt-12px mb-12px"></div>
 
@@ -1338,6 +1454,9 @@ onMounted(async () => {
     margin-top: 24px;
     border-top: thick solid rgb(226, 234, 242);
     height: 10px;
+  }
+  .v-line2 {
+    border-top: thick solid rgb(241, 241, 241);
   }
   .add-lang-button {
     width: 15rem;
