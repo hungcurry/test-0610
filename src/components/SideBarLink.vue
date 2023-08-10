@@ -12,8 +12,11 @@ import {
   UserFilled,
   InfoFilled,
   EditPen,
+  Edit,
   View,
 } from '@element-plus/icons-vue'
+import { useI18n } from "vue-i18n"
+const { t } = useI18n()
 const MStore = useMStore()
 const company = MStore?.permission?.company?.name
 const user = MStore?.permission?.user?.name
@@ -55,78 +58,87 @@ onMounted(async () => {
     <el-menu-item index="dashboard">
       <el-icon class="opacity-70"><icon-menu /></el-icon>
       <template #title>
-        <span>Dashboard</span>
+        <span> {{t('dashboard')}}</span>
       </template>
     </el-menu-item>
     <el-menu-item v-if="user === 'AdminUser' || user === undefined" index="payment">
       <el-icon class="opacity-50"><Postcard /></el-icon>
       <template #title>
-        <span>Payment</span>
+        <span>{{t('payment')}}</span>
       </template>
     </el-menu-item>
 
     <el-sub-menu index="station">
       <template #title>
         <el-icon class="opacity-70"><Location /></el-icon>
-        <span>EVSE Management</span>
+        <span>{{t('evse_management')}}</span>
       </template>
       <el-menu-item class="collapse" index="station" :route="{ path: 'station' }"
-        >By Station</el-menu-item
+        >{{t('by_station')}}</el-menu-item
       >
-      <el-menu-item class="collapse" index="evse">By EVSE</el-menu-item>
-      <el-menu-item class="collapse" index="rate-plan">Rate Plan</el-menu-item>
+      <el-menu-item class="collapse" index="evse">{{t('by_evse')}}</el-menu-item>
+      <el-menu-item class="collapse" index="rate-plan">{{t('rate_plan')}}</el-menu-item>
     </el-sub-menu>
 
     <el-sub-menu index="administrator">
       <template #title>
         <el-icon class="opacity-50"><UserFilled /></el-icon>
-        <span>Account Management</span>
+        <span>{{t('account_management')}}</span>
       </template>
-      <el-menu-item class="collapse" index="user">RFID User / App Member</el-menu-item>
+      <el-menu-item class="collapse" index="user">{{t('rfid_user_app_member')}}</el-menu-item>
       <el-menu-item class="collapse" v-if="company === 'MSI'" index="company"
-        >Company / CPO</el-menu-item
+        >{{t('company_cpo')}}</el-menu-item
       >
       <el-menu-item class="collapse" index="administrator">
-        m-Cloud Administrator</el-menu-item
+        {{t('m_cloud_administrator')}}</el-menu-item
       >
     </el-sub-menu>
 
     <el-sub-menu index="evse-log">
       <template #title>
         <el-icon class="opacity-70"><Calendar /></el-icon>
-        <span>Log Monitor</span>
+        <span>{{t('log_monitor')}}</span>
       </template>
-      <el-menu-item class="collapse" index="evse-log">EVSE Log</el-menu-item>
-      <el-menu-item class="collapse" index="ocpp-error"> Error Log </el-menu-item>
+      <el-menu-item class="collapse" index="evse-log">{{t('evse_log')}}</el-menu-item>
+      <el-menu-item class="collapse" index="ocpp-error">{{t('error_log')}}</el-menu-item>
     </el-sub-menu>
 
     <el-menu-item index="software-info">
       <el-icon class="opacity-50"><InfoFilled /></el-icon>
       <template #title>
-        <span>Software Info</span>
+        <span>{{t('softwart_info')}}</span>
       </template>
     </el-menu-item>
 
     <el-menu-item v-if="company === 'MSI'" index="parking">
       <el-icon class="opacity-70"><View /></el-icon>
       <template #title>
-        <span>Parking</span>
+        <span>{{t('parking')}}</span>
       </template>
     </el-menu-item>
 
-    <!-- <el-menu-item v-if="dev_member" index="test">
-      <el-icon><Timer /></el-icon>
-      <template #title>
-        <span>Test</span>
-      </template>
-    </el-menu-item> -->
 
     <el-menu-item v-if="company === 'MSI'" index="program">
       <el-icon class="opacity-70"><EditPen /></el-icon>
       <template #title>
-        <span>Program</span>
+        <span>{{t('program')}}</span>
       </template>
     </el-menu-item>
+
+    <el-menu-item v-if="dev_member" index="charging-profile">
+      <el-icon class="opacity-70"><Edit /></el-icon>
+      <template #title>
+        <span>{{t('charging_profile')}}</span>
+      </template>
+    </el-menu-item>
+
+    <el-menu-item v-if="dev_member" index="test">
+      <el-icon><Timer /></el-icon>
+      <template #title>
+        <span>Test</span>
+      </template>
+    </el-menu-item>
+    
   </el-menu>
 </template>
 

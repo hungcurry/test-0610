@@ -852,7 +852,7 @@ onMounted(async () => {
             >
               <div>
                 <p class="value">{{ ev_life }}</p>
-                <p class="title">EV-Life</p>
+                <p class="title">EV Life</p>
               </div>
               <div>
                 <p class="value">{{ rfid }}</p>

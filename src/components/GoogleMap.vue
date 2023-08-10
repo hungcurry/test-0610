@@ -5,7 +5,9 @@ import { useRouter } from 'vue-router'
 import { GoogleMap, Marker, MarkerCluster, InfoWindow } from 'vue3-google-map'
 import { storeToRefs } from 'pinia'
 import { useGoogleStore } from '@/stores/googleMap'
+import { useI18n } from "vue-i18n"
 
+const { t } = useI18n()
 const props = defineProps({
   LocationData: {
     type: Array,
@@ -141,7 +143,7 @@ onUnmounted(() => {
       </div>
       <div class="scrollbar flex-grow overflow-x-auto mb-10px md:px-12px">
         <div class="flex-col mb-60px">
-          <div class="mt-0px px-6px">
+          <div class="mt-0px px-6px" v-if="SideBarInfo.type1_total > 0">
             <div class="flex items-center">
               <img
                 class="w-30px h-30px mr-10px"
@@ -149,31 +151,32 @@ onUnmounted(() => {
                 alt=""
               />
               <span class="text-white text-16px md:text-22px line-height-40px">{{
-                'Type 1 (J1772) (' + SideBarInfo.state_total_str + ')'
+                'Type 1 (J1772) (' + SideBarInfo.type1_total + ')'
               }}</span>
             </div>
+
             <div class="w-full pl-40px">
               <p class="available text-18px mt-16px">
-                <span class="mr-10px">●</span> Available ({{
-                  SideBarInfo.state_available_str
+                <span class="mr-10px">●</span> {{ t('available') }} ({{
+                  SideBarInfo.type1_available_str
                 }})
               </p>
               <p class="charging text-18px mt-16px">
-                <span class="mr-10px">●</span> Charging ({{
-                  SideBarInfo.state_charging_str
+                <span class="mr-10px">●</span> {{ t('charging') }} ({{
+                  SideBarInfo.type1_charging_str
                 }})
               </p>
               <p class="offline text-18px mt-16px">
-                <span class="mr-10px">●</span> Offline ({{
-                  SideBarInfo.state_unknown_str
+                <span class="mr-10px">●</span> {{ t('offline') }} ({{
+                  SideBarInfo.type1_offline_str
                 }})
               </p>
               <p class="error text-18px mt-16px">
-                <span class="mr-10px">●</span> Error ({{ SideBarInfo.state_error_str }})
+                <span class="mr-10px">●</span> {{ t('error') }} ({{ SideBarInfo.type1_error_str }})
               </p>
             </div>
           </div>
-          <!-- <div class="mt-16px px-6px">
+          <div class="mt-16px px-6px"  v-if="SideBarInfo.type2_total > 0">
             <div class="flex items-center">
               <img
                 class="w-30px h-30px mr-10px"
@@ -181,30 +184,64 @@ onUnmounted(() => {
                 alt=""
               />
               <span class="text-white text-16px md:text-22px line-height-40px">{{
-                'Type 2 (Mennekes) (' + SideBarInfo.state_total_str + ')'
+                'Type 2 (Mennekes) (' + SideBarInfo.type2_total + ')'
               }}</span>
             </div>
             <div class="w-full pl-40px">
               <p class="available text-18px mt-16px">
-                <span class="mr-10px">●</span> Available ({{
-                  SideBarInfo.state_available_str
+                <span class="mr-10px">●</span> {{ t('available') }} ({{
+                  SideBarInfo.type2_available_str
                 }})
               </p>
               <p class="charging text-18px mt-16px">
-                <span class="mr-10px">●</span> Charging ({{
-                  SideBarInfo.state_charging_str
+                <span class="mr-10px">●</span> {{ t('charging') }} ({{
+                  SideBarInfo.type2_charging_str
                 }})
               </p>
               <p class="offline text-18px mt-16px">
-                <span class="mr-10px">●</span> Offline ({{
-                  SideBarInfo.state_unknown_str
+                <span class="mr-10px">●</span> {{ t('offline') }} ({{
+                  SideBarInfo.type2_offline_str
                 }})
               </p>
               <p class="error text-18px mt-16px">
-                <span class="mr-10px">●</span> Error ({{ SideBarInfo.state_error_str }})
+                <span class="mr-10px">●</span> {{ t('error') }} ({{ SideBarInfo.type2_error_str }})
               </p>
             </div>
-          </div> -->
+          </div>
+
+          <div class="mt-16px px-6px" v-if="SideBarInfo.others_total > 0">
+            <div class="flex items-center">
+              <img
+                class="w-30px h-30px mr-10px"
+                src="@/assets/img/station_type_J1772.png"
+                alt=""
+              />
+              <span class="text-white text-16px md:text-22px line-height-40px">{{
+                'Others (' + SideBarInfo.others_total + ')'
+              }}</span>
+            </div>
+            <div class="w-full pl-40px">
+              <p class="available text-18px mt-16px">
+                <span class="mr-10px">●</span> {{ t('available') }} ({{
+                  SideBarInfo.others_available_str
+                }})
+              </p>
+              <p class="charging text-18px mt-16px">
+                <span class="mr-10px">●</span> {{ t('charging') }} ({{
+                  SideBarInfo.others_charging_str
+                }})
+              </p>
+              <p class="offline text-18px mt-16px">
+                <span class="mr-10px">●</span> {{ t('offline') }} ({{
+                  SideBarInfo.others_offline_str
+                }})
+              </p>
+              <p class="error text-18px mt-16px">
+                <span class="mr-10px">●</span> {{ t('error') }} ({{ SideBarInfo.others_error_str }})
+              </p>
+            </div>
+          </div>
+
         </div>
       </div>
       <div class="footer-button mb-5px md:mb-60px">

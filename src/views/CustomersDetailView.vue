@@ -737,7 +737,7 @@ onMounted(async () => {
             <el-form-item label="Last Name">
               <el-input v-model="userDataMod.last_name" />
             </el-form-item>
-            <el-form-item label="E-Mail">
+            <el-form-item label="E-mail">
               <el-input v-model="userDataMod.email" disabled/>
             </el-form-item>
             <el-form-item label="Phone">

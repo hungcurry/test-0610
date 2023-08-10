@@ -1,14 +1,39 @@
 export default
 {
     //common
+    forgot_password : 'Forgot Password',
+
+    // header
+    log_out : 'Log Out',
+    reset_password : 'Reset Password',
+    admin_info : 'Admin Info',
+
+    //login 
     m_cloud : "m-Cloud",
     account : "Account",
     password : "Password",
-    forgot_password : 'Forgot Password',
-    //login
     log_in : 'Log in',
     version : 'Version',
     oops_account_or_password_error : 'Oops! "Account or Password" is Error.',
+
+    // sidebar 
+    dashboard : 'Dashboard',
+    payment : 'Payment',
+    evse_management: 'EVSE Management',
+    by_station: 'By Station',
+    by_evse: 'By EVSE',
+    rate_plan: 'Rate Plan',
+    account_management: 'Account Management',
+    rfid_user_app_member : 'RFID User / App Member',
+    company_cpo : 'Company / CPO',
+    m_cloud_administrator : 'm-Cloud Administrator',
+    log_monitor : 'Log Monitor',
+    evse_log : 'EVSE Log',
+    error_log : 'Error Log',
+    softwart_info : 'Software Info',
+    parking : 'Parking',
+    program : 'Program',
+    charging_profile : 'Charging Profile',
 
     //dashboard
     real_time_status : 'Real Time Status',
@@ -46,11 +71,41 @@ export default
     available:'Available',
     charging:'Charging',
     offline:'Offline',
-    error:'Error'
+    error:'Error',
 
     //payment
+    download : 'Download',
+    // parking : 'Parking',
+    // charging : 'Charging',
+    station : 'Station',
+ 
+    name : 'Name',
+    evse_id : 'EVSE ID',
+    used_time : 'Used Time',
+    price : 'Price',
+    license_plate : 'License Plate',
+    // used_time : 'Used Time',
+    // kwh : 'kWh',
+    // price : 'Price',
+    final_paid : 'Final Paid',
+    method : 'Method',
+    created_date: 'Created Date',
+
+
+
     //station
-    // station detail 
+    // hotel: 'Hotel',
+    // restaurant: 'Restaurant',
+    // mall: 'Mall',
+    // super_market: 'Super Market',
+    // parking_log:'Parking Lot',
+    // others:'Others',
+    true:'True',
+    false:'False',
+    list_mode : 'List Mode',
+    map_mode : 'Map Mode',
+    add_station : 'Add Station'
+
     // station edit 
     // evse 
     // evse detail 
@@ -69,7 +124,8 @@ export default
     // admin info 
     
 
-    // {{ $t('') }}
+
+
 
 
 }

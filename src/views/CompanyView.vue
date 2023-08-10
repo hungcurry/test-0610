@@ -74,6 +74,10 @@ const editCompany = async (action) => {
   let check_format_success = true
   const regex = /^[0-9a-zA-Z-]+$/
 
+  if (action === 'cancel') {
+    CompanyFormVisible.value = false
+    return
+  }
   if (regex.test(companyData.tax_id) === false) {
     check_format_success = false
     ElMessage.error('Oops, Tax ID format error.')
@@ -157,9 +161,23 @@ const MongoQurey = async (queryData) => {
   let response = await MsiApi.mongoQuery(queryData)
   UserData.length = 0
   Object.assign(UserData, response.data.all)
+
+  let ProgramData = []
+  queryData = { database: 'CPO', collection: 'LimitPlan', query: {} }
+  let res = await MsiApi.mongoQuery(queryData)
+  if (res.status === 200) {
+    Object.assign(ProgramData, res.data.all)
+  } else {
+    ElMessage.error(res.data.message)
+  }
   for (let i = 0; i < UserData.length; i++) { 
     let localEndTime =  new Date( (new Date(UserData[i].updated_date).getTime()) + ((MStore.timeZoneOffset ) * -60000))
     UserData[i].updated_date_str = (moment(localEndTime).format("YYYY-MM-DD HH:mm:ss"))
+    for (let j = 0; j < ProgramData.length; j++ )
+      if (UserData[i]?.upgrade_manager?.subscribe?.due_plan === ProgramData[j]._id) {
+        UserData[i].subscribe_str = ProgramData[j].name
+        break
+      }
   }
   isLoading.value = false
   return response
@@ -239,6 +257,14 @@ onMounted( async() => {
             <el-table-column
               prop="tax_id"
               label="Tax ID"
+              align="center"
+              sortable
+              :sort-method="(a, b) => sortFunc(a, b, 'tax_id')"
+              min-width="150"
+            />
+            <el-table-column
+              prop="subscribe_str"
+              label="Subscribe"
               align="center"
               sortable
               :sort-method="(a, b) => sortFunc(a, b, 'tax_id')"

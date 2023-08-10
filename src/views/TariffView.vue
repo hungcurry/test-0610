@@ -104,7 +104,7 @@ const copyTariff = (row) => {
       TariffData[i].tariff_name = TariffData[i].energy_mix?.supplier_name
     }
 
-    ElMessage.error(res.data.message)
+    ElMessage.success(res.data.message)
   }
   })
   .catch((e)=>{

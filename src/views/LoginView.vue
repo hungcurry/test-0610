@@ -15,7 +15,7 @@ const router = useRouter()
 const pw_type = ref('password')
 const account = ref('')
 const password = ref('')
-const m_cloud_version = ref('0.1.9')
+const m_cloud_version = ref('0.1.11')
 const pwVisible = () => {
   if (pw_type.value === 'password') pw_type.value = 'text'
   else pw_type.value = 'password'

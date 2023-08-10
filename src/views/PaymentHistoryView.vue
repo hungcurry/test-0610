@@ -6,7 +6,9 @@ import moment from 'moment'
 import { ref, reactive, onMounted } from 'vue'
 import { export_json_to_excel } from '@/composables/Export2Excel'
 import { useMStore } from '../stores/m_cloud'
+import { useI18n } from "vue-i18n"
 
+const { t } = useI18n()
 const MStore = useMStore()
 const MsiApi = ApiFunc()
 const PaymentData = reactive([])
@@ -15,16 +17,14 @@ const isLoading = ref(false)
 const parking_visible = ref(true)
 const charging_visible = ref(true)
 
-const defaultTime = ref([
-  new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0),
-  new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59),
-])
-const defaultTime2 = [new Date(2000, 1, 1, 0, 0, 0), new Date(2000, 2, 1, 23, 59, 59)]
+const selectTime = ref([new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0),
+      new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59)])
+const defaultTime = [new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0),
+      new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59)]
 const filters = [
   { text: 'Credit Card', value: 'CREDIT' },
   { text: 'RFID', value: 'RFID' },
   { text: 'Free', value: 'FREE' },
-  // { text: 'APPLE PAY', value: 'APPLEPAY' },
   { text: 'Google Pay', value: 'GOOGLEPAY' },
   { text: 'Samsung Pay', value: 'SAMSUNGPAY' },
 ]
@@ -65,30 +65,34 @@ const filterTag = (value, rowData) => {
 }
 
 const select_date = async () => {
-  let queryData = {
-    database: 'CPO',
-    collection: 'PaymentHistory',
-    query: {
-      $expr: {
-        $and: [
-          {
-            $gte: [
-              '$created_date',
-              { $dateFromString: { dateString: defaultTime.value[0] } },
-            ],
+  const queryData = {
+      database: 'CPO',
+      collection: 'PaymentHistory',
+      pipelines: [
+        {
+          $match: {
+            $expr: {
+              $and: [
+                {
+                  $gte: [
+                    '$created_date',
+                    { $dateFromString: { dateString: selectTime.value[0]  } },
+                  ],
+                },
+                {
+                  $lte: [
+                    '$created_date',
+                    { $dateFromString: { dateString: selectTime.value[1]  } },
+                  ],
+                },
+              ],
+            },
           },
-          {
-            $lte: [
-              '$created_date',
-              { $dateFromString: { dateString: defaultTime.value[1] } },
-            ],
-          },
-        ],
-      },
-    },
-  }
-  const response = await MongoQurey(queryData)
-  console.log(response)
+        },
+        { $project: { _id: 0, sessionId: 0, location: 0, detail: 0, locationId: 0} },
+      ],
+    }
+  await MongoQurey(queryData)
 }
 
 const sortFunc = (obj1, obj2, column) => {
@@ -124,82 +128,81 @@ const sortFunc = (obj1, obj2, column) => {
 
 const MongoQurey = async (queryData) => {
   isLoading.value = true
-  const response = await MsiApi.mongoQuery(queryData)
-
+  const res =  await MsiApi.mongoAggregate(queryData)
   PaymentData.length = 0
-  Object.assign(PaymentData, response.data.all)
-  
-  for (let i = 0; i < PaymentData.length; i++) {
-    PaymentData[i].paymethod_str = PaymentData[i]?.paymethod?.method
-    if (PaymentData[i]?.paymethod?.method === 'GOOGLEPAY')
-      PaymentData[i].paymethod_str = 'Google Pay'
-    else if (PaymentData[i]?.paymethod?.method === 'FREE')
-      PaymentData[i].paymethod_str = 'Free'
-    else if (PaymentData[i]?.paymethod?.method === 'SAMSUNGPAY')
-      PaymentData[i].paymethod_str = 'Samsung Pay'
-    else if (PaymentData[i]?.paymethod?.method === 'CREDIT')
-    PaymentData[i].paymethod_str = 'Credit Card'      
-    
+  Object.assign(PaymentData, res.data.result)
 
-    let localTime = new Date(
-      new Date(PaymentData[i].created_date).getTime() + MStore.timeZoneOffset * -60000
-    )
+  for (let i = 0; i < PaymentData.length; i++) {
+    switch (PaymentData[i]?.paymethod?.method) {
+      case 'CREDIT':
+        PaymentData[i].paymethod_str = 'Credit Card'      
+        break
+      case 'GOOGLEPAY':
+        PaymentData[i].paymethod_str = 'Google Pay'
+        break
+      case 'SAMSUNGPAY':
+        PaymentData[i].paymethod_str = 'Samsung Pay'
+        break 
+      case 'FREE':
+        PaymentData[i].paymethod_str = 'Free'
+        break
+      default:
+        PaymentData[i].paymethod_str = PaymentData[i]?.paymethod?.method
+    }
+    
+    PaymentData[i].price_str = PaymentData[i]?.price?.toLocaleString()
+    let localTime = new Date(new Date(PaymentData[i].created_date).getTime() + MStore.timeZoneOffset * -60000)
     PaymentData[i].created_date_str = moment(localTime).format('YYYY-MM-DD HH:mm:ss')
 
     for (let j = 0; j < PaymentData[i]?.operator_types?.length; j++) {
-      if (PaymentData[i].operator_types[j].type === 'charge') {
-        let time = moment.duration(PaymentData[i]?.operator_types?.[j]?.time, 'seconds')
-        PaymentData[i].charge_time = moment({
-          h: time.hours(),
-          m: time.minutes(),
-          s: time.seconds(),
-        }).format('HH:mm:ss')
-        PaymentData[i].charge_energy_str = PaymentData[i]?.operator_types[j]?.kwh
-        PaymentData[i].charge_price_str = PaymentData[i]?.operator_types[
-          j
-        ]?.price.toLocaleString()
-      } else if (PaymentData[i].operator_types[j].type === 'parking') {
-        let time = moment.duration(PaymentData[i]?.operator_types?.[j]?.time, 'seconds')
-        PaymentData[i].parking_time = moment({
-          h: time.hours(),
-          m: time.minutes(),
-          s: time.seconds(),
-        }).format('HH:mm:ss')
-        PaymentData[i].parking_price_str = PaymentData[i]?.operator_types[
-          j
-        ]?.price.toLocaleString()
-        PaymentData[i].parking_car_num_str = PaymentData[i]?.operator_types[j]?.car_num
+      let time = moment.duration(PaymentData[i]?.operator_types?.[j]?.time, 'seconds')
+      let timeFormat = moment({ h: time.hours(), m: time.minutes(), s: time.seconds()}).format('HH:mm:ss')
+      switch (PaymentData[i].operator_types[j].type) {
+        case 'charge' :
+          PaymentData[i].charge_time = timeFormat
+          PaymentData[i].charge_energy_str = PaymentData[i]?.operator_types[j]?.kwh
+          PaymentData[i].charge_price_str = PaymentData[i]?.operator_types[j]?.price.toLocaleString()
+        break
+        case 'parking' :
+          PaymentData[i].parking_time = timeFormat
+          PaymentData[i].parking_car_num_str = PaymentData[i]?.operator_types[j]?.car_num
+          PaymentData[i].parking_price_str = PaymentData[i]?.operator_types[j]?.price.toLocaleString()
+        break
       }
     }
-    PaymentData[i].price_str = PaymentData[i]?.price?.toLocaleString()
   }
   isLoading.value = false
-  return response
 }
 
 onMounted(async () => {
-  let queryData = {
-    database: 'CPO',
-    collection: 'PaymentHistory',
-    query: {
-      $expr: {
-        $and: [
-          {
-            $gte: [
-              '$created_date',
-              {
-                $dateFromString: {
-                  dateString: new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0),
+  const queryData = {
+      database: 'CPO',
+      collection: 'PaymentHistory',
+      pipelines: [
+        {
+          $match: {
+            $expr: {
+              $and: [
+                {
+                  $gte: [
+                    '$created_date',
+                    { $dateFromString: { dateString: selectTime.value[0]  } },
+                  ],
                 },
-              },
-            ],
+                {
+                  $lte: [
+                    '$created_date',
+                    { $dateFromString: { dateString: selectTime.value[1]  } },
+                  ],
+                },
+              ],
+            },
           },
-        ],
-      },
-    },
-  }
-  let res = await MongoQurey(queryData)
-  console.log(res)
+        },
+        { $project: { _id: 0, sessionId: 0, location: 0, detail: 0, locationId: 0, currency: 0} },
+      ],
+    }
+  await MongoQurey(queryData)
 })
 </script>
 
@@ -209,7 +212,7 @@ onMounted(async () => {
       <div class="flex justify-between flex-wrap lg:flex-nowrap pt-40px pb-32px">
         <div class="date-picker w-full">
           <el-date-picker
-            v-model="defaultTime"
+            v-model="selectTime"
             class="mr-16px"
             type="datetimerange"
             range-separator="-"
@@ -217,7 +220,7 @@ onMounted(async () => {
             start-placeholder="Start Date"
             end-placeholder="End Date"
             @change="select_date()"
-            :default-time="defaultTime2"
+            :default-time="defaultTime"
           />
         </div>
         <div
@@ -227,16 +230,16 @@ onMounted(async () => {
             <el-checkbox
               class="mr-0 md:mr-30px"
               v-model="parking_visible"
-              label="Parking"
+              :label= "t('parking')"
               size="large"
             />
-            <el-checkbox v-model="charging_visible" label="Charging" size="large" />
+            <el-checkbox v-model="charging_visible" :label= "t('charging')" size="large" />
           </div>
           <el-button
             class="download-btn w-full md:w-auto mt-4 md:mt-0 md:ml-30px box-shadow"
             @click="download"
           >
-            <span class="lg:hidden">Download</span>
+            <span class="lg:hidden"> {{ t('download') }}</span>
             <img
               class="w-24px h-24px ml-10px lg:ml-0"
               src="@/assets/img/station_download.png"
@@ -259,10 +262,10 @@ onMounted(async () => {
             v-loading.fullscreen.lock="isLoading"
             :default-sort="{ prop: 'created_date_str', order: 'ascending' }"
           >
-            <el-table-column label="Station" align="center" min-width="550">
+            <el-table-column :label= "t('station')" align="center" min-width="550">
               <el-table-column
                 prop="location_name"
-                label="Name"
+                :label="t('name')"
                 align="center"
                 sortable
                 min-width="250"
@@ -270,7 +273,7 @@ onMounted(async () => {
               />
               <el-table-column
                 prop="evse_id"
-                label="EVSE ID"
+                :label="t('evse_id')"
                 align="center"
                 sortable
                 min-width="300"
@@ -280,13 +283,13 @@ onMounted(async () => {
 
             <el-table-column
               v-if="parking_visible"
-              label="Parking"
+              :label="t('parking')"
               align="center"
               min-width="450"
             >
               <el-table-column
                 prop="parking_time"
-                label="Used Time"
+                :label="t('used_time')"
                 align="center"
                 sortable
                 min-width="150"
@@ -294,7 +297,7 @@ onMounted(async () => {
               />
               <el-table-column
                 prop="parking_price_str"
-                label="Price"
+                :label="t('price')"
                 header-align="center"
                 align="right"
                 sortable
@@ -303,7 +306,7 @@ onMounted(async () => {
               />
               <el-table-column
                 prop="parking_car_num_str"
-                label="License Plate"
+                :label="t('license_plate')"
                 align="center"
                 sortable
                 min-width="200"
@@ -313,13 +316,13 @@ onMounted(async () => {
 
             <el-table-column
               v-if="charging_visible"
-              label="Charging"
+              :label="t('charging')"
               align="center"
               min-width="450"
             >
               <el-table-column
                 prop="charge_time"
-                label="Used Time"
+                :label="t('used_time')"
                 align="center"
                 sortable
                 min-width="150"
@@ -327,7 +330,7 @@ onMounted(async () => {
               />
               <el-table-column
                 prop="charge_energy_str"
-                label="kWh"
+                :label="t('kwh')"
                 header-align="center"
                 align="right"
                 sortable
@@ -336,7 +339,7 @@ onMounted(async () => {
               />
               <el-table-column
                 prop="charge_price_str"
-                label="Price"
+                :label="t('price')"
                 header-align="center"
                 align="right"
                 sortable
@@ -347,7 +350,7 @@ onMounted(async () => {
 
             <el-table-column
               prop="price_str"
-              label="Final Paid"
+              :label="t('final_paid')"
               header-align="center"
               align="right"
               sortable
@@ -357,7 +360,7 @@ onMounted(async () => {
 
             <el-table-column
               prop="paymethod_str"
-              label="Method"
+              :label="t('method')"
               align="center"
               :filters="filters"
               :filter-method="filterTag"
@@ -366,7 +369,7 @@ onMounted(async () => {
 
             <el-table-column
               prop="created_date_str"
-              label="Created Date"
+              :label="t('created_date')"
               align="center"
               sortable
               min-width="250"

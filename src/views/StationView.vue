@@ -4,6 +4,7 @@ import msi from '../assets/msi_style'
 import hotelPng from '@/assets/img/station_list_type_hotel.png'
 import restaurantPng from '@/assets/img/station_list_type_restaurant.png'
 import mallPng from '@/assets/img/station_list_type_mall.png'
+import museumPng from '@/assets/img/station_list_type_museum.png'
 import parkingPng from '@/assets/img/station_list_type_parking.png'
 import trainPng from '@/assets/img/station_list_type_train.png'
 import GoogleMap from '@/components/GoogleMap.vue'
@@ -12,29 +13,31 @@ import { useRoute, useRouter, onBeforeRouteUpdate } from 'vue-router'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { storeToRefs } from 'pinia'
 import { useGoogleStore } from '@/stores/googleMap'
+import { useI18n } from "vue-i18n"
 
+const { t } = useI18n()
 const MsiApi = ApiFunc()
 const route = useRoute()
 const router = useRouter()
 const display_mode = ref('Map Mode')
 const isLoading = ref(false)
 const facilities_filter_item = [
-  { text: 'Hotel', value: 'HOTEL' },
-  { text: 'Restaurant', value: 'RESTAURANT' },
-  { text: 'Mall', value: 'MALL' },
-  { text: 'Super Market', value: 'SUPERMARKET' },
-  { text: 'Parking Lot', value: 'PARKING_LOT' },
-  { text: 'Others', value: 'WIFI' },
+  { text: t('hotel'), value: 'HOTEL' },
+  { text: t('restaurant'), value: 'RESTAURANT' },
+  { text: t('mall'), value: 'MALL' },
+  { text: t('super_market'), value: 'SUPERMARKET' },
+  { text: t('parking_log'), value: 'PARKING_LOT' },
+  { text: t('others'), value: 'WIFI' },
 ]
 const publish_filter_item = [
-  { text: 'True', value: true },
-  { text: 'False', value: false },
+  { text: t('true'), value: true },
+  { text: t('False'), value: false },
 ]
 const status_filter_item = [
-  { text: 'AVAILABLE', value: 'AVAILABLE' },
-  { text: 'CHARGING', value: 'CHARGING' },
-  { text: 'UNKNOWN', value: 'UNKNOWN' },
-  { text: 'ERROR', value: 'ERROR' },
+  { text: t('available'), value: 'AVAILABLE' },
+  { text: t('charging'), value: 'CHARGING' },
+  { text: t('offline'), value: 'UNKNOWN' },
+  { text: t('error'), value: 'ERROR' },
 ]
 const LocationData = reactive([])
 const GoogleStore = useGoogleStore()
@@ -66,17 +69,11 @@ const facilities_filter = (value, rowData) => {
   }
 }
 const status_filter = (value, rowData) => {
-  if (value === 'AVAILABLE') {
-    if (rowData.state_available_str > 0) return rowData
-  }
-  if (value === 'CHARGING') {
-    if (rowData.state_charging_str > 0) return rowData
-  }
-  if (value === 'UNKNOWN') {
-    if (rowData.state_unknown_str > 0) return rowData
-  }
-  if (value === 'OUTOFORDER') {
-    if (rowData.state_error_str > 0) return rowData
+  if ( (value === 'AVAILABLE' && rowData.evse_available_status > 0 ) || 
+       (value === 'CHARGING' && rowData.evse_charging_status > 0 ) ||
+       (value === 'UNKNOWN' && rowData.evse_unknown_status > 0 ) || 
+       (value === 'OUTOFORDER' && rowData.evse_outoforder_status > 0) ) {
+    return rowData
   }
 }
 const publish_filter = (value, rowData) => {
@@ -87,61 +84,127 @@ const add_station = () => {
 }
 const changeMode = async () => {
   show_stataion_detail.value = false
-  if (display_mode.value === 'Map Mode') {
+  if (display_mode.value === t('map_mode')) {
     await router.push('station?mode=list')
     history.replaceState(history.state, '', 'station?mode=list')
-    display_mode.value = 'List Mode'
+    display_mode.value = t('list_mode')
   } else {
     await router.push('station?mode=map')
     history.replaceState(history.state, '', 'station?mode=map')
-    display_mode.value = 'Map Mode'
+    display_mode.value = t('map_mode')
   }
 }
 const displayLayout = () => {
   mode = route.query.mode
   if (route.path === '/station' && (mode === 'map' || mode === undefined)) {
-    display_mode.value = 'Map Mode'
+    display_mode.value = t('map_mode')
   }
   if (mode === 'list') {
-    display_mode.value = 'List Mode'
+    display_mode.value = t('list_mode')
   } else {
-    display_mode.value = 'Map Mode'
+    display_mode.value = t('map_mode')
   }
 }
 const renderData = async () => {
   isLoading.value = true
-  let queryData = { database: 'OCPI', collection: 'Location', query: {} }
-  const response = await MsiApi.mongoQuery(queryData)
-  LocationData.length = 0
-  Object.assign(LocationData, response.data.all)
-
-  LocationData.forEach((item) => {
-    item.state_available_str = item.state_charging_str = item.state_unknown_str = item.state_error_str = 0
-    item.state_total_str = item.evses.length
-
-    item.evses.forEach((evse) => {
-      if (evse.status === 'AVAILABLE') item.state_available_str += 1
-      else if (evse.status === 'CHARGING') item.state_charging_str += 1
-      else if (evse.status === 'UNKNOWN') item.state_unknown_str += 1
-      else if (evse.status === 'OUTOFORDER') item.state_error_str += 1
-    })
-
-    let str = item.facilities?.[0]
-    if (str === 'HOTEL') {
-      item.facilities_img = hotelPng
-    } else if (str === 'RESTAURANT') {
-      item.facilities_img = restaurantPng
-    } else if (str === 'MALL') {
-      item.facilities_img = mallPng
-    } else if (str === 'SUPERMARKET') {
-      item.facilities_img = mallPng
-    } else if (str === 'PARKING_LOT') {
-      item.facilities_img = parkingPng
-    } else {
-      item.facilities_img = trainPng
+  let queryData1 = { "database":"OCPI", "collection":"Location", "pipelines": [ 
+    { "$lookup": {"from":'EVSE', "localField": "evses", "foreignField": "_id", "as":"EVSES"}},
+    { "$lookup": {"from":'Connector', "localField": "EVSES.connectors", "foreignField": "_id", "as":"Connector"}},
+    { "$project": { 
+                    "country_code": 0, "directions": 0, "party_id": 0, "last_updated": 0, "time_zone": 0, "evses": 0,
+                    "EVSES.evse_id":0, "EVSES.floor_level":0, "EVSES.last_updated":0, "EVSES.uid":0, "EVSES._id":0,
+                    "Connector.id": 0, "Connector.format": 0, "Connector.last_updated": 0, "Connector.max_amperage": 0,
+                    "Connector.max_electric_power":0, "Connector.max_voltage":0, "Connector.power_type":0, "Connector.tariff_ids":0,
+                  }
     }
-    if (item.publish === true) item.publish_str = 'True'
-    else item.publish_str = 'Flash'
+  ]}
+  let res = await MsiApi.mongoAggregate(queryData1)
+  LocationData.length = 0
+  Object.assign(LocationData, res.data.result)
+  console.log(LocationData)
+  LocationData.forEach((item) => {
+    let result = {}
+    item.evse_available_status = item.evse_unknown_status = item.evse_charging_status = item.evse_outoforder_status = 0
+    item.type1_available_str = item.type1_charging_str = item.type1_offline_str = item.type1_error_str = item.type1_total = 0
+    item.type2_available_str = item.type2_charging_str = item.type2_offline_str = item.type2_error_str = item.type2_total = 0
+    item.others_available_str = item.others_charging_str = item.others_offline_str = item.others_error_str = item.others_total = 0
+    item.EVSES.forEach(itemEntry => {
+      
+      if(itemEntry.status === 'AVAILABLE')
+        item.evse_available_status ++
+      if(itemEntry.status === 'UNKNOWN')
+        item.evse_unknown_status ++
+      if(itemEntry.status === 'CHARGING')
+        item.evse_charging_status ++
+      if(itemEntry.status === 'OUTOFORDER')
+        item.evse_outoforder_status ++
+      itemEntry.connectors.forEach(EVSEconnectorsId => {
+        let itemType = item.Connector.find(connectorId => connectorId._id === EVSEconnectorsId)?.standard
+        if (itemType) {
+          result[itemType] = result[itemType] || {}
+          result[itemType][itemEntry.status] = (result[itemType][itemEntry.status] || 0) + 1
+        }
+      })
+    })
+    item.connector_status = result
+    if (item.publish === true) item.publish_str = t('true')
+    else item.publish_str = t('False')
+
+    Object.keys(result).forEach((key)=> {
+      switch (key) {
+        case "IEC_62196_T1":
+          if(result[key].AVAILABLE)
+            item.type1_available_str = result[key].AVAILABLE
+          if(result[key].CHARGING)
+            item.type1_charging_str = result[key].CHARGING
+          if(result[key].UNKNOWN)
+            item.type1_offline_str = result[key].UNKNOWN
+          if(result[key].OUTOFORDER)
+            item.type1_error_str = result[key].OUTOFORDER
+          item.type1_total = item.type1_available_str + item.type1_charging_str + item.type1_offline_str + item.type1_error_str
+        break
+        case "IEC_62196_T2":
+          if(result[key].AVAILABLE)
+            item.type2_available_str = result[key].AVAILABLE
+          if(result[key].CHARGING)
+            item.type2_charging_str = result[key].CHARGING
+          if(result[key].UNKNOWN)
+            item.type2_offline_str = result[key].UNKNOWN
+          if(result[key].OUTOFORDER)
+            item.type2_error_str = result[key].OUTOFORDER
+          item.type2_total = item.type2_available_str + item.type2_charging_str + item.type2_offline_str + item.type2_error_str
+        break
+        default:
+          if(result[key].AVAILABLE)
+            item.others_available_str = result[key].AVAILABLE
+          if(result[key].CHARGING)
+            item.others_charging_str = result[key].CHARGING
+          if(result[key].UNKNOWN)
+            item.others_offline_str = result[key].UNKNOWN
+          if(result[key].OUTOFORDER)
+            item.others_error_str = result[key].OUTOFORDER
+          item.others_total = item.others_available_str + item.others_charging_str + item.others_offline_str + item.others_error_str
+      }
+    })
+    switch (item.facilities?.[0]) {
+      case 'HOTEL':
+        item.facilities_img = hotelPng
+      break
+      case 'RESTAURANT':
+        item.facilities_img = restaurantPng
+      break
+      case 'MALL':
+        item.facilities_img = mallPng
+      break
+      case 'SUPERMARKET':
+        item.facilities_img = museumPng
+      break
+      case 'PARKING_LOT':
+        item.facilities_img = parkingPng
+      break
+      default:  
+        item.facilities_img = trainPng
+    }
   })
   isLoading.value = false
 }
@@ -166,7 +229,7 @@ onMounted(async () => {
         class="btn-secondary box-shadow"
         :class="addStationStated"
         @click="add_station"
-        >Add Station</el-button
+        >{{t('add_station')}}</el-button
       >
     </div>
     <div class="list container lg" v-show="display_mode === 'List Mode'">
@@ -240,22 +303,22 @@ onMounted(async () => {
                   <span
                     class="inline-block px-4 py-0.8 text-white text-12px bg-Available ml-10px rounded-lg"
                   >
-                    {{ scope.row.state_available_str }}
+                    {{ scope.row.evse_available_status }}
                   </span>
                   <span
                     class="inline-block px-4 py-0.8 text-white text-12px bg-Charging ml-10px rounded-lg"
                   >
-                    {{ scope.row.state_charging_str }}
+                    {{ scope.row.evse_charging_status }}
                   </span>
                   <span
                     class="inline-block px-4 py-0.8 text-white text-12px bg-Offline ml-10px rounded-lg"
                   >
-                    {{ scope.row.state_unknown_str }}
+                    {{ scope.row.evse_unknown_status }}
                   </span>
                   <span
                     class="inline-block px-4 py-0.8 text-white text-12px bg-Error ml-10px rounded-lg"
                   >
-                    {{ scope.row.state_error_str }}
+                    {{ scope.row.evse_outoforder_status }}
                   </span>
                 </template>
               </el-table-column>

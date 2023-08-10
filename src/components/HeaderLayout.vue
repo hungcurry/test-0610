@@ -58,7 +58,7 @@ const emitCallBack = (res) => {
     </div>
     <div class="common-header shrink-0">
       <!-- <el-dropdown>
-        <el-button class="user"><font-awesome-icon icon="fa-solid fa-user" /></el-button>
+        <el-button class="user"><font-awesome-icon icon="fa-solid fa-gear" /></el-button>
         <template #dropdown>
           <el-dropdown-menu>
             <el-dropdown-item @click="English()">English</el-dropdown-item>

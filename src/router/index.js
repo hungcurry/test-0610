@@ -42,57 +42,15 @@ const router = createRouter({
       redirect: 'login',
       children: [
         {
+          path: 'admin-info',
+          name: 'adminInfo',
+          component: UserView
+        },    
+        {
           path: 'dashboard',
           name: 'dashboard',
           component: DashboardView,
           meta: { title: 'm-Cloud' }
-        },
-        {
-          path: 'station-detail',
-          name: 'stationDetail',
-          component: StationDetailView
-        },
-        {
-          path: 'station',
-          name: 'station',
-          component: StationView
-        },
-        {
-          path: 'evse',
-          name: 'evse',
-          component: EvseView
-        },
-        {
-          path: 'user',
-          name: 'user',
-          component: CustomersView
-        },
-
-        {
-          path: 'user-detail',
-          name: 'userDetail',
-          component: CustomersDetailView
-        },
-
-        {
-          path: 'administrator',
-          name: 'administrator',
-          component: AdministratorView
-        },
-        {
-          path: 'company',
-          name: 'company',
-          component: CompanyView
-        },
-        {
-          path: 'evse-log',
-          name: 'ocpiSession',
-          component: OcpiSessionView
-        },
-        {
-          path: 'station-edit',
-          name: 'stationEdit',
-          component: StationEditView
         },
         {
           path: 'payment',
@@ -100,10 +58,35 @@ const router = createRouter({
           component: PaymentHistoryView
         },
         {
+          path: 'station',
+          name: 'station',
+          component: StationView
+        },
+        {
+          path: 'station-detail',
+          name: 'stationDetail',
+          component: StationDetailView
+        },
+        {
+          path: 'station-edit',
+          name: 'stationEdit',
+          component: StationEditView
+        },
+        {
+          path: 'evse',
+          name: 'evse',
+          component: EvseView
+        },
+        {
           path: 'evse-detail',
           name: 'evseDetail',
           component: EvseDetailView
-        },        
+        },    
+        {
+          path: 'evse-edit',
+          name: 'evseEdit',
+          component: EvseEditView
+        },
         {
           path: 'rate-plan',
           name: 'ratePlan',
@@ -115,14 +98,29 @@ const router = createRouter({
           component: TariffDetailView
         },
         {
-          path: 'evse-edit',
-          name: 'evseEdit',
-          component: EvseEditView
+          path: 'user',
+          name: 'user',
+          component: CustomersView
         },
         {
-          path: 'software-info',
-          name: 'softwareInfo',
-          component: SoftwareInfoView
+          path: 'user-detail',
+          name: 'userDetail',
+          component: CustomersDetailView
+        },
+        {
+          path: 'company',
+          name: 'company',
+          component: CompanyView
+        },
+        {
+          path: 'administrator',
+          name: 'administrator',
+          component: AdministratorView
+        },
+        {
+          path: 'evse-log',
+          name: 'ocpiSession',
+          component: OcpiSessionView
         },
         {
           path: 'ocpp-error',
@@ -130,9 +128,9 @@ const router = createRouter({
           component: OcppErrorView
         },
         {
-          path: 'test',
-          name: 'test',
-          component: TestView
+          path: 'software-info',
+          name: 'softwareInfo',
+          component: SoftwareInfoView
         },
         {
           path: 'parking',
@@ -140,20 +138,20 @@ const router = createRouter({
           component: ParkingView
         },
         {
-          path: 'admin-info',
-          name: 'adminInfo',
-          component: UserView
-        },    
-        {
           path: 'program',
           name: 'program',
           component: ProgramView
-        },       
+        },  
         {
           path: 'charging-profile',
           name: 'chargingProfile',
           component: ChargeProfileView
-        },       
+        },   
+        {
+          path: 'test',
+          name: 'test',
+          component: TestView
+        },
       ]
     }
   ]
@@ -199,10 +197,6 @@ router.beforeEach(async to => {
   }
   
   if (toPath === '/program' && MStore.permission.company.name !== 'MSI' ) {
-    return '/login'
-  }
-  
-  if (toPath === '/parking' && MStore.permission.company.name !== 'MSI' ) {
     return '/login'
   }
 

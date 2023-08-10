@@ -190,6 +190,6 @@ export default function () {
   return {
       setCollectionData, getToken, checkToken, mongoQuery, mongoAggregate,
       register_member,  resetPW, reset_evse, updateFw, getTimeZone, getCoordinates, getAddress,
-      bind_card, search_bind_card, unregister_bind_card, auth_payment, subscribe_plan
+      bind_card, search_bind_card, unregister_bind_card, auth_payment, subscribe_plan,
   }
 }

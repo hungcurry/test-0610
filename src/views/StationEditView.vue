@@ -143,15 +143,15 @@ const saveStation = async () => {
     delete sendData.directions
 
 
-  if (StationData.address1 === undefined) {
-    ElMessage.error('Oops, address en required.')
+  if (StationData.address1 === undefined || StationData.address1 ==='') {
+    ElMessage.error('Oops, Address en required.')
     check_format_success = false
   }
   else {
     sendData.address += '\n' + StationData.address1
   }
 
-  if (StationData.city1 === undefined) {
+  if (StationData.city1 === undefined || StationData.city1 === undefined === '') {
     ElMessage.error('Oops, city en required.')
     check_format_success = false
   }

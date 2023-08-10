@@ -134,6 +134,7 @@ onMounted( async () => {
               <p class="location-name text-right mb-20px">{{ locationData.name }}</p>
               <p class="location-addr text-right mb-20px">{{ locationData.country + ' ' + locationData.city + locationData.address }}</p>
               <div class="flex justify-end">
+                <!-- <el-button type="primary" class="btn-secondary box-shadow delete" @click="download"> Download </el-button> -->
                 <el-button type="primary" class="btn-secondary box-shadow delete" @click="deleteEvse"> Delete </el-button>
                 <el-button type="primary" class="btn-secondary box-shadow edit" @click="edit"> Edit </el-button>
               </div>
