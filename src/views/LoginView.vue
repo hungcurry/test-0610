@@ -7,8 +7,10 @@ import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { useMStore } from '@/stores/m_cloud'
 import { useI18n } from "vue-i18n"
+import AgreementModal from '../components/Modal/AgreementModal.vue'
 
 const { t } = useI18n()
+const first_login = ref(false)
 const MStore = useMStore()
 const MsiApi = ApiFunc()
 const router = useRouter()
@@ -35,7 +37,13 @@ const login = async () => {
     dashboard: true,
   })
   if (response.status === 200) {
-    router.push({ name: 'dashboard' })
+    let res = await MsiApi.checkToken()
+    if(res?.data?.config?.m_cloud?.logged) {
+      router.push({ name: 'dashboard' })
+    }
+    else {
+      first_login.value = true
+    }
   } else if (response.status === 400 || response.status === 404) {
     ElMessage.error(t('oops_account_or_password_error'))
   } else {
@@ -58,6 +66,12 @@ const emitCallBack = (res, str) => {
   checkboxInput.value.removeAttribute('disabled')
   checked.value = 'yes'
 }
+
+const aggre_eula = async() => {
+  await MsiApi.member_modify({config:{m_cloud: {logged : true}}}) 
+  router.push({ name: 'dashboard' })
+}
+
 onMounted(() => {
   let targetTimezoneOffset = new Date().getTimezoneOffset()
   MStore.timeZoneOffset = targetTimezoneOffset
@@ -97,6 +111,54 @@ onMounted(() => {
           />
           <img v-else src="@/assets/img/login_unvisible_nor.png" @click="pwVisible()" />
         </div>
+
+        <!-- <template v-if="first_login"> -->
+          <el-dialog
+          v-model="first_login"
+          class="max-w-600px"
+          :show-close="false"
+          width="90%"
+          destroy-on-close
+          center
+        >
+          <template #header="{ titleId, titleClass }">
+            <div class="py-2rem relative bg-blue-100">
+              <h4
+                :id="titleId"
+                :class="titleClass"
+                class="m-0 text-center text-blue-1200 font-400 text-24px line-height-26px"
+              >
+                User Agreement
+              </h4>
+            </div>
+          </template>
+          <div class="dialog-context scrollbar">
+            <div v-if="language === 'zh-TW'">
+              <iframe style="width: 1600px;" src="https://storage.googleapis.com/msi-common/file/m_cloud_eula_zh.htm" frameborder="0"></iframe>
+            </div> 
+            <div v-else>
+              <iframe style="width: 1600px;" src="https://storage.googleapis.com/msi-common/file/m_cloud_eula_en.htm" frameborder="0"></iframe>
+            </div>
+          </div>
+          <template #footer>
+            <span class="dialog-footer flex flex-center">
+              <el-button
+                round
+                class="w-48% bg-btn-100 text-white max-w-140px"
+                @click="first_login=false"
+                >Cancel</el-button
+              >
+              <el-button
+                round
+                class="w-48% bg-btn-200 text-white max-w-140px"
+                @click="aggre_eula"
+              >
+                Agree
+              </el-button>
+            </span>
+          </template>
+        </el-dialog>
+
         <template v-if="false">
           <div class="w-full text-right text-[2.2rem] mb-4">
             <a

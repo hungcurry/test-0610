@@ -187,9 +187,15 @@ export default function () {
     return response
   }
 
+  const member_modify = async (json) => {
+    AuthToken = VueCookies.get('AuthToken')
+    const response = await patchJsonData(api1 + '/member/modify', json, AuthToken)
+    return response
+  }
+
   return {
       setCollectionData, getToken, checkToken, mongoQuery, mongoAggregate,
       register_member,  resetPW, reset_evse, updateFw, getTimeZone, getCoordinates, getAddress,
-      bind_card, search_bind_card, unregister_bind_card, auth_payment, subscribe_plan,
+      bind_card, search_bind_card, unregister_bind_card, auth_payment, subscribe_plan, member_modify
   }
 }

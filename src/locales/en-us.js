@@ -1,22 +1,31 @@
 export default
 {
-    //common
-    forgot_password : 'Forgot Password',
+    // Common
+    parking : 'Parking',
+    charging : 'Charging',
+    credit_card: 'Credit Card',
+    rfid:'RFID',
+    free:'Free',
+    google_pay:'Google Pay',
+    samsung_pay:'Samsung Pay',
+    used_time : 'Used Time',
+    kwh : 'kWh',
+    price : 'Price',
+    available : 'Available',
+    offline : 'Offline',
+    error : 'Error',
+    others : 'Others',
+    type : 'Type',
+    name : "Name",
+    status : 'Status',
+    publish: 'Publish',
 
     // header
     log_out : 'Log Out',
     reset_password : 'Reset Password',
     admin_info : 'Admin Info',
-
-    //login 
-    m_cloud : "m-Cloud",
-    account : "Account",
-    password : "Password",
-    log_in : 'Log in',
-    version : 'Version',
-    oops_account_or_password_error : 'Oops! "Account or Password" is Error.',
-
-    // sidebar 
+    
+    // Sidebar 
     dashboard : 'Dashboard',
     payment : 'Payment',
     evse_management: 'EVSE Management',
@@ -31,11 +40,20 @@ export default
     evse_log : 'EVSE Log',
     error_log : 'Error Log',
     softwart_info : 'Software Info',
-    parking : 'Parking',
     program : 'Program',
     charging_profile : 'Charging Profile',
+    // parking : 'Parking',
 
-    //dashboard
+    // Login Page
+    m_cloud : "m-Cloud",
+    account : "Account",
+    password : "Password",
+    log_in : 'Log in',
+    version : 'Version',
+    oops_account_or_password_error : 'Oops! "Account or Password" is Error.',
+    forgot_password : 'Forgot Password',
+
+    // Dashboard Page
     real_time_status : 'Real Time Status',
     evse_status :'EVSE Status',
     stations : 'Stations',
@@ -52,7 +70,6 @@ export default
     total_used_times : 'Total Used Times',
     income:'Income',
     total_used_power:'Total Used Power',
-    kwh:'kWh',
     customers:'Customers',
     from_data_created_until_now:'(From data created until now)',
     member:'Member',
@@ -65,48 +82,107 @@ export default
     restaurant: 'Restaurant',
     mall: 'Mall',
     super_market: 'Super Market',
-    parking_log:'Parking Lot',
-    others:'Others',
-
-    available:'Available',
-    charging:'Charging',
-    offline:'Offline',
-    error:'Error',
-
-    //payment
-    download : 'Download',
-    // parking : 'Parking',
+    parking_lot:'Parking Lot',
+    power_kwh:'Power (kWh)',
+    times : 'Times',
+    unpaired : 'Unpaired',
+    ev_life : 'EV Life',
+    qr_pay : 'QR-Pay',
+    twd : 'TWD',
+    // available:'Available',
     // charging : 'Charging',
+    // offline:'Offline',
+    // others:'Others',
+    // error:'Error',
+    // kwh:'kWh',
+    // charging:'Charging',
+    // credit_card: 'Credit Card',
+    // rfid:'RFID',
+    // free:'Free',
+    // google_pay:'Google Pay',
+    // samsung_pay:'Samsung Pay',
+
+    // Payment Page
+    download : 'Download',
     station : 'Station',
- 
-    name : 'Name',
     evse_id : 'EVSE ID',
-    used_time : 'Used Time',
-    price : 'Price',
     license_plate : 'License Plate',
-    // used_time : 'Used Time',
-    // kwh : 'kWh',
-    // price : 'Price',
     final_paid : 'Final Paid',
     method : 'Method',
     created_date: 'Created Date',
+    // name : 'Name',
+    // used_time : 'Used Time',
+    // price : 'Price',
+    // parking : 'Parking',
+    // charging : 'Charging',
+    // credit_card: 'Credit Card',
+    // rfid:'RFID',
+    // free:'Free',
+    // google_pay:'Google Pay',
+    // samsung_pay:'Samsung Pay',
+    // used_time : 'Used Time',
+    // kwh : 'kWh',
+    // price : 'Price',
 
-
-
-    //station
+    // Station Page
+    true: 'True',
+    false: 'False',
+    list_mode : 'List Mode',
+    map_mode : 'Map Mode',
+    add_station : 'Add Station',
+    view_details : 'View Details',
+    country : 'Country',
+    city : 'City',
+    address : 'Address',
+    city_en : 'City (En)',
+    address_en : 'Address (En)',
+    coordinates : 'Coordinates',
+    // publish: 'Publish',
+    // status : 'Status',
+    // type : 'Type',
+    // name : "Name",
     // hotel: 'Hotel',
     // restaurant: 'Restaurant',
     // mall: 'Mall',
     // super_market: 'Super Market',
-    // parking_log:'Parking Lot',
+    // parking_lot:'Parking Lot',
     // others:'Others',
-    true:'True',
-    false:'False',
-    list_mode : 'List Mode',
-    map_mode : 'Map Mode',
-    add_station : 'Add Station'
 
-    // station edit 
+
+    // Station Detail Page
+    update_or_restart:'Update or Restart',
+    file_not_found:'File not found',
+    do_you_want_to_soft_reset : 'Do you want to soft reset?',
+    do_you_want_to_hard_reset : 'Do you want to hard reset?',
+    reset_success : 'Reset success',
+    reset_fail : 'Reset fail',
+    cancel : 'Cancel',
+    last_updated : 'Last Updated',
+    // publish: 'Publish',
+    time_zone : 'Time Zone',
+    update_sw :'Update SW',
+    soft_reset :'Soft Reset',
+    hard_reset :'Hard Reset',
+    floor_level : 'Floor Level',
+    sw_ver : 'SW Ver.',
+    latest_sw : 'Latest SW',
+    updated_time : 'Updated Time',
+    now_version : 'Now Version',
+    confirm : 'Confirm'
+    // status : 'Status',
+    // available : 'Available',
+    // charging : 'Charging',
+    // offline : 'Offline',
+    // error : 'Error',
+    // others : 'Others'
+    // type: 'Type'
+    // evse_id : 'EVSE ID',
+    // cancel : 'Cancel',
+
+
+
+    
+    // Station edit  Page
     // evse 
     // evse detail 
     // evse edit 

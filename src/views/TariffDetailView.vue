@@ -280,19 +280,19 @@ const handleEventCreate = (selectInfo) => {
       secondEndTimeStr = endTimeStr = selectInfo.endStr.split("T")[0] + 'T00:00:00' + timeZone
       startTime = '00:00'
       endTime = '23:59'
-      multiTime[i-1] = []
-      multiTime[i-1].start_time = startTime
-      multiTime[i-1].end_time = endTime
-      multiTime[i-1].day_of_week = []
+      multiTime[i - 1] = []
+      multiTime[i - 1].start_time = startTime
+      multiTime[i - 1].end_time = endTime
+      multiTime[i - 1].day_of_week = []
       for (let j=0; j<continueDayCount; j++) {
         let day = startDay + firstDayCount + j
-        if (day === 1) multiTime[i-1].day_of_week.push('MONDAY')
-        if (day === 2) multiTime[i-1].day_of_week.push('TUESDAY')
-        if (day === 3) multiTime[i-1].day_of_week.push('WEDNESDAY')
-        if (day === 4) multiTime[i-1].day_of_week.push('THURSDAY')
-        if (day === 5) multiTime[i-1].day_of_week.push('FRIDAY')
-        if (day === 6) multiTime[i-1].day_of_week.push('SATURDAY')
-        if (day === 7) multiTime[i-1].day_of_week.push('SUNDAY')
+        if (day === 1) multiTime[i - 1].day_of_week.push('MONDAY')
+        if (day === 2) multiTime[i - 1].day_of_week.push('TUESDAY')
+        if (day === 3) multiTime[i - 1].day_of_week.push('WEDNESDAY')
+        if (day === 4) multiTime[i - 1].day_of_week.push('THURSDAY')
+        if (day === 5) multiTime[i - 1].day_of_week.push('FRIDAY')
+        if (day === 6) multiTime[i - 1].day_of_week.push('SATURDAY')
+        if (day === 7) multiTime[i - 1].day_of_week.push('SUNDAY')
       }
     }
     // Last event, set multiTime
@@ -301,19 +301,19 @@ const handleEventCreate = (selectInfo) => {
       thirdEndTimeStr = endTimeStr = selectInfo.endStr
       startTime = '00:00'
       endTime = moment(new Date(selectInfo.end)).format("HH:mm")
-      multiTime[i-1] = []
-      multiTime[i-1].start_time = startTime
-      multiTime[i-1].end_time = endTime
-      multiTime[i-1].day_of_week = []
+      multiTime[i - 1] = []
+      multiTime[i - 1].start_time = startTime
+      multiTime[i - 1].end_time = endTime
+      multiTime[i - 1].day_of_week = []
       for (let j=0; j<lastDayCount; j++) {
         let day = startDay + firstDayCount + continueDayCount + j
-        if (day === 1) multiTime[i-1].day_of_week.push('MONDAY')
-        if (day === 2) multiTime[i-1].day_of_week.push('TUESDAY')
-        if (day === 3) multiTime[i-1].day_of_week.push('WEDNESDAY')
-        if (day === 4) multiTime[i-1].day_of_week.push('THURSDAY')
-        if (day === 5) multiTime[i-1].day_of_week.push('FRIDAY')
-        if (day === 6) multiTime[i-1].day_of_week.push('SATURDAY')
-        if (day === 7) multiTime[i-1].day_of_week.push('SUNDAY')
+        if (day === 1) multiTime[i - 1].day_of_week.push('MONDAY')
+        if (day === 2) multiTime[i - 1].day_of_week.push('TUESDAY')
+        if (day === 3) multiTime[i - 1].day_of_week.push('WEDNESDAY')
+        if (day === 4) multiTime[i - 1].day_of_week.push('THURSDAY')
+        if (day === 5) multiTime[i - 1].day_of_week.push('FRIDAY')
+        if (day === 6) multiTime[i - 1].day_of_week.push('SATURDAY')
+        if (day === 7) multiTime[i - 1].day_of_week.push('SUNDAY')
       }
     }
   }
@@ -777,14 +777,14 @@ const editElement = (action) => {
     for (let i=0; i<eventCount; i++) {
       if (i !== 0) {
         tempArr = []
-        for(let j = 0; j < multiTime[i-1].day_of_week.length; j++) {
-          tempArr.push(multiTime[i-1].day_of_week[j])
+        for(let j = 0; j < multiTime[i - 1].day_of_week.length; j++) {
+          tempArr.push(multiTime[i - 1].day_of_week[j])
         }
         modify_element = {
           price_components:[{ type:new_element.value.price_type, price:new_element.value.price_price,
             step_size:new_element.value.step_size, vat:new_element.value.vat} ],
           restrictions:{ min_duration:new_element.value.min_duration, max_duration:new_element.value.max_duration,
-            start_time:multiTime[i-1].start_time, end_time:multiTime[i-1].end_time, day_of_week:tempArr
+            start_time:multiTime[i - 1].start_time, end_time:multiTime[i - 1].end_time, day_of_week:tempArr
           }
         }
       }

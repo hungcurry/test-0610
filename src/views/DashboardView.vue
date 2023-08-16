@@ -65,7 +65,7 @@ const payment_method_option = {
   legend: { y: 'bottom', x: 'left' },
   grid: { left: '2%', right: '3%', top: '3%', bottom: '5%', containLabel: true },
   xAxis: { type: 'value', boundaryGap: [0, 0.01] },
-  yAxis: { type: 'category', data: ['Samsung Pay', 'Google Pay',  'Free', 'RFID', 'Credit Card'] },
+  yAxis: { type: 'category', data: [t('samsung_pay'), t('google_pay'),  t('free'), t('rfid'), t('credit_card')] },
   series: [{ type: 'bar', barWidth: '20%', data: [0, 0, 0, 0], color: "#92a9c4" },
   ]
 }
@@ -159,7 +159,7 @@ const location_type_option = reactive({
       color: '#7e8c9c',
     },
     {
-      name: t('parking_log'),
+      name: t('parking_lot'),
       type: 'bar',
       stack: 'total',
       label: { show: true },
@@ -181,7 +181,7 @@ const location_type_option = reactive({
 
 const power_times_option = reactive({
   tooltip: { trigger: 'axis' },
-  legend: { data: ['Power (kWh)', 'Times'] },
+  legend: { data: [t('power_kwh'), t('times')] },
   grid: { left: '2%', right: '5%', bottom: '3%', containLabel: true },
   xAxis: {
     type: 'category',
@@ -191,14 +191,14 @@ const power_times_option = reactive({
   yAxis: { type: 'value' },
   series: [
     {
-      name: 'Power (kWh)',
+      name: t('power_kwh'),
       type: 'line',
       stack: 'Total',
       data: [120, 132, 101, 134, 90, 230, 210],
       color: '#94eadb',
     },
     {
-      name: 'Times',
+      name: t('times'),
       type: 'line',
       stack: 'Total',
       data: [220, 182, 191, 234, 290, 330, 310],
@@ -611,7 +611,7 @@ const queryEvseError = async() =>
   }
   for (let i = 0; i < error_evse.length; i++) {
     if (error_evse[i].name === undefined) {
-      error_evse[i].name = 'Unpaired'
+      error_evse[i].name = t('unpaired')
       if (import.meta.env.VITE_BASE_URL !== undefined)
         error_evse[i].url = import.meta.env.VITE_BASE_URL + '/evse?page=unpaired'
       else error_evse[i].url = '/evse?page=unpaired'
@@ -852,15 +852,15 @@ onMounted(async () => {
             >
               <div>
                 <p class="value">{{ ev_life }}</p>
-                <p class="title">EV Life</p>
+                <p class="title"> {{t('ev_life')}} </p>
               </div>
               <div>
                 <p class="value">{{ rfid }}</p>
-                <p class="title">RFID</p>
+                <p class="title">{{t('rfid')}}</p>
               </div>
               <div>
                 <p class="value">{{ visitor }}</p>
-                <p class="title">QR-Pay</p>
+                <p class="title">{{t('qr_pay')}}</p>
               </div>
             </div>
           </div>
@@ -876,7 +876,7 @@ onMounted(async () => {
               <div class="income">
                 <span class="text-24px mr-8px">$</span>
                 {{ income }}
-                <span class="text-24px mr-8px">TWD</span>
+                <span class="text-24px mr-8px">{{t('twd')}}</span>
               </div>
             </div>
           </div>

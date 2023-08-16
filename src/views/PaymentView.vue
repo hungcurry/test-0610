@@ -22,11 +22,11 @@ const selectTime = ref([new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0),
 const defaultTime = [new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0),
       new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59)]
 const filters = [
-  { text: 'Credit Card', value: 'CREDIT' },
-  { text: 'RFID', value: 'RFID' },
-  { text: 'Free', value: 'FREE' },
-  { text: 'Google Pay', value: 'GOOGLEPAY' },
-  { text: 'Samsung Pay', value: 'SAMSUNGPAY' },
+  { text: t('credit_card'), value: 'CREDIT' },
+  { text: t('rfid'), value: 'RFID' },
+  { text: t('free'), value: 'FREE' },
+  { text: t('google_pay'), value: 'GOOGLEPAY' },
+  { text: t('samsung_pay'), value: 'SAMSUNGPAY' },
 ]
 
 const download = () => {
@@ -135,16 +135,19 @@ const MongoQurey = async (queryData) => {
   for (let i = 0; i < PaymentData.length; i++) {
     switch (PaymentData[i]?.paymethod?.method) {
       case 'CREDIT':
-        PaymentData[i].paymethod_str = 'Credit Card'      
+        PaymentData[i].paymethod_str = t('credit_card')
         break
       case 'GOOGLEPAY':
-        PaymentData[i].paymethod_str = 'Google Pay'
+        PaymentData[i].paymethod_str = t('google_pay')
         break
       case 'SAMSUNGPAY':
-        PaymentData[i].paymethod_str = 'Samsung Pay'
+        PaymentData[i].paymethod_str = t('samsung_pay')
         break 
       case 'FREE':
-        PaymentData[i].paymethod_str = 'Free'
+        PaymentData[i].paymethod_str = t('free')
+        break
+      case 'RFID':
+        PaymentData[i].paymethod_str = t('rfid')
         break
       default:
         PaymentData[i].paymethod_str = PaymentData[i]?.paymethod?.method

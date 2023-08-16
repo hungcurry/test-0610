@@ -13,7 +13,7 @@ import CustomersView from '@/views/CustomersView.vue'
 import CustomersDetailView from '@/views/CustomersDetailView.vue'
 import AdministratorView from '@/views/AdministratorView.vue'
 import OcpiSessionView from '@/views/OcpiSessionView.vue'
-import PaymentHistoryView from '@/views/PaymentHistoryView.vue'
+import PaymentView from '@/views/PaymentView.vue'
 import CompanyView from '@/views/CompanyView.vue'
 import EvseDetailView from '@/views/EvseDetailView.vue'
 import TariffView from '@/views/TariffView.vue'
@@ -55,7 +55,7 @@ const router = createRouter({
         {
           path: 'payment',
           name: 'payment',
-          component: PaymentHistoryView
+          component: PaymentView
         },
         {
           path: 'station',

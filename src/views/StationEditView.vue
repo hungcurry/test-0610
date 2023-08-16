@@ -13,6 +13,9 @@ const station_id = route.query.id
 // const Coordinates2Addr = ref('')
 const edit_title = ref('Edit Station')
 
+
+const ruleFormRef  = ref()
+
 const getCoordinates = async () => {
   let address = StationData.country + StationData.city + StationData.address
   let res = await MsiApi.getCoordinates(address)
@@ -37,8 +40,6 @@ const change_country_code = (country) => {
 
 const facilities_type = [{ value: 'HOTEL', label: 'Hotel' }, { value: 'RESTAURANT', label: 'Restaurant' },
 { value: 'MALL', label: 'Mall' }, { value: 'SUPERMARKET', label: 'Super Market' },
-// { value: 'TAXI_STAND', label: 'Public transportation' }, 
-// { value: 'FUEL_STATION', label: 'Fuel station' },
 { value: 'PARKING_LOT', label: 'Parking Lot' }, { value: 'WIFI', label: 'Others' },
 ]
 
@@ -69,6 +70,7 @@ const country_list = [
 ]
 
 const select_all = ref(true)
+const station_always_open = ref(true)
 const w0val = ref([0, 24]), w1val = ref([0, 24]), w2val = ref([0, 24]), w3val = ref([0, 24]), w4val = ref([0, 24]), w5val = ref([0, 24]), w6val = ref([0, 24]), w7val = ref([0, 24])
 const w0check = ref(), w1check = ref(), w2check = ref(), w3check = ref(), w4check = ref(), w5check = ref(), w6check = ref(), w7check = ref()
 const marks = ref({
@@ -88,7 +90,21 @@ const marks = ref({
 
 })
 
-const StationData = reactive([])
+const StationData = reactive({})
+
+const rules = reactive({
+  name: [{ required: true, message: 'This item is required', trigger: 'blur' },],
+  facilities_str: [{ required: true, message: 'This item is required', trigger: 'blur' },],
+  country:[{ required: true, message: 'This item is required', trigger: 'blur' },],
+  address:[{ required: true, message: 'This item is required', trigger: 'blur' },],
+  city:[{ required: true, message: 'This item is required', trigger: 'blur' },],
+  address1:[{ required: true, message: 'This item is required', trigger: 'blur' },],
+  city1:[{ required: true, message: 'This item is requirede', trigger: 'blur' },],
+  latitude_str:[{ required: true, message: 'This item is required', trigger: 'blur' },],
+  longitude_str:[{ required: true, message: 'This item is required', trigger: 'blur' },],
+  time_zone:[{ required: true, message: 'This item is required', trigger: 'blur' },],
+})
+
 
 const change_all_time = () => {
   w1val.value = w2val.value = w3val.value = w4val.value = w5val.value = w6val.value = w7val.value = w0val.value
@@ -121,7 +137,18 @@ const deleteStation = () => {
   }
 }
 
-const saveStation = async () => {
+const saveStation = async (formEl) => {
+  console.log(formEl)
+
+  // if (!formEl) return
+  // await formEl.validate((valid, fields) => {
+  //   if (valid) {
+  //     console.log('submit!')
+  //   } else {
+  //     console.log('error submit!', fields)
+  //   }
+  // })
+
   let check_format_success = true
   const coordinates = { latitude: parseFloat(StationData.latitude_str).toFixed(6), longitude: parseFloat(StationData.longitude_str).toFixed(6) }
   let sendData = {
@@ -148,6 +175,8 @@ const saveStation = async () => {
     check_format_success = false
   }
   else {
+    if (sendData.address === undefined)
+      sendData.address = ''
     sendData.address += '\n' + StationData.address1
   }
 
@@ -156,6 +185,8 @@ const saveStation = async () => {
     check_format_success = false
   }
   else {
+    if(sendData.city === undefined)
+      sendData.city = ''
     sendData.city += '\n' + StationData.city1
   }
 
@@ -233,6 +264,7 @@ onMounted(async () => {
     let response = await MsiApi.mongoQuery(jsonData)
     StationData.length = 0
     Object.assign(StationData, response.data.all[0])
+    console.log(StationData)
     StationData.owner_name_string = StationData?.owner?.name
     StationData.operator_name_string = StationData?.operator?.name
     StationData.facilities_str = StationData?.facilities?.[0]
@@ -264,7 +296,6 @@ onMounted(async () => {
       <div class="page-title flex flex-wrap lg:flex-nowrap pt-40px pb-32px">
         <p>{{ edit_title }}</p>
       </div>
-
       <div class="flex-grow mb-44px">
         <div class="overflow-x-auto h-full flex">
           <div class="lg:w-50% flex-col pr-40px">
@@ -277,12 +308,12 @@ onMounted(async () => {
               <img class="w-180px h-180px mr-30px" v-if="StationData.img_str !== undefined" :src="StationData.img_str">
               <img class="w-180px h-180px mr-30px" v-else src="@/assets/img/null_pic.png">
   
-                  <el-form class="w-full min-w-190px">
-                    <el-form-item label="Name">
+                  <el-form class="w-full min-w-190px" :rules="rules" :model="StationData" ref="ruleFormRef">
+                    <el-form-item label="Name" prop="name">
                       <el-input v-model.trim="StationData.name" />
                     </el-form-item>
     
-                    <el-form-item label="Type">
+                    <el-form-item label="Type" prop="facilities_str">
                     <el-select
                       class="el-select w-full" 
                       v-model="StationData.facilities_str" 
@@ -320,9 +351,9 @@ onMounted(async () => {
             </div>
     
               <div class="flex mt-24px ml-30px">
-                <el-form class="w-full min-w-190px">
+                <el-form class="w-full min-w-190px" :rules="rules" :model="StationData" ref="ruleFormRef">
                   <div class="flex flex-items-end" id="Country">
-                    <el-form-item label="Country" class="mr-20px w-190px">
+                    <el-form-item label="Country" class="mr-20px w-190px" prop="country">
                       <el-select
                         class="el-select w-190px" 
                         v-model="StationData.country" 
@@ -357,26 +388,26 @@ onMounted(async () => {
                 </div>
   
                 <div class="flex" id="Address+City(En)">
-                  <el-form-item label="Address (En)" class="mr-20px w-full">
+                  <el-form-item label="Address (En)" class="mr-20px w-full" prop="address1">
                     <el-input v-model="StationData.address1"></el-input>
                   </el-form-item>
-                  <el-form-item label="City (En)">
+                  <el-form-item label="City (En)" prop="city1">
                     <el-input v-model="StationData.city1" class="w-190px"></el-input>
                   </el-form-item>
                 </div>
   
                 <div class="flex flex-items-end" id="Latitude+Longitude">
-                  <el-form-item label="Latitude" class="mr-20px w-150px">
+                  <el-form-item label="Latitude" class="mr-20px w-150px" prop="latitude_str">
                     <el-input v-model="StationData.latitude_str" placeholder="EX: 25.007678"></el-input>
                   </el-form-item>
-                  <el-form-item label="Longitude" class="mr-20px w-150px">
+                  <el-form-item label="Longitude" class="mr-20px w-150px" prop="longitude_str">
                     <el-input v-model="StationData.longitude_str" placeholder="EX: 121.487396"></el-input>
                   </el-form-item>
                   <el-button class="location-button" @click="getCoordinates"> Get Coordinates </el-button>
                 </div>
                 
                 <div class="flex flex-items-end" id="TimeZone">
-                  <el-form-item label="Time Zone" class="mr-20px w-150px">
+                  <el-form-item label="Time Zone" class="mr-20px w-150px" prop="time_zone">
                     <el-input v-model="StationData.time_zone"></el-input>
                   </el-form-item>
                   <el-button class="location-button" @click="getTimeZone"> Get Time Zone </el-button>
@@ -397,15 +428,16 @@ onMounted(async () => {
                 <img class="mr-8px w-20px h-20px" src="@/assets/img/station_edit_building.png" alt="">
                 <p class="text-secondary">Businese Details</p>
               </div>
-              <el-switch v-model="select_all" size="large" inactive-text="Select All" disabled/>
+              <el-switch v-model="station_always_open" size="large" inactive-text="24H Open" />
+              <el-switch v-model="select_all" size="large" inactive-text="Select All" />
             </div>
             <div class="week-container pr-40px flex-grow min-w-300px">
               <div class="week">
-                <!-- <el-checkbox v-model="w0check" label="" size="large" :disabled = "!select_all" @change="change_all_week"/> -->
-                <el-checkbox v-model="w0check" label="" size="large" disabled @change="change_all_week"/>
+                <el-checkbox v-model="w0check" label="" size="large" :disabled = "!select_all" @change="change_all_week"/>
+                <!-- <el-checkbox v-model="w0check" label="" size="large" disabled @change="change_all_week"/> -->
                 <span class="text">All</span>
-                <!-- <el-slider v-model="w0val" range :max="24" :disabled = "!select_all" @change="change_all_time"/> -->
-                <el-slider v-model="w0val" range :max="24" disabled @change="change_all_time"/>
+                <el-slider v-model="w0val" range :max="24" :disabled = "!select_all" @change="change_all_time"/>
+                <!-- <el-slider v-model="w0val" range :max="24" disabled @change="change_all_time"/> -->
               </div>
               <div class="week">
                 <el-checkbox v-model="w1check" label="" size="large" :disabled = "select_all"/>
@@ -450,7 +482,7 @@ onMounted(async () => {
       <div class="flex flex-justify-center pb-40px">
         <el-button class="btn-secondary bg-btn-100 md:mr-44px" v-if="station_id" @click="deleteStation"> Delete </el-button>
         <el-button class="btn-secondary bg-btn-100 md:mr-44px" @click="backStation"> Cancel </el-button>
-        <el-button class="btn-secondary" @click="saveStation"> Save </el-button>
+        <el-button class="btn-secondary" @click="saveStation(ruleFormRef)"> Save </el-button>
       </div>
 
     </div>

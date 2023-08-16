@@ -26,12 +26,12 @@ const facilities_filter_item = [
   { text: t('restaurant'), value: 'RESTAURANT' },
   { text: t('mall'), value: 'MALL' },
   { text: t('super_market'), value: 'SUPERMARKET' },
-  { text: t('parking_log'), value: 'PARKING_LOT' },
+  { text: t('parking_lot'), value: 'PARKING_LOT' },
   { text: t('others'), value: 'WIFI' },
 ]
 const publish_filter_item = [
   { text: t('true'), value: true },
-  { text: t('False'), value: false },
+  { text: t('false'), value: false },
 ]
 const status_filter_item = [
   { text: t('available'), value: 'AVAILABLE' },
@@ -129,7 +129,6 @@ const renderData = async () => {
     item.type2_available_str = item.type2_charging_str = item.type2_offline_str = item.type2_error_str = item.type2_total = 0
     item.others_available_str = item.others_charging_str = item.others_offline_str = item.others_error_str = item.others_total = 0
     item.EVSES.forEach(itemEntry => {
-      
       if(itemEntry.status === 'AVAILABLE')
         item.evse_available_status ++
       if(itemEntry.status === 'UNKNOWN')
@@ -146,9 +145,20 @@ const renderData = async () => {
         }
       })
     })
+    const addr_parts = item.address.split('\n')
+    const city_parts = item.city.split('\n')
+    if (addr_parts.length === 2) {
+      item.address = addr_parts[0]
+      item.address1 = addr_parts[1]
+    }
+    if (city_parts.length === 2) {
+      item.city = city_parts[0]
+      item.city1 = city_parts[1]
+    }
+
     item.connector_status = result
     if (item.publish === true) item.publish_str = t('true')
-    else item.publish_str = t('False')
+    else item.publish_str = t('false')
 
     Object.keys(result).forEach((key)=> {
       switch (key) {
@@ -189,21 +199,27 @@ const renderData = async () => {
     switch (item.facilities?.[0]) {
       case 'HOTEL':
         item.facilities_img = hotelPng
+        item.facilities_str = t('hotel')
       break
       case 'RESTAURANT':
         item.facilities_img = restaurantPng
+        item.facilities_str = t('restaurant')
       break
       case 'MALL':
         item.facilities_img = mallPng
+        item.facilities_str = t('mall')
       break
       case 'SUPERMARKET':
         item.facilities_img = museumPng
+        item.facilities_str = t('super_market')
       break
       case 'PARKING_LOT':
         item.facilities_img = parkingPng
+        item.facilities_str = t('parking_lot')
       break
       default:  
         item.facilities_img = trainPng
+        item.facilities_str = t('others')
     }
   })
   isLoading.value = false
@@ -249,7 +265,7 @@ onMounted(async () => {
             >
               <el-table-column
                 prop="facilities"
-                label="Type"
+                :label="t('type')"
                 align="center"
                 :filters="facilities_filter_item"
                 :filter-method="facilities_filter"
@@ -261,7 +277,7 @@ onMounted(async () => {
               </el-table-column>
               <el-table-column
                 prop="name"
-                label="Name"
+                :label="t('name')"
                 align="center"
                 sortable
                 :sort-method="(a, b) => sortFunc(a, b, 'name')"
@@ -269,7 +285,7 @@ onMounted(async () => {
               />
               <el-table-column
                 prop="country"
-                label="Country"
+                :label="t('country')"
                 align="center"
                 sortable
                 :sort-method="(a, b) => sortFunc(a, b, 'country')"
@@ -277,23 +293,39 @@ onMounted(async () => {
               />
               <el-table-column
                 prop="city"
-                label="City"
+                :label="t('city')"
                 align="center"
                 sortable
                 :sort-method="(a, b) => sortFunc(a, b, 'city')"
-                min-width="200"
+                min-width="150"
               />
               <el-table-column
                 prop="address"
-                label="Address"
+                :label="t('address')"
                 align="center"
                 sortable
                 :sort-method="(a, b) => sortFunc(a, b, 'address')"
-                min-width="400"
+                min-width="200"
+              />
+              <el-table-column
+                prop="city1"
+                :label="t('city_en')"
+                align="center"
+                sortable
+                :sort-method="(a, b) => sortFunc(a, b, 'city1')"
+                min-width="150"
+              />
+              <el-table-column
+                prop="address1"
+                :label="t('address_en')"
+                align="center"
+                sortable
+                :sort-method="(a, b) => sortFunc(a, b, 'address1')"
+                min-width="200"
               />
               <el-table-column
                 prop=""
-                label="Status"
+                :label="t('status')"
                 align="center"
                 :filters="status_filter_item"
                 :filter-method="status_filter"
@@ -325,13 +357,13 @@ onMounted(async () => {
 
               <el-table-column
                 prop="publish_str"
-                label="Publish"
+                :label="t('publish')"
                 align="center"
                 :filters="publish_filter_item"
                 :filter-method="publish_filter"
-                min-width="120"
+                min-width="100"
               />
-              <el-table-column prop="detail" label="" align="center" min-width="150">
+              <el-table-column prop="detail" label="" align="center" min-width="100">
                 <template #default="scope">
                   <el-button class="btn-more" @click="detail_info(scope.row)">
                     <font-awesome-icon icon="fa-solid fa-ellipsis" />

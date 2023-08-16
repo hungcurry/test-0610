@@ -24,13 +24,13 @@ const locationMsi = computed(() => {
   let image = null
   let data = []
   props.LocationData.forEach((mark) => {
-    if (mark.state_error_str > 0) {
+    if (mark.evse_outoforder_status > 0) {
       image = 'https://storage.googleapis.com/msi-common/pic/station_error.png'
-    } else if (mark.state_unknown_str > 0) {
+    } else if (mark.evse_unknown_status > 0) {
       image = 'https://storage.googleapis.com/msi-common/pic/station_offline.png'
-    } else if (mark.state_available_str === 0 && mark.state_charging_str > 0) {
+    } else if (mark.evse_available_status === 0 && mark.evse_charging_status > 0) {
       image = 'https://storage.googleapis.com/msi-common/pic/station_charging.png'
-    } else if (mark.state_available_str > 0) {
+    } else if (mark.evse_available_status > 0) {
       image = 'https://storage.googleapis.com/msi-common/pic/station_available.png'
     } else {
       image = 'https://storage.googleapis.com/msi-common/pic/station_offline.png'
@@ -116,6 +116,7 @@ onUnmounted(() => {
         <p class="text-26px md:text-35px text-white mt-12px mb-16px">
           {{ SideBarInfo.name }}
         </p>
+
         <div class="flex flex-items-center mb-12px">
           <img
             @click="edit_detail(SideBarInfo.id)"
@@ -123,7 +124,16 @@ onUnmounted(() => {
             src="@/assets/img/station_mapmode_location.png"
             alt=""
           />
-          <p class="text-16px text-white">{{ SideBarInfo.address }}</p>
+          <p class="text-16px text-white">{{ 'Country : ' + SideBarInfo.country}}</p>
+        </div>
+        
+        <div class="flex flex-items-center mb-12px" v-if="SideBarInfo.city">
+          
+          <p class="text-16px text-white">{{ t('address') + ' : ' + SideBarInfo.city + SideBarInfo.address}}</p>
+        </div>
+        <div class="flex flex-items-center mb-12px" v-if="SideBarInfo.city1">
+
+          <p class="text-16px text-white">{{ t('address_en') + ' : ' + SideBarInfo.city1 + SideBarInfo.address1}}</p>
         </div>
         <div class="flex">
           <img
@@ -132,13 +142,19 @@ onUnmounted(() => {
             src="@/assets/img/station_mapmode_latitude.png"
             alt=""
           />
-          <p class="text-15px text-secondary line-height-20px">
-            {{ SideBarInfo.coordinates?.latitude }}
-          </p>
-          <p class="text-15px text-secondary line-height-20px ml-20px">
-            {{ SideBarInfo.coordinates?.longitude }}
+          <p class="text-15px text-white line-height-20px">
+            {{ t('coordinates') +' : ' + SideBarInfo.coordinates?.latitude + ' , ' +SideBarInfo.coordinates?.longitude}}
           </p>
         </div>
+        <br>
+        <div class="flex flex-items-center mb-12px">
+          <p class="text-16px text-white">{{ t('publish') + ' : ' + SideBarInfo.publish_str}}</p>
+        </div>
+
+        <div class="flex flex-items-center mb-12px">
+          <p class="text-16px text-white">{{ t('type') + ' : ' + SideBarInfo.facilities_str}}</p>
+        </div>
+
         <div class="middle-line"></div>
       </div>
       <div class="scrollbar flex-grow overflow-x-auto mb-10px md:px-12px">
@@ -246,7 +262,7 @@ onUnmounted(() => {
       </div>
       <div class="footer-button mb-5px md:mb-60px">
         <el-button class="btn-secondary border-0" @click="detail_info(SideBarInfo)">
-          View Details
+          {{ t('view_details') }}
         </el-button>
       </div>
     </div>

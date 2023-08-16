@@ -7,6 +7,9 @@ import  msi_style  from '../assets/msi_style'
 import { ElMessage } from 'element-plus'
 import moment from "moment"
 import { useMStore } from "../stores/m_cloud"
+import { useI18n } from "vue-i18n"
+
+const { t } = useI18n()
 const MStore = useMStore()
 const route = useRoute()
 const router = useRouter()
@@ -23,7 +26,7 @@ const swVersion = ref('')
 const updateConfirm = async () => {
   let sendData = { "evse_ids": updataEvseId, "location": update_file.value, "retrieveDate": "2022-10-27 12:12:12"}
   if (update_file.value === '')
-    ElMessage.error('File not found')
+    ElMessage.error(t('file_not_found'))
   const response = await MsiApi.updateFw(sendData)
   if (response.status === 200) {
     sw_version_visable.value = false
@@ -55,10 +58,7 @@ const go_to_station_edit_page = () => {
 const handleSelectionChange = (val) => {
   multipleSelection.value = val
 }
-const edit_button_str = ref('Update or Restart')
-// const addCharger = (row) => {
-//   router.push({ name: 'evseEdit', query: {station_id:station_id, evse_id:row.uid} })
-// }
+const edit_button_str = ref(t('update_or_restart'))
 
 const evseReset = (type) => {
   updataEvseId.length = 0
@@ -68,15 +68,18 @@ const evseReset = (type) => {
   if (updataEvseId.length === 0) {
     return
   }
+  let reset_message = t('do_you_want_to_soft_reset')
+  if (type === 'hard')  
+    reset_message = t('do_you_want_to_hard_reset')
 
-  if (confirm(' 我要 ' + type + ' Reset 了 ') === true) {
+  if (confirm(reset_message) === true) {
     const json = JSON.stringify({ evse_id: updataEvseId, reset_type: type })
     MsiApi.reset_evse(json)
       .then(() => {
-        alert(type + ' Reset success ')
+        alert(t('reset_success'))
       })
       .catch((error) => {
-        alert(type + ' Reset fail ')
+        alert(t('reset_fail'))
         console.log(error)
       })
   }
@@ -84,11 +87,11 @@ const evseReset = (type) => {
 const edit_charger = () => {
   if (editMode.value === true) {
     editMode.value = false
-    edit_button_str.value = 'Update or Restart'    
+    edit_button_str.value = t('update_or_restart')
   }
   else {
     editMode.value = true
-    edit_button_str.value = 'Cancel'
+    edit_button_str.value = t('cancel')
   }
 }
 const charger_detail = (row) => {
@@ -98,67 +101,129 @@ const StationDetailEvseData = reactive([])
 const StationData = reactive([])
 
 onMounted( async () => {
-  let jsonData = { "database":"OCPI", "collection":"Location", "query": { "id": { "UUID" : station_id} }}
-  let response = await MsiApi.mongoQuery(jsonData)
+  console.log(station_id)
+  let queryData1 = { "database":"OCPI", "collection":"Location", "pipelines": [ 
+  { $match:  { "id": { "UUID" : station_id} } },
+    { "$lookup": {"from":'EVSE', "localField": "evses", "foreignField": "_id", "as":"EVSES"}},
+    { "$lookup": {"from":'Connector', "localField": "EVSES.connectors", "foreignField": "_id", "as":"Connector"}},
+    { "$project": { 
+                    "country_code": 0, "directions": 0, "party_id": 0, "last_updated": 0, "evses": 0,
+                    "Connector.id": 0, "Connector.format": 0, "Connector.last_updated": 0, "Connector.max_amperage": 0,
+                    "Connector.max_electric_power":0, "Connector.max_voltage":0, "Connector.power_type":0, "Connector.tariff_ids":0,
+                  }
+    }
+  ]}
+  let res = await MsiApi.mongoAggregate(queryData1)
   StationData.length = 0
-  Object.assign(StationData, response.data.all[0])
+  Object.assign(StationData, res.data.result[0])
+  console.log(StationData)
   StationData.latitude_str = StationData.coordinates.latitude
+  if (StationData.publish) 
+    StationData.publish_str = t('true')
+  else 
+    StationData.publish_str = t('false')
   StationData.longitude_str = StationData.coordinates.longitude
   StationData.last_updated_str = (moment(StationData.last_updated).format("YYYY-MM-DD HH:mm:ss"))
-  StationDetailEvseData.length = 0 
-  Object.assign(StationDetailEvseData, StationData.evses)
+  StationData.img_str = StationData?.images?.[0]?.url
+  console.log(StationData)
+
+  const addr_parts = StationData.address.split('\n')
+    const city_parts = StationData.city.split('\n')
+    if (addr_parts.length === 2) {
+      StationData.address = addr_parts[0]
+      StationData.address1 = addr_parts[1]
+    }
+    if (city_parts.length === 2) {
+      StationData.city = city_parts[0]
+      StationData.city1 = city_parts[1]
+    }
+
+  // StationData.addr_en
+  // StationData.city_en
+
+  switch (StationData?.facilities[0]) {
+    case 'HOTEL':
+      StationData.facilities_str = t('hotel')
+    break
+    case 'RESTAURANT':
+      StationData.facilities_str = t('restaurant')
+    break
+    case 'MALL':
+      StationData.facilities_str = t('mall')
+    break
+    case 'SUPERMARKET':
+      StationData.facilities_str = t('super_market')
+    break
+    case 'PARKING_LOT':
+      StationData.facilities_str = t('parking_lot')
+    break
+    default:
+      StationData.facilities_str = t('others')
+  }
+  StationData.EVSES.forEach((evse) => {
+    StationData.Connector.forEach((connector) => {
+      if (evse.connectors[0] === connector._id) {
+        evse.connector_type = connector.standard
+      }
+    })
+  })
+  Object.assign(StationDetailEvseData, StationData.EVSES)
+  StationDetailEvseData.forEach((item)=>{
+    switch (item.status) {
+      case 'AVAILABLE':
+        item.status_str = t('available')
+      break
+      case 'CHARGING':
+        item.status_str = t('charging')
+      break
+      case 'UNKNOWN':
+        item.status_str = t('offline')
+      break
+      case 'OUTOFORDER':
+        item.status_str = t('error')
+      break
+      default:
+        item.status_str = t('others')
+    }
+    switch (item.connector_type) {
+      case 'IEC_62196_T1':
+        item.connector_type = 'Type 1 (J1772)'
+      break
+      case 'IEC_62196_T2':
+        item.connector_type = 'Type 2 (Mennekes)'
+      break
+      default:
+        item.connector_type = t('others')
+    }
+    let localEndTime =  new Date( (new Date(item.last_updated).getTime()) + ((MStore.timeZoneOffset ) * -60000))
+    item.last_updated_str = (moment(localEndTime).format("YYYY-MM-DD HH:mm:ss"))
+  })
+
   let evse_obj_arr = []
-  let hmi_obj_arr = []
   for(let i = 0; i < StationDetailEvseData.length; i++) {
     evse_obj_arr.push(  {"ObjectId":StationDetailEvseData[i]._id}  )
   }
-  jsonData = { "database": "CPO", "collection": "ChargePointInfo", "pipelines": [
+  let jsonData = { "database": "CPO", "collection": "ChargePointInfo", "pipelines": [
     { "$match": {'evse': {"$in": evse_obj_arr}}},
-    { "$project": { "_id": 0} }
+    { "$lookup": {"from":'HMIControlBoardInfo', "localField": "hmi", "foreignField": "_id", "as":"HMI_INFO"}},
+    { "$project": { _id: 0, location:0, connectors:0, country_id:0, created_date:0, evse_id:0, party_id:0, update_date:0 } }
+  ]}
+  let response = await MsiApi.mongoAggregate(jsonData)
+  let chargePointInfo = response.data.result
+  StationDetailEvseData.forEach((item) => {
+    chargePointInfo?.forEach((chargePointItem) => {
+      if (item._id === chargePointItem.evse) {
+        item.chargePointInfo = chargePointItem
+        item.sw_version = chargePointItem.HMI_INFO[0]?.hmi_board_sw_version
+      }
+    })
+  })
+  jsonData = { "database": "CPO", "collection": "VersionControl", "pipelines": [
+    { "$match": {'type': 'XP012'}},
+    { "$project": { _id: 0, release_date:0, release_note:0, type:0} }
   ]}
   response = await MsiApi.mongoAggregate(jsonData)
- 
-  for (let i = 0; i < response.data?.result?.length; i++) {
-    for (let j = 0; j < StationDetailEvseData.length; j++) {
-      if (response.data.result[i].evse === StationDetailEvseData[j]._id) {
-        StationDetailEvseData[j].hmi_Info = response.data.result[i].hmi
-      }
-    }
-  }
-  for(let i = 0; i < StationDetailEvseData.length; i++) {
-    if (StationDetailEvseData[i].hmi_Info != 0)
-      hmi_obj_arr.push(  {"ObjectId":StationDetailEvseData[i].hmi_Info}  )
-  }
-  jsonData = { "database": "CPO", "collection": "HMIControlBoardInfo", "pipelines": [
-    { "$match": {'_id': {"$in": hmi_obj_arr}}},
-    { "$project": { "aaa": 0} }
-  ]}
-  response = await MsiApi.mongoAggregate(jsonData)
-  for (let i = 0; i < StationDetailEvseData.length; i++) {
-    for (let j = 0; j < response.data?.result?.length; j++)
-      if (StationDetailEvseData[i]?.hmi_Info === response.data.result?.[j]?._id) {
-        StationDetailEvseData[i].sw_version = response.data.result?.[j]?.hmi_board_sw_version
-      }
-  }
-
-  jsonData = { "database":"CPO", "collection":"VersionControl", "query": { "type": 'XP012'}}
-  response = await MsiApi.mongoQuery(jsonData)
-  swVersion.value = response.data.all[0].version
-
-
-  for (let i = 0; i < StationData.evses.length; i++) {
-    if (StationData.evses[i].connectors[0].standard === 'IEC_62196_T1') 
-      StationDetailEvseData[i].type_str = 'Type 1 (J1772)'
-    else if (StationData.evses[i].connectors[0].standard === 'IEC_62196_T2')
-      StationDetailEvseData[i].type_str = 'Tyep 2 (Mennekes)' 
-    else if (StationData.evses[i].connectors[0].standard === 'IEC_62196_T1_COMBO')
-      StationDetailEvseData[i].type_str = 'CCS1 Combo' 
-    else
-      StationDetailEvseData[i].type_str = StationData.evses[i].connectors[0].standard
-    let localEndTime =  new Date( (new Date(StationData.evses[i].last_updated).getTime()) + ((MStore.timeZoneOffset ) * -60000))
-    StationDetailEvseData[i].last_updated_str = (moment(localEndTime).format("YYYY-MM-DD HH:mm:ss"))
-  }
-  StationData.img_str = StationData?.images?.[0]?.url
+  swVersion.value = response.data.result[0].version
 })
 
 </script>
@@ -173,41 +238,40 @@ onMounted( async () => {
           <div class="flex justify-between">
             <div class="flex">
               <span class="station-name text-36px font-bold mr-20px">{{ StationData.name }}</span>
-              <font-awesome-icon class="text-secondary w-32px h-32px" icon="fa-regular fa-pen-to-square" @click="go_to_station_edit_page() "/>
+              <font-awesome-icon class="text-secondary w-32px h-32px" icon="fa-regular fa-pen-to-square" @click="go_to_station_edit_page() " style="cursor:pointer"/>
             </div>
-            <p class="text-20px text-blue-900 ml-24px">Last Updated : {{ StationData.last_updated_str }} </p>
+            <p class="text-20px text-blue-900 ml-24px"> {{ t('last_updated') }} : {{ StationData.last_updated_str }} </p>
           </div>
 
           <div class="flex mt-16px">
             <img class="w-20px h-20px mr-10px" src="@/assets/img/station_listmode_location.png">
             <span class="line-height-20px">{{ StationData.country }} {{ StationData.city }}{{ StationData.address }}</span>
+            <span class="line-height-20px">{{ "  /  " }} </span>
+            <span class="line-height-20px">{{ StationData.city1 }}{{ StationData.address1 }}</span>
           </div>
           
           <div class="flex flex-row mt-12px text20px">
             <div class="flex mr-40px">
               <img class="w-20px h-20px mr-10px" src="@/assets/img/station_detail_latitude.png">
-              <span class="line-height-20px"> {{ StationData.latitude_str }} {{ "," }} {{ StationData.longitude_str }}</span>
+              <span class="line-height-20px"> {{ StationData.latitude_str }} {{ "," }} {{ StationData.longitude_str }} </span>
             </div>
-            <!-- <div class="flex mr-40px">
+
+            <div class="flex mr-40px">
+              <img class="w-20px h-20px mr-10px" src="@/assets/img/dashboard_title_time.png">
+              <span class="line-height-20px"> {{ t('time_zone') }} : {{ StationData.time_zone }}</span>
+            </div>
+
+            <div class="flex mr-40px">
               <img class="w-20px h-20px mr-10px" src="@/assets/img/station_list_type_office1.png">
-              <span class="line-height-20px">Station Type : 
-                <span v-for="(item, index) in StationData.facilities" class="line-height-20px">
-                  <span v-if="index !== 0">, </span>
-                  {{ item }}
-                </span>
-              </span>
-            </div> -->
+              <span class="line-height-20px"> {{ t('type') }} : {{ StationData.facilities_str }} </span>
+            </div>
 
-            <div v-if="StationData.publish" class="flex">
-              <img class="w-20px h-20px mr-10px filter-blue-1200" src="@/assets/img/login_visible_pre.png">
-              <span class="line-height-20px">Published</span>
+            <div class="flex mr-40px">
+              <img class="w-20px h-20px mr-10px" src="@/assets/img/login_visible_pre.png">
+              <span class="line-height-20px"> {{ t('publish') }} : {{ StationData.publish_str }} </span>
             </div>
-            <div v-else class="flex">
-              <img class="w-20px h-20px mr-10px filter-blue-1200" src="@/assets/img/login_unvisible_pre.png">
-              <span class="line-height-20px">Unpublished</span>
-            </div>
+
           </div>
-
         </div>
       </div>
     </div>
@@ -247,10 +311,10 @@ onMounted( async () => {
     <div class="pb-40px bg-blue-100 flex-grow">
       <div class="container lg">
         <div class="flex lg:justify-end pt-24px pb-24px overflow-x-auto">
-          <el-button v-if="editMode === true" class="btn-secondary shrink-0 update-button px-30px box-shadow" @click="updateSW"> Update SW </el-button>
+          <el-button v-if="editMode === true" class="btn-secondary shrink-0 update-button px-30px box-shadow" @click="updateSW"> {{ t('update_sw') }} </el-button>
           <!-- <el-button v-if="editMode === true" class="btn-secondary shrink-0 update-button px-30px box-shadow" @click="updateFW " disabled> Update FW </el-button> -->
-          <el-button v-if="editMode === true" class="btn-secondary shrink-0 soft-reset-button px-30px box-shadow" @click="evseReset('soft')"> Soft Reset </el-button>
-          <el-button v-if="editMode === true" class="btn-secondary shrink-0 hard-reset-button px-30px box-shadow" @click="evseReset('hard')"> Hard Reset </el-button>
+          <el-button v-if="editMode === true" class="btn-secondary shrink-0 soft-reset-button px-30px box-shadow" @click="evseReset('soft')"> {{ t('soft_reset') }} </el-button>
+          <el-button v-if="editMode === true" class="btn-secondary shrink-0 hard-reset-button px-30px box-shadow" @click="evseReset('hard')"> {{ t('hard_reset') }} </el-button>
           <el-button class="btn-secondary shrink-0  px-30px box-shadow" @click="edit_charger" > {{ edit_button_str }}</el-button>
         </div>
 
@@ -269,55 +333,62 @@ onMounted( async () => {
           >
             <el-table-column
               prop="evse_id"
-              label="EVSE ID"
+              :label="t('evse_id')"
+              align="center"
               sortable
               min-width="250"
             />
             <el-table-column
               prop="floor_level"
-              label="Floor Level"
+              :label= "t('floor_level')"
+              align="center"
               sortable
               min-width="150"
             />
             <el-table-column
               prop="status"
-              label="Status"
+              :label= "t('status')"
+              align="center"
               sortable
-              min-width="200"
+              min-width="150"
             >
               <template #default="scope">
-                <p class="available" v-if="scope.row.status === 'AVAILABLE'"> {{ "● " + scope.row.status }}</p>
-                <p class="charging" v-else-if="scope.row.status === 'CHARGING'"> {{ "● " + scope.row.status }}</p>
-                <p class="offline" v-else-if="scope.row.status === 'UNKNOWN' "> {{ "● " + scope.row.status }}</p>
-                <p class="error" v-else-if="scope.row.status === 'OUTOFORDER'"> {{ "● " + scope.row.status }}</p>
+                <p class="available text-center" v-if="scope.row.status === 'AVAILABLE'"> {{ "● " + scope.row.status_str }}</p>
+                <p class="charging text-center" v-else-if="scope.row.status === 'CHARGING'"> {{ "● " + scope.row.status_str }}</p>
+                <p class="offline text-center" v-else-if="scope.row.status === 'UNKNOWN' "> {{ "● " + scope.row.status_str }}</p>
+                <p class="error text-center" v-else-if="scope.row.status === 'OUTOFORDER'"> {{ "● " + scope.row.status_str }}</p>
               </template>
             </el-table-column>
             <el-table-column
-              prop="type_str"
-              label="Type"
+              prop="connector_type"
+              :label= "t('type')"
               sortable
-              min-width="150"
+              align="center"
+              min-width="200"
             />
             <el-table-column
               prop="sw_version"
-              label="SW Ver."
+              :label="t('sw_ver')"
               sortable
+              align="center"
               min-width="200"
             />
             <el-table-column
               prop=""
-              label="Latest SW"
+              :label= "t('latest_sw')"
               sortable
+              align="center"
               min-width="200"
             >
               <template #default="scope">
-                <p v-if="scope.row.sw_version === swVersion"> {{ "V" }}</p>
+                <p class="text-center" v-if="scope.row.sw_version === swVersion"> {{ "V" }}</p>
               </template>
             </el-table-column>
             <el-table-column
               prop="last_updated_str"
-              label="Updated Time"
+              :label="t('updated_time')"
               sortable
+              align="center"
               min-width="200"
             />
             <el-table-column
@@ -328,7 +399,7 @@ onMounted( async () => {
               min-width="200"
             >
               <template #default="scope">
-                    <el-button class="btn-more" @click="charger_detail(scope.row)"> <font-awesome-icon icon="fa-solid fa-ellipsis" /> </el-button>
+                <el-button class="btn-more" @click="charger_detail(scope.row)"> <font-awesome-icon icon="fa-solid fa-ellipsis" /> </el-button>
               </template>
             </el-table-column>
             <el-table-column
@@ -340,10 +411,6 @@ onMounted( async () => {
           </el-table>
         </div>
       </div>
-
-
-
-
 
       <el-dialog
         v-model="sw_version_visable" 
@@ -360,17 +427,17 @@ onMounted( async () => {
               :class="titleClass"
               class="m-0 text-center text-blue-1200 font-400 text-24px line-height-26px"
             >
-              Update SW
+            {{ t('update_sw') }}
             </h4>
           </div>
         </template>
         <div class="dialog-context">
-          <p class="text-center">Now Version {{ fwVersion }}</p>
+          <p class="text-center"> {{ t('now_version') }} {{ fwVersion }}</p>
         </div>
         <template #footer>
           <span class="dialog-footer flex flex-center">
-            <el-button round class="w-48% bg-btn-100 text-white max-w-140px" @click="sw_version_visable = false">Cancel</el-button>
-            <el-button round class="w-48% bg-btn-200 text-white max-w-140px" @click="updateConfirm()">Confirm</el-button>
+            <el-button round class="w-48% bg-btn-100 text-white max-w-140px" @click="sw_version_visable = false"> {{ t('cancel') }}</el-button>
+            <el-button round class="w-48% bg-btn-200 text-white max-w-140px" @click="updateConfirm()">{{ t('confirm') }}</el-button>
           </span>
         </template>
       </el-dialog>

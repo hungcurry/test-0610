@@ -176,8 +176,14 @@ const GetPermission = async () => {
   let queryData = { "database": "CPO", "collection": "UserPermission", "query": {} }
   let response = await MsiApi.mongoQuery(queryData)
   user_type.length = 0
-  const filteredArr = response.data.all.filter(item => item.name !== 'AnonymousUser' && item.name !== 'MemberUser'
+  let filteredArr
+  if (import.meta.env.VITE_NAME === 'dev') {
+    filteredArr = response.data.all.filter(item => item.name !== 'AnonymousUser' && item.name !== 'MemberUser'
     && item.name !== 'DeveloperUser' && item.name !== 'CustomerServiceUser')
+  }
+  else {
+    filteredArr = response.data.all.filter(item => item.name !== 'ttt')
+  }
   Object.assign(user_type, filteredArr)
 }
 

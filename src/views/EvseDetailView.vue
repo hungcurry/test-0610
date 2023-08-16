@@ -50,14 +50,12 @@ const edit = () => {
   router.push({ name: 'evseEdit', query: {station_id:locationData.id, evse_id:evseId} })
 }
 onMounted( async () => {
-  
   let queryData = { "database":"OCPI", "collection":"EVSE", "query": { "uid": {"UUID":evseId}}}
   let response = await MsiApi.mongoQuery(queryData)
   Object.assign(evseData, response.data.all[0]) 
 
   let localEndTime =  new Date( (new Date(evseData.last_updated).getTime()) + ((MStore.timeZoneOffset ) * -60000))
   evseData.last_updated_str = (moment(localEndTime).format("YYYY-MM-DD HH:mm:ss"))
-  
   
   queryData = { "database":"OCPI", "collection":"Connector", "query": { "_id": { "ObjectId" : evseData?.connectors?.[0]?._id}}}
   response = await MsiApi.mongoQuery(queryData)
@@ -83,7 +81,8 @@ onMounted( async () => {
     queryData = { "database":"CPO", "collection":"HMIControlBoardInfo", "query": { "_id": { "ObjectId" : chargePointInfoData?.hmi}}}    
     response = await MsiApi.mongoQuery(queryData)
     Object.assign(hmiInfoData, response.data.all[0])    
-    hmiInfoData.max_amperage = (hmiInfoData.minmax_current.split(" ").map(hex => parseInt(hex, 16)))[7]
+    if (hmiInfoData.minmax_current)
+      hmiInfoData.max_amperage = (hmiInfoData.minmax_current.split(" ").map(hex => parseInt(hex, 16)))[7]
   }
   queryData = { "database":"OCPI", "collection":"Location", "query": {  "evses" : {"$in": [  {"ObjectId" : evseData?._id }]}  }}
   response = await MsiApi.mongoQuery(queryData)
