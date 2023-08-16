@@ -38,7 +38,7 @@ watchEffect(() => {
           >
             Privacy Policy
           </h4>
-          <el-icon class="text-gray-4" @click.stop="closeModal(false)"><Close /></el-icon>
+          <el-icon class="text-Offline el-dialog__close" @click.stop="closeModal(false)"><Close /></el-icon>
         </div>
       </template>
       <div class="dialog-context scrollbar">

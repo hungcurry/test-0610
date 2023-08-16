@@ -1,53 +1,27 @@
 // DateTimePicker
 .date-picker {
-  .el-date-editor {
+  .el-input__wrapper {
+    width: 100%;
+    padding: 2rem 2.6rem;
     color: var(--white);
-    background-color: var(--blue-1100);
-    &.el-input,
-    &.el-input__wrapper {
-      width: 100%;
-      padding: 2rem 2.6rem;
-      border-radius: 100rem;
-      @media (min-width: 992px) {
-        width: auto;
-        min-width: inherit;
-      }
+    @media (min-width: 992px) {
+      width: auto;
+      min-width: inherit;
     }
-    .el-range-input {
-      color: var(--white);
-      margin-left: 0.8rem;
-    }
-    .el-range-separator {
-      color: var(--white);
-    }
-    .el-range__close-icon {
+  }
+  .el-range-input {
+    color: var(--white);
+    margin-left: 0.8rem;
+  }
+  .el-range-separator {
+    color: var(--white);
+  }
+  .el-range__close-icon {
+    color: var(--white);
+    &:hover {
       color: var(--white);
     }
   }
-}
-.el-picker-panel {
-  color: var(--white);
-  background-color: var(--blue-1100);
-  .el-picker-panel__footer {
-    background-color: var(--blue-1100);
-    .el-button.is-text {
-      width: 5rem;
-      background-color: var(--secondary);
-      color: var(--white);
-      border-radius: 100rem;
-    }
-    button {
-      width: 5rem;
-      background-color: var(--secondary);
-      color: var(--white);
-      border-radius: 100rem;
-      border: 0;
-    }
-  }
-}
-.el-picker__popper.el-popper .el-popper__arrow::before {
-  border: 0.1px solid var(--blue-1100);
-  background: var(--blue-1100);
 }
 // arrow
 .el-date-range-picker {
@@ -66,7 +40,6 @@
   .el-picker-panel__body {
     width: 100%;
     min-width: 36rem;
-    background-color: var(--blue-1100);
     .available {
       color: var(--white);
     }
@@ -79,11 +52,57 @@
     }
   }
 }
+// el-popper
+.el-date-picker {
+  --el-datepicker-text-color: var(--white);
+  --el-datepicker-icon-color: var(--white);
+  .el-date-picker__header-label {
+    color: var(--white);
+  }
+}
+.el-picker-panel {
+  color: var(--white);
+  background-color: var(--blue-1100);
+  .el-picker-panel__sidebar {
+    background: var(--blue-1100);
+    button {
+      color: var(--white);
+    }
+  }
+  .el-picker-panel__footer {
+    background-color: var(--blue-1100);
+    .el-button.is-text {
+      width: 5rem;
+      background-color: var(--secondary);
+      color: var(--white);
+      border-radius: 100rem;
+    }
+    button {
+      width: 5rem;
+      background-color: var(--secondary);
+      color: var(--white);
+      border-radius: 100rem;
+      border: 0;
+    }
+  }
+}
+.el-picker__popper.el-popper {
+  background: var(--blue-1100);
+  .el-popper__arrow::before {
+    border: 0.1rem solid var(--blue-1100);
+    background: var(--blue-1100);
+  }
+}
 // el-date-table
+.el-date-table.is-week-mode .el-date-table__row:hover .el-date-table-cell,
+.el-date-table.is-week-mode .el-date-table__row.current .el-date-table-cell {
+  background-color: rgba($color: #fff, $alpha: 0.2);
+}
 .el-date-table td.in-range .el-date-table-cell {
   background-color: rgba($color: #fff, $alpha: 0.2);
 }
-.el-date-table th {
+.el-date-table th,
+.el-date-table td {
   color: var(--white);
 }
 .el-date-table td.today .el-date-table-cell__text {
@@ -96,20 +115,21 @@
   color: var(--black) !important;
   background-color: var(--white);
 }
+.el-date-table td.disabled .el-date-table-cell {
+  background-color: var(--blue-900);
+}
+.el-month-table td.disabled .cell,
+.el-year-table td.disabled .cell {
+  background-color: initial;
+}
 .el-time-panel {
   width: 18rem;
   left: initial;
   right: 0;
 }
-.el-input--small .el-input__wrapper {
-  background-color: var(--blue-1100);
-}
-.el-input.is-disabled .el-input__wrapper {
-  background-color: var(--blue-1100);
-}
 // time
 .el-picker-panel .el-time-panel {
-  background-color: var(--blue-1300);
+  background-color: var(--blue-1100);
 }
 .el-picker-panel .el-input__inner {
   color: var(--white);

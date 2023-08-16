@@ -25,6 +25,7 @@
     "@fullcalendar/interaction": "^6.1.8",
     "@fullcalendar/timegrid": "^6.1.8",
     "@fullcalendar/vue3": "^6.1.8",
+    "@googlemaps/markerclusterer": "^2.4.0",
     "@iconify/json": "^2.2.71",
     "@influxdata/influxdb-client-browser": "^1.33.2",
     "@vueuse/core": "^10.1.2",

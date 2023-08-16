@@ -1,8 +1,9 @@
 <script setup>
-
-import { ref, reactive, onMounted } from 'vue'
 import CommpnFunc from '@/composables/CommonFunc'
 import ApiFunc from '@/composables/ApiFunc'
+import Calendar from '@/components/icons/IconCalendar.vue'
+import { ref, reactive, onMounted } from 'vue'
+
 const MsiFunc = CommpnFunc()
 const MsiApi = ApiFunc()
 
@@ -165,10 +166,11 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div>
-
+  <div class="container lg pb-40px">
     <div class="flex flex-justify-end flex-wrap lg:flex-nowrap pt-40px pb-32px">
-      <el-button class="btn-secondary box-shadow" @click="AddChargingProfile"> Add Charging Profile </el-button>
+      <el-button class="btn-secondary box-shadow" @click="AddChargingProfile">
+        Add Charging Profile
+      </el-button>
     </div>
 
     <el-table :data="ChargingProfileData" class="white-space-nowrap text-primary" height="calc(100vh - 220px)" style="width: 100%" stripe size="large">
@@ -193,103 +195,206 @@ onMounted(async () => {
       </el-table-column>
     </el-table>
 
-
-
-    <el-dialog v-model="DialogVisible" class="max-w-800px" :show-close="true" width="90%" destroy-on-close center>
+    <el-dialog
+      append-to-body
+      v-model="DialogVisible"
+      class="max-w-600px"
+      width="90%"
+      destroy-on-close
+      center
+    >
       <template #header="{ titleId, titleClass }">
         <div class="py-2rem relative bg-blue-100">
-          <h4 :id="titleId" :class="titleClass" class="m-0 text-center text-blue-1200 font-400 text-24px line-height-26px">
-            {{ DialogTitle }} 
+          <h4
+            :id="titleId"
+            :class="titleClass"
+            class="m-0 text-center text-blue-1200 font-400 text-24px line-height-26px"
+          >
+            {{ DialogTitle }}
           </h4>
         </div>
       </template>
-      <el-form ref="ruleFormRef" :model="DialogData" :rules="charging_profile_rules" label-width="200px" class="demo-ruleForm" status-icon>
-        <!-- ChargingProfile -->
-        <el-form-item label="Id" prop="chargingProfileId">
-          <el-input v-model.number="DialogData.chargingProfileId" />
-        </el-form-item>
-        <el-form-item label="Transaction Id" prop="transactionId">
-          <el-input v-model.number="DialogData.transactionId" />
-        </el-form-item>
-        <el-form-item label="Stack Level" prop="stackLevel">
-          <el-input v-model.number="DialogData.stackLevel" />
-        </el-form-item>
-        <el-form-item label="Purpose" prop="chargingProfilePurpose">
-          <el-select class="el-select" v-model="DialogData.chargingProfilePurpose" placeholder="Select" size="large">
-            <el-option v-for="item in chargingProfilePurpose" :key="item.value" :label="item.label" :value="item.value" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="Kind" prop="chargingProfileKind">
-          <el-select class="el-select" v-model="DialogData.chargingProfileKind" placeholder="Select" size="large">
-            <el-option v-for="item in chargingProfileKind" :key="item.value" :label="item.label" :value="item.value" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="Recurrency" prop="recurrencyKind">
-          <el-select class="el-select" v-model="DialogData.recurrencyKind" placeholder="Select" size="large" >
-            <el-option v-for="item in recurrencyKind" :key="item.value" :label="item.label" :value="item.value" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="Valid From" prop="validFrom">
-          <!-- <el-input v-model="DialogData.validFrom" /> -->
 
-          <div class="date-picker w-full">
-            <el-date-picker 
-            v-model="charging_profile_valid" 
-            class="mr-16px"
-            type="datetimerange" 
-            range-separator="-"
-            start-placeholder="Start Date" 
-            end-placeholder="End Date" 
-            />
-          </div>
+      <div class="profileForm dialog-context">
+        <el-form
+          class="pr-10px"
+          ref="ruleFormRef"
+          :model="DialogData"
+          :rules="charging_profile_rules"
+          status-icon
+        >
+          <!-- ChargingProfile -->
+          <el-form-item class="block" label="Id" prop="chargingProfileId">
+            <el-input v-model.number="DialogData.chargingProfileId" />
+          </el-form-item>
 
+          <el-form-item class="block" label="Transaction Id" prop="transactionId">
+            <el-input v-model.number="DialogData.transactionId" />
+          </el-form-item>
 
-        </el-form-item>
-        <!-- <el-form-item label="Valid To" prop="validTo">
-          <el-input v-model="DialogData.validTo" />
-        </el-form-item> -->
-      <!-- ChargingSchedule -->
-        <el-form-item label="Duration" prop="duration">
-          <el-input v-model.number="DialogData.duration" />
-          
-        </el-form-item>
-        <el-form-item label="Start Schedule" prop="startSchedule">
-          
-          <div class="block">
-            <el-date-picker v-model="charging_schedule_startSchedule" type="datetime" placeholder="Select date and time"/>
-          </div>
+          <el-form-item class="block" label="Stack Level" prop="stackLevel">
+            <el-input v-model.number="DialogData.stackLevel" />
+          </el-form-item>
 
-        </el-form-item>
-        <el-form-item label="Scheduling Unit" prop="chargingRateUnit">
-          <el-select class="el-select" v-model="DialogData.chargingRateUnit" placeholder="Select" size="large" >
-            <el-option v-for="item in chargingRateUnit" :key="item.value" :label="item.label" :value="item.value" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="Min Charging Rate" prop="minChargingRate">
-          <el-input v-model.number="DialogData.minChargingRate" />
-        </el-form-item>      
-      <!-- ChargingSchedulePeriod -->
-        <el-form-item label="Start Period" prop="startPeriod">
-          <el-input v-model.number="DialogData.startPeriod" />
-        </el-form-item>
-        <el-form-item label="Limit" prop="limit">
-          <el-input v-model.number="DialogData.limit" />
-        </el-form-item>
-        <el-form-item label="Number Phases" prop="numberPhases">
-          <el-input v-model.number="DialogData.numberPhases" />
-        </el-form-item>
-      </el-form>
+          <el-form-item class="block" label="Purpose" prop="chargingProfilePurpose">
+            <el-select
+              class="el-select w-full"
+              v-model="DialogData.chargingProfilePurpose"
+              placeholder="Select"
+            >
+              <el-option
+                v-for="item in chargingProfilePurpose"
+                :key="item.value"
+                :label="item.label"
+                :value="item.value"
+              />
+            </el-select>
+          </el-form-item>
 
-      <template #footer> 
+          <el-form-item class="block" label="Kind" prop="chargingProfileKind">
+            <el-select
+              class="el-select w-full"
+              v-model="DialogData.chargingProfileKind"
+              placeholder="Select"
+            >
+              <el-option
+                v-for="item in chargingProfileKind"
+                :key="item.value"
+                :label="item.label"
+                :value="item.value"
+              />
+            </el-select>
+          </el-form-item>
+
+          <el-form-item class="block" label="Recurrency" prop="recurrencyKind">
+            <el-select
+              class="el-select w-full"
+              v-model="DialogData.recurrencyKind"
+              placeholder="Select"
+            >
+              <el-option
+                v-for="item in recurrencyKind"
+                :key="item.value"
+                :label="item.label"
+                :value="item.value"
+              />
+            </el-select>
+          </el-form-item>
+
+          <el-form-item class="block" label="Valid From" prop="validFrom">
+            <!-- <el-input v-model="DialogData.validFrom" /> -->
+
+            <div class="date-picker w-full">
+              <el-date-picker
+                v-model="charging_profile_valid"
+                class="w-full"
+                type="datetimerange"
+                range-separator="-"
+                start-placeholder="Start Date"
+                end-placeholder="End Date"
+                :prefix-icon="Calendar"
+              />
+            </div>
+          </el-form-item>
+
+          <!-- ChargingSchedule -->
+          <el-form-item class="block" label="Duration" prop="duration">
+            <el-input v-model.number="DialogData.duration" />
+          </el-form-item>
+
+          <el-form-item class="block" label="Start Schedule" prop="startSchedule">
+            <div class="block w-full">
+              <el-date-picker
+                class="w-full"
+                v-model="charging_schedule_startSchedule"
+                type="datetime"
+                placeholder="Select date and time"
+                :prefix-icon="Calendar"
+              />
+            </div>
+          </el-form-item>
+
+          <el-form-item class="block" label="Scheduling Unit" prop="chargingRateUnit">
+            <el-select
+              class="el-select w-full"
+              v-model="DialogData.chargingRateUnit"
+              placeholder="Select"
+            >
+              <el-option
+                v-for="item in chargingRateUnit"
+                :key="item.value"
+                :label="item.label"
+                :value="item.value"
+              />
+            </el-select>
+          </el-form-item>
+
+          <el-form-item class="block" label="Min Charging Rate" prop="minChargingRate">
+            <el-input v-model.number="DialogData.minChargingRate" />
+          </el-form-item>
+
+          <!-- ChargingSchedulePeriod -->
+          <el-form-item class="block" label="Start Period" prop="startPeriod">
+            <el-input v-model.number="DialogData.startPeriod" />
+          </el-form-item>
+
+          <el-form-item class="block" label="Limit" prop="limit">
+            <el-input v-model.number="DialogData.limit" />
+          </el-form-item>
+
+          <el-form-item class="block" label="Number Phases" prop="numberPhases">
+            <el-input v-model.number="DialogData.numberPhases" />
+          </el-form-item>
+        </el-form>
+      </div>
+
+      <template #footer>
         <span class="dialog-footer flex flex-center">
-          <el-button round class="w-48% bg-btn-100 text-white max-w-140px" @click="CancelDialog">
+          <el-button
+            round
+            class="w-48% bg-btn-100 text-white max-w-140px"
+            @click="CancelDialog"
+          >
             Cancel
           </el-button>
-          <el-button round class="w-48% bg-btn-200 text-white max-w-140px" @click="ConfirmDialog">
+          <el-button
+            round
+            class="w-48% bg-btn-200 text-white max-w-140px"
+            @click="ConfirmDialog"
+          >
             Confirm
           </el-button>
         </span>
       </template>
-    </el-dialog>          
+    </el-dialog>
   </div>
 </template>
+
+<style lang="scss" scoped>
+.profileForm {
+  :deep(.el-form-item__label) {
+    display: block;
+    font-size: 1.6rem;
+  }
+  .el-date-editor .el-range-separator {
+    color: var(--white);
+  }
+}
+:deep(.el-date-editor) {
+  --el-date-editor-width: 100%;
+}
+:deep(.date-picker) {
+  .el-input__wrapper {
+    padding: 0 1rem;
+    @media (min-width: 992px) {
+      width: 100%;
+    }
+  }
+}
+:deep(.el-date-editor) .el-range__icon,
+:deep(.el-input) .el-input__icon {
+  margin-left: 0.5rem;
+  margin-right: 1.6rem;
+}
+</style>
+

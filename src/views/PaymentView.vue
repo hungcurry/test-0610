@@ -213,10 +213,10 @@ onMounted(async () => {
   <div class="payment">
     <div class="container lg">
       <div class="flex justify-between flex-wrap lg:flex-nowrap pt-40px pb-32px">
-        <div class="date-picker w-full">
+        <div class="date-picker w-full blue-1100">
           <el-date-picker
             v-model="selectTime"
-            class="mr-16px"
+            class="mr-16px rounded-full"
             type="datetimerange"
             range-separator="-"
             :prefix-icon="Calendar"

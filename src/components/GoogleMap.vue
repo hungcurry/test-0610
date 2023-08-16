@@ -1,13 +1,12 @@
 <script setup>
 import msi from '@/assets/msi_style'
-import { ref, computed , onUnmounted } from 'vue'
-import { useRouter } from 'vue-router'
-import { GoogleMap, Marker, MarkerCluster, InfoWindow } from 'vue3-google-map'
+import { ref, onMounted, watchEffect, onUnmounted } from 'vue'
+import { useRouter, onBeforeRouteUpdate } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useGoogleStore } from '@/stores/googleMap'
-import { useI18n } from "vue-i18n"
+import { MarkerClusterer, SuperClusterAlgorithm } from '@googlemaps/markerclusterer'
+import { useI18n } from 'vue-i18n'
 
-const { t } = useI18n()
 const props = defineProps({
   LocationData: {
     type: Array,
@@ -16,36 +15,173 @@ const props = defineProps({
 })
 const router = useRouter()
 const SideBarInfo = ref([])
-const infoWindowRef = ref(null)
-const center = ref({ lat: 23.5825, lng: 120.5855 })
 const GoogleStore = useGoogleStore()
 const { show_stataion_detail } = storeToRefs(GoogleStore)
-const locationMsi = computed(() => {
-  let image = null
-  let data = []
-  props.LocationData.forEach((mark) => {
+const { t } = useI18n()
+//-------- googleMap --------
+const locationMsi = ref(props.LocationData)
+const stationMap = ref()
+let map = null
+const infoWindow = new google.maps.InfoWindow({
+  content: '',
+  maxWidth: 300,
+  disableAutoPan: true,
+})
+const algorithm = new SuperClusterAlgorithm({
+  radius: 80,
+  maxZoom: 14,
+  log: false,
+  generateId: false,
+  minPoints: 2,
+})
+const MarkerColor = {
+  primarySvg: window.btoa(`
+<svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="100" cy="100" opacity=".8" r="50" fill="#2E343A"/>
+  <circle cx="100" cy="100" opacity=".8" r="60" stroke="#2E343A" stroke-width="8"/>
+</svg>`),
+  secondarySvg: window.btoa(`
+<svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="100" cy="100" opacity=".8" r="50" fill="#92a9c4"/>
+  <circle cx="100" cy="100" opacity=".8" r="60" stroke="#92a9c4" stroke-width="8"/>
+</svg>`),
+  AvailableSvg: window.btoa(`
+<svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="100" cy="100" opacity=".8" r="50" fill="#76bbf4"/>
+  <circle cx="100" cy="100" opacity=".8" r="60" stroke="#76bbf4" stroke-width="8"/>
+</svg>`),
+  ChargingSvg: window.btoa(`
+<svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="100" cy="100" opacity=".8" r="50" fill="#94eadb"/>
+  <circle cx="100" cy="100" opacity=".8" r="60" stroke="#94eadb" stroke-width="8"/>
+</svg>`),
+  ErrorSvg: window.btoa(`
+<svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="100" cy="100" opacity=".8" r="50" fill="#ef8879"/>
+  <circle cx="100" cy="100" opacity=".8" r="60" stroke="#ef8879" stroke-width="8"/>
+</svg>`),
+  OfflineSvg: window.btoa(`
+<svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="100" cy="100" opacity=".8" r="50" fill="#bcbcbc"/>
+  <circle cx="100" cy="100" opacity=".8" r="60" stroke="#bcbcbc" stroke-width="8"/>
+</svg>`),
+}
+const initMap = () => {
+  map = new google.maps.Map(stationMap.value, {
+    center: { lat: 23.5825, lng: 120.5855 },
+    zoom: 8,
+    maxZoom: 30,
+    minZoom: 3,
+    streetViewControl: true,
+    mapTypeControl: false,
+    styles: msi.map_style,
+  })
+}
+const initData = () => {
+  locationMsi.value.forEach((mark) => {
+    let image = null
     if (mark.evse_outoforder_status > 0) {
       image = 'https://storage.googleapis.com/msi-common/pic/station_error.png'
+      mark.state = 'error'
     } else if (mark.evse_unknown_status > 0) {
       image = 'https://storage.googleapis.com/msi-common/pic/station_offline.png'
+      mark.state = 'offline'
     } else if (mark.evse_available_status === 0 && mark.evse_charging_status > 0) {
       image = 'https://storage.googleapis.com/msi-common/pic/station_charging.png'
+      mark.state = 'charging'
     } else if (mark.evse_available_status > 0) {
       image = 'https://storage.googleapis.com/msi-common/pic/station_available.png'
+      mark.state = 'available'
     } else {
       image = 'https://storage.googleapis.com/msi-common/pic/station_offline.png'
+      mark.state = 'offline'
     }
-    data.push({
+    mark.icon = image
+    mark.position = {
       lat: parseFloat(mark.coordinates.latitude),
       lng: parseFloat(mark.coordinates.longitude),
-      icon: image,
-      id: mark._id,
-      name: mark.name,
-    })
+    }
   })
-  return data
-})
+}
+const setMarker = () => {
+  const markers = locationMsi.value.map((location) => {
+    const { position, icon, name, state } = location
+    const label = '<div class="text-22px font-700">' + name + '</div>'
+    const marker = new google.maps.Marker({
+      position,
+      state,
+      icon: {
+        url: icon,
+        scaledSize: new google.maps.Size(50, 50),
+      },
+      gridSize: 10,
+      animation: google.maps.Animation.DROP,
+      draggable: false,
+    })
+    marker.addListener('click', () => {
+      if (infoWindow) infoWindow.close()
+      infoWindow.setContent(label)
+      infoWindow.open(map, marker)
+      show_stataion_detail.value = true
+      SideBarInfo.value = []
+      SideBarInfo.value = location
+    })
+    return marker
+  })
+  setMarkerClusterer(markers)
+}
+const setMarkerClusterer = (markers) => {
+  new MarkerClusterer({
+    map: map,
+    markers: markers,
+    renderer: {
+      render: ({ count, position, markers }) => {
+        let stateObj = {}
+        markers.forEach(function (item) {
+          if (stateObj[item.state] === undefined) {
+            stateObj[item.state] = 1
+          } else {
+            stateObj[item.state] += 1
+          }
+        })
+        let img = null
+        if (stateObj['error']) {
+          img = `data:image/svg+xml;base64,${MarkerColor.ErrorSvg}`
+        } else if (stateObj['offline']) {
+          img = `data:image/svg+xml;base64,${MarkerColor.OfflineSvg}`
+        } else if (stateObj['charging']) {
+          img = `data:image/svg+xml;base64,${MarkerColor.ChargingSvg}`
+        } else {
+          img = `data:image/svg+xml;base64,${MarkerColor.AvailableSvg}`
+        }
 
+        let marker = new google.maps.Marker({
+          label: {
+            text: `${String(count)}`,
+            color: 'white',
+            fontSize: '16px',
+          },
+          position,
+          icon: {
+            url: img,
+            scaledSize: new google.maps.Size(75, 75),
+          },
+          zIndex: Number(google.maps.Marker.MAX_ZINDEX) + count,
+          gridSize: 10,
+        })
+        return marker
+      },
+    },
+    algorithm: algorithm,
+  })
+}
+const closeAllInfoWindows = () => {
+  if (infoWindow) infoWindow.close()
+}
+watchEffect(() => {
+  initData()
+  setMarker()
+})
 const detail_info = (row) => {
   router.push({ name: 'stationDetail', query: { id: row.id } })
 }
@@ -56,51 +192,20 @@ const close_detail = () => {
   closeAllInfoWindows()
   show_stataion_detail.value = false
 }
-const clickHandler = (id) => {
-  show_stataion_detail.value = true
+onBeforeRouteUpdate(() => {
   closeAllInfoWindows()
-  SideBarInfo.value = []
-  SideBarInfo.value = props.LocationData.find((item) => {
-    return item._id === id
-  })
-}
-const closeAllInfoWindows = () => {
-  infoWindowRef.value.forEach((item) => {
-    if (item.infoWindow) item.infoWindow.close()
-  })
-}
+})
+onMounted(() => {
+  initMap()
+  setMarker()
+})
 onUnmounted(() => {
   show_stataion_detail.value = false
 })
 </script>
 
 <template>
-  <GoogleMap
-    api-key="AIzaSyDD5YBm59uRv8ppJRDNWlWNgf1xcjhR2-g"
-    style="width: 100%; height: 100%"
-    :center="center"
-    :zoom="8"
-    :maxZoom="30"
-    :minZoom="3"
-    :streetViewControl="true"
-    :mapTypeControl="false"
-    :styles="msi.map_style"
-  >
-    <MarkerCluster>
-      <Marker
-        v-for="location in locationMsi"
-        :key="location._id"
-        :options="{ position: location, icon: location.icon }"
-        @click="clickHandler(location.id)"
-      >
-        <InfoWindow ref="infoWindowRef">
-          <div>
-            <p class="text-20px font-700">{{ location.name }}</p>
-          </div>
-        </InfoWindow>
-      </Marker>
-    </MarkerCluster>
-  </GoogleMap>
+  <div class="station-map w-full h-full" ref="stationMap"></div>
   <Transition name="slide-fade">
     <div class="station-detail" v-if="show_stataion_detail">
       <div class="header px-10px md:px-0">
@@ -116,7 +221,6 @@ onUnmounted(() => {
         <p class="text-26px md:text-35px text-white mt-12px mb-16px">
           {{ SideBarInfo.name }}
         </p>
-
         <div class="flex flex-items-center mb-12px">
           <img
             @click="edit_detail(SideBarInfo.id)"
@@ -146,7 +250,7 @@ onUnmounted(() => {
             {{ t('coordinates') +' : ' + SideBarInfo.coordinates?.latitude + ' , ' +SideBarInfo.coordinates?.longitude}}
           </p>
         </div>
-        <br>
+
         <div class="flex flex-items-center mb-12px">
           <p class="text-16px text-white">{{ t('publish') + ' : ' + SideBarInfo.publish_str}}</p>
         </div>
@@ -159,7 +263,7 @@ onUnmounted(() => {
       </div>
       <div class="scrollbar flex-grow overflow-x-auto mb-10px md:px-12px">
         <div class="flex-col mb-60px">
-          <div class="mt-0px px-6px" v-if="SideBarInfo.type1_total > 0">
+          <div class="type1 mt-0px px-6px" v-if="SideBarInfo.type1_total > 0">
             <div class="flex items-center">
               <img
                 class="w-30px h-30px mr-10px"
@@ -188,11 +292,13 @@ onUnmounted(() => {
                 }})
               </p>
               <p class="error text-18px mt-16px">
-                <span class="mr-10px">●</span> {{ t('error') }} ({{ SideBarInfo.type1_error_str }})
+                <span class="mr-10px">●</span> {{ t('error') }} ({{
+                  SideBarInfo.type1_error_str
+                }})
               </p>
             </div>
           </div>
-          <div class="mt-16px px-6px"  v-if="SideBarInfo.type2_total > 0">
+          <div class="type2 mt-16px px-6px" v-if="SideBarInfo.type2_total > 0">
             <div class="flex items-center">
               <img
                 class="w-30px h-30px mr-10px"
@@ -220,12 +326,13 @@ onUnmounted(() => {
                 }})
               </p>
               <p class="error text-18px mt-16px">
-                <span class="mr-10px">●</span> {{ t('error') }} ({{ SideBarInfo.type2_error_str }})
+                <span class="mr-10px">●</span> {{ t('error') }} ({{
+                  SideBarInfo.type2_error_str
+                }})
               </p>
             </div>
           </div>
-
-          <div class="mt-16px px-6px" v-if="SideBarInfo.others_total > 0">
+          <div class="others mt-16px px-6px" v-if="SideBarInfo.others_total > 0">
             <div class="flex items-center">
               <img
                 class="w-30px h-30px mr-10px"
@@ -253,11 +360,12 @@ onUnmounted(() => {
                 }})
               </p>
               <p class="error text-18px mt-16px">
-                <span class="mr-10px">●</span> {{ t('error') }} ({{ SideBarInfo.others_error_str }})
+                <span class="mr-10px">●</span> {{ t('error') }} ({{
+                  SideBarInfo.others_error_str
+                }})
               </p>
             </div>
           </div>
-
         </div>
       </div>
       <div class="footer-button mb-5px md:mb-60px">

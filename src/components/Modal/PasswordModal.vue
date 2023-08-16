@@ -73,7 +73,7 @@ onMounted(() => {
           >
             Reset Password
           </h4>
-          <el-icon class="text-gray-4" @click.stop="closeModal(false)">
+          <el-icon class="text-Offline el-dialog__close" @click.stop="closeModal(false)">
             <Close />
           </el-icon>
         </div>

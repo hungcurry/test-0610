@@ -8,7 +8,7 @@ import { ElMessage } from 'element-plus'
 import { useMStore } from '@/stores/m_cloud'
 import { useI18n } from "vue-i18n"
 import AgreementModal from '../components/Modal/AgreementModal.vue'
-
+const language = navigator.language
 const { t } = useI18n()
 const first_login = ref(false)
 const MStore = useMStore()

@@ -6,11 +6,28 @@ input:-webkit-autofill:active {
   -webkit-text-fill-color: #fff;
   transition: background-color 5000s ease-in-out 0s;
 }
+// base style
 .el-input__wrapper {
   background-color: var(--blue-1200);
   .el-input__inner {
     color: var(--white);
   }
+}
+// otherInput color
+.primary .el-input__wrapper {
+  background-color: var(--primary);
+}
+.secondary .el-input__wrapper {
+  background-color: var(--secondary);
+}
+.blue-1100 .el-input__wrapper {
+  background-color: var(--blue-1100);
+}
+.el-input.is-disabled .el-input__wrapper {
+  background-color: var(--blue-1100);
+}
+.el-input--small .el-input__wrapper {
+  background-color: var(--blue-1100);
 }
 // select
 .el-select-dropdown {
@@ -18,8 +35,12 @@ input:-webkit-autofill:active {
   color: var(--white);
   .el-select-dropdown__item {
     color: var(--white);
-    &:hover,&.hover {
+    &:hover,
+    &.hover {
       background-color: var(--primary);
+    }
+    &.is-disabled {
+      color: var(--gray-500);
     }
   }
   .el-select-dropdown__item.selected {

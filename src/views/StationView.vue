@@ -13,9 +13,9 @@ import { useRoute, useRouter, onBeforeRouteUpdate } from 'vue-router'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { storeToRefs } from 'pinia'
 import { useGoogleStore } from '@/stores/googleMap'
-import { useI18n } from "vue-i18n"
-
+import { useI18n } from 'vue-i18n'
 const { t } = useI18n()
+
 const MsiApi = ApiFunc()
 const route = useRoute()
 const router = useRouter()
@@ -69,10 +69,12 @@ const facilities_filter = (value, rowData) => {
   }
 }
 const status_filter = (value, rowData) => {
-  if ( (value === 'AVAILABLE' && rowData.evse_available_status > 0 ) || 
-       (value === 'CHARGING' && rowData.evse_charging_status > 0 ) ||
-       (value === 'UNKNOWN' && rowData.evse_unknown_status > 0 ) || 
-       (value === 'OUTOFORDER' && rowData.evse_outoforder_status > 0) ) {
+  if (
+    (value === 'AVAILABLE' && rowData.evse_available_status > 0) ||
+    (value === 'CHARGING' && rowData.evse_charging_status > 0) ||
+    (value === 'UNKNOWN' && rowData.evse_unknown_status > 0) ||
+    (value === 'OUTOFORDER' && rowData.evse_outoforder_status > 0)
+  ) {
     return rowData
   }
 }
@@ -107,41 +109,68 @@ const displayLayout = () => {
 }
 const renderData = async () => {
   isLoading.value = true
-  let queryData1 = { "database":"OCPI", "collection":"Location", "pipelines": [ 
-    { "$lookup": {"from":'EVSE', "localField": "evses", "foreignField": "_id", "as":"EVSES"}},
-    { "$lookup": {"from":'Connector', "localField": "EVSES.connectors", "foreignField": "_id", "as":"Connector"}},
-    { "$project": { 
-                    "country_code": 0, "directions": 0, "party_id": 0, "last_updated": 0, "time_zone": 0, "evses": 0,
-                    "EVSES.evse_id":0, "EVSES.floor_level":0, "EVSES.last_updated":0, "EVSES.uid":0, "EVSES._id":0,
-                    "Connector.id": 0, "Connector.format": 0, "Connector.last_updated": 0, "Connector.max_amperage": 0,
-                    "Connector.max_electric_power":0, "Connector.max_voltage":0, "Connector.power_type":0, "Connector.tariff_ids":0,
-                  }
-    }
-  ]}
+  let queryData1 = {
+    database: 'OCPI',
+    collection: 'Location',
+    pipelines: [
+      {
+        $lookup: { from: 'EVSE', localField: 'evses', foreignField: '_id', as: 'EVSES' },
+      },
+      {
+        $lookup: {
+          from: 'Connector',
+          localField: 'EVSES.connectors',
+          foreignField: '_id',
+          as: 'Connector',
+        },
+      },
+      {
+        $project: {
+          country_code: 0,
+          directions: 0,
+          party_id: 0,
+          last_updated: 0,
+          time_zone: 0,
+          evses: 0,
+          'EVSES.evse_id': 0,
+          'EVSES.floor_level': 0,
+          'EVSES.last_updated': 0,
+          'EVSES.uid': 0,
+          'EVSES._id': 0,
+          'Connector.id': 0,
+          'Connector.format': 0,
+          'Connector.last_updated': 0,
+          'Connector.max_amperage': 0,
+          'Connector.max_electric_power': 0,
+          'Connector.max_voltage': 0,
+          'Connector.power_type': 0,
+          'Connector.tariff_ids': 0,
+        },
+      },
+    ],
+  }
   let res = await MsiApi.mongoAggregate(queryData1)
   LocationData.length = 0
   Object.assign(LocationData, res.data.result)
-  console.log(LocationData)
   LocationData.forEach((item) => {
     let result = {}
     item.evse_available_status = item.evse_unknown_status = item.evse_charging_status = item.evse_outoforder_status = 0
     item.type1_available_str = item.type1_charging_str = item.type1_offline_str = item.type1_error_str = item.type1_total = 0
     item.type2_available_str = item.type2_charging_str = item.type2_offline_str = item.type2_error_str = item.type2_total = 0
     item.others_available_str = item.others_charging_str = item.others_offline_str = item.others_error_str = item.others_total = 0
-    item.EVSES.forEach(itemEntry => {
-      if(itemEntry.status === 'AVAILABLE')
-        item.evse_available_status ++
-      if(itemEntry.status === 'UNKNOWN')
-        item.evse_unknown_status ++
-      if(itemEntry.status === 'CHARGING')
-        item.evse_charging_status ++
-      if(itemEntry.status === 'OUTOFORDER')
-        item.evse_outoforder_status ++
-      itemEntry.connectors.forEach(EVSEconnectorsId => {
-        let itemType = item.Connector.find(connectorId => connectorId._id === EVSEconnectorsId)?.standard
+    item.EVSES.forEach((itemEntry) => {
+      if (itemEntry.status === 'AVAILABLE') item.evse_available_status++
+      if (itemEntry.status === 'UNKNOWN') item.evse_unknown_status++
+      if (itemEntry.status === 'CHARGING') item.evse_charging_status++
+      if (itemEntry.status === 'OUTOFORDER') item.evse_outoforder_status++
+      itemEntry.connectors.forEach((EVSEconnectorsId) => {
+        let itemType = item.Connector.find(
+          (connectorId) => connectorId._id === EVSEconnectorsId
+        )?.standard
         if (itemType) {
           result[itemType] = result[itemType] || {}
-          result[itemType][itemEntry.status] = (result[itemType][itemEntry.status] || 0) + 1
+          result[itemType][itemEntry.status] =
+            (result[itemType][itemEntry.status] || 0) + 1
         }
       })
     })
@@ -158,42 +187,42 @@ const renderData = async () => {
 
     item.connector_status = result
     if (item.publish === true) item.publish_str = t('true')
-    else item.publish_str = t('false')
+    else item.publish_str = t('False')
 
-    Object.keys(result).forEach((key)=> {
+    Object.keys(result).forEach((key) => {
       switch (key) {
-        case "IEC_62196_T1":
-          if(result[key].AVAILABLE)
-            item.type1_available_str = result[key].AVAILABLE
-          if(result[key].CHARGING)
-            item.type1_charging_str = result[key].CHARGING
-          if(result[key].UNKNOWN)
-            item.type1_offline_str = result[key].UNKNOWN
-          if(result[key].OUTOFORDER)
-            item.type1_error_str = result[key].OUTOFORDER
-          item.type1_total = item.type1_available_str + item.type1_charging_str + item.type1_offline_str + item.type1_error_str
-        break
-        case "IEC_62196_T2":
-          if(result[key].AVAILABLE)
-            item.type2_available_str = result[key].AVAILABLE
-          if(result[key].CHARGING)
-            item.type2_charging_str = result[key].CHARGING
-          if(result[key].UNKNOWN)
-            item.type2_offline_str = result[key].UNKNOWN
-          if(result[key].OUTOFORDER)
-            item.type2_error_str = result[key].OUTOFORDER
-          item.type2_total = item.type2_available_str + item.type2_charging_str + item.type2_offline_str + item.type2_error_str
-        break
+        case 'IEC_62196_T1':
+          if (result[key].AVAILABLE) item.type1_available_str = result[key].AVAILABLE
+          if (result[key].CHARGING) item.type1_charging_str = result[key].CHARGING
+          if (result[key].UNKNOWN) item.type1_offline_str = result[key].UNKNOWN
+          if (result[key].OUTOFORDER) item.type1_error_str = result[key].OUTOFORDER
+          item.type1_total =
+            item.type1_available_str +
+            item.type1_charging_str +
+            item.type1_offline_str +
+            item.type1_error_str
+          break
+        case 'IEC_62196_T2':
+          if (result[key].AVAILABLE) item.type2_available_str = result[key].AVAILABLE
+          if (result[key].CHARGING) item.type2_charging_str = result[key].CHARGING
+          if (result[key].UNKNOWN) item.type2_offline_str = result[key].UNKNOWN
+          if (result[key].OUTOFORDER) item.type2_error_str = result[key].OUTOFORDER
+          item.type2_total =
+            item.type2_available_str +
+            item.type2_charging_str +
+            item.type2_offline_str +
+            item.type2_error_str
+          break
         default:
-          if(result[key].AVAILABLE)
-            item.others_available_str = result[key].AVAILABLE
-          if(result[key].CHARGING)
-            item.others_charging_str = result[key].CHARGING
-          if(result[key].UNKNOWN)
-            item.others_offline_str = result[key].UNKNOWN
-          if(result[key].OUTOFORDER)
-            item.others_error_str = result[key].OUTOFORDER
-          item.others_total = item.others_available_str + item.others_charging_str + item.others_offline_str + item.others_error_str
+          if (result[key].AVAILABLE) item.others_available_str = result[key].AVAILABLE
+          if (result[key].CHARGING) item.others_charging_str = result[key].CHARGING
+          if (result[key].UNKNOWN) item.others_offline_str = result[key].UNKNOWN
+          if (result[key].OUTOFORDER) item.others_error_str = result[key].OUTOFORDER
+          item.others_total =
+            item.others_available_str +
+            item.others_charging_str +
+            item.others_offline_str +
+            item.others_error_str
       }
     })
     switch (item.facilities?.[0]) {

@@ -1555,10 +1555,6 @@ onMounted(async () => {
   }
 }
 
-:deep(.el-icon.el-input__prefix-icon) {
-  top: 18px;
-  left: 10px;
-}
 
 
 ::-webkit-scrollbar {

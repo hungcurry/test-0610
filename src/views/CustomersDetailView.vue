@@ -1,13 +1,15 @@
 <script setup>
+import ApiFunc from '@/composables/ApiFunc'
+import msi from '@/assets/msi_style'
+import Calendar from '@/components/icons/IconCalendar.vue'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { ref, reactive, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import  {export_json_to_excel}  from '@/composables/Export2Excel'
-import ApiFunc from '@/composables/ApiFunc'
-import msi from '@/assets/msi_style'
+import { export_json_to_excel }  from '@/composables/Export2Excel'
 import { ElMessageBox, ElMessage } from 'element-plus'
 import { useMStore } from "../stores/m_cloud"
 import moment from "moment"
+
 const MStore = useMStore();
 const company = MStore?.permission?.company?.name
 const MsiApi = ApiFunc()
@@ -583,7 +585,7 @@ onMounted(async () => {
               <div class="date-picker w-full">
                 <el-date-picker 
                   v-model="select_time" 
-                  class="mr-16px"
+                  class="mr-16px rounded-full"
                   type="datetimerange" 
                   range-separator="-"
                   :prefix-icon="Calendar"
