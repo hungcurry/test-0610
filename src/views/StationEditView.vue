@@ -5,6 +5,8 @@ import ApiFunc from '@/composables/ApiFunc'
 import { ElMessageBox, ElMessage } from 'element-plus'
 import { v4 as uuidv4 } from 'uuid'
 import CommpnFunc from '@/composables/CommonFunc'
+import { useI18n } from "vue-i18n"
+const { t } = useI18n()
 const MsiFunc = CommpnFunc()
 const MsiApi = ApiFunc()
 const route = useRoute()
@@ -12,8 +14,6 @@ const router = useRouter()
 const station_id = route.query.id
 // const Coordinates2Addr = ref('')
 const edit_title = ref('Edit Station')
-
-
 const ruleFormRef  = ref()
 
 const getCoordinates = async () => {
@@ -38,7 +38,7 @@ const change_country_code = (country) => {
   StationData.country_code = findObj.country_code
 }
 
-const facilities_type = [{ value: 'HOTEL', label: 'Hotel' }, { value: 'RESTAURANT', label: 'Restaurant' },
+const facilities_type = [{ value: 'HOTEL', label: t('hotel') }, { value: 'RESTAURANT', label: 'Restaurant' },
 { value: 'MALL', label: 'Mall' }, { value: 'SUPERMARKET', label: 'Super Market' },
 { value: 'PARKING_LOT', label: 'Parking Lot' }, { value: 'WIFI', label: 'Others' },
 ]
@@ -87,24 +87,22 @@ const marks = ref({
   20: "20",
   22: "22",
   24: "24",
-
 })
 
 const StationData = reactive({})
 
 const rules = reactive({
-  name: [{ required: true, message: 'This item is required', trigger: 'blur' },],
-  facilities_str: [{ required: true, message: 'This item is required', trigger: 'blur' },],
-  country:[{ required: true, message: 'This item is required', trigger: 'blur' },],
-  address:[{ required: true, message: 'This item is required', trigger: 'blur' },],
-  city:[{ required: true, message: 'This item is required', trigger: 'blur' },],
-  address1:[{ required: true, message: 'This item is required', trigger: 'blur' },],
-  city1:[{ required: true, message: 'This item is requirede', trigger: 'blur' },],
-  latitude_str:[{ required: true, message: 'This item is required', trigger: 'blur' },],
-  longitude_str:[{ required: true, message: 'This item is required', trigger: 'blur' },],
-  time_zone:[{ required: true, message: 'This item is required', trigger: 'blur' },],
+  name: [{ required: true, message: t('this_item_is_required'), trigger: 'blur' },],
+  facilities_str: [{ required: true, message: t('this_item_is_required'), trigger: 'blur' },],
+  country:[{ required: true, message: t('this_item_is_required'), trigger: 'blur' },],
+  address:[{ required: true, message: t('this_item_is_required'), trigger: 'blur' },],
+  city:[{ required: true, message: t('this_item_is_required'), trigger: 'blur' },],
+  address1:[{ required: true, message: t('this_item_is_required'), trigger: 'blur' },],
+  city1:[{ required: true, message: t('this_item_is_required'), trigger: 'blur' },],
+  latitude_str:[{ required: true, message: t('this_item_is_required'), trigger: 'blur' },],
+  longitude_str:[{ required: true, message: t('this_item_is_required'), trigger: 'blur' },],
+  time_zone:[{ required: true, message: t('this_item_is_required'), trigger: 'blur' },],
 })
-
 
 const change_all_time = () => {
   w1val.value = w2val.value = w3val.value = w4val.value = w5val.value = w6val.value = w7val.value = w0val.value
@@ -118,6 +116,16 @@ const backStation = () => {
   router.back(-1)
 }
 
+
+const formatNumberToTime = (number) => {
+  if (number >= 0 && number <= 24) {
+    const hours = number.toString().padStart(2, '0');
+    return `${hours}:00`;
+  } else {
+    return 'Invalid input';
+  }
+}
+
 const deleteStation = () => {
   let evse_id = ''
   if (StationData.evses.length !== 0) {
@@ -127,7 +135,7 @@ const deleteStation = () => {
     ElMessage.error(evse_id)
   }
   else {
-    ElMessageBox.confirm('Do you want to delete?', 'Warning', { confirmButtonText: 'OK', cancelButtonText: 'Cancel', type: 'warning' })
+    ElMessageBox.confirm(t('do_you_want_to_delete'), 'Warning', { confirmButtonText: 'OK', cancelButtonText: 'Cancel', type: 'warning' })
       .then(async () => {
         const sendData = { class: 'Location', id: station_id }
         let response = await MsiApi.setCollectionData('delete', 'ocpi', sendData)
@@ -138,18 +146,41 @@ const deleteStation = () => {
 }
 
 const saveStation = async (formEl) => {
-  console.log(formEl)
+  if (!formEl) return
+  let check_format_success = false
+  await formEl.validate((valid) => {
+    if (valid === false) ElMessage.error(t('please_check_required_item'))
+    else check_format_success = true
+  })
+  if (check_format_success === false) 
+    return 
 
-  // if (!formEl) return
-  // await formEl.validate((valid, fields) => {
-  //   if (valid) {
-  //     console.log('submit!')
-  //   } else {
-  //     console.log('error submit!', fields)
-  //   }
-  // })
+  let regular_hours = []
+  if (w1check.value) {
+    regular_hours.push({weekday:1,period_begin:formatNumberToTime(w1val.value[0]), period_end:formatNumberToTime(w1val.value[1])})
+  }
+  if (w2check.value) {
+    regular_hours.push({weekday:2,period_begin:formatNumberToTime(w2val.value[0]), period_end:formatNumberToTime(w2val.value[1])})
+  }
+  if (w3check.value) {
+    regular_hours.push({weekday:3,period_begin:formatNumberToTime(w3val.value[0]), period_end:formatNumberToTime(w3val.value[1])})
+  }
+  if (w4check.value) {
+    regular_hours.push({weekday:4,period_begin:formatNumberToTime(w4val.value[0]), period_end:formatNumberToTime(w4val.value[1])})
+  }
+  if (w5check.value) {
+    regular_hours.push({weekday:5,period_begin:formatNumberToTime(w5val.value[0]), period_end:formatNumberToTime(w5val.value[1])})
+  }
+  if (w6check.value) {
+    regular_hours.push({weekday:6,period_begin:formatNumberToTime(w6val.value[0]), period_end:formatNumberToTime(w6val.value[1])})
+  }
+  if (w7check.value) {
+    regular_hours.push({weekday:7,period_begin:formatNumberToTime(w7val.value[0]), period_end:formatNumberToTime(w7val.value[1])})
+  }
 
-  let check_format_success = true
+  let opening_times = { twentyfourseven:station_always_open.value, regular_hours:regular_hours}
+
+
   const coordinates = { latitude: parseFloat(StationData.latitude_str).toFixed(6), longitude: parseFloat(StationData.longitude_str).toFixed(6) }
   let sendData = {
     'class': 'Location', 'id': station_id,
@@ -159,7 +190,8 @@ const saveStation = async (formEl) => {
     'publish': StationData.publish, 'charging_when_closed': StationData.charging_when_closed,
     'address': StationData.address, 'coordinates': coordinates,
     'city': StationData.city, 'country': StationData.country,
-    'country_code': StationData.country_code, 'time_zone': StationData.time_zone
+    'country_code': StationData.country_code, 'time_zone': StationData.time_zone,
+    opening_time : opening_times
   }
   sendData.party_id = 'MSI'
   sendData.parking_type = ''
@@ -169,96 +201,40 @@ const saveStation = async (formEl) => {
   if (sendData.directions[0].text === undefined)
     delete sendData.directions
 
+  if (sendData.address === undefined)
+    sendData.address = ''
+  sendData.address += '\n' + StationData.address1
 
-  if (StationData.address1 === undefined || StationData.address1 ==='') {
-    ElMessage.error('Oops, Address en required.')
-    check_format_success = false
+  if(sendData.city === undefined)
+    sendData.city = ''
+  sendData.city += '\n' + StationData.city1
+
+  if (station_id === undefined) {
+    sendData.station_id = uuidv4()
+    ElMessageBox.confirm(t('do_you_want_to_create'), 'Warning', { confirmButtonText: 'OK', cancelButtonText: 'Cancel', type: 'warning' })
+      .then(async () => {
+        sendData.evses = []
+        let response = await MsiApi.setCollectionData('post', 'ocpi', sendData)
+        if (response.status === 201) { router.push({ name: 'station' }) }
+        else { ElMessage.error(response.data.message) }
+      })
+      .catch((e) => { console.log(e) })
   }
   else {
-    if (sendData.address === undefined)
-      sendData.address = ''
-    sendData.address += '\n' + StationData.address1
-  }
-
-  if (StationData.city1 === undefined || StationData.city1 === undefined === '') {
-    ElMessage.error('Oops, city en required.')
-    check_format_success = false
-  }
-  else {
-    if(sendData.city === undefined)
-      sendData.city = ''
-    sendData.city += '\n' + StationData.city1
-  }
-
-
-
-  if (sendData.country_code === undefined) {
-    ElMessage.error('Oops, Country code required.')
-    check_format_success = false
-  }
-  if (sendData.name === undefined) {
-    ElMessage.error('Oops, Name required.')
-    check_format_success = false
-  }
-  if (sendData.party_id === undefined) {
-    ElMessage.error('Oops, Party ID required.')
-    check_format_success = false
-  }
-  if (sendData.publish === undefined) {
-    sendData.publish = false
-  }
-  if (sendData.address === undefined) {
-    ElMessage.error('Oops, Address required.')
-    check_format_success = false
-  }
-  if (sendData.city === undefined) {
-    ElMessage.error('Oops, City required.')
-    check_format_success = false
-  }
-  if (sendData.country === undefined) {
-    ElMessage.error('Oops, Country required.')
-    check_format_success = false
-  }
-  if (sendData.coordinates === undefined) {
-    ElMessage.error('Oops, Coordinates required.')
-    check_format_success = false
-  }
-  if (sendData.facilities[0] === undefined) {
-    ElMessage.error('Oops, Station Type required.')
-    check_format_success = false
-  }
-  if (sendData.time_zone === undefined) {
-    ElMessage.error('Oops, Time Zone required.')
-    check_format_success = false
-  }
-  if (check_format_success === true) {
-    if (station_id === undefined) {
-      sendData.station_id = uuidv4()
-      ElMessageBox.confirm('Do you want to create?', 'Warning', { confirmButtonText: 'OK', cancelButtonText: 'Cancel', type: 'warning' })
-        .then(async () => {
-          sendData.evses = []
-          let response = await MsiApi.setCollectionData('post', 'ocpi', sendData)
-          if (response.status === 201) { router.push({ name: 'station' }) }
-          else { ElMessage.error(response.data.message) }
-        })
-        .catch((e) => { console.log(e) })
-    }
-    else {
-      ElMessageBox.confirm('Do you want to modify?', 'Warning', { confirmButtonText: 'OK', cancelButtonText: 'Cancel', type: 'warning' })
-        .then(async () => {
-          let response = await MsiApi.setCollectionData('patch', 'ocpi', sendData)
-          if (response.status === 200) { router.push({ name: 'station' }) }
-          else { ElMessage.error(response.data.message) }
-        })
-        .catch((e) => { console.log(e) })
-    }
+    ElMessageBox.confirm(t('do_you_want_to_modify'), 'Warning', { confirmButtonText: 'OK', cancelButtonText: 'Cancel', type: 'warning' })
+      .then(async () => {
+        let response = await MsiApi.setCollectionData('patch', 'ocpi', sendData)
+        if (response.status === 200) { router.push({ name: 'station' }) }
+        else { ElMessage.error(response.data.message) }
+      })
+      .catch((e) => { console.log(e) })
   }
 }
 
 onMounted(async () => {
   let jsonData = { "database": "OCPI", "collection": "Location", "query": { "id": { "UUID": station_id } } }
   if (station_id === undefined) {
-    edit_title.value = 'Add Station'
+    edit_title.value = t('add_station')
   }
   else {
     let response = await MsiApi.mongoQuery(jsonData)
@@ -301,7 +277,7 @@ onMounted(async () => {
           <div class="lg:w-50% flex-col pr-40px">
             <div class="flex">
               <img class="mr-8px" src="@/assets/img/station_edit_stationdetail.png" alt="">
-              <p class="text-secondary">Station Details</p>
+              <p class="text-secondary">{{ t('station_details') }}</p>
             </div>
             
             <div class="flex mt-24px ml-30px">
@@ -309,11 +285,11 @@ onMounted(async () => {
               <img class="w-180px h-180px mr-30px" v-else src="@/assets/img/null_pic.png">
   
                   <el-form class="w-full min-w-190px" :rules="rules" :model="StationData" ref="ruleFormRef">
-                    <el-form-item label="Name" prop="name">
+                    <el-form-item :label="t('name')" prop="name">
                       <el-input v-model.trim="StationData.name" />
                     </el-form-item>
     
-                    <el-form-item label="Type" prop="facilities_str">
+                    <el-form-item :label="t('type')" prop="facilities_str">
                     <el-select
                       class="el-select w-full" 
                       v-model="StationData.facilities_str" 
@@ -337,7 +313,7 @@ onMounted(async () => {
                     <el-input v-model.trim="StationData.directions_str" />
                   </el-form-item> -->
   
-                  <el-checkbox v-model="StationData.publish" label="Publish" size="large" />
+                  <el-checkbox v-model="StationData.publish" :label= "t('publish')" size="large" />
                   <!-- <el-checkbox v-model="StationData.parking_type_enable" label="Parking Lot" size="large" /> -->
                   <!-- <el-checkbox v-model="StationData.charging_when_closed" label="Charging when place is closed"></el-checkbox> -->
                 </el-form>
@@ -347,13 +323,13 @@ onMounted(async () => {
   
             <div class="flex mt-24px">
               <img class="mr-8px" src="@/assets/img/station_edit_location.png" alt="">
-              <p class="text-secondary">Location</p>
+              <p class="text-secondary"> {{ t('location')}} </p>
             </div>
     
               <div class="flex mt-24px ml-30px">
                 <el-form class="w-full min-w-190px" :rules="rules" :model="StationData" ref="ruleFormRef">
                   <div class="flex flex-items-end" id="Country">
-                    <el-form-item label="Country" class="mr-20px w-190px" prop="country">
+                    <el-form-item :label= "t('country')" class="mr-20px w-190px" prop="country">
                       <el-select
                         class="el-select w-190px" 
                         v-model="StationData.country" 
@@ -371,7 +347,7 @@ onMounted(async () => {
                 </div>
   
                 <div class="flex" id="Address+City">
-                  <el-form-item label="Address" class="mr-20px w-full">
+                  <el-form-item :label="t('address')" class="mr-20px w-full">
                     <el-input v-model="StationData.address" placeholder="EX: 中和區立德街69號"></el-input>
                   </el-form-item>
                   <el-form-item label="City">
@@ -388,29 +364,29 @@ onMounted(async () => {
                 </div>
   
                 <div class="flex" id="Address+City(En)">
-                  <el-form-item label="Address (En)" class="mr-20px w-full" prop="address1">
+                  <el-form-item :label="t('address_en')" class="mr-20px w-full" prop="address1">
                     <el-input v-model="StationData.address1"></el-input>
                   </el-form-item>
-                  <el-form-item label="City (En)" prop="city1">
+                  <el-form-item :label="t('city_en')" prop="city1">
                     <el-input v-model="StationData.city1" class="w-190px"></el-input>
                   </el-form-item>
                 </div>
   
                 <div class="flex flex-items-end" id="Latitude+Longitude">
-                  <el-form-item label="Latitude" class="mr-20px w-150px" prop="latitude_str">
+                  <el-form-item :label="t('latitude')" class="mr-20px w-150px" prop="latitude_str">
                     <el-input v-model="StationData.latitude_str" placeholder="EX: 25.007678"></el-input>
                   </el-form-item>
-                  <el-form-item label="Longitude" class="mr-20px w-150px" prop="longitude_str">
+                  <el-form-item :label="t('Longitude')" class="mr-20px w-150px" prop="longitude_str">
                     <el-input v-model="StationData.longitude_str" placeholder="EX: 121.487396"></el-input>
                   </el-form-item>
-                  <el-button class="location-button" @click="getCoordinates"> Get Coordinates </el-button>
+                  <el-button class="location-button" @click="getCoordinates"> {{ t('get_coordinates') }}</el-button>
                 </div>
                 
                 <div class="flex flex-items-end" id="TimeZone">
-                  <el-form-item label="Time Zone" class="mr-20px w-150px" prop="time_zone">
+                  <el-form-item :label="t('time_zone')" class="mr-20px w-150px" prop="time_zone">
                     <el-input v-model="StationData.time_zone"></el-input>
                   </el-form-item>
-                  <el-button class="location-button" @click="getTimeZone"> Get Time Zone </el-button>
+                  <el-button class="location-button" @click="getTimeZone"> {{ t('get_time_zone') }}  </el-button>
                 </div>
 
                 <!-- <div class="flex flex-items-end" id="getAddress">
@@ -426,52 +402,52 @@ onMounted(async () => {
             <div class="flex justify-between mb-44px">
               <div class="flex">
                 <img class="mr-8px w-20px h-20px" src="@/assets/img/station_edit_building.png" alt="">
-                <p class="text-secondary">Businese Details</p>
+                <p class="text-secondary"> {{ t('businese_details') }} </p>
               </div>
-              <el-switch v-model="station_always_open" size="large" inactive-text="24H Open" />
-              <el-switch v-model="select_all" size="large" inactive-text="Select All" />
+              <el-switch v-model="station_always_open" size="large" :inactive-text="t('always_open')" />
+              <el-switch v-model="select_all" size="large" :inactive-text= "t('select_all')" />
             </div>
             <div class="week-container pr-40px flex-grow min-w-300px">
               <div class="week">
                 <el-checkbox v-model="w0check" label="" size="large" :disabled = "!select_all" @change="change_all_week"/>
                 <!-- <el-checkbox v-model="w0check" label="" size="large" disabled @change="change_all_week"/> -->
-                <span class="text">All</span>
+                <span class="text"> {{t('all')}} </span>
                 <el-slider v-model="w0val" range :max="24" :disabled = "!select_all" @change="change_all_time"/>
                 <!-- <el-slider v-model="w0val" range :max="24" disabled @change="change_all_time"/> -->
               </div>
               <div class="week">
                 <el-checkbox v-model="w1check" label="" size="large" :disabled = "select_all"/>
-                <span class="text">Mon.</span>
+                <span class="text"> {{t('mon')}} </span>
                 <el-slider v-model="w1val" range :max="24" :disabled = "select_all"/>
               </div>
               <div class="week">
                 <el-checkbox v-model="w2check" label="" size="large" :disabled = "select_all"/>
-                <span class="text">Tue.</span>
+                <span class="text"> {{t('tue')}} </span>
                 <el-slider v-model="w2val" range :max="24" :disabled = "select_all"/>
               </div>
               <div class="week">
                 <el-checkbox v-model="w3check" label="" size="large" :disabled = "select_all"/>
-                <span class="text">Wed.</span>
+                <span class="text"> {{t('wed')}} </span>
                 <el-slider v-model="w3val" range :max="24" :disabled = "select_all"/>
               </div>
               <div class="week">
                 <el-checkbox v-model="w4check" label="" size="large" :disabled = "select_all"/>
-                <span class="text">Thu.</span>
+                <span class="text"> {{t('thu')}} </span>
                 <el-slider v-model="w4val" range :max="24" :disabled = "select_all"/>
               </div>
               <div class="week">
                 <el-checkbox v-model="w5check" label="" size="large" :disabled = "select_all"/>
-                <span class="text">Fri.</span>
+                <span class="text"> {{t('fri')}} </span>
                 <el-slider v-model="w5val" range :max="24" :disabled = "select_all"/>
               </div>
               <div class="week">
                 <el-checkbox v-model="w6check" label="" size="large" :disabled = "select_all"/>
-                <span class="text">Sat.</span>
+                <span class="text"> {{t('sat')}} </span>
                 <el-slider v-model="w6val" range :max="24" :disabled = "select_all"/>
               </div>
               <div class="week">
                 <el-checkbox v-model="w7check" label="" size="large" :disabled = "select_all"/>
-                <span class="text">Sun.</span>
+                <span class="text"> {{t('sun')}} </span>
                 <el-slider v-model="w7val" range :max="24" :marks="marks" :disabled = "select_all"/>
               </div>
             </div>
@@ -480,9 +456,9 @@ onMounted(async () => {
       </div>
 
       <div class="flex flex-justify-center pb-40px">
-        <el-button class="btn-secondary bg-btn-100 md:mr-44px" v-if="station_id" @click="deleteStation"> Delete </el-button>
-        <el-button class="btn-secondary bg-btn-100 md:mr-44px" @click="backStation"> Cancel </el-button>
-        <el-button class="btn-secondary" @click="saveStation(ruleFormRef)"> Save </el-button>
+        <el-button class="btn-secondary bg-btn-100 md:mr-44px" v-if="station_id" @click="deleteStation"> {{t('delete') }} </el-button>
+        <el-button class="btn-secondary bg-btn-100 md:mr-44px" @click="backStation"> {{ t('cancel') }}  </el-button>
+        <el-button class="btn-secondary" @click="saveStation(ruleFormRef)"> {{ t('save') }}  </el-button>
       </div>
 
     </div>

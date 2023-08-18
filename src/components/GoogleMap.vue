@@ -228,16 +228,16 @@ onUnmounted(() => {
             src="@/assets/img/station_mapmode_location.png"
             alt=""
           />
-          <p class="text-16px text-white">{{ 'Country : ' + SideBarInfo.country}}</p>
+          <p class="text-16px text-white">{{ SideBarInfo.country}}</p>
         </div>
         
         <div class="flex flex-items-center mb-12px" v-if="SideBarInfo.city">
           
-          <p class="text-16px text-white">{{ t('address') + ' : ' + SideBarInfo.city + SideBarInfo.address}}</p>
+          <p class="text-16px text-white">{{ SideBarInfo.city + SideBarInfo.address}}</p>
         </div>
         <div class="flex flex-items-center mb-12px" v-if="SideBarInfo.city1">
 
-          <p class="text-16px text-white">{{ t('address_en') + ' : ' + SideBarInfo.city1 + SideBarInfo.address1}}</p>
+          <p class="text-16px text-white">{{ SideBarInfo.city1 + SideBarInfo.address1}}</p>
         </div>
         <div class="flex">
           <img
@@ -247,7 +247,7 @@ onUnmounted(() => {
             alt=""
           />
           <p class="text-15px text-white line-height-20px">
-            {{ t('coordinates') +' : ' + SideBarInfo.coordinates?.latitude + ' , ' +SideBarInfo.coordinates?.longitude}}
+            {{ SideBarInfo.coordinates?.latitude + ' , ' + SideBarInfo.coordinates?.longitude}}
           </p>
         </div>
 

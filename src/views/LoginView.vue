@@ -18,6 +18,12 @@ const pw_type = ref('password')
 const account = ref('')
 const password = ref('')
 const m_cloud_version = ref('0.1.11')
+
+const cancel_eula = () => {
+  first_login.value = false
+  VueCookies.remove('AuthToken')
+}
+
 const pwVisible = () => {
   if (pw_type.value === 'password') pw_type.value = 'text'
   else pw_type.value = 'password'
@@ -36,19 +42,28 @@ const login = async () => {
     expMethod: '6M',
     dashboard: true,
   })
+
   if (response.status === 200) {
-    let res = await MsiApi.checkToken()
-    if(res?.data?.config?.m_cloud?.logged) {
-      router.push({ name: 'dashboard' })
-    }
-    else {
-      first_login.value = true
-    }
+    router.push({ name: 'dashboard' })
   } else if (response.status === 400 || response.status === 404) {
     ElMessage.error(t('oops_account_or_password_error'))
   } else {
     ElMessage.error('Error.')
   }
+
+  // if (response.status === 200) {
+  //   let res = await MsiApi.checkToken()
+  //   if(res?.data?.config?.m_cloud?.logged) {
+  //     router.push({ name: 'dashboard' })
+  //   }
+  //   else {
+  //     first_login.value = true
+  //   }
+  // } else if (response.status === 400 || response.status === 404) {
+  //   ElMessage.error(t('oops_account_or_password_error'))
+  // } else {
+  //   ElMessage.error('Error.')
+  // }
 }
 //--------Modal--------
 const modalobj = ref({
@@ -115,9 +130,10 @@ onMounted(() => {
         <!-- <template v-if="first_login"> -->
           <el-dialog
           v-model="first_login"
-          class="max-w-600px"
+          class="max-w-1600px"
           :show-close="false"
-          width="90%"
+          width="100%"
+          height=1000px
           destroy-on-close
           center
         >
@@ -128,16 +144,16 @@ onMounted(() => {
                 :class="titleClass"
                 class="m-0 text-center text-blue-1200 font-400 text-24px line-height-26px"
               >
-                User Agreement
+                {{ t('user_agreement') }}
               </h4>
             </div>
           </template>
           <div class="dialog-context scrollbar">
             <div v-if="language === 'zh-TW'">
-              <iframe style="width: 1600px;" src="https://storage.googleapis.com/msi-common/file/m_cloud_eula_zh.htm" frameborder="0"></iframe>
+              <iframe style="width: 1600px; height:1000px; " src="https://storage.googleapis.com/msi-common/file/EULA/MSI_m-Cloud_EULA_zh.htm" frameborder="0"></iframe>
             </div> 
             <div v-else>
-              <iframe style="width: 1600px;" src="https://storage.googleapis.com/msi-common/file/m_cloud_eula_en.htm" frameborder="0"></iframe>
+              <iframe style="width: 1600px; height:1000px;" src="https://storage.googleapis.com/msi-common/file/EULA/MSI_m-Cloud_EULA_en.htm" frameborder="0"></iframe>
             </div>
           </div>
           <template #footer>
@@ -145,15 +161,17 @@ onMounted(() => {
               <el-button
                 round
                 class="w-48% bg-btn-100 text-white max-w-140px"
-                @click="first_login=false"
-                >Cancel</el-button
+                @click="cancel_eula"
+                >
+                {{ t('cancel') }}
+                </el-button
               >
               <el-button
                 round
                 class="w-48% bg-btn-200 text-white max-w-140px"
                 @click="aggre_eula"
               >
-                Agree
+              {{ t('agree') }}
               </el-button>
             </span>
           </template>
