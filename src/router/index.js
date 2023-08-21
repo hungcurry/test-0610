@@ -9,10 +9,10 @@ import StationView from '@/views/StationView.vue'
 import StationDetailView from '@/views/StationDetailView.vue'
 import StationEditView from '@/views/StationEditView.vue'
 import EvseView from '@/views/EvseView.vue'
-import CustomersView from '@/views/CustomersView.vue'
-import CustomersDetailView from '@/views/CustomersDetailView.vue'
+import UserView from '@/views/UserView.vue'
+import UserDetailView from '@/views/UserDetailView.vue'
 import AdministratorView from '@/views/AdministratorView.vue'
-import OcpiSessionView from '@/views/OcpiSessionView.vue'
+import EvseLogView from '@/views/EvseLogView.vue'
 import PaymentView from '@/views/PaymentView.vue'
 import CompanyView from '@/views/CompanyView.vue'
 import EvseDetailView from '@/views/EvseDetailView.vue'
@@ -23,7 +23,7 @@ import SoftwareInfoView from '@/views/SoftwareInfoView.vue'
 import OcppErrorView from '@/views/OcppErrorView.vue'
 import TestView from '@/views/TestView.vue'
 import ParkingView from '@/views/ParkingView.vue'
-import UserView from '@/views/UserView.vue'
+import AdminInfoView from '@/views/AdminInfoView.vue'
 import ProgramView from '@/views/ProgramView.vue'
 import ChargeProfileView from '@/views/ChargeProfileView.vue'
 
@@ -44,7 +44,7 @@ const router = createRouter({
         {
           path: 'admin-info',
           name: 'adminInfo',
-          component: UserView
+          component: AdminInfoView
         },    
         {
           path: 'dashboard',
@@ -100,12 +100,12 @@ const router = createRouter({
         {
           path: 'user',
           name: 'user',
-          component: CustomersView
+          component: UserView
         },
         {
           path: 'user-detail',
           name: 'userDetail',
-          component: CustomersDetailView
+          component: UserDetailView
         },
         {
           path: 'company',
@@ -119,8 +119,8 @@ const router = createRouter({
         },
         {
           path: 'evse-log',
-          name: 'ocpiSession',
-          component: OcpiSessionView
+          name: 'evseLog',
+          component: EvseLogView
         },
         {
           path: 'ocpp-error',

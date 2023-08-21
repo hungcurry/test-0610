@@ -1,563 +1,438 @@
 <script setup>
-import msi from '@/assets/msi_style'
-import ApiFunc from '@/composables/ApiFunc'
-import { ref, reactive, onMounted } from 'vue'
-import { useMStore } from '../stores/m_cloud'
+import { Search } from '@element-plus/icons-vue'
+import { ref, reactive, onMounted} from 'vue'
+import { useRouter } from 'vue-router'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { ElMessage } from 'element-plus'
+import ApiFunc from '@/composables/ApiFunc'
+import msi from '@/assets/msi_style'
+import {  ElMessageBox, ElMessage } from 'element-plus'
+import { useMStore } from "../stores/m_cloud"
+import moment from "moment"
+import { useI18n } from "vue-i18n"
 
-const MStore = useMStore()
+const { t } = useI18n()
+const MStore = useMStore();
+const router = useRouter()
 const MsiApi = ApiFunc()
-const first_name = ref('')
-const last_name = ref('')
-const email = ref('')
-const ProgramVisible = ref(false)
-const CheckProgramVisible = ref(false)
-const CardData = reactive([])
-const program_plan = reactive([])
-const select_plan = reactive([])
-const ProgramData = reactive([])
-const companyData = reactive({})
-const Effective = ref('1')
-const currentRow = ref()
+const UserData = reactive([])
+const input = ref('')
 const isLoading = ref(false)
-const selectProgram = ref('1')
-let companyId = ''
-let upgrade_manager = {}
-let queryData = null
-let response = null
-let check_format_success = true
+const dialogFormVisible = ref(false)
+const user_type = reactive([])
+const newUser = reactive({first_name:'', last_name:'', email:'', password:'msi32345599'})
 
-const cancelProgram = () => {
-  ProgramVisible.value = false
-}
-const subscribeProgram = async () => {
-  check_format_success = true
-    if (companyData.name === undefined || companyData.name === '') {
-    ElMessage.error('Oops, Name required.')
-    check_format_success = false
-  }
-  if (companyData.address_str === undefined || companyData.address_str === '') {
-    ElMessage.error('Oops, Address required.')
-    check_format_success = false
-  }
-  if (companyData.phone === undefined || companyData.phone === '') {
-    ElMessage.error('Oops, Phone required.')
-    check_format_success = false
-  }
-  if (companyData.email === undefined || companyData.email === '') {
-    ElMessage.error('Oops, Email required.')
-    check_format_success = false
-  }
-  if (companyData.tax_id === undefined || companyData.tax_id === '') {
-    ElMessage.error('Oops, Tax ID required.')
-    check_format_success = false
-  }
-  if (check_format_success === true) {
-    let sendData = {
-      class: 'CompanyInformation',
-      pk: companyId,
-      plan: select_plan[0]._id,
-      invoice_detail: {
-        title: companyData.name,
-        address: companyData.address_str,
-        phone: companyData.phone,
-        email: companyData.email,
-      },
-      tax_id: companyData.tax_id,
-    }
-    console.log(await MsiApi.subscribe_plan(sendData))
-    if (Effective.value === '1') {
-      sendData = {}
-      console.log(await MsiApi.auth_payment(sendData))
-    }
-    CheckProgramVisible.value = false
-  }
-}
-const cancelCheckProgram = () => {
-  CheckProgramVisible.value = false
-}
-const confirmProgram = () => {
-  if (currentRow.value === undefined) {
-    ElMessage.error('Please select program.')
-  } else {
-    if (CardData.length === 0) {
-      ElMessage.error('Please binding card.')
-    } else {
-      ProgramVisible.value = false
-      CheckProgramVisible.value = true
-      Object.assign(select_plan, [currentRow.value])
-    }
-  }
-}
-const handleCurrentChange = (val) => {
-  currentRow.value = val
-  selectProgram.value = val._id
-}
-const card_delete = async () => {
-  const json = JSON.stringify({
-    c6n: CardData[0].card6No,
-    c4n: CardData[0].card4No,
-    bindD: CardData[0].bindingDate,
-  })
-  let response = await MsiApi.unregister_bind_card(json)
-  if (response.status === 200) CardData.length = 0
-  else ElMessage.error(response.data.message)
-}
-const add_program = () => {
-  ProgramVisible.value = true
-}
-const add_card = async () => {
-  let response = await MsiApi.bind_card()
-  if (response.status === 200) {
-    document.body.innerHTML += response.data
-    document.getElementById('formMSI').submit()
-  } else {
-    ElMessage.error(response.data.message)
-  }
-}
-onMounted(async () => {
-  first_name.value = MStore.user_data.first_name
-  last_name.value = MStore.user_data.last_name
-  email.value = MStore.user_data.email
-  companyData.email = MStore.user_data.email
-  companyData.name = MStore.permission.company.name
-  companyData.address = MStore.permission.company.address
-  companyData.city = MStore.permission.company.city
-  companyData.phone = MStore.permission.company.phone
-  companyData.tax_id = MStore.permission.company.tax_id
-  companyData.address_str =
-    MStore.permission.company.city + MStore.permission.company.address
-
-  queryData = {
-    database: 'CPO',
-    collection: 'CompanyInformation',
-    pipelines: [
-      { $match: { name: { $eq: companyData.name } } },
-      { $project: { _id: 1, upgrade_manager: 1 } },
-    ],
-  }
-  response = await MsiApi.mongoAggregate(queryData)
-  if (response.status === 200) {
-    companyId = response.data.result[0]._id
-    upgrade_manager = response.data.result[0]?.upgrade_manager
-  } else {
-    ElMessage.error(response.data.message)
-  }
-
-  response = await MsiApi.search_bind_card()
-  if (response.status === 200) {
-    if (response.data.cards.length > 0) {
-      Object.assign(CardData, [response.data.cards[0].detail])
-      CardData[0].card_num_str = CardData[0].card6No + '******' + CardData[0].card4No
-    }
-  } else {
-    ElMessage.error(response.data.message)
-  }
-  if (companyData.name !== 'MSI') {
-    queryData = {
-      database: 'CPO',
-      collection: 'LimitPlan',
-      pipelines: [{ $match: { name: { $ne: 'MSI-Free' } } }],
-    }
-  } else {
-    queryData = {
-      database: 'CPO',
-      collection: 'LimitPlan',
-      pipelines: [
-        { $project: { aaa: 0 } },
-        // { $match: { "name": {"$eq": "MSI-Free"}} }
-      ],
-    }
-  }
-  response = await MsiApi.mongoAggregate(queryData)
-  if (response.status === 200) {
-    Object.assign(program_plan, response.data.result)
-    for (let i = 0; i < program_plan.length; i++) {
-      if (program_plan[i]._id === upgrade_manager?.subscribe?.plan) {
-        Object.assign(ProgramData, [program_plan[i]])
-        break
-      }
-    }
-  } else {
-    ElMessage.error(response.data.message)
-  }
+const add_user_ref = ref()
+const add_user_rules = reactive({
+  first_name: [
+    { required: true, message: t('the_item_is_required'), trigger: 'blur' },
+  ],
+  last_name: [
+    { required: true, message: t('the_item_is_required'), trigger: 'blur' },
+  ],
+  email: [
+    { required: true, message: t('the_item_is_required'), trigger: 'blur' },
+  ],
 })
 
+const sortFunc = (obj1, obj2, column) => {
+  let at = obj1[column]
+  let bt = obj2[column]
+
+  if (bt === undefined) {
+    return -1
+  }
+  if (at > bt) {
+    return -1
+  }
+}
+
+const GetPermission = async () => {
+  let queryData = { 
+    "database":"CPO", 
+    "collection":"UserPermission", 
+    pipelines: [
+      {
+        $match: {
+          name: {
+            $nin: ['AdminUser', 'EngineerUser', 'CustomerServiceUser', 'DeveloperUser']
+          }
+        }
+      },
+      { 
+        $project: { _id: 1, name: 1} 
+      }
+    ]
+  }
+  let response = await MsiApi.mongoAggregate(queryData)
+  user_type.length = 0
+  Object.assign(user_type, response.data.result)
+}
+
+const detail_info = (detail) => {
+  router.push({ name: 'userDetail', query:{id:detail._id} })
+}
+
+
+const search = async () => {
+  let queryData = null
+  if (input.value === '') {
+    queryData = { 
+      database: 'CPO', 
+      collection: 'UserData', 
+      pipelines: [
+        { 
+          $project: { _id: 1, first_name: 1, last_name: 1, email: 1, evse_list: 1, payment_history:1, updated_date: 1, } 
+        }
+      ]
+    }
+  }
+  else {
+    queryData = { 
+      database: 'CPO', 
+      collection: 'UserData', 
+      pipelines: [
+        {
+          $match : {
+            $or: [
+              {
+                first_name: {
+                  $regex: input.value,
+                  $options: "i",
+                },
+              },
+              {
+                last_name: {
+                  $regex: input.value,
+                  $options: "i",
+                },
+              },
+              {
+                email: {
+                  $regex: input.value,
+                  $options: "i",
+                },
+              },
+              {
+                updated_date: {
+                  $regex: input.value,
+                  $options: "i",
+                },
+              }
+            ]
+          }
+        },
+        { 
+          $project: { _id: 1, first_name: 1, last_name: 1, email: 1, evse_list: 1, payment_history:1, updated_date: 1, } 
+        }
+      ]
+    }
+  }
+  await MongoAggregate(queryData)
+}
+
+const MongoAggregate = async (queryData) => {
+  isLoading.value = true
+  let response = await MsiApi.mongoAggregate(queryData)
+  UserData.length = 0
+  Object.assign(UserData, response.data.result)
+  for (let i = 0; i < UserData.length; i++) {
+    let localEndTime =  new Date( (new Date(UserData[i].updated_date).getTime()) + ((MStore.timeZoneOffset ) * -60000))
+    UserData[i].updated_date_str = (moment(localEndTime).format("YYYY-MM-DD HH:mm:ss"))
+    UserData[i].payment_length = UserData[i]?.payment_history?.length
+    UserData[i].evse_list_str = ''
+    UserData[i].evse_list_str_detail = ''
+    if (UserData[i]?.evse_list[0]?.evseId) {
+      UserData[i].evse_list_str += UserData[i]?.evse_list[0]?.evseId 
+    }
+    if (UserData[i]?.evse_list?.length > 1) {
+      UserData[i].evse_list_str += ' / ...'
+    }
+    for (let j = 0; j < UserData[i]?.evse_list?.length; j++) {
+      UserData[i].evse_list_str_detail += UserData[i]?.evse_list[j]?.evseId 
+      if (UserData[i]?.evse_list?.length > 1)
+      UserData[i].evse_list_str_detail + ' /<br> '
+    }
+  }
+  isLoading.value = false
+  return response
+}
+
+const addUser = async () => {
+    dialogFormVisible.value = true
+    newUser.first_name = newUser.last_name = newUser.email = ''
+}
+
+const addUserDialog = async (action) => {
+  if (action === 'confirm') {
+    add_user_ref.value.validate(valid => {
+      if (valid) {
+        let sendData = {'first_name' : newUser.first_name, 'last_name' : newUser.last_name,
+        'email' : newUser.email, 'password': newUser.password, company:MStore.permission.company.name} 
+
+        dialogFormVisible.value = false
+        ElMessageBox.confirm(t('do_you_want_to_create'),t('warning'), {confirmButtonText: t('ok'), cancelButtonText: t('cancel'), type: 'warning'})
+        .then(async () => {
+          isLoading.value = true
+          let res = await MsiApi.register_member(sendData)
+          if (res.status === 200) {
+            ElMessage.error(t('email_already_exists'))
+            dialogFormVisible.value = true
+          }
+          else if (res.status === 201) {
+            let queryData = { 
+              database: 'CPO', 
+              collection: 'UserData', 
+              pipelines: [
+                { 
+                  $project: { _id: 1, first_name: 1, last_name: 1, email: 1, evse_list: 1, payment_history:1, updated_date: 1, } 
+                }
+              ]
+            }
+            await MongoAggregate(queryData)
+          }
+          else { 
+            ElMessage.error(res.data.message)
+            dialogFormVisible.value = true
+          }
+          isLoading.value = false
+        })
+        .catch((e)=>{
+          ElMessage.error(e)
+        })
+      }
+      else {
+        return false
+      }
+    })
+
+  }
+  else if (action === 'cancel') {
+    dialogFormVisible.value = false
+  }
+}
+
+onMounted( async() => {
+  let queryData = { 
+    database: 'CPO', 
+    collection: 'UserData', 
+    pipelines: [
+      { 
+        $project: { _id: 1, first_name: 1, last_name: 1, email: 1, evse_list: 1, payment_history:1, updated_date: 1, } 
+      }
+    ]
+  }
+  await MongoAggregate(queryData)
+  GetPermission()
+})
 </script>
 
 <template>
-<div class="temp">
+  <div class="customer">
     <div class="container lg">
-      <div class="flex justify-start flex-wrap lg:flex-nowrap pt-40px pb-32px">
-        <p class="title">Admin Info</p>
+      <div class="flex justify-between flex-wrap lg:flex-nowrap pt-40px pb-32px">
+        <el-input class="search-input" v-model="input" :placeholder="t('search')" @keyup.enter="search">
+          <template #append>
+            <el-button :icon="Search" @click="search" />
+          </template>
+        </el-input>
+        <el-button class="btn-secondary box-shadow" @click="addUser"> {{ t('add_user') }} </el-button>
       </div>
-
-      <el-form class="pb-40px" label-width="100px" label-position="left">
-        <el-form-item class="block md:flex" label="First Name">
-          <el-input class="lg:w-30%" v-model="first_name" />
-        </el-form-item>
-
-        <el-form-item class="block md:flex" label="Last Name">
-          <el-input class="lg:w-30%" v-model="last_name" />
-        </el-form-item>
-
-        <el-form-item class="block md:flex" label="E-mail">
-          <el-input class="lg:w-30%" v-model="email" disabled/>
-        </el-form-item>
-
-        <el-form-item class="block md:flex" label="Credit Card">
-          <el-button
-            class="w-full lg:w-30%"
-            v-if="companyData.name === 'MSI'"
-            @click="add_card"
-            disabled
+      <div class="overflow-x-auto">
+        <div class="customer-list pb-40px">
+          <el-table 
+            :data="UserData" 
+            class="white-space-nowrap text-primary"
+            height="calc(100vh - 220px)"
+            style="width: 100%"
+            stripe 
+            size="large"
+            :cell-style=msi.tb_cell 
+            :header-cell-style="msi.tb_header_cell"
+            v-loading.fullscreen.lock="isLoading"
           >
-            MSI Not Support Binding Card
-          </el-button>
-          <el-button
-            class="w-full lg:w-30%"
-            v-else-if="CardData.length !== 0"
-            @click="add_card"
-            disabled
-          >
-            Add Card
-          </el-button>
-          <el-button class="w-full lg:w-30%" v-else @click="add_card">
-            Add Card
-          </el-button>
-        </el-form-item>
-
-        <el-form-item class="block md:flex" label="Add Program">
-          <el-button
-            class="w-full lg:w-30%"
-            v-if="ProgramData.length > 0"
-            @click="add_program"
-            disabled
-          >
-            Add Program
-          </el-button>
-          <el-button
-            class="w-full lg:w-30%"
-            v-else-if="CardData.length > 0"
-            @click="add_program"
-          >
-            Add Program
-          </el-button>
-          <el-button class="w-full lg:w-30%" v-else @click="add_program" disabled>
-            Add Program
-          </el-button>
-        </el-form-item>
-
-        <!-- table -->
-        <el-form-item class="block" label="Card List">
-          <div class="overflow-x-auto">
-            <el-table
-              :data="CardData"
-              class="white-space-nowrap text-primary"
-              style="width: 100%"
-              stripe
-              :cell-style="msi.tb_cell"
-              :header-cell-style="msi.tb_header_cell"
-              size="large"
-              v-loading.fullscreen.lock="isLoading"
+            <el-table-column
+              prop="first_name"
+              :label="t('first_name')"
+              align="center"
+              sortable
+              :sort-method="(a, b) => sortFunc(a, b, 'first_name')"
+              min-width="200"
+            />
+            <el-table-column
+              prop="last_name"
+              :label="t('last_name')"
+              align="center"
+              sortable
+              :sort-method="(a, b) => sortFunc(a, b, 'last_name')"
+              min-width="200"
+            />
+            <el-table-column
+              prop="email"
+              :label="t('e_mail')"
+              align="center"
+              sortable
+              :sort-method="(a, b) => sortFunc(a, b, 'email')"
+              min-width="300"
+            />
+            <el-table-column
+              prop="evse_list_str"
+              :label="t('occupied_evse_id')"
+              align="center"
+              sortable
+              :sort-method="(a, b) => sortFunc(a, b, 'evse_list_str')"
+              min-width="250"
             >
-              <el-table-column prop="card_num_str" label="Card Number" min-width="150" />
-              <el-table-column
-                prop="expireDate"
-                label="Expire Date(MM/YY)"
-                min-width="200"
-              />
-              <el-table-column prop="bindingDate" label="Binding Date" min-width="150" />
-              <el-table-column min-width="150">
-                <el-button @click="card_delete"> Delete Card</el-button>
-              </el-table-column>
-            </el-table>
-          </div>
-        </el-form-item>
-        <el-form-item class="block" label="Program">
-          <div class="overflow-x-auto">
-            <el-table
-              :data="ProgramData"
-              class="white-space-nowrap text-primary"
-              style="width: 100%"
-              stripe
-              :cell-style="msi.tb_cell"
-              :header-cell-style="msi.tb_header_cell"
-              size="large"
-              v-loading.fullscreen.lock="isLoading"
-            >
-              <el-table-column
-                prop="name"
-                label="Name"
-                align="center"
-                min-width="200"
-              />
-              <el-table-column
-                prop="location"
-                label="Station"
-                align="center"
-                min-width="150"
-              />
-              <el-table-column
-                prop="evse"
-                label="EVSE Quantity"
-                align="center"
-                min-width="200"
-              />
-              <!-- <el-table-column
-                prop="connector"
-                label="Connector"
-                align="center"
-                min-width="150"
-              /> -->
-              <el-table-column
-                prop="tariff"
-                label="Rate Plan"
-                align="center"
-                min-width="150"
-              />
-              <el-table-column prop="user" label="User" align="center" min-width="150" />
-              <el-table-column
-                prop="admin_user"
-                label="CPO Account"
-                align="center"
-                min-width="150"
-              />
-              <el-table-column
-                prop="currency"
-                label="Currency"
-                align="center"
-                min-width="150"
-              />
-              <el-table-column
-                prop="price"
-                label="Price"
-                align="center"
-                min-width="150"
-              />
-              <el-table-column>
-                <!-- <el-button @click="add_program" disabled v-if="companyData.name === 'MSI' "> <font-awesome-icon icon="fa-solid fa-ellipsis" /></el-button> -->
-                <el-button class="btn-more" @click="add_program">
-                  <font-awesome-icon icon="fa-solid fa-ellipsis"
-                /></el-button>
-              </el-table-column>
-            </el-table>
-          </div>
-        </el-form-item>
-      </el-form>
-    </div>
-
-    <el-dialog 
-      append-to-body 
-      v-model="ProgramVisible" 
-      class="max-w-1000px" 
-      width="90%"
-    >
-      <template #header="{ titleId, titleClass }">
-        <div class="py-2rem relative bg-blue-100">
-          <h4
-            :id="titleId"
-            :class="titleClass"
-            class="m-0 text-center text-blue-1200 font-400 text-20px lg:text-24px line-height-26px"
-          >
-            Select Program
-          </h4>
-        </div>
-      </template>
-      <div class="dialog-context">
-        <div class="pr-10px">
-          <el-table
-            :data="program_plan"
-            @current-change="handleCurrentChange"
-            highlight-current-row
-          >
-
-            <el-table-column min-width="40"  >
               <template #default="scope">
-                <el-radio-group v-model="selectProgram">
-                <el-radio :label="scope.row._id" size="large"> {{""}}</el-radio>
-              </el-radio-group>
+                <span v-if="scope.row.evse_list_str_detail === ''">{{ scope.row.evse_list_str }}</span>
+                <el-tooltip v-else placement="bottom-start">
+                  <template #content>
+                    <div v-html="scope.row.evse_list_str_detail"></div>
+                    <!-- <div class="max-h-300px overflow-y-auto w-200px text-16px line-height-30px"> {{ scope.row.evse_list_str_detail }} </div> -->
+                  </template>
+                  <el-button class="overflow-hidden evse-tooltip-btn">
+                    <span class="font-400 text-1.8rem line-height-2rem text-black-200"> {{ scope.row.evse_list_str }} </span>
+                  </el-button>
+                </el-tooltip>
               </template>
             </el-table-column>
-            
-
-            <el-table-column 
-              prop="name" 
-              label="Name" 
-              min-width="150" 
-            />
             <el-table-column
-              prop="location"
-              label="Station"
+              prop="payment_length"
+              :label="t('used_times')"
               align="center"
-              min-width="100"
+              sortable
+              :sort-method="(a, b) => sortFunc(a, b, 'payment_length')"
+              min-width="200"
             />
             <el-table-column
-              prop="evse"
-              label="EVSE Quantity"
+              prop="updated_date_str"
+              :label="t('updated_date')"
+              align="center"
+              sortable
+              :sort-method="(a, b) => sortFunc(a, b, 'updated_date_str')"
+              min-width="200"
+            />
+            <el-table-column
+              prop="detail"
+              label=""
               align="center"
               min-width="150"
-            />
-            <!-- <el-table-column
-              prop="connector"
-              label="Connector"
-              align="center"
-              min-width="150"
-            /> -->
-            <el-table-column
-              prop="tariff"
-              label="Rate Plan"
-              align="center"
-              min-width="150"
-            />
-            <el-table-column 
-              prop="user" 
-              label="User" 
-              align="center" 
-              min-width="80" 
-            />
-            <el-table-column
-              prop="admin_user"
-              label="CPO Account"
-              align="center"
-              min-width="150"
-            />
-            <el-table-column
-              prop="currency"
-              label="Currency"
-              align="center"
-              min-width="100"
-            />
-            <el-table-column 
-              prop="price" 
-              label="Price" 
-              align="center" 
-              min-width="100" 
-            />
+            >
+              <template #default="scope">
+                <el-button class="btn-more" @click="detail_info(scope.row)"> <font-awesome-icon icon="fa-solid fa-ellipsis" /> </el-button>
+              </template>
+            </el-table-column>
           </el-table>
         </div>
-      </div>
-      <template #footer>
-        <span class="dialog-footer flex flex-center">
-          <el-button
-            round
-            class="w-48% bg-btn-100 text-white max-w-140px"
-            @click="cancelProgram"
-            >Cancel</el-button
-          >
-          <el-button
-            round
-            class="w-48% bg-btn-100 text-white max-w-140px"
-            @click="confirmProgram"
-            >Confirm</el-button
-          >
-        </span>
-      </template>
-    </el-dialog>
-    <el-dialog
-      append-to-body
-      v-model="CheckProgramVisible"
-      class="max-w-1000px"
-      width="90%"
-    >
-      <template #header="{ titleId, titleClass }">
-        <div class="py-2rem relative bg-blue-100">
-          <h4
-            :id="titleId"
-            :class="titleClass"
-            class="m-0 text-center text-blue-1200 font-400 text-20px lg:text-24px line-height-26px"
-          >
-            Check Program
-          </h4>
-        </div>
-      </template>
-      <div class="dialog-context">
-        <div class="pr-10px">
-          <div class="mb-2 flex items-center text-sm">
-            <el-radio-group v-model="Effective">
-              <el-radio label="1" size="large">Effective immediately</el-radio>
-              <el-radio label="2" size="large"
-                >Effective date will start in a month</el-radio
+        <el-dialog
+          v-model="dialogFormVisible"
+          class="max-w-600px"
+          :show-close="true"
+          width="90%"
+          destroy-on-close
+          center
+        >
+          <template #header="{ titleId, titleClass }">
+            <div class="py-2rem relative bg-blue-100">
+              <h4
+                :id="titleId"
+                :class="titleClass"
+                class="m-0 text-center text-blue-1200 font-400 text-24px line-height-26px"
               >
-            </el-radio-group>
+                {{ t('add_user') }}
+              </h4>
+            </div>
+          </template>
+          <div class="dialog-context">
+            <el-form class="max-w-500px m-auto" :rules="add_user_rules" ref="add_user_ref" :model="newUser" :scroll-to-error=true>
+              <div class="w-full flex justify-between flex-wrap">
+                <el-form-item class="mb-24px sm:w-45% w-100%" :label="t('first_name')" prop="first_name">
+                  <el-input v-model.trim="newUser.first_name" />
+                </el-form-item>
+                <el-form-item class="mb-24px sm:w-45% w-100%" :label="t('last_name')" prop="last_name">
+                  <el-input v-model.trim="newUser.last_name" />
+                </el-form-item>
+              </div>
+              <el-form-item class="mb-24px" :label="t('e_mail')" prop="email">
+                <el-input v-model.trim="newUser.email" />
+              </el-form-item>
+            </el-form>
           </div>
-          <el-form label-position="left" label-width="100px">
-            <el-table
-              :data="select_plan"
-              @current-change="handleCurrentChange"
-              highlight-current-row
-            >
-              <el-table-column prop="name" label="Program Name" min-width="150" />
-              <el-table-column prop="location" label="Station" min-width="150" />
-              <el-table-column prop="evse" label="EVSE Quantity" min-width="150" />
-              <!-- <el-table-column prop="connector" label="Connector" min-width="150" /> -->
-              <el-table-column prop="tariff" label="Rate Plan" min-width="150" />
-              <el-table-column prop="user" label="User" min-width="150" />
-              <el-table-column prop="admin_user" label="CPO Account" min-width="150" />
-              <el-table-column prop="currency" label="Currency" min-width="150" />
-              <el-table-column prop="price" label="Price" min-width="150" />
-            </el-table>
-            <br />
-            <el-form-item label="Title">
-              <el-input v-model="companyData.name" style="width: 300px" />
-            </el-form-item>
-            <el-form-item label="Address">
-              <el-input v-model="companyData.address_str" style="width: 300px" />
-            </el-form-item>
-            <el-form-item label="Phone">
-              <el-input v-model="companyData.phone" style="width: 300px" />
-            </el-form-item>
-            <el-form-item label="Tax ID">
-              <el-input v-model="companyData.tax_id" style="width: 300px" />
-            </el-form-item>
-            <el-form-item label="E-mail">
-              <el-input v-model="companyData.email" style="width: 300px"/>
-            </el-form-item>
-          </el-form>
-        </div>
+          <template #footer>
+            <span class="dialog-footer flex flex-center">
+              <el-button
+                round
+                class="w-48% bg-btn-100 text-white max-w-140px"
+                @click.stop="addUserDialog('cancel')"
+                >{{ t('cancel') }}</el-button
+              >
+              <el-button
+                round
+                class="w-48% bg-btn-200 text-white max-w-140px"
+                @click.stop="addUserDialog('confirm')"
+              >
+                {{ t('confirm') }}
+              </el-button>
+            </span>
+          </template>
+        </el-dialog>
       </div>
-      <template #footer>
-        <span class="dialog-footer flex flex-center">
-          <el-button
-            round
-            class="w-48% bg-btn-100 text-white max-w-140px"
-            @click="cancelCheckProgram"
-            >Cancel</el-button
-          >
-          <el-button
-            round
-            class="w-48% bg-btn-100 text-white max-w-140px"
-            v-if="companyData.name === 'MSI'"
-            disabled
-            @click="subscribeProgram"
-            >Confirm</el-button
-          >
-          <el-button
-            round
-            class="w-48% bg-btn-100 text-white max-w-140px"
-            v-else
-            @click="subscribeProgram"
-            >Confirm</el-button
-          >
-        </span>
-      </template>
-    </el-dialog>
+    </div>
   </div>
 </template>
 
 <style lang="scss" scoped>
-.title {
-  font-size: 30px;
-}
-.el-input {
-  --el-input-bg-color: rgb(86, 101, 117);
-  --el-input-text-color: rgb(255, 255, 255);
-}
-.temp {
-  :deep(.el-form-item__content) {
+
+.customer {
+  .search-input {
+    width: 400px;
+    height: 40px;
+
+    :deep(.el-input__wrapper) {
+      background-color: var(--el-fill-color-blank);
+      border-top-left-radius: 3rem;
+      border-bottom-left-radius: 3rem;
+      border: 0.2rem solid var(--blue-700);
+      border-right: 0.1rem solid var(--blue-700);
+      box-shadow: 0.7rem 1.1rem 1.2rem rgba(146, 169, 196, 0.25) !important;
+    }
+    :deep(.el-input-group__append) {
+      background-color: var(--el-fill-color-blank);
+      border-top-left-radius: 0;
+      border-bottom-left-radius: 0;
+      border-top-right-radius: 3rem;
+      border-bottom-right-radius: 3rem;
+      border: 0.2rem solid var(--blue-700);
+      border-left: 0;
+      box-shadow: 0.7rem 1.1rem 1.2rem rgba(146, 169, 196, 0.25) !important;
+    }
+    :deep(.el-input__inner) {
+      color: black;
+    }
+    :deep(.el-icon) {
+      color: black;
+    }
+  }
+  .evse-tooltip-btn {
+    background-color: unset;
+  }
+  .el-form-item {
     display: block;
-    width: 100%;
+  }
+  :deep(.el-form-item__label) {
+    display: block;
+    font-size: 1.6rem;
   }
 }
+
+::-webkit-scrollbar {
+  width: 0.8rem;
+  height: 0.8rem;
+}
+::-webkit-scrollbar-thumb {
+  background-color: var(--gray-300);
+}
+::-webkit-scrollbar-thumb {
+  border-radius: 2rem;
+}
+
 </style>

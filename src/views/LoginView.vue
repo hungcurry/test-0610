@@ -1,15 +1,13 @@
 <script setup>
-
 import ApiFunc from '@/composables/ApiFunc'
 import VueCookies from 'vue-cookies'
 import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { useMStore } from '@/stores/m_cloud'
-import { useI18n } from "vue-i18n"
-import AgreementModal from '../components/Modal/AgreementModal.vue'
+import { useI18n } from 'vue-i18n'
+
 const language = navigator.language
-const { t } = useI18n()
 const first_login = ref(false)
 const MStore = useMStore()
 const MsiApi = ApiFunc()
@@ -17,76 +15,43 @@ const router = useRouter()
 const pw_type = ref('password')
 const account = ref('')
 const password = ref('')
-const m_cloud_version = ref('0.1.11')
+const checkState = ref(false)
+const m_cloud_version = ref('0.1.12')
+
+const { t } = useI18n()
 
 const cancel_eula = () => {
   first_login.value = false
   VueCookies.remove('AuthToken')
 }
-
 const pwVisible = () => {
   if (pw_type.value === 'password') pw_type.value = 'text'
   else pw_type.value = 'password'
 }
 const login = async () => {
-  if (checked.value === 'no') {
-    ElMessage({
-      message: 'Warning, 請閱讀 用戶協議隱私政策.',
-      type: 'warning',
-    })
-    return
-  }
   const response = await MsiApi.getToken({
     email: account.value,
     password: password.value,
     expMethod: '6M',
     dashboard: true,
   })
-
   if (response.status === 200) {
-    router.push({ name: 'dashboard' })
+    let res = await MsiApi.checkToken()
+    if (res?.data?.config?.m_cloud?.logged) {
+      router.push({ name: 'dashboard' })
+    } else {
+      first_login.value = true
+    }
   } else if (response.status === 400 || response.status === 404) {
     ElMessage.error(t('oops_account_or_password_error'))
   } else {
     ElMessage.error('Error.')
   }
-
-  // if (response.status === 200) {
-  //   let res = await MsiApi.checkToken()
-  //   if(res?.data?.config?.m_cloud?.logged) {
-  //     router.push({ name: 'dashboard' })
-  //   }
-  //   else {
-  //     first_login.value = true
-  //   }
-  // } else if (response.status === 400 || response.status === 404) {
-  //   ElMessage.error(t('oops_account_or_password_error'))
-  // } else {
-  //   ElMessage.error('Error.')
-  // }
 }
-//--------Modal--------
-const modalobj = ref({
-  passwordModal: false,
-  agreementModal: false,
-  privacyModal: false,
-})
-const checked = ref('yes')
-const checkboxInput = ref(null)
-const openModalHandle = (str) => {
-  modalobj.value[str] = true
-}
-const emitCallBack = (res, str) => {
-  modalobj.value[str] = res
-  checkboxInput.value.removeAttribute('disabled')
-  checked.value = 'yes'
-}
-
-const aggre_eula = async() => {
-  await MsiApi.member_modify({config:{m_cloud: {logged : true}}}) 
+const aggre_eula = async () => {
+  await MsiApi.member_modify({ config: { m_cloud: { logged: true } } })
   router.push({ name: 'dashboard' })
 }
-
 onMounted(() => {
   let targetTimezoneOffset = new Date().getTimezoneOffset()
   MStore.timeZoneOffset = targetTimezoneOffset
@@ -127,13 +92,10 @@ onMounted(() => {
           <img v-else src="@/assets/img/login_unvisible_nor.png" @click="pwVisible()" />
         </div>
 
-        <!-- <template v-if="first_login"> -->
-          <el-dialog
+        <el-dialog
           v-model="first_login"
-          class="max-w-1600px"
-          :show-close="false"
-          width="100%"
-          height=1000px
+          class="max-w-992px h-90% flex-col"
+          width="90%"
           destroy-on-close
           center
         >
@@ -144,32 +106,47 @@ onMounted(() => {
                 :class="titleClass"
                 class="m-0 text-center text-blue-1200 font-400 text-24px line-height-26px"
               >
-                {{ t('user_agreement') }}
+                {{t('user_agreement')}}
               </h4>
             </div>
           </template>
-          <div class="dialog-context scrollbar">
-            <div v-if="language === 'zh-TW'">
-              <iframe style="width: 1600px; height:1000px; " src="https://storage.googleapis.com/msi-common/file/EULA/MSI_m-Cloud_EULA_zh.htm" frameborder="0"></iframe>
-            </div> 
-            <div v-else>
-              <iframe style="width: 1600px; height:1000px;" src="https://storage.googleapis.com/msi-common/file/EULA/MSI_m-Cloud_EULA_en.htm" frameborder="0"></iframe>
+          <div class="h-full scrollbar">
+            <div class="h-full" v-if="language === 'zh-TW'">
+              <iframe
+                class="w-full h-full"
+                src="https://storage.googleapis.com/msi-common/file/EULA/MSI_m-Cloud_EULA_zh.htm"
+                frameborder="0"
+              ></iframe>
+            </div>
+            <div class="h-full" v-else>
+              <iframe
+                class="w-full h-full"
+                src="https://storage.googleapis.com/msi-common/file/EULA/MSI_m-Cloud_EULA_en.htm"
+                frameborder="0"
+              ></iframe>
             </div>
           </div>
           <template #footer>
+            <el-checkbox
+              class="w-full text-left pl-4px mb-10px lg:mb-0 md:w-auto md:absolute md:left-15% md:top-30%"
+              v-model="checkState"
+              true-value="yes"
+              false-value="no"
+              >{{ t('agree') }}
+            </el-checkbox>
             <span class="dialog-footer flex flex-center">
               <el-button
                 round
                 class="w-48% bg-btn-100 text-white max-w-140px"
                 @click="cancel_eula"
-                >
-                {{ t('cancel') }}
-                </el-button
+                > {{ t('cancel') }} </el-button
               >
               <el-button
+                ref="agreeButton"
                 round
-                class="w-48% bg-btn-200 text-white max-w-140px"
+                class="agreeBtn w-48% bg-btn-200 text-white max-w-140px"
                 @click="aggre_eula"
+                :disabled="!checkState"
               >
               {{ t('agree') }}
               </el-button>
@@ -177,54 +154,18 @@ onMounted(() => {
           </template>
         </el-dialog>
 
-        <template v-if="false">
-          <div class="w-full text-right text-[2.2rem] mb-4">
-            <a
-              href="javascript:;"
-              class="block secondary-hover leading-normal underline underline-offset-1"
-              @click.stop="openModalHandle('passwordModal')"
-              >Forgot Password</a
-            >
-          </div>
-          <label class="form-label form-label-checkbox mb-20 lg:mb-25" for="checkbox">
-            <p class="inline-block m-0 mr-2">
-              I confirm that I have agree to
-              <span
-                class="underline decoration-1 secondary-hover z-99"
-                @click.stop="openModalHandle('agreementModal')"
-                >User Agreement</span
-              >
-              and
-              <span
-                class="underline decoration-1 secondary-hover z-99"
-                @click.stop="openModalHandle('privacyModal')"
-                >Privacy Policy</span
-              >
-            </p>
-            <input
-              type="checkbox"
-              ref="checkboxInput"
-              v-model="checked"
-              true-value="yes"
-              false-value="no"
-              disabled
-            />
-            <div class="indicator"></div>
-          </label>
-        </template>
         <button type="button" class="log-in" @click="login()">
           {{ t('log_in') }}
         </button>
       </form>
       <div>
-        <p class="text-30px text-white text-center">{{ t('version')  + ':' +  m_cloud_version }}</p>
+        <p class="text-30px text-white text-center">
+          {{ t('version') + ':' + m_cloud_version }}
+        </p>
         <img class="logo block mx-auto" src="@/assets/img/login_msilogo.png" />
       </div>
     </div>
   </div>
-  <PasswordModal :modal="modalobj.passwordModal" @closeModal="emitCallBack" />
-  <AgreementModal :modal="modalobj.agreementModal" @closeModal="emitCallBack" />
-  <PrivacyModal :modal="modalobj.privacyModal" @closeModal="emitCallBack" />
 </template>
 
 <style lang="scss" scoped>
@@ -338,60 +279,7 @@ onMounted(() => {
     cursor: pointer;
   }
 }
-.form-label {
-  display: block;
-  position: relative;
-  padding-left: 3rem;
-  cursor: pointer;
-  font-size: 1.8rem;
-  user-select: none;
-  color: var(--white);
-  z-index: 1;
-  user-select: none;
-  > input {
-    position: absolute;
-    z-index: -1;
-    opacity: 0;
-  }
-  .indicator {
-    width: 2rem;
-    height: 2rem;
-    background: lighten(#92a9c4, 15%);
-    border-radius: 50%;
-    position: absolute;
-    top: 0;
-    left: 0;
-    &:after {
-      content: '';
-      position: absolute;
-      left: 0.8rem;
-      top: 0.4rem;
-      width: 0.3rem;
-      height: 0.8rem;
-      border: solid var(--black);
-      border-width: 0 0.2rem 0.2rem 0;
-      transform: rotate(45deg);
-      display: none;
-    }
-  }
-}
-.form-label:hover input ~ .indicator,
-.form-label input:focus ~ .indicator {
-  background: #ccc;
-}
-.form-label input:checked ~ .indicator {
-  background: var(--secondary);
-}
-.form-label:hover input:not([disabled]):checked ~ .indicator,
-.form-label input:checked:focus ~ .indicator {
-  background: var(--secondary);
-}
-.form-label input:disabled ~ .indicator {
-  background: #e6e6e6;
-  opacity: 0.6;
-  pointer-events: none;
-}
-.form-label input:checked ~ .indicator:after {
-  display: block;
+:deep(.el-overlay-dialog .el-dialog__body) {
+  flex-grow: 1;
 }
 </style>

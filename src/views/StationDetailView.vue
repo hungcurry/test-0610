@@ -275,8 +275,8 @@ onMounted( async () => {
         </div>
       </div>
     </div>
-<!-- 
-    <el-collapse accordion class="collapse">
+
+    <!-- <el-collapse accordion class="collapse">
       <el-collapse-item name="1">
         <div class="flex flex-wrap pt-20px pb-20px text-blue-1200 text-20px white-space-nowrap overflow-x-auto">
           <div class="collapse-left mr-20px pl-10%">

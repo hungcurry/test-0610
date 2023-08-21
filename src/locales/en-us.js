@@ -59,7 +59,6 @@ export default
     payment_method: 'Payment Method',
     language : 'Language',
     please_check_required_item : 'Please check required items',
-    all : 'All',
     mon : 'Mon.',
     tue : 'Tue.',
     wed : 'Wed.',
@@ -67,14 +66,29 @@ export default
     fri : 'Fri.',
     sat : 'Sat.',
     sun : 'Sun.',
+    ok: 'OK',
+    start_time: 'Start Time',
+    end_time: 'End Time',
+    rate_plan: 'Rate Plan',
+    currency: 'Currency',
+    all:'All',
+    admin_info : 'Admin Info',
+    add_program: 'Add Program',
+    card_number: 'card number',
+    binding_date: 'Binding Date',
+    connector: 'Connector',
+    user: 'User',
+    tax_id: 'Tax ID',
+    program : 'Program',
+    version : 'Version',
 //--------------------------------------------------------------
 // header
 //--------------------------------------------------------------
     log_out : 'Log Out',
     reset_password : 'Reset Password',
-    admin_info : 'Admin Info',
     m_cloud_info : 'm-Cloud Info',
     // language : 'Language',
+    // admin_info : 'Admin Info',
 //--------------------------------------------------------------
 // Sidebar 
 //--------------------------------------------------------------
@@ -82,7 +96,6 @@ export default
     evse_management: 'EVSE Management',
     by_station: 'By Station',
     by_evse: 'By EVSE',
-    rate_plan: 'Rate Plan',
     account_management: 'Account Management',
     rfid_user_app_member : 'RFID User / App Member',
     company_cpo : 'Company / CPO',
@@ -91,10 +104,13 @@ export default
     evse_log : 'EVSE Log',
     error_log : 'Error Log',
     softwart_info : 'Software Info',
-    program : 'Program',
     charging_profile : 'Charging Profile',
+    // rate_plan: 'Rate Plan',
+    // program : 'Program',
     // payment : 'Payment',
     // parking : 'Parking',
+    // rate_plan: 'Rate Plan',
+    // program : 'Program',
 //--------------------------------------------------------------
 // Login Page
 //--------------------------------------------------------------
@@ -102,11 +118,12 @@ export default
     account : "Account",
     password : "Password",
     log_in : 'Log in',
-    version : 'Version',
     oops_account_or_password_error : 'Oops! "Account or Password" is Error.',
     agree : 'Agree',
     user_agreement : 'User Agreement',
     forgot_password : 'Forgot Password',
+    // version : 'Version',
+    // cancel : 'Cancel',
 //--------------------------------------------------------------
 // Dashboard Page
 //--------------------------------------------------------------
@@ -141,7 +158,6 @@ export default
     unpaired : 'Unpaired',
     ev_life : 'EV Life',
     qr_pay : 'QR-Pay',
-    // all:'All',
     // total_used_power:'Total Used Power',
     // payment_method: 'Payment Method',
     // twd : 'TWD',
@@ -157,6 +173,7 @@ export default
     // free:'Free',
     // google_pay:'Google Pay',
     // samsung_pay:'Samsung Pay',
+    // all:'All',
 //--------------------------------------------------------------
 // Payment Page
 //--------------------------------------------------------------
@@ -225,7 +242,7 @@ export default
     latest_sw : 'Latest SW',
     updated_time : 'Updated Time',
     now_version : 'Now Version',
-    // cancel : 'Cancel',
+    
     // publish: 'Publish',
     // confirm : 'Confirm',
     // status : 'Status',
@@ -298,6 +315,7 @@ export default
 //--------------------------------------------------------------
     add_user: 'Add User',
     used_times: 'Used Times',
+    email_already_exists: 'email already exists',
     // search: 'Search',
     // first_name: 'First Name',
     // last_name: 'Last Name',
@@ -309,7 +327,8 @@ export default
     // warning: 'Warning !',
     // do_you_want_to_create: 'Do you want to create?',
     // the_item_is_required: 'The item is required',
-
+    // warning: 'Warning !',
+    // ok: 'OK',
 //--------------------------------------------------------------
 // User Detail Page
 //--------------------------------------------------------------
@@ -322,7 +341,6 @@ export default
     binding_card: 'Binding Card',
     card_num: 'Card Num',
     expire_date_YY_MM: 'Expire Date(YY/MM)',
-    binding_date: 'Binding Date',
     device_detail: 'Device Detail',
     platform: 'Platform',
     os_version: 'OS Version',
@@ -336,12 +354,10 @@ export default
     add_rfid : 'Add RFID',
     edit_rfid: 'Edit RFID',
     add: 'Add',
-    card_number: 'card number',
     number: 'Number',
     cash: 'Cash',
     enable: 'Enable',
     disable: 'Disable',
-    currency: 'Currency',
     anonymous_user: 'Anonymous User',
     admin_user: 'Admin User',
     customer_service_user: 'Customer Service User',
@@ -382,6 +398,13 @@ export default
     // samsung_pay:'Samsung Pay',
     // rfid: 'RFID',
     // free: 'Free',
+    // do_you_want_to_modify: 'Do you want to modify?',
+    // do_you_want_to_delete: 'Do you want to delete?',
+    // warning: 'Warning !',
+    // ok: 'OK',
+    // currency: 'Currency',
+    // card_number: 'card number',
+    // binding_date: 'Binding Date',
 //--------------------------------------------------------------
 // Company Page
 //--------------------------------------------------------------
@@ -389,7 +412,6 @@ export default
     add_company: 'Add Company',
     add_company_info: 'Add Company Info',
     edit_company_info: 'Edit Company Info',
-    tax_id: 'Tax ID',
     invoice_hash_iv: 'Invoice Hash IV',
     invoice_hash_key: 'Invoice Hash Key',
     invoice_merchant_id: 'Invoice Merchant ID',
@@ -406,9 +428,15 @@ export default
     // delete: 'Delete',
     // cancel: 'Cancel',
     // confirm: 'Confirm',
-//--------------------------------------------------------------
-// Admin Page
-//--------------------------------------------------------------    
+    // do_you_want_to_modify: 'Do you want to modify?',
+    // do_you_want_to_delete: 'Do you want to delete?',
+    // do_you_want_to_create: 'Do you want to create?',
+    // warning: 'Warning !',
+    // ok: 'OK',
+    // tax_id: 'Tax ID',
+    //--------------------------------------------------------------
+    // Admin Page
+    //--------------------------------------------------------------    
     add_admin: 'Add Admin',
     engineerUser: 'EngineerUser',
     adminUser: 'AdminUser',
@@ -424,15 +452,19 @@ export default
     // delete: 'Delete',
     // cancel: 'Cancel',
     // confirm: 'Confirm',
-
+    // do_you_want_to_modify: 'Do you want to modify?',
+    // do_you_want_to_delete: 'Do you want to delete?',
+    // do_you_want_to_create: 'Do you want to create?',
+    // warning: 'Warning !',
+    // ok: 'OK',
 //--------------------------------------------------------------
 // OCPI Session Page
 //--------------------------------------------------------------
     completed: 'Completed',
     invalid: 'Invalid',
     pending: 'Pending',
-    start_time: 'Start Time',
-    end_time: 'End Time',
+    // start_time: 'Start Time',
+    // end_time: 'End Time',
     // active: 'Active',
     // status: 'Status',
     // station: 'Station',
@@ -451,6 +483,7 @@ export default
     internal_error: 'Internal Error',
     cam_error: 'CAM_ERROR',
     ui_error: "UI_ERROR",
+    error_code_list: "Error Code List",
     no_communication_between_charging_board_and_hmi: 'No communication between Charging board and HMI',
     initial_setting_fault: 'Initial setting  fault',
     initial_leakage_current_protection: 'Initial Leakage current protection',
@@ -480,17 +513,99 @@ export default
 //--------------------------------------------------------------
 // Software Info Page
 //--------------------------------------------------------------
-
+    add_sw_release_note: 'Add SW Release Note',
+    add_fw_release_note: 'Add FW Release Note',
+    edit_sw_release_note: 'Edit SW Release Note',
+    edit_fw_release_note: 'Edit FW Release Note',
+    ota_sw_version: 'OTA SW Version',
+    add_sw_release: 'Add SW Release',
+    release: 'Release',
+    ota_fw_version: 'OTA FW Version',
+    add_fw_release: 'Add FW Release',
+    file_path: 'File Path',
+    description: 'Description',
+    update_time: 'Update time',
+    download_file: 'Download File',
+    // version: 'Version',
+    // cancel: 'Cancel',
+    // confirm: 'Confirm',
 //--------------------------------------------------------------
 // Program Page
 //--------------------------------------------------------------
-
+    do_you_want_to_delete_program: 'Do you want to delete program?',
+    delete_success: 'Delete Success',
+    do_you_want_to_edit_program: 'Do you want to edit program?',
+    edit_success: 'Edit success',
+    do_you_want_to_create_program: 'Do you want to create program?',
+    edit_program: 'Edit Program',
+    evse: 'EVSE',
+    administrator: 'Administrator',
+    // warning: 'Warning !',
+    // ok: 'OK',
+    // cancel : 'Cancel',
+    // twd: 'TWD',
+    // name : "Name",
+    // station: 'Station',
+    // rate_plan: 'Rate Plan',
+    // currency: 'Currency',
+    // price : 'Price',
+    // delete: 'Delete',
+    // cancel: 'Cancel',
+    // confirm: 'Confirm',
+    // add_program: 'Add Program',
+    // connector: 'Connector',
+    // user: 'User',
 //--------------------------------------------------------------
 // Parking Page
+    car_num: 'Car Num',
+    pic: 'Pic',
+    preview: 'preview',
+    // station: 'Station',
+    // evse_id : 'EVSE ID',
+    // start_time: 'Start Time',
+    // end_time: 'End Time',
+    // all:'All',
 //--------------------------------------------------------------
 
 //--------------------------------------------------------------
 // Admin Info Page
+    please_select_program: 'Please select program.',
+    please_binding_card: 'Please binding card.',
+    msi_not_support_binding_card: 'MSI Not Support Binding Card',
+    add_card: 'Add Card',
+    delete_card: 'Delete Card',
+    expire_date_mm_yy: 'Expire Date(MM/YY)',
+    evse_quantity: 'EVSE Quantity',
+    cpo_account: 'CPO Account',
+    select_program: 'Select Program',
+    check_program: 'Check Program',
+    effective_immediately: 'Effective immediately',
+    effective_date_will_start_in_a_month: 'Effective date will start in a month',
+    program_name: 'Program Name',
+    title: 'Title',
+    card_list: 'Card List'
+    // admin_info : 'Admin Info',
+    // first_name: 'First Name',
+    // last_name: 'Last Name',
+    // e_mail: 'E-mail',
+    // credit_card: 'Credit Card',
+    // add_program: 'Add Program',
+    // card_number: 'Card Number',
+    // binding_date: 'Binding Date',
+    // name : "Name",
+    // station: 'Station',
+    // rate_plan: 'Rate Plan',
+    // currency: 'Currency',
+    // price : 'Price',
+    // connector: 'Connector',
+    // user: 'User',
+    // cancel: 'Cancel',
+    // confirm: 'Confirm',
+    // address : 'Address',
+    // phone: 'Phone',
+    // tax_id: 'Tax ID',
+    // program : 'Program',
+    
 //--------------------------------------------------------------
     
 }

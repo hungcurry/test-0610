@@ -7,6 +7,9 @@ import msi from '@/assets/msi_style'
 import moment from "moment"
 import {  ElMessageBox,ElMessage } from 'element-plus'
 import { useMStore } from "../stores/m_cloud"
+import { useI18n } from "vue-i18n"
+
+const { t } = useI18n()
 const MStore = useMStore();
 const MsiApi = ApiFunc()
 const edit_mode = ref('create')
@@ -17,6 +20,26 @@ const companyData = reactive([])
 const isLoading = ref(false)
 const company_title = ref('Add Company Info')
 const company = MStore?.permission?.company?.name
+const company_ref = ref()
+
+const validTaxid = (rule, value, callback) => {
+  const regex = /^[0-9a-zA-Z-]+$/
+  if (regex.test(value) && value?.length === 8) {
+    callback()
+  }
+  else {
+    callback(new Error(t('the_item_is_required')))
+  }
+}
+
+const company_rules = reactive({
+  name: [
+    { required: true, message: t('the_item_is_required'), trigger: 'blur' },
+  ],
+  tax_id: [
+    { required: true, message: t('the_item_is_required'), trigger: 'blur', validator: validTaxid },
+  ],
+})
   
 const AddCompany = () => {
   CompanyFormVisible.value = true
@@ -44,19 +67,77 @@ const sortFunc = (obj1, obj2, column) => {
 const search = async () => {
   let queryData = null
   if (input.value === '') {
-    queryData = { "database":"CPO", "collection":"CompanyInformation", "query": {}}
+    // queryData = { "database":"CPO", "collection":"CompanyInformation", "query": {}}
+    queryData = { 
+      "database": 'CPO', 
+      "collection": 'CompanyInformation', 
+      "pipelines": [
+        {
+          $project: { _id: 1, salt: 0, hashed_password: 0 } 
+        }
+      ]
+    }
   }
   else {
-    queryData = { "database":"CPO", "collection":"CompanyInformation", "query": {
-      "$or" : [ {"name":{"$regex": input.value ,"$options":"i"} } , 
-                {"country":{"$regex": input.value ,"$options":"i"} } , {"city":{"$regex": input.value ,"$options":"i"} } , 
-                {"address":{"$regex": input.value ,"$options":"i"} } , {"phone":{"$regex": input.value ,"$options":"i"} } , 
-                {"tax_id":{"$regex": input.value ,"$options":"i"} } , 
-                {"updated_date_str":{"$regex": input.value ,"$options":"i"} } , 
-              ]
-    }}
+    queryData = { 
+      database: 'CPO', 
+      collection: 'CompanyInformation', 
+      pipelines: [
+        {
+          $match : {
+            $or: [
+              {
+                name: {
+                  $regex: input.value,
+                  $options: "i",
+                },
+              },
+              {
+                country: {
+                  $regex: input.value,
+                  $options: "i",
+                },
+              },
+              {
+                city: {
+                  $regex: input.value,
+                  $options: "i",
+                },
+              },
+              {
+                address: {
+                  $regex: input.value,
+                  $options: "i",
+                },
+              },
+              {
+                phone: {
+                  $regex: input.value,
+                  $options: "i",
+                },
+              },
+              {
+                tax_id: {
+                  $regex: input.value,
+                  $options: "i",
+                },
+              },
+              {
+                updated_date_str: {
+                  $regex: input.value,
+                  $options: "i",
+                },
+              }
+            ]
+          }
+        },
+        { 
+          $project: { _id: 1, salt: 0, hashed_password: 0 } 
+        }
+      ]
+    }
   }
-  await MongoQurey(queryData)
+  await MongoAggregate(queryData)
 }
 
 const detail_info = (detail) => {
@@ -66,87 +147,136 @@ const detail_info = (detail) => {
   for (let key in companyData)
     companyData[key] = ''
   Object.assign(companyData, detail)
+  console.log(detail.upgrade_manager)
+  companyData.invoice_hashIV = companyData.invoice.hashIV
+  companyData.invoice_hashKey = companyData.invoice.hashKey
+  companyData.invoice_merchantId = companyData.invoice.merchantId
+  companyData.payment_hashIV = companyData.payment.hashIV
+  companyData.payment_hashKey = companyData.payment.hashKey
+  companyData.payment_merchantId = companyData.payment.merchantId
+  companyData.upgrade_manager_enable = companyData.upgrade_manager.enable
 }
 
 const editCompany = async (action) => {
   companyData.invoice.owner = 'ezPay'
   companyData.payment.owner = 'NewebPay'
-  let check_format_success = true
-  const regex = /^[0-9a-zA-Z-]+$/
 
   if (action === 'cancel') {
     CompanyFormVisible.value = false
     return
   }
-  if (regex.test(companyData.tax_id) === false) {
-    check_format_success = false
-    ElMessage.error('Oops, Tax ID format error.')
-  }
-  if (companyData.name === undefined || companyData.name === '') {  
-    check_format_success = false
-    ElMessage.error('Oops, Name required.')
-  }
   if (edit_mode.value === 'create') {
-    if (check_format_success === false)
-      return
     if (action === 'confirm') {
-      CompanyFormVisible.value = false
-      let sendData = {  class : 'CompanyInformation', name: companyData.name,
-                        country:companyData.country, party_id:companyData.party_id,
-                        city:companyData.city, detail:companyData.detail, 
-                        // remark:companyData.remark,
-                        invoice:companyData.invoice, payment:companyData.payment,
-                        address:companyData.address, phone:companyData.phone,
-                        tax_id:companyData.tax_id,
-                        upgrade_manager:companyData.upgrade_manager
-                      }
-        ElMessageBox.confirm('Do you want to create?','Warning', {confirmButtonText: 'OK', cancelButtonText: 'Cancel', type: 'warning'})
-        .then(async () => {
-          let res = await MsiApi.setCollectionData('post', 'cpo', sendData)
-          if (res.status === 201) {
-            let queryData = { "database":"CPO", "collection":"CompanyInformation", "query": {}}
-            await MongoQurey(queryData)
-          }
-        })
-        .catch((e)=>{
-          console.log(e)
-        })
+      company_ref.value.validate(valid => {
+        if (valid) {
+          CompanyFormVisible.value = false
+          companyData.invoice.hashIV = companyData.invoice_hashIV
+          companyData.invoice.hashKey = companyData.invoice_hashKey
+          companyData.invoice.merchantId = companyData.invoice_merchantId
+          companyData.payment.hashIV = companyData.payment_hashIV
+          companyData.payment.hashKey = companyData.payment_hashKey
+          companyData.payment.merchantId = companyData.payment_merchantId
+          companyData.upgrade_manager.enable = companyData.upgrade_manager_enable
+          let sendData = {  class : 'CompanyInformation', name: companyData.name,
+                            country:companyData.country, party_id:companyData.party_id,
+                            city:companyData.city, detail:companyData.detail, 
+                            // remark:companyData.remark,
+                            invoice:companyData.invoice, payment:companyData.payment,
+                            address:companyData.address, phone:companyData.phone,
+                            tax_id:companyData.tax_id,
+                            upgrade_manager:companyData.upgrade_manager
+                          }
+            ElMessageBox.confirm(t('do_you_want_to_create'),t('warning'), {confirmButtonText: t('ok'), cancelButtonText: t('cancel'), type: 'warning'})
+            .then(async () => {
+              let res = await MsiApi.setCollectionData('post', 'cpo', sendData)
+              if (res.status === 201) {
+                let queryData = { 
+                  "database": 'CPO', 
+                  "collection": 'CompanyInformation', 
+                  "pipelines": [
+                    {
+                      $project: { _id: 1, salt: 0, hashed_password: 0 } 
+                    }
+                  ]
+                }
+                await MongoAggregate(queryData)
+              }
+            })
+            .catch((e)=>{
+              console.log(e)
+            })
+        }
+        else {
+          return false
+        }
+      })
+
     }
   }
   else if (edit_mode.value === 'edit'){
-    if (check_format_success === false)
-      return
     if (action === 'confirm') {
-      CompanyFormVisible.value = false
-      let sendData = {  class : 'CompanyInformation', pk: companyData._id,name: companyData.name, 
-                        country:companyData.country, party_id:companyData.party_id,
-                        city:companyData.city, detail:companyData.detail, 
-                        // remark:companyData.remark,
-                        invoice:companyData.invoice, payment:companyData.payment,
-                        address:companyData.address, phone:companyData.phone,
-                        tax_id:companyData.tax_id
-                      }
-      ElMessageBox.confirm('Do you want to modify?','Warning', {confirmButtonText: 'OK', cancelButtonText: 'Cancel', type: 'warning'})
-      .then(async () => {
-        let res = await MsiApi.setCollectionData('patch', 'cpo', sendData)
-        if (res.status === 200) {
-          let queryData = { "database":"CPO", "collection":"CompanyInformation", "query": {}}
-          await MongoQurey(queryData)
+      company_ref.value.validate(valid => {
+        if (valid) {
+          CompanyFormVisible.value = false
+          companyData.invoice.hashIV = companyData.invoice_hashIV
+          companyData.invoice.hashKey = companyData.invoice_hashKey
+          companyData.invoice.merchantId = companyData.invoice_merchantId
+          companyData.payment.hashIV = companyData.payment_hashIV
+          companyData.payment.hashKey = companyData.payment_hashKey
+          companyData.payment.merchantId = companyData.payment_merchantId
+          companyData.upgrade_manager.enable = companyData.upgrade_manager_enable
+          let sendData = {  class : 'CompanyInformation', pk: companyData._id,name: companyData.name, 
+                            country:companyData.country, party_id:companyData.party_id,
+                            city:companyData.city, detail:companyData.detail, 
+                            // remark:companyData.remark,
+                            invoice:companyData.invoice, payment:companyData.payment,
+                            address:companyData.address, phone:companyData.phone,
+                            tax_id:companyData.tax_id,
+                            upgrade_manager:companyData.upgrade_manager
+                          }
+          ElMessageBox.confirm(t('do_you_want_to_modify'),t('warning'), {confirmButtonText: t('ok'), cancelButtonText: t('cancel'), type: 'warning'})
+          .then(async () => {
+            let res = await MsiApi.setCollectionData('patch', 'cpo', sendData)
+            if (res.status === 200) {
+              let queryData = { 
+                "database": 'CPO', 
+                "collection": 'CompanyInformation', 
+                "pipelines": [
+                  {
+                    $project: { _id: 1, salt: 0, hashed_password: 0 } 
+                  }
+                ]
+              }
+              await MongoAggregate(queryData)
+            }
+          })
+          .catch((e)=>{
+            console.log(e)
+          }) 
+        }
+        else {
+          return false
         }
       })
-      .catch((e)=>{
-        console.log(e)
-      }) 
+
     }
     else if (action === 'delete') {
       CompanyFormVisible.value = false
       let sendData = { class : 'CompanyInformation', pk : companyData._id }
-      ElMessageBox.confirm('Do you want to delete?','Warning', {confirmButtonText: 'OK', cancelButtonText: 'Cancel', type: 'warning'})
+      ElMessageBox.confirm(t('do_you_want_to_delete'),t('warning'), {confirmButtonText: t('ok'), cancelButtonText: t('cancel'), type: 'warning'})
       .then(async () => {
         let res = await MsiApi.setCollectionData('delete', 'cpo', sendData)
         if (res.status === 200) {
-          let queryData = { "database":"CPO", "collection":"CompanyInformation", "query": {}}
-          await MongoQurey(queryData)
+          let queryData = { 
+            "database": 'CPO', 
+            "collection": 'CompanyInformation', 
+            "pipelines": [
+              {
+                $project: { _id: 1, salt: 0, hashed_password: 0 } 
+              }
+            ]
+          }
+          await MongoAggregate(queryData)
         }
       })
       .catch((e)=>{
@@ -156,17 +286,25 @@ const editCompany = async (action) => {
   }
 }
 
-const MongoQurey = async (queryData) => {
+const MongoAggregate = async (queryData) => {
   isLoading.value = true
-  let response = await MsiApi.mongoQuery(queryData)
+  let response = await MsiApi.mongoAggregate(queryData)
   UserData.length = 0
-  Object.assign(UserData, response.data.all)
+  Object.assign(UserData, response.data.result)
 
   let ProgramData = []
-  queryData = { database: 'CPO', collection: 'LimitPlan', query: {} }
-  let res = await MsiApi.mongoQuery(queryData)
+  queryData = { 
+    "database": 'CPO', 
+    "collection": 'LimitPlan', 
+    "pipelines": [
+      {
+        $project: { _id: 1, name: 1 } 
+      }
+    ]
+  }
+  let res = await MsiApi.mongoAggregate(queryData)
   if (res.status === 200) {
-    Object.assign(ProgramData, res.data.all)
+    Object.assign(ProgramData, res.data.result)
   } else {
     ElMessage.error(res.data.message)
   }
@@ -184,8 +322,16 @@ const MongoQurey = async (queryData) => {
 }
   
 onMounted( async() => {
-    let queryData = { "database":"CPO", "collection":"CompanyInformation", "query": {}}
-    console.log( await MongoQurey(queryData))
+    let queryData = { 
+      "database": 'CPO', 
+      "collection": 'CompanyInformation', 
+      "pipelines": [
+        {
+          $project: { _id: 1, salt: 0, hashed_password: 0 } 
+        }
+      ]
+    }
+    console.log( await MongoAggregate(queryData))
 })
 </script>
 
@@ -193,12 +339,12 @@ onMounted( async() => {
   <div class="customer">
     <div class="container lg">
       <div class="flex justify-between flex-wrap lg:flex-nowrap pt-40px pb-32px">
-        <el-input class="search-input" v-model="input" placeholder="Search" @keyup.enter="search">
+        <el-input class="search-input" v-model="input" :placeholder="t('search')" @keyup.enter="search">
           <template #append>
             <el-button :icon="Search" @click="search" />
           </template>
         </el-input>
-        <el-button class="btn-secondary box-shadow" @click="AddCompany"> Add Company </el-button>
+        <el-button class="btn-secondary box-shadow" @click="AddCompany"> {{ t('add_company') }} </el-button>
       </div>
 
       <div class="overflow-x-auto">
@@ -216,7 +362,7 @@ onMounted( async() => {
           >
             <el-table-column
               prop="name"
-              label="Name"
+              :label="t('name')"
               align="center"
               sortable
               :sort-method="(a, b) => sortFunc(a, b, 'name')"
@@ -224,7 +370,7 @@ onMounted( async() => {
             />
             <el-table-column
               prop="country"
-              label="Country"
+              :label="t('country')"
               align="center"
               sortable
               :sort-method="(a, b) => sortFunc(a, b, 'country')"
@@ -232,7 +378,7 @@ onMounted( async() => {
             />
             <el-table-column
               prop="city"
-              label="City"
+              :label="t('city')"
               align="center"
               sortable
               :sort-method="(a, b) => sortFunc(a, b, 'city')"
@@ -240,7 +386,7 @@ onMounted( async() => {
             />
             <el-table-column
               prop="address"
-              label="Address"
+              :label="t('address')"
               align="center"
               sortable
               :sort-method="(a, b) => sortFunc(a, b, 'address')"
@@ -248,7 +394,7 @@ onMounted( async() => {
             />
             <el-table-column
               prop="phone"
-              label="Phone"
+              :label="t('phone')"
               align="center"
               sortable
               :sort-method="(a, b) => sortFunc(a, b, 'phone')"
@@ -256,7 +402,7 @@ onMounted( async() => {
             />
             <el-table-column
               prop="tax_id"
-              label="Tax ID"
+              :label="t('tax_id')"
               align="center"
               sortable
               :sort-method="(a, b) => sortFunc(a, b, 'tax_id')"
@@ -264,7 +410,7 @@ onMounted( async() => {
             />
             <el-table-column
               prop="subscribe_str"
-              label="Subscribe"
+              :label="t('subscribe')"
               align="center"
               sortable
               :sort-method="(a, b) => sortFunc(a, b, 'tax_id')"
@@ -272,7 +418,7 @@ onMounted( async() => {
             />
             <el-table-column
               prop="updated_date_str"
-              label="Updated Date"
+              :label="t('updated_date')"
               align="center"
               sortable
               :sort-method="(a, b) => sortFunc(a, b, 'updated_date_str')"
@@ -310,12 +456,12 @@ onMounted( async() => {
             </div>
           </template>
           <div class="dialog-context">
-            <el-form class="max-w-500px m-auto">
-              <el-form-item class="mb-24px" label="Name">
+            <el-form class="max-w-500px m-auto" :rules="company_rules" ref="company_ref" :model="companyData" :scroll-to-error=true>
+              <el-form-item class="mb-24px" :label="t('name')" prop="name">
                 <el-input v-model.trim="companyData.name" />
               </el-form-item>
 
-              <el-form-item class="mb-24px" label="Country">
+              <el-form-item class="mb-24px" :label="t('country')" prop="country">
                 <el-input v-model.trim="companyData.country" />
               </el-form-item>
 
@@ -323,19 +469,19 @@ onMounted( async() => {
                 <el-input v-model.trim="companyData.party_id" />
               </el-form-item> -->
 
-              <el-form-item class="mb-24px" label="City">
+              <el-form-item class="mb-24px" :label="t('city')" prop="city">
                 <el-input v-model.trim="companyData.city" />
               </el-form-item>
 
-              <el-form-item class="mb-24px" label="Address">
+              <el-form-item class="mb-24px" :label="t('address')" prop="address">
                 <el-input v-model.trim="companyData.address" />
               </el-form-item>
 
-              <el-form-item class="mb-24px" label="Tax ID">
+              <el-form-item class="mb-24px" :label="t('tax_id')" prop="tax_id">
                 <el-input v-model.trim="companyData.tax_id" />
               </el-form-item>
 
-              <el-form-item class="mb-24px" label="Phone">
+              <el-form-item class="mb-24px" :label="t('phone')" prop="phone">
                 <el-input v-model.trim="companyData.phone" />
               </el-form-item>
 
@@ -343,40 +489,40 @@ onMounted( async() => {
                 <el-input v-model.trim="companyData.remark" />
               </el-form-item> -->
 
-              <el-form-item class="mb-24px" label="Invoice Hash IV">
-                <el-input v-model.trim="companyData.invoice.hashIV" />
+              <el-form-item class="mb-24px" :label="t('invoice_hash_iv')">
+                <el-input v-model.trim="companyData.invoice_hashIV" />
               </el-form-item>
 
-              <el-form-item class="mb-24px" label="Invoice Hash Key">
-                <el-input v-model.trim="companyData.invoice.hashKey" />
+              <el-form-item class="mb-24px" :label="t('invoice_hash_key')">
+                <el-input v-model.trim="companyData.invoice_hashKey" />
               </el-form-item>
 
-              <el-form-item class="mb-24px" label="Invoice Merchant ID">
-                <el-input v-model.trim="companyData.invoice.merchantId" />
+              <el-form-item class="mb-24px" :label="t('invoice_merchant_id')">
+                <el-input v-model.trim="companyData.invoice_merchantId" />
               </el-form-item>
 
               <!-- <el-form-item class="mb-24px" label="Invoice Owner">
                 <el-input v-model.trim="companyData.invoice.owner" />
               </el-form-item> -->
 
-              <el-form-item class="mb-24px" label="Payment Hash IV">
-                <el-input v-model.trim="companyData.payment.hashIV" />
+              <el-form-item class="mb-24px" :label="t('payment_hash_iv')">
+                <el-input v-model.trim="companyData.payment_hashIV" />
               </el-form-item>
 
-              <el-form-item class="mb-24px" label="Payment Hash Key">
-                <el-input v-model.trim="companyData.payment.hashKey" />
+              <el-form-item class="mb-24px" :label="t('payment_hash_key')">
+                <el-input v-model.trim="companyData.payment_hashKey" />
               </el-form-item>
 
-              <el-form-item class="mb-24px" label="Payment Merchant ID">
-                <el-input v-model.trim="companyData.payment.merchantId" />
+              <el-form-item class="mb-24px" :label="t('payment_merchant_id')">
+                <el-input v-model.trim="companyData.payment_merchantId" />
               </el-form-item>
 
               <!-- <el-form-item class="mb-24px" label="Payment Owner">
                 <el-input v-model.trim="companyData.payment.owner" />
               </el-form-item> -->
 
-              <el-form-item v-if="company === 'MSI'" class="mb-24px" label="Active">
-                <el-switch v-model="companyData.upgrade_manager.enable" />
+              <el-form-item v-if="company === 'MSI'" class="mb-24px w-0" :label="t('active')">
+                <el-switch v-model="companyData.upgrade_manager_enable" />
               </el-form-item>
             </el-form>
           </div>
@@ -388,21 +534,21 @@ onMounted( async() => {
                 class="w-48% bg-btn-100 text-white max-w-140px"
                 @click.stop="editCompany('delete')"
               >
-                Delete
+                {{ t('delete') }}
               </el-button>
               <el-button
                 round
                 class="w-48% bg-btn-100 text-white max-w-140px"
                 @click.stop="editCompany('cancel')"
               >
-                Cancel
+                {{ t('cancel') }}
               </el-button>
               <el-button
                 round
                 class="w-48% bg-btn-200 text-white max-w-140px"
                 @click.stop="editCompany('confirm')"
               >
-                Confirm
+                {{ t('confirm') }}
               </el-button>
             </span>
           </template>

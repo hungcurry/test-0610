@@ -9,7 +9,9 @@ import { export_json_to_excel }  from '@/composables/Export2Excel'
 import { ElMessageBox, ElMessage } from 'element-plus'
 import { useMStore } from "../stores/m_cloud"
 import moment from "moment"
+import { useI18n } from "vue-i18n"
 
+const { t } = useI18n()
 const MStore = useMStore();
 const company = MStore?.permission?.company?.name
 const MsiApi = ApiFunc()
@@ -23,11 +25,37 @@ const BindingCardDialogVisible = ref(false)
 const DeviceDialogVisible = ref(false)
 const userData = reactive([])
 const userDataMod = reactive([])
+const userData_ref = ref()
+const userData_rules = reactive({
+  first_name: [
+    { required: true, message: t('the_item_is_required'), trigger: 'blur' },
+  ],
+  last_name: [
+    { required: true, message: t('the_item_is_required'), trigger: 'blur' },
+  ],
+  // email: [
+  //   { required: true, message: t('the_item_is_required'), trigger: 'blur' },
+  // ],
+})
 const paymentData = reactive([])
 const activeName = ref('first')
 const user_type = reactive([])
 const rfidData = reactive({ rfid: '', cash: 0, enable: true, nickname: '' })
-const rfid_title = ref('Add RFID')
+const rfid_title = ref(t('add_rfid'))
+const rfidData_ref = ref()
+const rfidData_rules = reactive({
+  rfid: [
+    { required: true, message: t('the_item_is_required'), trigger: 'blur' },
+  ],
+  cash: [
+    { required: true, message: t('the_item_is_required'), trigger: 'blur' },
+  ],
+  nickname: [
+    { required: true, message: t('the_item_is_required'), trigger: 'blur' },
+  ],
+})
+
+
 
 const isLoading_skeleton = ref(true)
 const parking_visible = ref(true)
@@ -94,12 +122,57 @@ const select_date = async () => {
         paymentData[i].parking_car_number_str = paymentData[i].operator_types[j].car_num
       }
     }
+    switch (paymentData[i].paymethod.method) {
+      case 'CREDIT':
+        paymentData[i].paymethod.method = t('credit')
+        break
+      case 'GOOGLEPAY':
+        paymentData[i].paymethod.method = t('googlepay')
+        break
+      case 'SAMSUNGPAY':
+        paymentData[i].paymethod.method = t('samsungpay')
+        break
+      case 'RFID':
+        paymentData[i].paymethod.method = t('rfid')
+        break
+      case 'FREE':
+        paymentData[i].paymethod.method = t('free')
+        break
+      default:
+        break
+    }
+    switch (paymentData[i].currency) {
+      case 'TWD':
+        paymentData[i].currency = t('twd')
+        break
+      case 'USD':
+        paymentData[i].currency = t('usd')
+        break
+      case 'JPY':
+        paymentData[i].currency = t('jpy')
+        break
+      case 'EUR':
+        paymentData[i].currency = t('eur')
+        break
+      default:
+        break
+    }
   }
   paymentData.cost_str = cost_str
   paymentData.charge_kwh = charge_kwh
   paymentData.charge_hr = moment( {h:moment.duration(charge_time_sec, 'second').hours()}).format('HH')
   paymentData.charge_min = moment( {m:moment.duration(charge_time_sec, 'second').minutes()}).format('mm')
   paymentData.charge_sec = moment( {s:moment.duration(charge_time_sec, 'second').hours()}).format('ss')
+}
+const filters = [
+  { text: t('credit_card'), value: t('credit_card') },
+  { text: t('rfid'), value: t('rfid') },
+  { text: t('free'), value: t('free') },
+  { text: t('google_pay'), value: t('google_pay') },
+  { text: t('samsung_pay'), value: t('samsung_pay') },
+]
+const filterTag = (value, rowData) => {
+  return rowData.paymethod.method === value
 }
 const sortFunc = (obj1, obj2, column) => {
   let convertedNumber1 = undefined
@@ -131,10 +204,14 @@ const sortFunc = (obj1, obj2, column) => {
 
 
 const clearEvseList = async () => {
-  ElMessageBox.confirm('Do you want to delete?', 'Warning', { confirmButtonText: 'OK', cancelButtonText: 'Cancel', type: 'warning' })
+  ElMessageBox.confirm(t('do_you_want_to_clear'), t('warning'), { confirmButtonText: t('ok'), cancelButtonText: t('cancel'), type: 'warning' })
       .then(async () => {
         let sendData = { 'class': 'UserData', 'pk': userData._id, 'evse_list': [] }
-        console.log(await MsiApi.setCollectionData('patch', 'cpo', sendData))
+        let res = await MsiApi.setCollectionData('patch', 'cpo', sendData)
+        if (res.status === 200) {
+          userData.evse_list_id = ''
+          userData.evse_list_id_detail = ''
+        }
       })
       .catch((e) => {
         console.log(e)
@@ -150,7 +227,7 @@ const device_detail = () => {
 }
 
 const card_detail = (data) => {
-  rfid_title.value= 'Edit RFID'
+  rfid_title.value= t('edit_rfid')
   EditRfidFormVisible.value = true
   modify_card_index.value = userData.rfids.indexOf(data)
   rfidData.rfid = data.rfid
@@ -165,40 +242,36 @@ const confirmRfid = async (confirm, index) => {
   // const reversedHexPairs = hex_pair.reverse().map(pair => pair.split('').join(''));  
   // const reversedHex = reversedHexPairs.join('');
   // console.log(reversedHex)
-  let check_format_success = true
 
   if (confirm === 'confirm') {
-    if (rfidData.rfid === "") {
-      ElMessage.error('Oops, Number required.')  
-      check_format_success = false
-    }
-    if (rfidData.cash === "") {
-      ElMessage.error('Oops, Cash required.')  
-      check_format_success = false
-    }
-    if (check_format_success === false)
-      return
-    EditRfidFormVisible.value = false
-    if (modify_card_index.value === -1) {
-      userData.rfids.push({
-        rfid: rfidData.rfid.toUpperCase(), cash: parseInt(rfidData.cash),
-        enable: rfidData.enable, nickname: rfidData.nickname
-      })
-      let sendData = { 'class': 'UserData', 'pk': userData._id, 'rfids': userData.rfids }
-      await MsiApi.setCollectionData('patch', 'cpo', sendData)
-      ElMessage({ type: 'success', message: `Add ${rfidData.rfid.toUpperCase()} card number` })
-    }
-    else {
-      userData.rfids[modify_card_index.value].rfid = rfidData.rfid
-      userData.rfids[modify_card_index.value].cash = rfidData.cash
-      userData.rfids[modify_card_index.value].enable = rfidData.enable
-      userData.rfids[modify_card_index.value].nickname = rfidData.nickname
-      let sendData = { 'class': 'UserData', 'pk': userData._id, 'rfids': userData.rfids }
-      await MsiApi.setCollectionData('patch', 'cpo', sendData)
-    }
+    rfidData_ref.value.validate(async valid => {
+      if (valid) {
+        EditRfidFormVisible.value = false
+        if (modify_card_index.value === -1) {
+          userData.rfids.push({
+            rfid: rfidData.rfid.toUpperCase(), cash: parseInt(rfidData.cash),
+            enable: rfidData.enable, nickname: rfidData.nickname
+          })
+          let sendData = { 'class': 'UserData', 'pk': userData._id, 'rfids': userData.rfids }
+          await MsiApi.setCollectionData('patch', 'cpo', sendData)
+          ElMessage({ type: 'success', message: `${t('add')} ${rfidData.rfid.toUpperCase()} ${t('card_number')}` })
+        }
+        else {
+          userData.rfids[modify_card_index.value].rfid = rfidData.rfid
+          userData.rfids[modify_card_index.value].cash = rfidData.cash
+          userData.rfids[modify_card_index.value].enable = rfidData.enable
+          userData.rfids[modify_card_index.value].nickname = rfidData.nickname
+          let sendData = { 'class': 'UserData', 'pk': userData._id, 'rfids': userData.rfids }
+          MsiApi.setCollectionData('patch', 'cpo', sendData)
+        }
+      }
+      else {
+        return false
+      }
+    })
   }
   else if (confirm === 'delete') {
-    ElMessageBox.confirm('Do you want to delete?', 'Warning', { confirmButtonText: 'OK', cancelButtonText: 'Cancel', type: 'warning' })
+    ElMessageBox.confirm(t('do_you_want_to_delete'), t('warning'), { confirmButtonText: t('ok'), cancelButtonText: t('cancel'), type: 'warning' })
       .then(async () => {
         if (index !== undefined) {
           modify_card_index.value = index
@@ -216,21 +289,53 @@ const confirmRfid = async (confirm, index) => {
 }
 
 const GetPermission = async () => {
-  let queryData = { "database": "CPO", "collection": "UserPermission", "query": {} }
-  let response = await MsiApi.mongoQuery(queryData)
+  let queryData = { 
+    database: 'CPO', 
+    collection: 'UserPermission', 
+    pipelines: [
+      { 
+        $project: { _id: 1, name: 1 } 
+      }
+    ]
+  }
+  let response = await MsiApi.mongoAggregate(queryData)
   user_type.length = 0
   let member_permission = []
-  for (let i = 0; i < response.data.all.length; i++) {
-    if (response.data.all[i].name === 'AnonymousUser' || response.data.all[i].name === 'MemberUser') {
-      member_permission.push(response.data.all[i])
+  for (let i = 0; i < response.data.result.length; i++) {
+    if (response.data.result[i].name === 'AnonymousUser' || response.data.result[i].name === 'MemberUser') {
+      member_permission.push(response.data.result[i])
     }
   }
   Object.assign(user_type, member_permission)
+  for (let i=0; i<user_type.length; i++) {
+    switch (user_type[i].name) {
+      case 'AnonymousUser':
+        user_type[i].name = t('anonymous_user')
+        break
+      case 'AdminUser':
+        user_type[i].name = t('admin_user')
+        break
+      case 'CustomerServiceUser':
+        user_type[i].name = t('customer_service_user')
+        break
+      case 'DeveloperUser':
+        user_type[i].name = t('developer_user')
+        break
+      case 'EngineerUser':
+        user_type[i].name = t('engineer_user')
+        break
+      case 'MemberUser':
+        user_type[i].name = t('member_user')
+        break
+      default:
+        break
+    }
+  }
 }
 
 const editRfid = () => {
   modify_card_index.value = -1
-  rfid_title.value= 'Add RFID'
+  rfid_title.value= t('add_rfid')
   EditRfidFormVisible.value = true
   rfidData.rfid = ''
   rfidData.cash = ''
@@ -252,44 +357,66 @@ const editUser = () => {
 }
 
 const editUserDialog = (action) => {
-  EditCustomerFormVisible.value = false
-
   if (action === 'confirm') {
-    let permission_id = ''
-    for (let i = 0; i < user_type.length; i++) {
-      if (user_type[i].name === userDataMod.permission_str) {
-        permission_id = user_type[i]._id
-      }
-    }
-    
-    ElMessageBox.confirm('Do you want to modify?', 'Warning', { confirmButtonText: 'OK', cancelButtonText: 'Cancel', type: 'warning' })
-      .then(async () => {
-        let sendData = { class: 'UserData', pk: userData._id, first_name: userDataMod.first_name, last_name: userDataMod.last_name,
-          email: userDataMod.email , phone: userDataMod.phone , permission: { user: permission_id, active: userDataMod.permission_active_str },
-        }
-        let res = await MsiApi.setCollectionData('patch', 'cpo', sendData)
-        if (res.status === 200) {
-          let queryData = { "database": "CPO", "collection": "UserData", "query": { "_id": { "ObjectId": user_id } } }
-          let response = await MsiApi.mongoQuery(queryData)
-          userData.first_name = response.data.all[0]?.first_name
-          userData.last_name = response.data.all[0]?.last_name
-          userData.phone = response.data.all[0]?.phone
-          for (let i = 0; i < user_type.length; i++) {
-            if (user_type[i]._id === response.data.all[0].permission.user) {
-              userData.permission_str = user_type[i].name
-            }
+    userData_ref.value.validate(valid => {
+      if (valid) {
+        EditCustomerFormVisible.value = false
+        let permission_id = ''
+        for (let i = 0; i < user_type.length; i++) {
+          if (user_type[i].name === userDataMod.permission_str) {
+            permission_id = user_type[i]._id
           }
-          let localEndTime =  new Date( (new Date(response.data.all[0].updated_date).getTime()) + ((MStore.timeZoneOffset ) * -60000))
-          userData.updated_date_str = (moment(localEndTime).format("YYYY-MM-DD HH:mm:ss"))
         }
-      })
-      .catch((e) => {
-        console.log(e)
-      })
+        
+        ElMessageBox.confirm(t('do_you_want_to_modify'), t('warning'), { confirmButtonText: t('ok'), cancelButtonText: t('cancel'), type: 'warning' })
+          .then(async () => {
+            let sendData = { class: 'UserData', pk: userData._id, first_name: userDataMod.first_name, last_name: userDataMod.last_name,
+              email: userDataMod.email , phone: userDataMod.phone , permission: { user: permission_id, active: userDataMod.permission_active_str },
+            }
+            let res = await MsiApi.setCollectionData('patch', 'cpo', sendData)
+            if (res.status === 200) {
+              let queryData = { 
+                "database": 'CPO', 
+                "collection": 'UserData', 
+                "pipelines": [
+                  { 
+                    $match: { 
+                      "_id": { "ObjectId": user_id }
+                    },
+                  },
+                  {
+                    $project: { _id: 1, first_name: 1, last_name: 1, name: 1, permission: 1, phone: 1, updated_date: 1 } 
+                  }
+                ]
+              }
+              let response = await MsiApi.mongoAggregate(queryData)
+              userData.first_name = response.data.result[0]?.first_name
+              userData.last_name = response.data.result[0]?.last_name
+              userData.phone = response.data.result[0]?.phone
+              for (let i = 0; i < user_type.length; i++) {
+                if (user_type[i]._id === response.data.result[0].permission.user) {
+                  userData.permission_str = user_type[i].name
+                }
+              }
+              userData.permission.active = response.data.result[0]?.permission.active
+              let localEndTime =  new Date( (new Date(response.data.result[0].updated_date).getTime()) + ((MStore.timeZoneOffset ) * -60000))
+              userData.updated_date_str = (moment(localEndTime).format("YYYY-MM-DD HH:mm:ss"))
+            }
+          })
+          .catch((e) => {
+            console.log(e)
+          })
+      }
+      else {
+        return false
+      }
+    })
+
   }
   else if (action === 'delete') {
+    EditCustomerFormVisible.value = false
     let sendData = { class: 'UserData', pk: userData._id }
-    ElMessageBox.confirm('Do you want to delete?', 'Warning', { confirmButtonText: 'OK', cancelButtonText: 'Cancel', type: 'warning' })
+    ElMessageBox.confirm(t('do_you_want_to_delete'), t('warning'), { confirmButtonText: t('ok'), cancelButtonText: t('cancel'), type: 'warning' })
       .then(async () => {
         console.log(await MsiApi.setCollectionData('delete', 'cpo', sendData))
         router.push({ name: 'user' })
@@ -299,6 +426,7 @@ const editUserDialog = (action) => {
       })
   }
   else if (action === 'cancel') {
+    EditCustomerFormVisible.value = false
     userDataMod.first_name = userData.first_name
     userDataMod.last_name = userData.last_name
     userDataMod.email = userData.email
@@ -308,16 +436,37 @@ const editUserDialog = (action) => {
 }
 
 onMounted(async () => {
-  let queryData = { "database": "CPO", "collection": "UserData", "query": { "_id": { "ObjectId": user_id } } }
-  let response = await MsiApi.mongoQuery(queryData)
-  Object.assign(userData, response.data.all[0])
+  let queryData = { 
+    "database": 'CPO', 
+    "collection": 'UserData', 
+    "pipelines": [
+      { 
+        $match: { 
+          "_id": { "ObjectId": user_id }
+        },
+      },
+      {
+        $project: { _id: 1, salt: 0, hashed_password_1: 0, hashed_password_2: 0, image: 0, byCompany: 0 } 
+      }
+    ]
+  }
+  let response = await MsiApi.mongoAggregate(queryData)
+  Object.assign(userData, response.data.result[0])
   let localEndTime =  new Date( (new Date(userData.updated_date).getTime()) + ((MStore.timeZoneOffset ) * -60000))
   userData.updated_date_str = (moment(localEndTime).format("YYYY-MM-DD HH:mm:ss"))
   localEndTime =  new Date( (new Date(userData.created_date).getTime()) + ((MStore.timeZoneOffset ) * -60000))
   userData.created_date_str =  (moment(localEndTime).format("YYYY-MM-DD HH:mm:ss"))
-  queryData = { "database": "CPO", "collection": "PaymentHistory", "query": {} }
-  response = await MsiApi.mongoQuery(queryData)
-  let PaymentDataAll = response.data.all
+  queryData = { 
+    "database": 'CPO', 
+    "collection": 'PaymentHistory', 
+    "pipelines": [
+      {
+        $project: { sessionId: 0, locationId: 0, location: 0, invoice: 0, detail: 0, byCompany: 0 } 
+      }
+    ]
+  }
+  response = await MsiApi.mongoAggregate(queryData)
+  let PaymentDataAll = response.data.result
   userData.paylist = userData.binding_cards?.paylist
   userData.paylistArrObj = []
   userData.evse_list_id = ''
@@ -379,6 +528,41 @@ onMounted(async () => {
         paymentData[i].parking_car_number_str = paymentData[i].operator_types[j].car_num
       }
     }
+    switch (paymentData[i].paymethod.method) {
+      case 'CREDIT':
+        paymentData[i].paymethod.method = t('credit_card')
+        break
+      case 'GOOGLEPAY':
+        paymentData[i].paymethod.method = t('google_pay')
+        break
+      case 'SAMSUNGPAY':
+        paymentData[i].paymethod.method = t('samsung_pay')
+        break
+      case 'RFID':
+        paymentData[i].paymethod.method = t('rfid')
+        break
+      case 'FREE':
+        paymentData[i].paymethod.method = t('free')
+        break
+      default:
+        break
+    }
+    switch (paymentData[i].currency) {
+      case 'TWD':
+        paymentData[i].currency = t('twd')
+        break
+      case 'USD':
+        paymentData[i].currency = t('usd')
+        break
+      case 'JPY':
+        paymentData[i].currency = t('jpy')
+        break
+      case 'EUR':
+        paymentData[i].currency = t('eur')
+        break
+      default:
+        break
+    }
   }
   paymentData.cost_str = cost_str
   paymentData.charge_kwh = charge_kwh
@@ -398,7 +582,7 @@ onMounted(async () => {
       
       <div class="tabs">
         <el-tabs v-model="activeName">
-          <el-tab-pane label="General" name="first" >
+          <el-tab-pane :label="t('general')" name="first" >
             <div class="flex flex-col 2xl:flex-row">
 
               <div class="general-info overflow-x-auto scrollbar p-24px pl-0px">
@@ -406,7 +590,7 @@ onMounted(async () => {
                   <div class="flex justify-between">
                     <div class="flex">
                       <font-awesome-icon class="icon w-24px h-24px mr-8px" icon="fa-regular fa-user"/>
-                      <span class="line-height-24px">General Info</span>
+                      <span class="line-height-24px">{{ t('gerernal_info') }}</span>
                     </div>
                     <el-button link type="primary" @click="editUser()">
                       <font-awesome-icon class="text-gray-300 w-32px h-32px" icon="fa-regular fa-pen-to-square" />
@@ -416,49 +600,49 @@ onMounted(async () => {
                     <el-skeleton :rows="8" v-if="isLoading_skeleton" />
                     <div v-if="isLoading_skeleton === false" class="mt-16px lg:w-50%">
                       <div class="mb-8px">
-                        <span class="info-item">Email</span>
+                        <span class="info-item">{{ t('e_mail') }}</span>
                         <span class="line-height-32px">{{ userData.email }}</span>
                       </div>
     
                       <div class="mb-8px">
-                        <span class="info-item">Phone</span>
+                        <span class="info-item">{{ t('phone') }}</span>
                         <span class="line-height-32px">{{ userData.phone }}</span>
                       </div>
     
                       <div class="mb-8px">
-                        <span class="info-item">Country</span>
+                        <span class="info-item">{{ t('country') }}</span>
                         <span class="line-height-32px">{{ userData.country }}</span>
                       </div>
     
                       <div class="mb-8px">
-                        <span class="info-item">Language</span>
+                        <span class="info-item">{{ t('language') }}</span>
                         <span class="line-height-32px">{{ userData.language }}</span>
                       </div>
     
                       <div class="mb-8px">
-                        <span class="info-item">Permission</span>
+                        <span class="info-item">{{ t('permission') }}</span>
                         <span class="line-height-32px">{{ userData.permission_str }}</span>
                       </div>
     
                       <div class="mb-8px">
-                        <span class="info-item white-space-nowrap">Updated Date</span>
+                        <span class="info-item white-space-nowrap">{{ t('updated_date') }}</span>
                         <span class="line-height-32px white-space-nowrap">{{ userData.updated_date_str }}</span>
                       </div>
     
                       <div class="mb-8px">
-                        <span class="info-item white-space-nowrap">Created Date</span>
+                        <span class="info-item white-space-nowrap">{{ t('created_date') }}</span>
                         <span class="line-height-32px white-space-nowrap">{{ userData.created_date_str }}</span>
                       </div>
                     </div>
                     <div v-if="isLoading_skeleton === false" class="mt-0px lg:mt-16px lg:50%">
                       <div class="flex mb-8px">
-                        <span class="info-item">Binding Cards</span>
-                        <el-button round class="button" @click="binding_card_detail"> Card Detail</el-button>
+                        <span class="info-item">{{ t('binding_cards') }}</span>
+                        <el-button round class="button" @click="binding_card_detail">{{ t('card_detail') }}</el-button>
                       </div>
     
                       <div class="flex mb-8px">
-                        <span class="info-item">Device</span>
-                        <el-button round class="button" @click="device_detail"> Device Detail</el-button>
+                        <span class="info-item">{{ t('device') }}</span>
+                        <el-button round class="button" @click="device_detail">{{ t('device_detail') }}</el-button>
                       </div>
                     </div>
                   </div>
@@ -470,11 +654,11 @@ onMounted(async () => {
                   <div class="card-container card-rounded box-shadow">
                     <div class="flex">
                       <img class="icon w-24px h-24px mr-8px" src="@/assets/img/customer_time.png" alt="">
-                      <span class="line-height-24px">Real-time Info</span>
+                      <span class="line-height-24px">{{ t('real_time_info') }}</span>
                     </div>
                     <el-skeleton :rows="2" v-if="isLoading_skeleton" class="mt-16px" />
                     <div v-if="isLoading_skeleton === false" class="flex mt-16px">
-                      <sapn class="info-item">Occupied EVSE ID</sapn>
+                      <sapn class="info-item">{{ t('occupied_evse_id') }}</sapn>
                       <p v-if="userData.evse_list_id_detail === ''" class="line-height-32px">{{ userData.evse_list_id }}</p>
                       <el-tooltip v-else placement="bottom-start">
                         <template #content>
@@ -492,11 +676,11 @@ onMounted(async () => {
                         @click="clearEvseList"
                       >
                         <font-awesome-icon class="mr-8px" icon="fa-solid fa-gear" /> 
-                        Clear
+                        {{ t('clear') }}
                       </el-button>
                     </div>
                     <div v-if="isLoading_skeleton === false" class="mt-8px">
-                      <sapn class="info-item">Status</sapn>
+                      <sapn class="info-item">{{ t('status') }}</sapn>
                       <sapn class="line-height-32px">{{ }}</sapn>
                     </div>
                   </div>
@@ -506,25 +690,25 @@ onMounted(async () => {
                   <div class="card-container card-rounded box-shadow">
                     <div class="flex">
                       <font-awesome-icon class="icon w-24px h-24px mr-8px" icon="fa-solid fa-chart-line" />
-                      <span class="line-height-24px">Total Record</span>
+                      <span class="line-height-24px">{{ t('usage_summary') }}</span>
                     </div>
   
                     <el-skeleton :rows="3" v-if="isLoading_skeleton" class="mt-16px" />
                     
                     <div v-if="isLoading_skeleton === false" class="mt-16px">
-                      <sapn class="info-item">Total Used Power</sapn>
+                      <sapn class="info-item">{{ t('total_used_power') }}</sapn>
                       <sapn class="line-height-32px">{{ paymentData.charge_kwh }}</sapn>
                     </div>
                     <div v-if="isLoading_skeleton === false" class="mt-8px">
-                      <sapn class="info-item">Total Cost</sapn>
+                      <sapn class="info-item">{{ t('total_cost') }}</sapn>
                       <sapn class="line-height-32px">{{ paymentData.cost_str }}</sapn>
                     </div>
                     <div v-if="isLoading_skeleton === false" class="mt-8px">
-                      <sapn class="info-item">Total Times</sapn>
+                      <sapn class="info-item">{{ t('total_times') }}</sapn>
                       <sapn class="line-height-32px">{{ paymentData.amount_str }}</sapn>
                     </div>
                     <div v-if="isLoading_skeleton === false" class="mt-8px">
-                      <sapn class="info-item">Total Charging Time</sapn>
+                      <sapn class="info-item">{{ t('total_charging_time') }}</sapn>
                       <sapn class="line-height-32px">{{ paymentData.charge_hr + ":" + paymentData.charge_min + ":" + paymentData.charge_sec }}</sapn>
                     </div>
                   </div>
@@ -537,7 +721,7 @@ onMounted(async () => {
                 <div class="flex justify-between mb-24px min-w-250px">
                   <div class="flex">
                     <img class="icon w-24px h-24px mr-8px" src="@/assets/img/customer_rfid.png" alt="">
-                    <span class="line-height-24px">RFID</span>
+                    <span class="line-height-24px">{{ t('rfid') }}</span>
                   </div>
                   <el-button 
                     class="button h-32px w-150px" 
@@ -545,7 +729,7 @@ onMounted(async () => {
                     @click="editRfid"
                   >
                     <!-- <font-awesome-icon class="mr-8px" icon="fa-solid fa-gear" /> -->
-                    Add RFID
+                    {{ t('add_rfid') }}
                   </el-button>
                 </div>
                 <div class="flex flex-wrap">
@@ -570,8 +754,8 @@ onMounted(async () => {
                     </div>
                     <div class="rfid-card-down bg-blue-100 h-50px rounded-b-10px">
                       <p class="pl-16px pr-16px">$ {{ item.cash }}</p>
-                      <p class="enable pl-16px pr-16px" v-if="item.enable"> Enable</p>
-                      <p class="disable pl-16px pr-16px" v-else> Disable</p>
+                      <p class="enable pl-16px pr-16px" v-if="item.enable">{{ t('enable') }}</p>
+                      <p class="disable pl-16px pr-16px" v-else> {{ t('disable') }}</p>
                     </div>
                   </div>
                 </div>
@@ -579,7 +763,7 @@ onMounted(async () => {
             </div>
           </el-tab-pane>
 
-          <el-tab-pane label="Payment" name="second">
+          <el-tab-pane :label="t('payment')" name="second">
 
             <div class="flex justify-between flex-wrap lg:flex-nowrap pt-24px pb-32px">
               <div class="date-picker w-full">
@@ -599,11 +783,11 @@ onMounted(async () => {
               <div class="w-full mt-4 md:mt-8 lg:mt-0 md:flex justify-between lg:justify-end items-center">
                 <!-- <p class="total-count box-shadow"> {{ 'Total Count : ' + paymentData.length  }}</p> -->
                 <div class="checkbox-container w-full lg:w-auto flex justify-between md:justify-start">
-                  <el-checkbox class="mr-0 md:mr-30px" v-model="parking_visible" label="Parking" />
-                  <el-checkbox v-model="charging_visible" label="Charging" />
+                  <el-checkbox class="mr-0 md:mr-30px" v-model="parking_visible" :label="t('parking')" />
+                  <el-checkbox v-model="charging_visible" :label="t('charging')" />
                 </div>
                 <el-button class="download-btn w-full md:w-auto mt-4 md:mt-0 md:ml-30px box-shadow" @click="download">
-                  <span class="lg:hidden">Download</span>
+                  <span class="lg:hidden">{{ t('download') }}</span>
                   <img
                     class="w-24px h-24px ml-10px lg:ml-0"
                     src="@/assets/img/station_download.png"
@@ -628,7 +812,7 @@ onMounted(async () => {
                 >
                 <el-table-column
                     prop="location_name"
-                    label="Station"
+                    :label="t('station')"
                     sortable
                     :sort-method="(a, b) => sortFunc(a, b, 'location_name')"
                     align="center"
@@ -636,7 +820,7 @@ onMounted(async () => {
                   />
                   <el-table-column
                     prop="evse_id"
-                    label="EVSE ID"
+                    :label="t('evse_id')"
                     sortable
                     :sort-method="(a, b) => sortFunc(a, b, 'evse_id')"
                     align="center"
@@ -644,13 +828,13 @@ onMounted(async () => {
                   />
                   <el-table-column
                     v-if="parking_visible"
-                    label="Parking"
+                    :label="t('parking')"
                     align="center"
                     min-width="450"
                   >
                     <el-table-column
                       prop="parking_time_str"
-                      label="Used Time"
+                      :label="t('used_time')"
                       align="center"
                       sortable
                       :sort-method="(a, b) => sortFunc(a, b, 'parking_time_str')"
@@ -658,8 +842,9 @@ onMounted(async () => {
                     />
                     <el-table-column
                       prop="parking_price_str"
-                      label="Price"
-                      align="center"
+                      :label="t('price')"
+                      header-align="center"
+                      align="right"
                       sortable
                       :sort-method="(a, b) => sortFunc(a, b, 'parking_price_str')"
                       min-width="150"
@@ -668,22 +853,24 @@ onMounted(async () => {
 
                   <el-table-column
                     v-if="charging_visible"
-                    label="Charging"
+                    :label="t('charging')"
                     align="center"
                     min-width="450"
                   >
                     <el-table-column
                       prop="charge_kwh_str"
-                      label="kWh"
-                      align="center"
+                      :label="t('kWh')"
+                      header-align="center"
+                      align="right"
                       sortable
                       :sort-method="(a, b) => sortFunc(a, b, 'charge_kwh_str')"
                       min-width="150"
                     />
                     <el-table-column
                       prop="charge_price_str"
-                      label="Price"
-                      align="center"
+                      :label="t('price')"
+                      header-align="center"
+                      align="right"
                       sortable
                       :sort-method="(a, b) => sortFunc(a, b, 'charge_price_str')"
                       min-width="150"
@@ -692,23 +879,24 @@ onMounted(async () => {
 
                   <el-table-column
                     prop="price_str"
-                    label="Final Paid"
+                    :label="t('final_paid')"
                     sortable
                     :sort-method="(a, b) => sortFunc(a, b, 'price_str')"
-                    align="center"
+                    header-align="center"
+                    align="right"
                     min-width="150"
                   />
                   <el-table-column
                     prop="paymethod.method"
-                    label="Payment Method"
-                    sortable
-                    :sort-method="(a, b) => sortFunc(a, b, 'paymethod.method')"
+                    :label="t('payment_method')"
+                    :filters="filters"
+                    :filter-method="filterTag"
                     align="center"
                     min-width="200"
                   />
                   <el-table-column
                     prop="currency"
-                    label="Currency"
+                    :label="t('currency')"
                     sortable
                     :sort-method="(a, b) => sortFunc(a, b, 'currency')"
                     align="center"
@@ -716,7 +904,7 @@ onMounted(async () => {
                   />
                   <el-table-column
                     prop="created_date_str"
-                    label="Created Time"
+                    :label="t('created_time')"
                     sortable
                     :sort-method="(a, b) => sortFunc(a, b, 'created_date_str')"
                     align="center"
@@ -743,39 +931,39 @@ onMounted(async () => {
               :class="titleClass"
               class="m-0 text-center text-blue-1200 font-400 text-24px line-height-26px"
             >
-              Edit Customer
+              {{ t('edit_user') }}
             </h4>
           </div>
         </template>
         <div class="dialog-context">
-          <el-form class="max-w-500px m-auto">
-            <el-form-item label="First Name">
+          <el-form class="max-w-500px m-auto" :rules="userData_rules" ref="userData_ref" :model="userDataMod" :scroll-to-error=true>
+            <el-form-item :label="t('first_name')" prop="first_name">
               <el-input v-model="userDataMod.first_name" />
             </el-form-item>
-            <el-form-item label="Last Name">
+            <el-form-item :label="t('last_name')" prop="last_name">
               <el-input v-model="userDataMod.last_name" />
             </el-form-item>
-            <el-form-item label="E-mail">
+            <el-form-item :label="t('e_mail')" prop="email">
               <el-input v-model="userDataMod.email" disabled/>
             </el-form-item>
-            <el-form-item label="Phone">
+            <el-form-item :label="t('phone')">
               <el-input v-model="userDataMod.phone" />
             </el-form-item>
-            <el-form-item label="Permission">
+            <el-form-item :label="t('permission')">
               <el-select class="el-select" v-model="userDataMod.permission_str" placeholder="Select" size="large">
                 <el-option v-for="item in user_type" :key="item.value" :label="item.name" :value="item.name" />
               </el-select>
             </el-form-item>
-            <el-form-item label="Active">
+            <el-form-item :label="t('active')">
               <el-switch v-model="userDataMod.permission_active_str" />
             </el-form-item>
           </el-form>
         </div>
         <template #footer>
           <span class="dialog-footer flex flex-center">
-            <el-button round class="w-48% bg-btn-100 text-white max-w-140px" @click="editUserDialog('delete')">Delete</el-button>
-            <el-button round class="w-48% bg-btn-100 text-white max-w-140px" @click="editUserDialog('cancel')">Cancel</el-button>
-            <el-button round class="w-48% bg-btn-200 text-white max-w-140px" @click="editUserDialog('confirm')">Confirm</el-button>
+            <el-button round class="w-48% bg-btn-100 text-white max-w-140px" @click="editUserDialog('delete')">{{ t('delete') }}</el-button>
+            <el-button round class="w-48% bg-btn-100 text-white max-w-140px" @click="editUserDialog('cancel')">{{ t('cancel') }}</el-button>
+            <el-button round class="w-48% bg-btn-200 text-white max-w-140px" @click="editUserDialog('confirm')">{{ t('confirm') }}</el-button>
           </span>
         </template>
       </el-dialog>
@@ -798,25 +986,25 @@ onMounted(async () => {
           </div>
         </template>
         <div class="dialog-context">
-          <el-form class="max-w-500px m-auto">
-            <el-form-item label="Number">
+          <el-form class="max-w-500px m-auto" :rules="rfidData_rules" ref="rfidData_ref" :model="rfidData" :scroll-to-error=true>
+            <el-form-item :label="t('number')" prop="rfid">
               <el-input v-model="rfidData.rfid" />
             </el-form-item>
-            <el-form-item label="Cash">
+            <el-form-item :label="t('cash')" prop="cash">
               <el-input v-model="rfidData.cash" />
             </el-form-item>
-            <el-form-item label="Name">
+            <el-form-item :label="t('name')" prop="nickname">
               <el-input v-model="rfidData.nickname" />
             </el-form-item>
-            <el-form-item label="Enable">
+            <el-form-item :label="t('enable')" prop="enable">
               <el-switch v-model="rfidData.enable" />
             </el-form-item>
           </el-form>
         </div>
         <template #footer>
           <span class="dialog-footer flex flex-center">
-            <el-button round class="w-48% bg-btn-100 text-white max-w-140px" @click="confirmRfid('cancel', undefined)">Cancel</el-button>
-            <el-button round class="w-48% bg-btn-200 text-white max-w-140px" @click="confirmRfid('confirm', undefined)"> Confirm</el-button>
+            <el-button round class="w-48% bg-btn-100 text-white max-w-140px" @click="confirmRfid('cancel', undefined)">{{ t('cancel') }}</el-button>
+            <el-button round class="w-48% bg-btn-200 text-white max-w-140px" @click="confirmRfid('confirm', undefined)">{{ t('confirm') }}</el-button>
           </span>
         </template>
       </el-dialog>
@@ -834,17 +1022,17 @@ onMounted(async () => {
               :class="titleClass"
               class="m-0 text-center text-blue-1200 font-400 text-24px line-height-26px"
             >
-              Binding Card
+            {{ t('binding_card') }}
             </h4>
           </div>
         </template>
 
         <div class="dialog-context pb-24px">
           <el-table :data="userData.paylistArrObj">
-            <el-table-column property="card_num" label="Card Num " width="180" />
+            <el-table-column property="card_num" :label="t('card_num')" width="180" />
             <!-- <el-table-column property="card4No" label="Card 4" width="200" /> -->
-            <el-table-column property="expireDate" label="Expire Date(YYMM)" width="200" />
-            <el-table-column property="bindingDate" label="Binding Date" width="240" />
+            <el-table-column property="expireDate" :label="t('expire_date_YY_MM')" width="200" />
+            <el-table-column property="bindingDate" :label="t('binding_date')" width="240" />
           </el-table>
         </div>
 
@@ -863,16 +1051,16 @@ onMounted(async () => {
               :class="titleClass"
               class="m-0 text-center text-blue-1200 font-400 text-24px line-height-26px"
             >
-              Device
+              {{ t('device') }}
             </h4>
           </div>
         </template>
         <div class="dialog-context pb-24px">
           <el-table :data="userData.deviceId_list">
-            <el-table-column property="device_name" label="Name" min-width="250"  />
-            <el-table-column property="device_platform" label="Platform" width="100" />
-            <el-table-column property="device_os_version" label="OS Version" width="120" />
-            <el-table-column property="app_version" label="App Version" width="140" />
+            <el-table-column property="device_name" :label="t('name')" min-width="250"  />
+            <el-table-column property="device_platform" :label="t('platform')" width="100" />
+            <el-table-column property="device_os_version" :label="t('os_version')" width="120" />
+            <el-table-column property="app_version" :label="t('app_version')" width="140" />
           </el-table>
         </div>
       </el-dialog>
@@ -946,7 +1134,7 @@ onMounted(async () => {
     color: var(--blue-1100);
   }
   .button {
-    width: 15rem;
+    width: 18rem;
     padding: 0.8rem 2rem;
     font-size: 1.8rem;
     color: var(--secondary);
@@ -1011,7 +1199,7 @@ onMounted(async () => {
 }
 
 :deep(.el-form-item__label) {
-  width: 100px;
+  width: 102px;
   display: block;
   font-size: 1.6rem;
 }

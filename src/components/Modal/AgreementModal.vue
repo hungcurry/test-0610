@@ -1,8 +1,12 @@
 <script setup>
+import ApiFunc from '@/composables/ApiFunc'
 import { Close } from '@element-plus/icons-vue'
 import { ref, watchEffect } from 'vue'
+import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
+import VueCookies from 'vue-cookies'
+const { t } = useI18n()
 const modalVisible = ref(false)
-const language = navigator.language
 const props = defineProps({
   modal: {
     type: Boolean,
@@ -10,22 +14,32 @@ const props = defineProps({
   },
 })
 const emit = defineEmits(['closeModal'])
-const closeModal = (state) => {
-  emit('closeModal', state, 'agreementModal')
-}
+const language = navigator.language
+const MsiApi = ApiFunc()
+const router = useRouter()
+const checkState = ref(false)
 
+const closeModal = (state) => {
+  if (state === false)
+    VueCookies.remove('AuthToken')
+  emit('closeModal', state)
+}
 watchEffect(() => {
   modalVisible.value = props.modal
 })
+const aggre_eula = async () => {
+  await MsiApi.member_modify({ config: { m_cloud: { logged: true } } })
+  router.push({ name: 'dashboard' })
+}
+
 </script>
 
 <template>
   <div @click.stop="closeModal(false)">
     <el-dialog
       v-model="modalVisible"
-      @click.stop="closeModal(true)"
-      class="max-w-600px"
-      :show-close="false"
+
+      class="max-w-992px h-90% flex-col"
       width="90%"
       destroy-on-close
       center
@@ -37,33 +51,52 @@ watchEffect(() => {
             :class="titleClass"
             class="m-0 text-center text-blue-1200 font-400 text-24px line-height-26px"
           >
-            User Agreement
+            {{t('user_agreement')}}
           </h4>
-          <el-icon class="text-gray-4" @click.stop="closeModal(false)"><Close /></el-icon>
+          <el-icon class="text-Offline el-dialog__close" @click.stop="closeModal(false)"><Close /></el-icon>
         </div>
       </template>
-      <div class="dialog-context scrollbar">
-        <div v-if="language === 'zh-TW'">
-          <iframe src="https://storage.googleapis.com/msi-common/file/m_cloud_eula_zh.htm" frameborder="0"></iframe>
-        </div> 
-        <div v-else>
-          <iframe src="https://storage.googleapis.com/msi-common/file/m_cloud_eula_en.htm" frameborder="0"></iframe>
+      <div class="h-full scrollbar">
+        <div class="h-full" v-if="language === 'zh-TW'">
+          <iframe
+            class="w-full h-full"
+            src="https://storage.googleapis.com/msi-common/file/EULA/MSI_m-Cloud_EULA_zh.htm"
+            frameborder="0"
+          ></iframe>
+        </div>
+        <div class="h-full" v-else>
+          <iframe
+            class="w-full h-full"
+            src="https://storage.googleapis.com/msi-common/file/EULA/MSI_m-Cloud_EULA_en.htm"
+            frameborder="0"
+          ></iframe>
         </div>
       </div>
       <template #footer>
+        <el-checkbox
+          class="w-full text-left pl-4px mb-10px lg:mb-0 md:w-auto md:absolute md:left-15% md:top-30%"
+          v-model="checkState"
+          true-value="yes"
+          false-value="no"
+          size="large"
+          > {{ t('agree') }}
+        </el-checkbox>
         <span class="dialog-footer flex flex-center">
           <el-button
             round
             class="w-48% bg-btn-100 text-white max-w-140px"
             @click.stop="closeModal(false)"
-            >Cancel</el-button
+            >
+            {{ t('cancel') }}
+            </el-button
           >
           <el-button
             round
             class="w-48% bg-btn-200 text-white max-w-140px"
-            @click.stop="closeModal(false)"
+            @click="aggre_eula"
+            :disabled="!checkState"
           >
-            Agree
+            {{ t('agree') }}
           </el-button>
         </span>
       </template>
@@ -84,5 +117,8 @@ watchEffect(() => {
     background-color: var(--gray-300);
     border-radius: 2rem;
   }
+}
+:deep(.el-overlay-dialog .el-dialog__body) {
+  flex-grow: 1;
 }
 </style>
