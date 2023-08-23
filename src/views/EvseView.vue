@@ -7,6 +7,8 @@ import { ref, reactive, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { useMStore } from '../stores/m_cloud'
+import { useI18n } from 'vue-i18n'
+const { t } = useI18n()
 
 const MStore = useMStore()
 const router = useRouter()
@@ -18,17 +20,17 @@ const activeName = ref('1')
 const route = useRoute()
 const update_file = ref('')
 const MsiApi = ApiFunc()
-const edit_button_str = ref('Update or Restart')
+const edit_button_str = ref( t('update_or_restart'))
 const editMode = ref(false)
 const isLoading = ref(false)
 const EvseData = reactive([])
 const EvseConnectData = reactive([])
 const EvseUnConnectData = reactive([])
 const status_filter_item = [
-  { text: 'AVAILABLE', value: 'AVAILABLE' },
-  { text: 'CHARGING', value: 'CHARGING' },
-  { text: 'UNKNOWN', value: 'UNKNOWN' },
-  { text: 'ERROR', value: 'ERROR' },
+  { text: t('available'), value: 'AVAILABLE' },
+  { text: t('charging'), value: 'CHARGING' },
+  { text: t('offline'), value: 'UNKNOWN' },
+  { text: t('error'), value: 'ERROR' },
 ]
 
 const updateSW = async () => {
@@ -60,7 +62,8 @@ const updateConfirm = async () => {
     location: update_file.value,
     retrieveDate: '2022-10-27 12:12:12',
   }
-  if (update_file.value === '') ElMessage.error('File not found')
+  if (update_file.value === '') 
+    ElMessage.error(t('file_not_found'))
   const response = await MsiApi.updateFw(sendData)
   if (response.status === 200) {
     sw_version_visable.value = false
@@ -80,15 +83,18 @@ const evseReset = (type) => {
     return
   }
 
-  if (confirm(' 我要 ' + type + ' Reset 了 ') === true) {
+  let reset_message = t('do_you_want_to_soft_reset')
+  if (type === 'hard')  
+    reset_message = t('do_you_want_to_hard_reset')
+
+  if (confirm(reset_message) === true) {
     const json = JSON.stringify({ evse_id: updataEvseId, reset_type: type })
     MsiApi.reset_evse(json)
       .then(() => {
-        alert(type + ' Reset success ')
+        alert(t('reset_success'))
       })
-      .catch((error) => {
-        alert(type + ' Reset fail ')
-        console.log(error)
+      .catch(() => {
+        alert(t('reset_fail'))
       })
   }
 }
@@ -113,10 +119,10 @@ const add_charger = () => {
 const edit = () => {
   if (editMode.value === false) {
     editMode.value = true
-    edit_button_str.value = 'Cancel'
+    edit_button_str.value = t('cancel')
   } else {
     editMode.value = false
-    edit_button_str.value = 'Update or Restart'
+    edit_button_str.value = t('update_or_restart')
   }
 }
 const sortFunc = (obj1, obj2, column) => {
@@ -160,12 +166,26 @@ onMounted(async () => {
   response = await MsiApi.mongoAggregate(queryData)
   EvseData.length = 0
   Object.assign(EvseData, response.data.result)
-  for (let i = 0; i < EvseData.length; i++) {
-    let localEndTime = new Date(
-      new Date(EvseData[i].last_updated).getTime() + MStore.timeZoneOffset * -60000
-    )
-    EvseData[i].last_updated_str = moment(localEndTime).format('YYYY-MM-DD HH:mm:ss')
-  }
+  EvseData.forEach((item)=> {
+    let localEndTime = new Date( new Date(item.last_updated).getTime() + MStore.timeZoneOffset * -60000)
+    item.last_updated_str = moment(localEndTime).format('YYYY-MM-DD HH:mm:ss')
+    switch (item.status) {
+      case 'AVAILABLE':
+        item.status_str = t('available')
+      break
+      case 'CHARGING':
+        item.status_str = t('charging')
+      break
+      case 'UNKNOWN':
+        item.status_str = t('offline')
+      break
+      case 'OUTOFORDER':
+        item.status_str = t('error')
+      break
+      default:
+        item.status_str = t('others')
+    }
+  })
 
   for (let i = 0; i < EvseData.length; i++) {
     for (let j = 0; j < locationData.length; j++) {
@@ -224,28 +244,28 @@ onMounted(async () => {
             class="btn-secondary shrink-0 update-button px-30px box-shadow"
             @click="updateSW"
           >
-            Update SW
+          {{ t('update_sw') }}
           </el-button>
           <el-button
             v-if="editMode === true"
             class="btn-secondary shrink-0 soft-reset-button px-30px box-shadow"
             @click="evseReset('soft')"
           >
-            Soft Reset
+          {{ t('soft_reset') }}
           </el-button>
           <el-button
             v-if="editMode === true"
             class="btn-secondary shrink-0 hard-reset-button px-30px box-shadow"
             @click="evseReset('hard')"
           >
-            Hard Reset
+          {{ t('hard_reset') }}
           </el-button>
           <el-button
             class="btn-secondary shrink-0 add-charger px-30px box-shadow"
             @click="add_charger"
             v-if="editMode === false"
           >
-            Add EVSE</el-button
+          {{ t('add_evse') }}</el-button
           >
           <el-button class="btn-secondary shrink-0 edit px-30px box-shadow" @click="edit">
             {{ edit_button_str }}</el-button
@@ -255,7 +275,7 @@ onMounted(async () => {
 
       <div class="tabs">
         <el-tabs v-model="activeName">
-          <el-tab-pane label="Paired" name="1">
+          <el-tab-pane :label="t('paired')" name="1">
             <el-table
               class="evse-table"
               :data="EvseConnectData"
@@ -269,7 +289,7 @@ onMounted(async () => {
             >
               <el-table-column
                 prop="locationName"
-                label="Station"
+                :label="t('station')"
                 align="center"
                 sortable
                 :sort-method="(a, b) => sortFunc(a, b, 'locationName')"
@@ -277,7 +297,7 @@ onMounted(async () => {
               />
               <el-table-column
                 prop="floor_level"
-                label="Floor Level"
+                :label="t('floor_level')"
                 align="center"
                 sortable
                 :sort-method="(a, b) => sortFunc(a, b, 'floor_level')"
@@ -285,7 +305,7 @@ onMounted(async () => {
               />
               <el-table-column
                 prop="evse_id"
-                label="EVSE ID"
+                :label="t('evse_id')"
                 align="center"
                 sortable
                 :sort-method="(a, b) => sortFunc(a, b, 'evse_id')"
@@ -293,7 +313,7 @@ onMounted(async () => {
               />
               <el-table-column
                 prop="status"
-                label="Status"
+                :label="t('status')"
                 align="center"
                 min-width="150"
                 :filters="status_filter_item"
@@ -304,32 +324,32 @@ onMounted(async () => {
                     class="available text-center"
                     v-if="scope.row.status === 'AVAILABLE'"
                   >
-                    {{ '●' + scope.row.status }}
+                    {{ '●' + scope.row.status_str }}
                   </p>
                   <p
                     class="charging text-center"
                     v-else-if="scope.row.status === 'CHARGING'"
                   >
-                    {{ '●' + scope.row.status }}
+                    {{ '●' + scope.row.status_str }}
                   </p>
                   <p
                     class="offline text-center"
                     v-else-if="scope.row.status === 'UNKNOWN'"
                   >
-                    {{ '●' + scope.row.status }}
+                    {{ '●' + scope.row.status_str }}
                   </p>
                   <p
                     class="error text-center"
                     v-else-if="scope.row.status === 'OUTOFORDER'"
                   >
-                    {{ '●' + scope.row.status }}
+                    {{ '●' + scope.row.status_str }}
                   </p>
                 </template>
               </el-table-column>
 
               <el-table-column
                 prop="hmi_version"
-                label="SW Ver."
+                :label="t('sw_ver')"
                 align="center"
                 sortable
                 :sort-method="(a, b) => sortFunc(a, b, 'hmi_version')"
@@ -337,7 +357,7 @@ onMounted(async () => {
               />
               <el-table-column
                 prop="latest SW"
-                label="Latest SW"
+                :label="t('latest_sw')"
                 align="center"
                 min-width="150"
               >
@@ -350,7 +370,7 @@ onMounted(async () => {
 
               <el-table-column
                 prop="last_updated_str"
-                label="Updated Time"
+                :label="t('updated_time')"
                 align="center"
                 sortable
                 :sort-method="(a, b) => sortFunc(a, b, 'last_updated_str')"
@@ -374,7 +394,7 @@ onMounted(async () => {
               <el-table-column v-else type="selection" align="center" min-width="150" />
             </el-table>
           </el-tab-pane>
-          <el-tab-pane label="Unpaired" name="2">
+          <el-tab-pane :label="t('unpaired')" name="2">
             <el-table
               class="evse-table"
               :data="EvseUnConnectData"
@@ -388,7 +408,7 @@ onMounted(async () => {
             >
               <el-table-column
                 prop="locationName"
-                label="Station"
+                :label="t('station')"
                 align="center"
                 sortable
                 :sort-method="(a, b) => sortFunc(a, b, 'locationName')"
@@ -396,7 +416,7 @@ onMounted(async () => {
               />
               <el-table-column
                 prop="floor_level"
-                label="Floor Level"
+                :label="t('floor_level')"
                 align="center"
                 sortable
                 :sort-method="(a, b) => sortFunc(a, b, 'floor_level')"
@@ -404,7 +424,7 @@ onMounted(async () => {
               />
               <el-table-column
                 prop="evse_id"
-                label="EVSE ID"
+                :label="t('evse_id')"
                 align="center"
                 sortable
                 :sort-method="(a, b) => sortFunc(a, b, 'evse_id')"
@@ -412,7 +432,7 @@ onMounted(async () => {
               />
               <el-table-column
                 prop="status"
-                label="Status"
+                :label="t('status')"
                 align="center"
                 min-width="150"
                 :filters="status_filter_item"
@@ -423,37 +443,37 @@ onMounted(async () => {
                     class="available text-center"
                     v-if="scope.row.status === 'AVAILABLE'"
                   >
-                    {{ '●' + scope.row.status }}
+                    {{ '●' + scope.row.status_str }}
                   </p>
                   <p
                     class="charging text-center"
                     v-else-if="scope.row.status === 'CHARGING'"
                   >
-                    {{ '●' + scope.row.status }}
+                    {{ '●' + scope.row.status_str }}
                   </p>
                   <p
                     class="offline text-center"
                     v-else-if="scope.row.status === 'UNKNOWN'"
                   >
-                    {{ '●' + scope.row.status }}
+                    {{ '●' + scope.row.status_str }}
                   </p>
                   <p
                     class="error text-center"
                     v-else-if="scope.row.status === 'OUTOFORDER'"
                   >
-                    {{ '●' + scope.row.status }}
+                    {{ '●' + scope.row.status_str }}
                   </p>
                 </template>
               </el-table-column>
               <el-table-column
                 prop="hmi_version"
-                label="SW Ver."
+                :label="t('sw_ver')"
                 sortable
                 align="center"
                 :sort-method="(a, b) => sortFunc(a, b, 'hmi_version')"
                 min-width="150"
               />
-              <el-table-column prop="" label="Latest SW" align="center" min-width="150">
+              <el-table-column prop="" :label="t('latest_sw')" align="center" min-width="150">
                 <template #default="scope">
                   <p v-if="scope.row.hmi_version === swVersion">{{ 'V' }}</p>
                 </template>
@@ -461,7 +481,7 @@ onMounted(async () => {
 
               <el-table-column
                 prop="last_updated_str"
-                label="Updated Time"
+                :label="t('updated_time')"
                 align="center"
                 sortable
                 :sort-method="(a, b) => sortFunc(a, b, 'last_updated_str')"
@@ -494,12 +514,12 @@ onMounted(async () => {
               :class="titleClass"
               class="m-0 text-center text-blue-1200 font-400 text-24px line-height-26px"
             >
-              Update SW
+            {{ t('update_sw') }}
             </h4>
           </div>
         </template>
         <div class="dialog-context">
-          <p class="text-center">Now Version {{ swVersion }}</p>
+          <p class="text-center">{{ t('now_version') + swVersion }}</p>
         </div>
         <template #footer>
           <span class="dialog-footer flex flex-center">
@@ -507,13 +527,17 @@ onMounted(async () => {
               round
               class="w-48% bg-btn-100 text-white max-w-140px"
               @click="sw_version_visable = false"
-              >Cancel</el-button
+              >
+              {{ t('cancel') }}
+              </el-button
             >
             <el-button
               round
               class="w-48% bg-btn-200 text-white max-w-140px"
               @click="updateConfirm()"
-              >Confirm</el-button
+              >
+              {{t('confirm')}}
+              </el-button
             >
           </span>
         </template>

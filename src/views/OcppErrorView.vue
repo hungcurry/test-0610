@@ -179,14 +179,14 @@ onMounted(async() => {
               :label="t('error_code')"
               align="center"
               sortable="custom"
-              min-width="200"
+              min-width="160"
             />
             <el-table-column
               prop="vendorErrorCode"
               :label="t('system_error_code')"
               align="center"
               sortable="custom"
-              min-width="220"
+              min-width="300"
             >
               <template #header>
                 <div class="vendorErrorCode-container">
@@ -203,7 +203,7 @@ onMounted(async() => {
               :label="t('fw_error_info')"
               align="center"
               sortable="custom"
-              min-width="200"
+              min-width="120"
             />
             
             <el-table-column
@@ -211,7 +211,7 @@ onMounted(async() => {
               :label="t('created_time')"
               align="center"
               sortable="custom"
-              min-width="200"
+              min-width="180"
             />
           </el-table>
           <el-pagination 

@@ -6,6 +6,8 @@ import { ElMessageBox, ElMessage } from 'element-plus'
 import { v4 as uuidv4 } from 'uuid'
 import CommpnFunc from '@/composables/CommonFunc'
 import msi from '@/assets/msi_style'
+import { useI18n } from 'vue-i18n'
+const { t } = useI18n()
 const MsiFunc = CommpnFunc()
 const route = useRoute()
 const MsiApi = ApiFunc()
@@ -14,13 +16,14 @@ const select_profile = ref('')
 const station_id = route.query.station_id
 const evse_id = route.query.evse_id
 const stationName = ref('')
-
+const ruleFormRef  = ref()
 let station_evses = []
-const evse_edit_title = ref('Add EVSE')
+const evse_edit_title = ref(t('add_evse'))
 
 const connector_obj = reactive({
   class: 'Connector',
   standard: '-',
+  standard_str: '-',
   format: '-',
   power_type: '-',
   max_voltage: '0',
@@ -35,46 +38,50 @@ const evse_obj = reactive({
   connectors: [],
 })
 const router = useRouter()
-const selectTariffObj = {}
+const selectTariffObj = reactive({})
 
 const max_amperage = ref(0)
+
+const rules = reactive({
+  evse_id: [{ required: true, message: t('this_item_is_required'), trigger: 'blur' },],
+  floor_level: [{ required: true, message: t('this_item_is_required'), trigger: 'blur' },
+                 { min: 1, max: 4, message: t('length_should_be_1_to_4'), trigger: 'blur' },],
+  rate_profile: [{ required: true, message: t('this_item_is_required'), trigger: 'blur' },],
+})
 
 const selectTariff = (select_id) => {
   selectTariffObj.length = 0
   for (let i = 0; i < tariff_profile.length; i++) {
-    if (select_id === tariff_profile[i].id)
+    if (select_id === tariff_profile[i].id) {
       Object.assign(selectTariffObj, tariff_profile[i])
+    }
   }
 }
 
 const CancelEvseEdit = () => {
   router.back(-1)
 }
-const SaveEvseEdit = async () => {
-  let check_format_success = true
+const SaveEvseEdit = async (formEl) => {  
+  if (!formEl) return
+  let check_format_success = false
+  await formEl.validate((valid) => {
+    if (valid === true) 
+      check_format_success = true
+  })
+  if (check_format_success === false) {
+    return 
+  }
 
   if (evse_id === undefined) {
     if (select_profile.value !== '') connector_obj.tariff_ids.push(select_profile.value)
     connector_obj.id = uuidv4()
     MsiFunc.deleteEmptyKeys(connector_obj)
     MsiFunc.deleteEmptyKeys(evse_obj)
-    if (evse_obj.evse_id === undefined) {
-      check_format_success = false
-      ElMessage.error('Oops, EVSE ID required.')
-    }
-    if (connector_obj.tariff_ids[0] === undefined) {
-      check_format_success = false
-      ElMessage.error('Oops, Rate Profile required.')
-    }
-    if (evse_obj.floor_level.length > 4) {
-      check_format_success = false
-      ElMessage.error('Oops, Floor Level characters exceeds the maximum length of 4.')
-    }
 
     if (check_format_success === true) {
-      ElMessageBox.confirm('Do you want to create?', 'Warning', {
-        confirmButtonText: 'OK',
-        cancelButtonText: 'Cancel',
+      ElMessageBox.confirm( t('do_you_want_to_create'), t('warning'), {
+        confirmButtonText: t('ok'),
+        cancelButtonText: t('cancel'),
         type: 'warning',
       })
         .then(async () => {
@@ -115,23 +122,10 @@ const SaveEvseEdit = async () => {
   } else {
     connector_obj.tariff_ids[0] = select_profile.value
     evse_obj.id = evse_obj.uid
-
-    if (evse_obj.evse_id === undefined) {
-      check_format_success = false
-      ElMessage.error('Oops, EVSE ID required.')
-    }
-    if (connector_obj.tariff_ids[0] === undefined) {
-      check_format_success = false
-      ElMessage.error('Oops, Rate Profile required.')
-    }
-    if (evse_obj.floor_level.length > 4) {
-      check_format_success = false
-      ElMessage.error('Oops, Floor Level characters exceeds the maximum length of 4.')
-    }
     if (check_format_success === true) {
-      ElMessageBox.confirm('Do you want to modify?', 'Warning', {
-        confirmButtonText: 'OK',
-        cancelButtonText: 'Cancel',
+      ElMessageBox.confirm( t('do_you_want_to_modify'), 'Warning', {
+        confirmButtonText: t('ok'),
+        cancelButtonText: t('cancel'),
         type: 'warning',
       })
         .then(async () => {
@@ -155,20 +149,58 @@ onMounted(async () => {
   queryData = { database: 'OCPI', collection: 'Tariff', query: {} }
   response = await MsiApi.mongoQuery(queryData)
   Object.assign(tariff_profile, response.data.all)
-  for (let i = 0; i < tariff_profile.length; i++) {
-    for (let j = 0; j < tariff_profile[i].elements.length; j++) {
-      if (tariff_profile[i].elements[j].price_components[0].type !== 'ENERGY') {
-        tariff_profile[i].elements[j].price_components[0].step_size_str =
-          tariff_profile[i].elements[j].price_components[0].step_size / 60
-      } else {
-        tariff_profile[i].elements[j].price_components[0].step_size_str =
-          tariff_profile[i].elements[j].price_components[0].step_size
+
+  tariff_profile.forEach((item)=>{
+    item.elements.forEach((emement)=>{
+      let day_of_week_str = []
+      for (const day of emement.restrictions.day_of_week) {
+        switch (day) {
+          case 'MONDAY':
+            day_of_week_str.push(t('mon'))
+          break
+          case 'TUESDAY':
+            day_of_week_str.push(t('tue'))
+          break
+          case 'WEDNESDAY':
+            day_of_week_str.push(t('wed'))
+          break
+          case 'THURSDAY':
+            day_of_week_str.push(t('thu'))
+          break
+          case 'FRIDAY':
+            day_of_week_str.push(t('fri'))
+          break
+          case 'SATURDAY':
+            day_of_week_str.push(t('sat'))
+          break
+          case 'SUNDAY':
+            day_of_week_str.push(t('sun'))
+          break
+        }
       }
-    }
-    // tariff_profile[i].
-  }
+      emement.restrictions.day_of_week_str = day_of_week_str
+      switch (emement.price_components[0].type) {
+        case 'ENERGY' :
+          emement.price_components[0].type_str = t('charging_by_energy')
+          emement.price_components[0].step_size_str = emement.price_components[0].step_size
+          break
+        case 'TIME' :
+          emement.price_components[0].type_str = t('charging_by_time')
+          emement.price_components[0].step_size_str = emement.price_components[0].step_size / 60
+          break
+        case 'PARKING_TIME' :
+          emement.price_components[0].type_str = t('parking_by_time')
+          emement.price_components[0].step_size_str = emement.price_components[0].step_size / 60
+          break
+        default:
+          emement.price_components[0].type_str = emement.price_components[0].type
+      }
+    })
+    item.name = item?.custom?.name
+    item.description = item?.custom?.description
+  })
   if (evse_id !== undefined) {
-    evse_edit_title.value = 'Edit EVSE'
+    evse_edit_title.value = t('edit_evse')
 
     queryData = {
       database: 'OCPI',
@@ -188,6 +220,18 @@ onMounted(async () => {
     }
     response = await MsiApi.mongoQuery(queryData)
     Object.assign(connector_obj, response.data.all[0])
+
+    switch (connector_obj.standard) {
+      case 'IEC_62196_T1':
+        connector_obj.standard_str = 'Type 1 (J1772)'
+      break
+      case 'IEC_62196_T2':
+        connector_obj.standard_str = 'Type 2 (Mennekes)'
+      break
+      default:
+        connector_obj.standard_str = t('others')
+    }
+
     select_profile.value = connector_obj.tariff_ids[0]
 
     for (let i = 0; i < tariff_profile.length; i++) {
@@ -237,7 +281,7 @@ onMounted(async () => {
       <div class="flex justify-between flex-wrap lg:flex-nowrap pt-40px pb-32px">
         <p class="text-30px">{{ evse_edit_title }}</p>
       </div>
-
+      <el-form class="w-full min-w-190px" :rules="rules" :model="evse_obj" ref="ruleFormRef">
       <div class="evse-edit-main flex-grow mb-44px">
         <el-row class="h-full" :gutter="30">
           <el-col class="mb-24px lg:mb-0" :xs="24" :md="6">
@@ -249,36 +293,20 @@ onMounted(async () => {
                     src="@/assets/img/charger_evse.png"
                     alt=""
                   />
-                  <h4 class="m-0 ml-8px text-20px text-black-100">Station</h4>
+                  <h4 class="m-0 ml-8px text-20px text-black-100">{{ t('station') }}</h4>
                 </div>
                 <div class="context rounded-lg bg-gray-100 p-20px">
-                  <label class="block mb-4px" for="EVSE-Name">Name</label>
-                  <el-input
-                    class="mb-16px"
-                    id="EVSE-Name"
-                    v-model="stationName"
-                    disabled
-                  ></el-input>
 
-                  <label class="block mb-4px" for="EVSE-ID">EVSE ID</label>
-                  <el-input
-                    class="mb-16px"
-                    id="EVSE-ID"
-                    v-model="evse_obj.evse_id"
-                  ></el-input>
+                    <el-form-item class="block mb-4px" :label= "t('name')" prop="name">
+                      <el-input v-model.trim="stationName" disabled />
+                    </el-form-item>
+                    <el-form-item class="block mb-4px" :label= "t('evse_id')" prop="evse_id">
+                      <el-input v-model.trim="evse_obj.evse_id" />
+                    </el-form-item>
+                    <el-form-item class="block mb-4px" :label= "t('floor_level')" prop="floor_level">
+                      <el-input v-model.trim="evse_obj.floor_level" />
+                    </el-form-item>
 
-                  <label class="block mb-4px" for="Floor-Level">Floor Level</label>
-                  <el-input
-                    class="mb-0px"
-                    id="Floor-Level"
-                    v-model="evse_obj.floor_level"
-                  ></el-input>
-
-                  <!-- <label class="block mb-4px" for="Charger-Label">Charger Label</label>
-                  <el-input class="mb-16px" id="Charger-Label" v-model="evse_obj.physical_reference"></el-input>
-
-                  <label class="block mb-4px" for="Note">Note</label>
-                  <el-input id="Note" v-model="evse_obj.directions" disabled></el-input> -->
                 </div>
               </div>
               <div class="evse-edit-left-down w-full">
@@ -288,12 +316,12 @@ onMounted(async () => {
                     src="@/assets/img/charger_edit_connector.png"
                     alt=""
                   />
-                  <h4 class="m-0 ml-8px text-20px text-black-100">Connector Info</h4>
+                  <h4 class="m-0 ml-8px text-20px text-black-100">{{ t('connector_info') }}</h4>
                 </div>
                 <div class="context rounded-lg bg-gray-100 p-20px">
                   <div class="info-item">
-                    <p class="info-title w-50%">Type</p>
-                    <p class="info-value w-50% ml-24px">{{ connector_obj.standard }}</p>
+                    <p class="info-title w-50%">{{ t('type') }}</p>
+                    <p class="info-value w-50% ml-24px">{{ connector_obj.standard_str }}</p>
                   </div>
                   <!-- <div class="info-item">
                     <p class="info-title w-50%">Connector ID</p>
@@ -308,18 +336,17 @@ onMounted(async () => {
                     <p class="info-value w-50% ml-24px"> {{ connector_obj.power_type }}</p>
                   </div>   -->
                   <div class="info-item">
-                    <p class="info-title w-50%">Max Voltage</p>
+                    <p class="info-title w-50%">{{ t('max_voltage') }}</p>
                     <p class="info-value w-50% ml-24px">
                       {{ connector_obj.max_voltage + 'V' }}
                     </p>
                   </div>
                   <div class="info-item">
-                    <p class="info-title w-50%">Max Amperage</p>
+                    <p class="info-title w-50%">{{ t('max_current') }}</p>
                     <p class="info-value w-50% ml-24px">{{ max_amperage + 'A' }}</p>
                   </div>
                   <div class="info-item items-center">
-                    <p class="info-title w-50%">Output Current</p>
-                    <!-- <p class="connector-value"> {{ connector_obj.max_amperage + 'A' }}</p> -->
+                    <p class="info-title w-50%">{{ t('output_current') }}</p>
                     <el-input
                       class="w-45% ml-24px"
                       v-model="connector_obj.max_amperage"
@@ -328,7 +355,7 @@ onMounted(async () => {
                   </div>
 
                   <div class="info-item">
-                    <p class="info-title w-50%">Max Electric Power</p>
+                    <p class="info-title w-50%">{{ t('max_electric_power') }}</p>
                     <p class="info-value w-50% ml-24px">
                       {{ connector_obj.max_electric_power / 1000 + ' kW' }}
                     </p>
@@ -345,27 +372,31 @@ onMounted(async () => {
                   src="@/assets/img/charger_tariff.png"
                   alt=""
                 />
-                <h4 class="m-0 ml-8px text-20px text-black-100">Tariff</h4>
+                <h4 class="m-0 ml-8px text-20px text-black-100">{{ t('rate_plan') }}</h4>
               </div>
 
               <div class="rounded-lg bg-gray-100 p-20px mb-24px">
                 <div class="mb-20px">
-                  <p class="block mb-4px">Rate Profile</p>
-                  <el-select
-                    class="el-select w-full lg:w-40%"
-                    v-model="select_profile"
-                    placeholder="Select"
-                    size="large"
-                    @change="selectTariff"
-                  >
-                    <el-option
-                      v-for="item in tariff_profile"
-                      :key="item.value"
-                      :label="item.profile_name"
-                      :value="item.id"
-                    />
-                  </el-select>
+
+                    <el-form-item class="block mb-4px" :label= "t('rate_profile')" prop="rate_profile">
+                      <el-select
+                        class="el-select w-full lg:w-40%"
+                        v-model="select_profile"
+                        placeholder="Select"
+                        size="large"
+                        @change="selectTariff"
+                      >
+                        <el-option
+                            v-for="item in tariff_profile"
+                            :key="item.value"
+                            :label="item.name"
+                            :value="item.id"
+                          />
+                      </el-select>
+                    </el-form-item>
+                  <!-- </el-form> -->
                 </div>
+
                 <div class="lg:flex mb-24px bg-white px-14px py-20px rounded-2xl">
                   <div class="tariff-left lg:w-30% mb-20px lg:mb-0">
                     <div class="container-data h-full md:px-32px">
@@ -377,7 +408,7 @@ onMounted(async () => {
                       </div> -->
                       <div class="info-item">
                         <p class="info-title">
-                          <span class="font-700 text-blue-900">Currency : </span>
+                          <span class="font-700 text-blue-900">{{ t('currency') + ':' }}  </span>
                           <span class="ml-18px">{{ selectTariffObj.currency }}</span>
                         </p>
                       </div>
@@ -393,9 +424,9 @@ onMounted(async () => {
                     <div class="container-data h-full md:px-32px">
                       <div class="">
                         <p class="info-title font-700 text-blue-900 mb-7px">
-                          Rate Alt Text :
+                          {{ t('rate_description') + ':' }}
                         </p>
-                        <p class="info-value">{{}}</p>
+                        <p class="info-value">{{selectTariffObj.description}}</p>
                       </div>
                     </div>
                   </div>
@@ -410,38 +441,38 @@ onMounted(async () => {
                     size="large"
                   >
                     <el-table-column
-                      prop="price_components[0].type"
-                      label="Type"
+                      prop="price_components[0].type_str"
+                      :label="t('type')"
                       min-width="150"
                     />
                     <el-table-column
                       prop="price_components[0].price"
-                      label="Price"
+                      :label="t('price')"
                       min-width="80"
                     />
                     <el-table-column
                       prop="price_components[0].vat"
-                      label="Vat"
+                      :label="t('vat')"
                       min-width="80"
                     />
                     <el-table-column
-                      prop="price_components[0].step_size"
-                      label="Step Size"
+                      prop="price_components[0].step_size_str"
+                      :label="t('unit')"
                       min-width="120"
                     />
                     <el-table-column
                       prop="restrictions.start_time"
-                      label="Start Time"
+                      :label="t('start_time')"
                       min-width="120"
                     />
                     <el-table-column
                       prop="restrictions.end_time"
-                      label="End Time"
+                      :label="t('end_time')"
                       min-width="120"
                     />
                     <el-table-column
-                      prop="restrictions.day_of_week"
-                      label="Day Of Week"
+                      prop="restrictions.day_of_week_str"
+                      :label="t('day_of_week')"
                       min-width="300"
                     />
                   </el-table>
@@ -451,12 +482,14 @@ onMounted(async () => {
           </el-col>
         </el-row>
       </div>
-
+      </el-form>
       <div class="flex justify-center pb-40px">
         <el-button class="btn-secondary bg-btn-100 md:mr-44px" @click="CancelEvseEdit">
-          Cancel
+          {{ t('cancel') }}
         </el-button>
-        <el-button class="btn-secondary" @click="SaveEvseEdit"> Save </el-button>
+        <el-button class="btn-secondary" @click="SaveEvseEdit(ruleFormRef)"> 
+          {{ t('save') }}
+        </el-button>
       </div>
     </div>
   </div>

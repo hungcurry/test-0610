@@ -6,6 +6,8 @@ import {  ElMessageBox } from 'element-plus'
 import msi from '@/assets/msi_style'
 import { useMStore } from "../stores/m_cloud"
 import moment from "moment"
+import { useI18n } from "vue-i18n"
+const { t } = useI18n()
 const MStore = useMStore()
 const route = useRoute()
 const evseId = route.query.evse_id
@@ -20,7 +22,18 @@ const tariffData = reactive([])
 const tariff_elements = reactive([])
 
 const deleteEvse = () => {
-  ElMessageBox.confirm('Do you want to delete?','Warning', {confirmButtonText: 'OK', cancelButtonText: 'Cancel', type: 'warning'})
+
+// console.log(locationData.id)
+//     let evseArr = []
+//     for (let i = 0; i < locationData?.evses?.length; i++) {
+//       if (locationData.evses[i].uid === evseId) {
+//         continue
+//       }
+//       evseArr.push(locationData.evses[i]._id)
+//     }
+// console.log(evseArr)
+
+  ElMessageBox.confirm(t('do_you_want_to_delete'),'Warning', {confirmButtonText: 'OK', cancelButtonText: 'Cancel', type: 'warning'})
   .then(async () => {
     let sendData = { 'class' : 'EVSE', 'id' : evseId }
     console.log(await MsiApi.setCollectionData('delete', 'ocpi', sendData))
@@ -43,7 +56,6 @@ const deleteEvse = () => {
     console.log(await MsiApi.setCollectionData('patch', 'ocpi', sendData1))
 
     router.back(-1)
-    // router.push({ name: 'stationDetail', query: {id:locationData.id} })
   })
 }
 const edit = () => {
@@ -56,19 +68,31 @@ onMounted( async () => {
 
   let localEndTime =  new Date( (new Date(evseData.last_updated).getTime()) + ((MStore.timeZoneOffset ) * -60000))
   evseData.last_updated_str = (moment(localEndTime).format("YYYY-MM-DD HH:mm:ss"))
-  
+  switch (evseData.status) {
+    case 'AVAILABLE':
+      evseData.status_str = t('available')
+    break
+    case 'CHARGING':
+      evseData.status_str = t('charging')
+    break
+    case 'UNKNOWN':
+      evseData.status_str = t('offline')
+    break
+    case 'OUTOFORDER':
+      evseData.status_str = t('error')
+    break
+    default:
+      evseData.status_str = t('others')
+  }
   queryData = { "database":"OCPI", "collection":"Connector", "query": { "_id": { "ObjectId" : evseData?.connectors?.[0]?._id}}}
   response = await MsiApi.mongoQuery(queryData)
-  Object.assign(connectorData, response.data.all[0]) 
-  
-    if (connectorData.standard === 'IEC_62196_T1') 
-      connectorData.type_str = 'Type 1 (J1772)'
-    else if (connectorData.standard === 'IEC_62196_T2')
-      connectorData.type_str = 'Tyep 2 (Mennekes)' 
-    else if (connectorData.standard === 'IEC_62196_T1_COMBO')
-      connectorData.type_str = 'CCS1 Combo' 
-    else
-    connectorData.type_str = connectorData.standard
+  Object.assign(connectorData, response.data.all[0])
+  if (connectorData.standard === 'IEC_62196_T1') 
+    connectorData.type_str = 'Type 1 (J1772)'
+  else if (connectorData.standard === 'IEC_62196_T2')
+    connectorData.type_str = 'Tyep 2 (Mennekes)' 
+  else
+    connectorData.type_str = t('others')
   
   localEndTime =  new Date( (new Date(connectorData.last_updated).getTime()) + ((MStore.timeZoneOffset ) * -60000))
   connectorData.last_updated_str = (moment(localEndTime).format("YYYY-MM-DD HH:mm:ss"))
@@ -99,18 +123,72 @@ onMounted( async () => {
   else {
     Object.assign(locationData, response.data.all[0])
   }
+  const addr_parts = locationData.address.split('\n')
+  const city_parts = locationData.city.split('\n')
+  if (addr_parts.length === 2) {
+    locationData.address = addr_parts[0]
+    locationData.address1 = addr_parts[1]
+  }
+  if (city_parts.length === 2) {
+    locationData.city = city_parts[0]
+    locationData.city1 = city_parts[1]
+  }
+
   queryData = { "database":"OCPI", "collection":"Tariff", "query": { "id": { "UUID" : connectorData.tariff_ids[0]}}}
   response = await MsiApi.mongoQuery(queryData)
   Object.assign(tariffData, response.data.all[0])
-  tariffData.tariff_alt_text_str = tariffData.tariff_alt_text[0].text
+  tariffData.name = tariffData.custom?.name
+  tariffData.description = tariffData.custom?.description
   
   Object.assign(tariff_elements, tariffData.elements )
-  for (let i = 0; i < tariff_elements.length; i++) {
-    if (tariff_elements[i].price_components[0].type !== 'ENERGY')
-      tariff_elements[i].step_size_str = tariff_elements[i].price_components[0].step_size / 60
-    else 
-      tariff_elements[i].step_size_str = tariff_elements[i].price_components[0].step_size
-  }
+  
+  tariff_elements.forEach((item)=> {
+    let day_of_week_str = []
+    for (const day of item.restrictions.day_of_week) {
+      switch (day) {
+        case 'MONDAY':
+          day_of_week_str.push(t('mon'))
+        break
+        case 'TUESDAY':
+          day_of_week_str.push(t('tue'))
+        break
+        case 'WEDNESDAY':
+          day_of_week_str.push(t('wed'))
+        break
+        case 'THURSDAY':
+          day_of_week_str.push(t('thu'))
+        break
+        case 'FRIDAY':
+          day_of_week_str.push(t('fri'))
+        break
+        case 'SATURDAY':
+          day_of_week_str.push(t('sat'))
+        break
+        case 'SUNDAY':
+          day_of_week_str.push(t('sun'))
+        break
+      }
+    }
+    item.restrictions.day_of_week_str = day_of_week_str
+
+    switch (item.price_components[0].type) {
+      case 'ENERGY' :
+        item.price_components[0].type_str = t('charging_by_energy')
+        item.step_size_str = item.price_components[0].step_size
+        break
+      case 'TIME' :
+        item.price_components[0].type_str = t('charging_by_time')
+        item.step_size_str = item.price_components[0].step_size / 60
+        break
+      case 'PARKING_TIME' :
+        item.price_components[0].type_str = t('parking_by_time')
+        item.step_size_str = item.price_components[0].step_size / 60
+        break
+      default:
+        item.price_components[0].type_str = item.price_components[0].type
+    }
+  })
+
 })
 </script>
 
@@ -122,20 +200,20 @@ onMounted( async () => {
           <el-col class="el-col" :xs="24" :md="14">
             <div class="h-full">
               <p class="evse-id pb-20px" > {{evseData.evse_id}}</p>
-              <p class="status pb-20px available" v-if="evseData.status === 'AVAILABLE'"> {{ "●" + evseData.status }}</p>
-              <p class="status pb-20px charging" v-else-if="evseData.status === 'CHARGING'"> {{ "●" + evseData.status }}</p>
-              <p class="status pb-20px offline" v-else-if="evseData.status === 'UNKNOWN'"> {{ "●" + evseData.status }}</p>
-              <p class="status pb-20px error" v-else-if="evseData.status === 'ERROR' || evseData.status === 'OUTOFORDER'"> {{ "●" + evseData.status }}</p>
+              <p class="status pb-20px available" v-if="evseData.status === 'AVAILABLE'"> {{ "●" + evseData.status_str }}</p>
+              <p class="status pb-20px charging" v-else-if="evseData.status === 'CHARGING'"> {{ "●" + evseData.status_str }}</p>
+              <p class="status pb-20px offline" v-else-if="evseData.status === 'UNKNOWN'"> {{ "●" + evseData.status_str }}</p>
+              <p class="status pb-20px error" v-else-if="evseData.status === 'ERROR' || evseData.status === 'OUTOFORDER'"> {{ "●" + evseData.status_str }}</p>
             </div>
           </el-col>
           <el-col class="el-col" :xs="24" :md="10">
             <div class="text-right">
               <p class="location-name text-right mb-20px">{{ locationData.name }}</p>
-              <p class="location-addr text-right mb-20px">{{ locationData.country + ' ' + locationData.city + locationData.address }}</p>
+              <p class="location-addr text-right mb-20px">{{ locationData.country + ' ' + locationData.city + locationData.address + '/' + locationData.city1 + locationData.address1}}</p>
               <div class="flex justify-end">
                 <!-- <el-button type="primary" class="btn-secondary box-shadow delete" @click="download"> Download </el-button> -->
-                <el-button type="primary" class="btn-secondary box-shadow delete" @click="deleteEvse"> Delete </el-button>
-                <el-button type="primary" class="btn-secondary box-shadow edit" @click="edit"> Edit </el-button>
+                <el-button type="primary" class="btn-secondary box-shadow delete" @click="deleteEvse"> {{t('delete')}} </el-button>
+                <el-button type="primary" class="btn-secondary box-shadow edit" @click="edit"> {{t('edit')}} </el-button>
               </div>
             </div>
           </el-col>
@@ -149,7 +227,7 @@ onMounted( async () => {
             <div class="evse flex-col w-full h-full rounded-2xl p-16px bg-white lg:rounded-none lg:rounded-l-2xl">
               <div class="title flex items-center mb-20px">
                 <img class="w-24px h-24px filter-black" src="@/assets/img/charger_evse.png" alt="">
-                <h4 class="m-0 ml-8px text-20px text-black-100"> EVSE Info</h4>
+                <h4 class="m-0 ml-8px text-20px text-black-100"> {{ t('evse_info') }}</h4>
               </div>
               <div class="container-data h-full md:px-32px">
                 <!-- <div class="info-item">
@@ -157,11 +235,11 @@ onMounted( async () => {
                   <p class="info-value w-50% ml-24px">{{ evseData.uid }}</p>
                 </div> -->
                 <div class="info-item">
-                  <p class="info-title w-50%">EVSE ID</p>
+                  <p class="info-title w-50%"> {{ t('evse_id') }}</p>
                   <p class="info-value w-50% ml-24px">{{evseData.evse_id}}</p>
                 </div>
                 <div class="info-item">
-                  <p class="info-title w-50%">Floor Level</p>
+                  <p class="info-title w-50%"> {{ t('floor_level') }}</p>
                   <p class="info-value w-50% ml-24px">{{evseData.floor_level}}</p>
                 </div>
                 <!-- <div class="info-item">
@@ -173,7 +251,7 @@ onMounted( async () => {
                   <p class="info-value w-50% ml-24px">{{evseData.description}} </p>
                 </div>             -->
                 <div class="info-item">
-                  <p class="info-title w-50%">Last Updated</p>
+                  <p class="info-title w-50%"> {{ t('last_updated') }}</p>
                   <p class="info-value w-50% ml-24px">{{evseData.last_updated_str}}</p>
                 </div>
               </div>
@@ -183,7 +261,7 @@ onMounted( async () => {
             <div class="connector flex-col w-full h-full rounded-2xl p-16px bg-white lg:rounded-none lg:rounded-r-2xl">
               <div class="title flex items-center mb-20px">
                 <img class="w-24px h-24px filter-black" src="@/assets/img/charger_edit_connector.png" alt="">
-                <h4 class="m-0 ml-8px text-20px text-black-100"> Connector Info</h4>
+                <h4 class="m-0 ml-8px text-20px text-black-100"> {{ t('connector_info') }}</h4>
               </div>
               <div class="container-data h-full md:px-32px">
                 <!-- <div class="info-item">
@@ -191,7 +269,7 @@ onMounted( async () => {
                   <p class="info-value w-50% ml-24px">{{ connectorData.id }} </p>
                 </div>    -->
                 <div class="info-item">
-                  <p class="info-title w-50%">Type</p>
+                  <p class="info-title w-50%"> {{ t('type') }}</p>
                   <p class="info-value w-50% ml-24px">{{ connectorData.type_str }} </p>
                 </div>   
                 <!-- <div class="info-item">
@@ -203,25 +281,25 @@ onMounted( async () => {
                   <p class="info-value w-50% ml-24px">{{connectorData.power_type}} </p>
                 </div>    -->
                 <div class="info-item">
-                  <p class="info-title w-50%">Max Voltage</p>
+                  <p class="info-title w-50%"> {{t('max_voltage')}} </p>
                   <p class="info-value w-50% ml-24px">{{connectorData.max_voltage + ' V '}}</p>
                 </div>   
 
                 <div class="info-item">
-                  <p class="info-title w-50%">Max Current</p>
+                  <p class="info-title w-50%"> {{ t('max_current') }}</p>
                   <p class="info-value w-50% ml-24px">{{hmiInfoData.max_amperage + ' A '}}</p>
                 </div>   
 
                 <div class="info-item">
-                  <p class="info-title w-50%">Output Current</p>
+                  <p class="info-title w-50%">{{ t('output_current')}}</p>
                   <p class="info-value w-50% ml-24px">{{connectorData.max_amperage + ' A '}}</p>
                 </div>   
                 <div class="info-item">
-                  <p class="info-title w-50%">Max Electric Power</p>
+                  <p class="info-title w-50%"> {{ t('max_electric_power') }}</p>
                   <p class="info-value w-50% ml-24px">{{ connectorData.max_electric_power / 1000 + ' kW'}} </p>
                 </div>   
                 <div class="info-item">
-                  <p class="info-title w-50%">Last Updated</p>
+                  <p class="info-title w-50%"> {{ t('last_updated') }}</p>
                   <p class="info-value w-50% ml-24px">{{ connectorData.last_updated_str }} </p>
                 </div>  
               </div> 
@@ -231,7 +309,7 @@ onMounted( async () => {
             <div class="hmi-container flex-col h-full rounded-2xl p-16px bg-white">
               <div class="title flex items-center mb-20px">
                 <img class="w-24px h-24px filter-black" src="@/assets/img/charger_hmi.png" alt="">
-                <h4 class="m-0 ml-8px text-20px text-black-100"> HMI Info</h4>
+                <h4 class="m-0 ml-8px text-20px text-black-100"> {{ t('hmi_info')}}</h4>
               </div>
               <div class="container-data h-full md:px-32px">
                 <!-- <div class="info-item">
@@ -239,11 +317,11 @@ onMounted( async () => {
                   <p class="info-value w-50% ml-24px">{{ hmiInfoData.control_board_model_name }} </p>
                 </div>    -->
                 <div class="info-item">
-                  <p class="info-title w-50%">Control Board SN</p>
+                  <p class="info-title w-50%"> {{ t('control_board_sn')}}</p>
                   <p class="info-value w-50% ml-24px">{{ hmiInfoData.control_board_sn }} </p>
                 </div>   
                 <div class="info-item">
-                  <p class="info-title w-50%">Control Board FW Version</p>
+                  <p class="info-title w-50%"> {{ t('control_board_fw_version')}}</p>
                   <p class="info-value w-50% ml-24px">{{ hmiInfoData.control_board_fw_version }} </p>
                 </div>   
                 <!-- <div class="info-item">
@@ -251,19 +329,19 @@ onMounted( async () => {
                   <p class="info-value w-50% ml-24px">{{ hmiInfoData.hmi_board_model_name }} </p>
                 </div>    -->
                 <div class="info-item">
-                  <p class="info-title w-50%">HMI Board SN</p>
+                  <p class="info-title w-50%"> {{ t('hmi_board_sn')}}</p>
                   <p class="info-value w-50% ml-24px">{{ hmiInfoData.hmi_board_sn }} </p>
                 </div>   
                 <div class="info-item">
-                  <p class="info-title w-50%">HMI Board SW Version</p>
+                  <p class="info-title w-50%"> {{ t('hmi_board_sw_version')}}</p>
                   <p class="info-value w-50% ml-24px">{{ hmiInfoData.hmi_board_sw_version }} </p>
                 </div>   
                 <div class="info-item">
-                  <p class="info-title w-50%">Created Date</p>
+                  <p class="info-title w-50%"> {{ t('created_date')}} </p>
                   <p class="info-value w-50% ml-24px">{{ hmiInfoData.created_date }} </p>
                 </div>  
                 <div class="info-item">
-                  <p class="info-title w-50%">Last Updated</p>
+                  <p class="info-title w-50%"> {{ t('last_updated') }}</p>
                   <p class="info-value w-50% ml-24px">{{ hmiInfoData.updated_date }} </p>
                 </div>  
               </div> 
@@ -276,15 +354,15 @@ onMounted( async () => {
             <div class=" h-full rounded-2xl p-16px bg-white">
               <div class="title w-full flex items-center mb-20px">
                 <img class="w-24px h-24px filter-black" src="@/assets/img/charger_tariff.png" alt="">
-                <h4 class="m-0 ml-8px text-20px text-black-100">Rate</h4>
+                <h4 class="m-0 ml-8px text-20px text-black-100">{{ t('rate') }}</h4>
               </div>
               <div class="lg:flex mb-20px bg-blue-100 py-20px rounded-2xl">
                 <div class="tariff-left lg:w-30% mb-20px lg:mb-0">
                   <div class="container-data h-full md:px-32px">
                     <div class="info-item">
                       <p class="info-title">
-                        <span class="font-700 text-blue-900">Rate Profile : </span>
-                        <span class="ml-18px">{{ tariffData.profile_name }}</span>
+                        <span class="font-700 text-blue-900">{{ t('rate_profile') + ':' }}  </span>
+                        <span class="ml-18px">{{ tariffData.name }} </span>
                       </p>
                     </div>
                     <!-- <div class="info-item">
@@ -298,21 +376,21 @@ onMounted( async () => {
                 <div class="tariff-right lg:w-70%">
                   <div class="container-data h-full md:px-32px">
                     <div class="">
-                      <p class="info-title font-700 text-blue-900 mb-7px">Rate Alt Text : </p>
-                      <p class="info-value">{{ tariffData.tariff_alt_text_str}}</p>
+                      <p class="info-title font-700 text-blue-900 mb-7px"> {{ t('rate_description') + ':' }}  </p>
+                      <p class="info-value">{{ tariffData.description}}</p>
                     </div>
                   </div>
                 </div>
               </div>
               <el-table :data="tariff_elements" style="width: 100%; height:300px" stripe 
                 :cell-style=msi.tb_cell :header-cell-style=msi.tb_header_cell size="large">
-                <el-table-column prop="price_components[0].type" label="Type" min-width="130"/>
-                <el-table-column prop="price_components[0].price" label="Price" min-width="80"/>
-                <el-table-column prop="price_components[0].vat" label="Vat" min-width="80"/>
-                <el-table-column prop="step_size_str" label="Unit" min-width="120"/>
-                <el-table-column prop="restrictions.start_time" label="Start Time" min-width="120"/>
-                <el-table-column prop="restrictions.end_time" label="End Time" min-width="120"/>
-                <el-table-column prop="restrictions.day_of_week" label="Day Of Week" min-width="300"/>
+                <el-table-column prop="price_components[0].type_str" :label="t('type')" min-width="130"/>
+                <el-table-column prop="price_components[0].price" :label="t('price')" min-width="80"/>
+                <el-table-column prop="price_components[0].vat" :label="t('vat')" min-width="80"/>
+                <el-table-column prop="step_size_str" :label="t('unit')" min-width="120"/>
+                <el-table-column prop="restrictions.start_time" :label="t('start_time')" min-width="120"/>
+                <el-table-column prop="restrictions.end_time" :label="t('end_time')" min-width="120"/>
+                <el-table-column prop="restrictions.day_of_week_str" :label="t('day_of_week')" min-width="300"/>
               </el-table>
             </div>
           </el-col>

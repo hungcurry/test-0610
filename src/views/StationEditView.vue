@@ -13,7 +13,8 @@ const route = useRoute()
 const router = useRouter()
 const station_id = route.query.id
 // const Coordinates2Addr = ref('')
-const edit_title = ref('Edit Station')
+// const edit_title = ref('Edit Station')
+const edit_title = ref(t('edit_station'))
 const ruleFormRef  = ref()
 
 const getCoordinates = async () => {
@@ -149,8 +150,8 @@ const saveStation = async (formEl) => {
   if (!formEl) return
   let check_format_success = false
   await formEl.validate((valid) => {
-    if (valid === false) ElMessage.error(t('please_check_required_item'))
-    else check_format_success = true
+    if (valid === true) 
+      check_format_success = true
   })
   if (check_format_success === false) 
     return 
@@ -178,7 +179,7 @@ const saveStation = async (formEl) => {
     regular_hours.push({weekday:7,period_begin:formatNumberToTime(w7val.value[0]), period_end:formatNumberToTime(w7val.value[1])})
   }
 
-  let opening_times = { twentyfourseven:station_always_open.value, regular_hours:regular_hours}
+  let opening_times = { twentyfourseven:station_always_open.value, regular_hours:regular_hours, exceptional_openings:[], exceptional_closings:[]}
 
 
   const coordinates = { latitude: parseFloat(StationData.latitude_str).toFixed(6), longitude: parseFloat(StationData.longitude_str).toFixed(6) }
@@ -191,8 +192,10 @@ const saveStation = async (formEl) => {
     'address': StationData.address, 'coordinates': coordinates,
     'city': StationData.city, 'country': StationData.country,
     'country_code': StationData.country_code, 'time_zone': StationData.time_zone,
-    opening_time : opening_times
+    opening_times : opening_times
   }
+  if (StationData.publish === undefined)
+    StationData.publish = false
   sendData.party_id = 'MSI'
   sendData.parking_type = ''
   if (StationData.parking_type_enable)
@@ -275,6 +278,7 @@ onMounted(async () => {
       <div class="flex-grow mb-44px">
         <div class="overflow-x-auto h-full flex">
           <div class="lg:w-50% flex-col pr-40px">
+            <el-form class="w-full min-w-190px" :rules="rules" :model="StationData" ref="ruleFormRef">
             <div class="flex">
               <img class="mr-8px" src="@/assets/img/station_edit_stationdetail.png" alt="">
               <p class="text-secondary">{{ t('station_details') }}</p>
@@ -284,7 +288,8 @@ onMounted(async () => {
               <img class="w-180px h-180px mr-30px" v-if="StationData.img_str !== undefined" :src="StationData.img_str">
               <img class="w-180px h-180px mr-30px" v-else src="@/assets/img/null_pic.png">
   
-                  <el-form class="w-full min-w-190px" :rules="rules" :model="StationData" ref="ruleFormRef">
+                <div>
+                  <!-- <el-form class="w-full min-w-190px"> -->
                     <el-form-item :label="t('name')" prop="name">
                       <el-input v-model.trim="StationData.name" />
                     </el-form-item>
@@ -316,7 +321,8 @@ onMounted(async () => {
                   <el-checkbox v-model="StationData.publish" :label= "t('publish')" size="large" />
                   <!-- <el-checkbox v-model="StationData.parking_type_enable" label="Parking Lot" size="large" /> -->
                   <!-- <el-checkbox v-model="StationData.charging_when_closed" label="Charging when place is closed"></el-checkbox> -->
-                </el-form>
+                <!-- </el-form> -->
+                </div>
             </div>
   
             <div class="v-line1"></div>
@@ -327,7 +333,8 @@ onMounted(async () => {
             </div>
     
               <div class="flex mt-24px ml-30px">
-                <el-form class="w-full min-w-190px" :rules="rules" :model="StationData" ref="ruleFormRef">
+                <div class="w-full min-w-190px">
+                <!-- <el-form class="w-full min-w-190px" :rules="rules" :model="StationData" ref="ruleFormRef"> -->
                   <div class="flex flex-items-end" id="Country">
                     <el-form-item :label= "t('country')" class="mr-20px w-190px" prop="country">
                       <el-select
@@ -393,9 +400,10 @@ onMounted(async () => {
                   <p> {{ Coordinates2Addr }}</p>
                   <el-button class="location-button" @click="getAddress"> Get Address </el-button>
                 </div> -->
-
-              </el-form>
+              </div>
+              <!-- </el-form> -->
             </div>
+            </el-form>
           </div>
           <div class="v-line"></div>
           <div class="lg:w-50% disable-block flex-col pl-40px pr-40px ">

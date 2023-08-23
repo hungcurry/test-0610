@@ -8,13 +8,14 @@ import msi from '@/assets/msi_style'
 import { ElMessageBox, ElMessage } from 'element-plus'
 import { useMStore } from '../stores/m_cloud'
 
-
 import FullCalendar from '@fullcalendar/vue3'
 import dayGridPlugin from '@fullcalendar/daygrid'
 import timeGridPlugin from '@fullcalendar/timegrid'
 import interactionPlugin from '@fullcalendar/interaction'
 import moment from "moment"
 import tippy from 'tippy.js'
+import { useI18n } from 'vue-i18n'
+const { t } = useI18n()
 const isCalendarMounted = ref(false)
 const chargingCalendarRef = ref()
 const parkingCalendarRef = ref()
@@ -23,11 +24,15 @@ const multiTime = reactive([])
 const charging_bgColor = '#61a8d8'
 const parking_bgColor = '#94eadb'
 
+const ruleFormRef  = ref()
+
+const rules = reactive({
+  custom_profile_name: [{ required: true, message: t('this_item_is_required'), trigger: 'blur' },],
+  currency: [{ required: true, message: t('this_item_is_required'), trigger: 'blur' },],
+})
+
 let eventCount = 1
 let pressCloseIcon = false  // for Calendar close button
-const removeCalendarEvent = () => {
-  pressCloseIcon = true
-}
 
 const setEventBgColor = (bgColor, count) => {
   let r = parseInt(bgColor.split('#')[1].substr(0,2), 16)
@@ -58,17 +63,17 @@ const handleTabClick = (tab) => {
   isCalendarMounted.value = false
   switch (activeName.value) {
     case 'three' :
-      price_type_opeion = [{ value: 'ENERGY', label: 'Charging By Energy' }, { value: 'TIME', label: 'Charging By Time' }]
+      price_type_opeion = [{ value: 'ENERGY', label: t('charging_by_energy') }, { value: 'TIME', label: t('charging_by_time') }]
       fillFullCalendar()
       break
 
     case 'four' :
-      price_type_opeion = [{ value: 'PARKING_TIME', label: 'Parking By Time' }]
+      price_type_opeion = [{ value: 'PARKING_TIME', label: t('parking_by_time') }]
       fillFullCalendar()
       break
     
     default :
-      price_type_opeion = [{ value: 'ENERGY', label: 'Charging By Energy' }, { value: 'TIME', label: 'Charging By Time' }, { value: 'PARKING_TIME', label: 'Parking By Time' }]
+      price_type_opeion = [{ value: 'ENERGY', label: t('charging_by_energy') }, { value: 'TIME', label: t('charging_by_time') }, { value: 'PARKING_TIME', label: t('parking_by_time') }]
       break
   }
 }
@@ -87,13 +92,9 @@ const fillFullCalendar = () => {
 
   chargingCalendarOptions.events = []
   parkingCalendarOptions.events = []
-  // setTimeout(() => chargingCalendarRef.value.getApi().updateSize(), 0)
-  // setTimeout(() => parkingCalendarRef.value.getApi().updateSize(), 0)
   setTimeout(() => isCalendarMounted.value = true, 0)
-
   let startTime = ''
   let endTime = ''
-  let title = ''
   let daysOfWeek = []
   let chargingCount = 0
   let parkingCount = 0
@@ -113,9 +114,8 @@ const fillFullCalendar = () => {
     }
 
     if (tariffObj[i].price_components[0].type === 'ENERGY') {
-      title = 'Charging By Energy'
       let price_str = tariffObj[i].price_components[0].price
-      let event_title = 'Charge: ' + price_str + ' / kWh'
+      let event_title = t('charging') + ':' + price_str + ' /' + t('kwh')
       let elements_index = i
       chargingCalendarOptions.events.push({
         daysOfWeek: daysOfWeek, startTime: startTime, endTime: endTime, title: event_title, index: elements_index,
@@ -124,15 +124,14 @@ const fillFullCalendar = () => {
         extendedProps: {
           title: event_title,
           time: startTime + ' - ' + endTime,
-          price: tariffObj[i].price_components[0].price + ' / kwh'
+          price: tariffObj[i].price_components[0].price + ' / ' + t('kwh')
         }
       })
       chargingCount++
     }
     else if (tariffObj[i].price_components[0].type === 'TIME') {
-      title = 'Charging By Time'
       let price_str = tariffObj[i].price_components[0].price
-      let event_title = 'Charge: ' + price_str + ' / hr'
+      let event_title = t('charging') + ':' + price_str + ' /' + t('hr')
       let elements_index = i
       chargingCalendarOptions.events.push({
         daysOfWeek: daysOfWeek, startTime: startTime, endTime: endTime, title: event_title, index: elements_index,
@@ -142,15 +141,14 @@ const fillFullCalendar = () => {
           title: event_title,
           time: startTime + ' - ' + endTime,
           price: (tariffObj[i].price_components[0].price / (3600 / tariffObj[i].price_components[0].step_size)).toFixed(2)
-            + ' / ' + tariffObj[i].price_components[0].step_size / 60 + ' min'
+            + ' / ' + tariffObj[i].price_components[0].step_size / 60 + t('min')
         }
       })
       chargingCount++
     }
     else if (tariffObj[i].price_components[0].type === 'PARKING_TIME') {
-      title = 'Parking By Time'
       let price_str = tariffObj[i].price_components[0].price
-      let event_title = 'Parking: ' + price_str + ' / hr'
+      let event_title = t('parking') + ':' + price_str + ' /' + t('hr')
       let elements_index = i
       parkingCalendarOptions.events.push({
         daysOfWeek: daysOfWeek, startTime: startTime, endTime: endTime, title: event_title, index: elements_index,
@@ -160,7 +158,7 @@ const fillFullCalendar = () => {
           title: event_title,
           time: startTime + ' - ' + endTime,
           price:  (tariffObj[i].price_components[0].price / (3600 / tariffObj[i].price_components[0].step_size)).toFixed(2)
-            + ' / ' + tariffObj[i].price_components[0].step_size / 60 + ' min'
+            + ' / ' + tariffObj[i].price_components[0].step_size / 60 + t('min')
         }
       })
       parkingCount++
@@ -183,12 +181,9 @@ const handleEventCreate = (selectInfo) => {
   let continueDayCount = 0
   let lastDayCount = 0
 
-  let firstStartTimeStr = ''
   let firstEndTimeStr = ''
-  let secondStartTimeStr = ''
+
   let secondEndTimeStr = ''
-  let thirdStartTimeStr = ''
-  let thirdEndTimeStr = ''
 
   eventCount = 1
   // calendarApi.unselect() // clear date selection
@@ -245,7 +240,6 @@ const handleEventCreate = (selectInfo) => {
           let tempTime = new Date(nextTime).toLocaleString()
           let nextDate = tempTime.replaceAll('/', '-').split(' ')[0]
           
-          firstStartTimeStr = selectInfo.startStr
           firstEndTimeStr = endTimeStr = nextDate + 'T00:00:00' + timeZone
         }
         else {    // set endTimeStr as the next day of endStr, and endTime is 00:00
@@ -254,7 +248,6 @@ const handleEventCreate = (selectInfo) => {
           let tempTime = new Date(nextTime).toLocaleString()
           let nextDate = tempTime.replaceAll('/', '-').split(' ')[0]
           
-          firstStartTimeStr = selectInfo.startStr
           firstEndTimeStr = endTimeStr = nextDate + 'T00:00:00' + timeZone
         }
         startTime = moment(new Date(selectInfo.start)).format("HH:mm")
@@ -276,7 +269,7 @@ const handleEventCreate = (selectInfo) => {
     }
     // Continue event, set multiTime
     else if (i !== eventCount-1) {
-      secondStartTimeStr = startTimeStr = firstEndTimeStr
+      startTimeStr = firstEndTimeStr
       secondEndTimeStr = endTimeStr = selectInfo.endStr.split("T")[0] + 'T00:00:00' + timeZone
       startTime = '00:00'
       endTime = '23:59'
@@ -297,8 +290,8 @@ const handleEventCreate = (selectInfo) => {
     }
     // Last event, set multiTime
     else {
-      thirdStartTimeStr = startTimeStr = secondEndTimeStr
-      thirdEndTimeStr = endTimeStr = selectInfo.endStr
+      startTimeStr = secondEndTimeStr
+      endTimeStr = selectInfo.endStr
       startTime = '00:00'
       endTime = moment(new Date(selectInfo.end)).format("HH:mm")
       multiTime[i - 1] = []
@@ -319,7 +312,7 @@ const handleEventCreate = (selectInfo) => {
   }
   add_tariff_visible.value = true
   element_action.value = 'add'
-  add_tariff_title.value = 'Add Rate'
+  add_tariff_title.value = t('add_rate_plan')
   new_element.value.price_type = ''
   new_element.value.vat = 5
   new_element.value.price_price = 0
@@ -330,7 +323,7 @@ const handleEventCreate = (selectInfo) => {
 const handleEventEdit = (clickInfo) => {
   add_tariff_visible.value = true
   element_action.value = 'edit'
-  add_tariff_title.value = 'Edit Rate'
+  add_tariff_title.value = t('edit_rate')
 
   modifyIndex.value = clickInfo.event.extendedProps.index
   new_element.value.day_of_week.length =  0
@@ -505,55 +498,6 @@ const parkingCalendarOptions = reactive({
   eventMouseEnter: handleEventMouseEnter,
 })
 
-// const printElement = () => {
-//   let week = ''
-//   let text_arr = []
-//   textarea_en.value = ''
-//   for (let i = 0; i < tariff_elements.length; i++) {
-//     for (let j = 0; j < tariff_elements[i].restrictions.day_of_week.length; j++) {
-//       if (tariff_elements[i].restrictions.day_of_week[j] === 'MONDAY')
-//         week += 'MON'
-//       else if (tariff_elements[i].restrictions.day_of_week[j] === 'TUESDAY')
-//         week += 'TUE'
-//       else if (tariff_elements[i].restrictions.day_of_week[j] === 'WEDNESDAY')
-//         week += 'WED'
-//       else if (tariff_elements[i].restrictions.day_of_week[j] === 'THURSDAY')
-//         week += 'THU'
-//       else if (tariff_elements[i].restrictions.day_of_week[j] === 'FRIDAY')
-//         week += 'FRI'
-//       else if (tariff_elements[i].restrictions.day_of_week[j] === 'SATURDAY')
-//         week += 'SAT'
-//       else if (tariff_elements[i].restrictions.day_of_week[j] === 'SUNDAY')
-//         week += 'SUN'
-
-//       if (j === tariff_elements[i].restrictions.day_of_week.length - 1) week += '\n'
-//       else week += ' / '
-//     }
-//     if (tariff_elements[i].restrictions.end_time === '00:00')
-//       tariff_elements[i].restrictions.end_time = '23:59'
-//     if (tariff_elements[i].price_components[0].type === 'ENERGY') {
-//       text_arr.push(i + 1 + '. ' + 'Charging' + '\n' + week + tariff_elements[i].restrictions.start_time + ' ~ ' + tariff_elements[i].restrictions.end_time + '\n'
-//         + tariff_elements[i].price_components[0].price + ' ' + TariffData.currency + " per kWh" + '\n')
-//     }
-//     else if (tariff_elements[i].price_components[0].type === 'TIME') {
-//       text_arr.push(i + 1 + '. ' + 'Charging' + '\n' + week + tariff_elements[i].restrictions.start_time + '~' + tariff_elements[i].restrictions.end_time + '\n'
-//         + (tariff_elements[i].price_components[0].step_size / 60).toFixed(2) + ' Min '
-//         + (tariff_elements[i].price_components[0].price / (3600 / tariff_elements[i].price_components[0].step_size)).toFixed(2) + TariffData.currency + '\n')
-//     }
-
-//     else if (tariff_elements[i].price_components[0].type === 'PARKING_TIME') {
-//       text_arr.push(i + 1 + '. ' + 'Parking' + '\n' + week + tariff_elements[i].restrictions.start_time + ' ~ ' + tariff_elements[i].restrictions.end_time + '\n'
-//         + (tariff_elements[i].price_components[0].step_size / 60).toFixed(2) + ' Min '
-//         + (tariff_elements[i].price_components[0].price / (3600 / tariff_elements[i].price_components[0].step_size)).toFixed(2) + TariffData.currency + '\n')
-//     }
-//     week = ''
-//     textarea_en.value += text_arr[i]
-//   }
-//   if (TariffData.min_price_str !== undefined && TariffData.min_price_str !== '') {
-//     textarea_en.value += 'Min Price : ' + TariffData.min_price_str + ' ' + TariffData.currency
-//   }
-// }
-
 const router = useRouter()
 const MsiApi = ApiFunc()
 const MsiFunc = CommpnFunc()
@@ -564,7 +508,7 @@ const new_element = ref({day_of_week:[]})
 const element_action = ref('')
 const route = useRoute()
 const activeName = ref('one')
-const add_tariff_title = ref('Add Rate')
+const add_tariff_title = ref(t('add_rate_plan'))
 const add_tariff_visible = ref(false)
 const modifyIndex = ref(0)
 const used_evse = reactive([])
@@ -577,6 +521,7 @@ let price_type_opeion = [{ value: 'ENERGY', label: 'Charging By Energy' }, { val
 const addLanguage = ref(0)
 const addLanguage_select = reactive([])
 const languageOptions = [ {value: 'English', label: 'English',}, {value: 'Chinese',label: 'Chinese',}, {value: 'Japanese', label: 'Japanese',}  ]
+
 const textarea_en = ref('')
 const textarea_zh = ref('')
 const textarea_jp = ref('')
@@ -615,22 +560,25 @@ const seletcType = (type) => {
 const cancel_tariff = () => {
   router.push({ name: 'ratePlan' })
 }
-const save_tariff = async () => {
+const save_tariff = async (formEl) => {
+  console.log(formEl)
+  if (!formEl) return
+  let check_format_success = false
+  await formEl.validate((valid) => {
+    if (valid === true) 
+      check_format_success = true
+  })
+  if (check_format_success === false) {
+    return 
+  }
   let new_tariff_alt_text = [{ language: 'en', text: textarea_en.value }, { language: 'zh', text: textarea_zh.value }, { language: 'jp', text: textarea_jp.value }]
-  // TariffData.tariff_alt_text = new_tariff_alt_text
   TariffData.elements = tariff_elements
   TariffData.class = 'Tariff'
   TariffData.type = 'AD_HOC_PAYMENT'
   TariffData.party_id = 'MSI'
   TariffData.country_code = 'TW'
-  if (TariffData.elements.length === 0) {
-    let day_of_week_arr = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY']
-    let free_price = [{
-      'price_components': [{ type: 'ENERGY', price: 0, vat: 5, step_size: 1 }],
-      'restrictions': { start_time: '00:00', end_time: '23:59', max_duration: 0, min_duration: 0, day_of_week: day_of_week_arr }
-    }]
-    TariffData.elements = free_price
-  }
+  TariffData.custom = {name: TariffData.custom_profile_name, description : TariffData.custom_description}
+
   if (TariffData.min_price_str !== undefined && TariffData.min_price_str !== '') {
     TariffData.min_price = { excl_vat: parseInt(TariffData.min_price_str), incl_vat: parseInt(TariffData.min_price_str) }
   }
@@ -643,26 +591,21 @@ const save_tariff = async () => {
   else {
     delete TariffData.max_price
   }
-  // console.log(TariffData)
-  // console.log(TariffData.tariff_alt_text)
-  // MsiFunc.deleteEmptyKeys(TariffData)
+  TariffData.tariff_alt_text = new_tariff_alt_text
   if (tariff_id) {
-    ElMessageBox.confirm('Do you want to modify?', 'Warning', { confirmButtonText: 'OK', cancelButtonText: 'Cancel', type: 'warning' })
+    ElMessageBox.confirm(t('do_you_want_to_modify'), 'Warning', { confirmButtonText: t('ok'), cancelButtonText: t('cancel'), type: 'warning' })
       .then(async () => {
-        TariffData.tariff_alt_text = new_tariff_alt_text
-
         MsiFunc.deleteEmptyKeys(TariffData)
-
         save_status.value = true
-        if (TariffData.profile_name === undefined) { ElMessage.error('Oops, Profile Name required.') }
-        else if (TariffData.currency === undefined) { ElMessage.error('Oops, Currency required.') }
-        else {
+        if (TariffData.elements.length > 0) {
           for(let i = 0; i < TariffData.elements.length; i++) {
             delete TariffData.elements[i].price_components_type_str
             delete TariffData.elements[i].price_components_step_size_str
             delete TariffData.elements[i].restrictions_max_duration_str
-            delete TariffData.elements[i].restrictions_min_duration_str            
+            delete TariffData.elements[i].restrictions_min_duration_str
+            delete TariffData.elements[i].restrictions.day_of_week_str
           }
+        }
           let res = await MsiApi.setCollectionData('patch', 'ocpi', TariffData)
           if (res.status === 200)
             ElMessage.success(res.data.message)
@@ -670,27 +613,26 @@ const save_tariff = async () => {
             ElMessage.error(res.data.message)
           }
           router.push({ name: 'ratePlan' })
-        }
       })
       .catch((e) => {
         console.log(e)
       })
   }
   else {
-    ElMessageBox.confirm('Do you want to create?', 'Warning', { confirmButtonText: 'OK', cancelButtonText: 'Cancel', type: 'warning' })
+    ElMessageBox.confirm( t('do_you_want_to_create'), 'Warning', { confirmButtonText: t('ok'), cancelButtonText: t('cancel'), type: 'warning' })
     .then(async () => {
-      TariffData.tariff_alt_text = new_tariff_alt_text
       MsiFunc.deleteEmptyKeys(TariffData)
       save_status.value = true
-      if (TariffData.profile_name === undefined) { ElMessage.error('Oops, Profile Name required.') }
-      else if (TariffData.currency === undefined) { ElMessage.error('Oops, Currency required.') }
-      else {
+      console.log(TariffData)
+      if (TariffData.elements.length > 0) {
         for(let i = 0; i < TariffData.elements.length; i++) {
             delete TariffData.elements[i].price_components_type_str
             delete TariffData.elements[i].price_components_step_size_str
             delete TariffData.elements[i].restrictions_max_duration_str
             delete TariffData.elements[i].restrictions_min_duration_str
+            delete TariffData.elements[i].restrictions.day_of_week_str
           }
+      }
         let res = await MsiApi.setCollectionData('post', 'ocpi', TariffData)
         if (res.status === 201) {
           ElMessage.success(res.data.message)
@@ -699,7 +641,6 @@ const save_tariff = async () => {
           ElMessage.error(res.data.message)
         }
         router.push({ name: 'ratePlan' })
-      }
     })
     .catch((e) => {
       console.log(e)
@@ -710,7 +651,7 @@ const save_tariff = async () => {
 const ShowAddElementDialog = () => {
   add_tariff_visible.value = true
   element_action.value = 'add'
-  add_tariff_title.value = 'Add Rate'
+  add_tariff_title.value = t('add_rate_plan')
   new_element.value.price_type = ''
   new_element.value.vat = 5
   new_element.value.price_price = 0
@@ -725,7 +666,7 @@ const ShowAddElementDialog = () => {
 const ShowEditElementDialog = (scope) => {
   add_tariff_visible.value = true
   element_action.value = 'edit'
-  add_tariff_title.value = 'Edit Rate'
+  add_tariff_title.value = t('edit_rate')
   modifyIndex.value = scope.$index
   new_element.value.day_of_week.length =  0
   new_element.value.price_type = scope.row.price_components[0].type
@@ -757,11 +698,11 @@ const editElement = (action) => {
   }
 
   if (new_element.value.price_type === "ENERGY")
-    new_element.value.price_components_type_str = 'Charging By Energy'
+    new_element.value.price_components_type_str = t('charging_by_energy')
   else if (new_element.value.price_type === "TIME")
-    new_element.value.type_str = 'Charging By Time'
+    new_element.value.type_str = t('charging_by_time')
   else if (new_element.value.price_type === "PARKING_TIME")
-    new_element.value.type_str = 'Parking By Time'
+    new_element.value.type_str = t('parking_by_time')
 
     new_element.value.min_duration = new_element.value.min_duration_str * 60
     new_element.value.max_duration = new_element.value.max_duration_str * 60
@@ -791,16 +732,16 @@ const editElement = (action) => {
     
       let element = JSON.parse(JSON.stringify(modify_element))
       if (element.price_components[0].type === "ENERGY") {
-        element.price_components_type_str = 'Charging By Energy'
+        element.price_components_type_str = t('charging_by_energy')
         element.price_components_step_size_str = 1 
         element.price_components[0].step_size = 1 
       }
       else if (element.price_components[0].type === "TIME") {
-        element.price_components_type_str = 'Charging By Time'
+        element.price_components_type_str = t('charging_by_time')
         element.price_components_step_size_str = new_element.value.step_size / 60
       }
       else if (element.price_components[0].type === "PARKING_TIME") {
-        element.price_components_type_str = 'Parking By Time'
+        element.price_components_type_str = t('parking_by_time')
         element.price_components_step_size_str = new_element.value.step_size / 60
         element.restrictions_min_duration_str = new_element.value.min_duration / 60
         element.restrictions_max_duration_str = new_element.value.max_duration / 60
@@ -817,16 +758,16 @@ const editElement = (action) => {
   else if (action === 'edit') {
     tariff_elements[modifyIndex.value] = modify_element
     if (tariff_elements[modifyIndex.value].price_components[0].type === "ENERGY") {
-      tariff_elements[modifyIndex.value].price_components_type_str = 'Charging By Energy'
+      tariff_elements[modifyIndex.value].price_components_type_str = t('charging_by_energy')
       tariff_elements[modifyIndex.value].price_components_step_size_str = 1
       tariff_elements[modifyIndex.value].price_components[0].step_size = 1
     }
     else if (tariff_elements[modifyIndex.value].price_components[0].type === "TIME") {
-      tariff_elements[modifyIndex.value].price_components_type_str = 'Charging By Time'
+      tariff_elements[modifyIndex.value].price_components_type_str = t('charging_by_time')
       tariff_elements[modifyIndex.value].price_components_step_size_str = modify_element.price_components[0].step_size / 60
     }
     else if (tariff_elements[modifyIndex.value].price_components[0].type === "PARKING_TIME") {
-      tariff_elements[modifyIndex.value].price_components_type_str = 'Parking By Time'
+      tariff_elements[modifyIndex.value].price_components_type_str = t('parking_by_time')
       tariff_elements[modifyIndex.value].price_components_step_size_str = modify_element.price_components[0].step_size / 60
       tariff_elements[modifyIndex.value].restrictions_min_duration_str = modify_element.restrictions.min_duration / 60
       tariff_elements[modifyIndex.value].restrictions_max_duration_str = modify_element.restrictions.max_duration / 60
@@ -839,10 +780,10 @@ const editElement = (action) => {
 }
 
 const status_filter_item = [
-  { text: 'AVAILABLE', value: 'AVAILABLE' },
-  { text: 'CHARGING', value: 'CHARGING' },
-  { text: 'UNKNOWN', value: 'UNKNOWN' },
-  { text: 'ERROR', value: 'ERROR' },
+  { text: t('available'), value: 'AVAILABLE' },
+  { text: t('charging'), value: 'CHARGING' },
+  { text: t('offline'), value: 'UNKNOWN' },
+  { text: t('error'), value: 'ERROR' },
 ]
 const status_filter = (value, rowData) => {
   return rowData.status === value
@@ -864,7 +805,10 @@ onMounted(async () => {
   if (tariff_id) {
     let queryData = { "database": "OCPI", "collection": "Tariff", "query": { "_id": { "ObjectId": tariff_id } } }
     let res = await MsiApi.mongoQuery(queryData)
+    console.log(res)
     Object.assign(TariffData, res.data.all[0])
+    TariffData.custom_profile_name = TariffData?.custom?.name
+    TariffData.custom_description = TariffData?.custom?.description
     for (let i = 0; i < TariffData?.tariff_alt_text?.length; i++) {
       if (TariffData.tariff_alt_text[i].language === 'en') {
         textarea_en.value = TariffData.tariff_alt_text[i].text
@@ -877,22 +821,49 @@ onMounted(async () => {
       }
     }
     Object.assign(tariff_elements, TariffData.elements)
-    for (let i = 0; i < tariff_elements.length; i++) {
-      if (tariff_elements[i].price_components[0].type === "ENERGY") {
-        tariff_elements[i].price_components_type_str = 'Charging By Energy'
-        tariff_elements[i].price_components_step_size_str = tariff_elements[i].price_components[0].step_size
+    tariff_elements.forEach((item)=>{
+      if (item.price_components[0].type === "ENERGY") {
+        item.price_components_type_str = t('charging_by_energy')
+        item.price_components_step_size_str = item.price_components[0].step_size
       }
-      else if (tariff_elements[i].price_components[0].type === "TIME") {
-        tariff_elements[i].price_components_type_str = 'Charging By Time'
-        tariff_elements[i].price_components_step_size_str = tariff_elements[i].price_components[0].step_size / 60
+      else if (item.price_components[0].type === "TIME") {
+        item.price_components_type_str = t('charging_by_time')
+        item.price_components_step_size_str = item.price_components[0].step_size / 60
       }
-      else if (tariff_elements[i].price_components[0].type === "PARKING_TIME") {
-        tariff_elements[i].price_components_type_str = 'Parking By Time'
-        tariff_elements[i].price_components_step_size_str = tariff_elements[i].price_components[0].step_size / 60
-        tariff_elements[i].restrictions_min_duration_str = tariff_elements[i].restrictions.min_duration / 60
-        tariff_elements[i].restrictions_max_duration_str = tariff_elements[i].restrictions.max_duration / 60
+      else if (item.price_components[0].type === "PARKING_TIME") {
+        item.price_components_type_str = t('parking_by_time')
+        item.price_components_step_size_str = item.price_components[0].step_size / 60
+        item.restrictions_min_duration_str = item.restrictions.min_duration / 60
+        item.restrictions_max_duration_str = item.restrictions.max_duration / 60
       }
-    }
+      let day_of_week_str = []
+      for (const day of item.restrictions.day_of_week) {
+        switch (day) {
+          case 'MONDAY':
+            day_of_week_str.push(t('mon'))
+          break
+          case 'TUESDAY':
+            day_of_week_str.push(t('tue'))
+          break
+          case 'WEDNESDAY':
+            day_of_week_str.push(t('wed'))
+          break
+          case 'THURSDAY':
+            day_of_week_str.push(t('thu'))
+          break
+          case 'FRIDAY':
+            day_of_week_str.push(t('fri'))
+          break
+          case 'SATURDAY':
+            day_of_week_str.push(t('sat'))
+          break
+          case 'SUNDAY':
+            day_of_week_str.push(t('sun'))
+          break
+        }
+      }
+      item.restrictions.day_of_week_str = day_of_week_str
+    })
     TariffData.min_price_str = TariffData?.min_price?.incl_vat
     TariffData.max_price_str = TariffData?.max_price?.incl_vat
     queryData = {
@@ -909,10 +880,6 @@ onMounted(async () => {
     response = await MsiApi.mongoAggregate(queryData)
     let used_connector = response.data.result
 
-    // queryData = {
-    //   "database": "OCPI", "collection": "EVSE", "pipelines": [
-    //     { "$project": { "_id": 0, "connectors": 1, "evse_id": 1 } }]
-    // }
     queryData = {
       "database": "OCPI", "collection": "EVSE", "pipelines": [
         { "$project": { "byCompany": 0}}
@@ -924,14 +891,28 @@ onMounted(async () => {
     for (let i = 0; i < used_connector.length; i++) {
       for (let j = 0; j < evse.length; j++) {
         if (used_connector[i]._id === evse[j].connectors[0]) {
-          // used_evse.push(evse[j].evse_id)
-          let localTime = new Date(
-            new Date(evse[j].last_updated).getTime() + MStore.timeZoneOffset * -60000
-          )
+          let localTime = new Date(new Date(evse[j].last_updated).getTime() + MStore.timeZoneOffset * -60000)
+          switch (evse[j].status) {
+            case 'AVAILABLE':
+              evse[j].status_str = t('available')
+            break
+            case 'CHARGING':
+              evse[j].status_str = t('charging')
+            break
+            case 'UNKNOWN':
+              evse[j].status_str = t('offline')
+            break
+            case 'OUTOFORDER':
+              evse[j].status_str = t('error')
+            break
+            default:
+              evse[j].status_str = t('others')
+          }
           let evse_data = {
             _id: evse[j]._id,
             uid: evse[j].uid,
             evse_id: evse[j].evse_id,
+            status_str: evse[j].status_str,
             status: evse[j].status,
             floor_level: evse[j].floor_level,
             last_updated: moment(localTime).format('YYYY-MM-DD HH:mm:ss'),
@@ -948,8 +929,8 @@ onMounted(async () => {
   <div class="tariff-detail">
     <div class="container lg flex-col wh-full">
       <div class="flex justify-between flex-wrap lg:flex-nowrap pt-40px pb-32px">
-        <p class="text-36px">Rate Profile Details</p>
-        <el-button class="btn-secondary box-shadow mt-4 md:mt-0 md:ml-30px box-shadow" @click="ShowAddElementDialog"> Add Rate </el-button>
+        <p class="text-36px"> {{ t('rate_profile_details') }}</p>
+        <el-button class="btn-secondary box-shadow mt-4 md:mt-0 md:ml-30px box-shadow" @click="ShowAddElementDialog"> {{ t('add_rate_plan') }} </el-button>
       </div>
 
       <div class="tabs flex-grow">
@@ -957,14 +938,13 @@ onMounted(async () => {
           <el-tab-pane label="General" name="one">
             <div class="pb-24px sm:flex-col lg:flex-row">
               <div class="left mt-24px lg:mr-40px 2xl:w-350px">
-                <el-form class="flex-col">
-                  <el-form-item class="mb-24px lg-w-full" label="Profile Name">
-                    <el-input v-model.trim="TariffData.profile_name"/>
+                <el-form class="flex-col" :rules="rules" :model="TariffData" ref="ruleFormRef" >
+                  <el-form-item class="mb-24px lg-w-full" label="Profile Name" prop="custom_profile_name">
+                    <el-input v-model="TariffData.custom_profile_name"/>
                   </el-form-item>
-                  <el-form-item class="mb-24px lg-w-full" label="Currency">
+                  <el-form-item class="mb-24px lg-w-full" label="Currency" prop="currency">
                     <el-select v-model="TariffData.currency" placeholder="Select" size="large" class="w-full 2xl:w-350px">
-                      <el-option v-for="item in tariff_currency_opeion" :key="item.value" :label="item.label"
-                        :value="item.value" />
+                      <el-option v-for="item in tariff_currency_opeion" :key="item.value" :label="item.label" :value="item.value" />
                     </el-select>
                   </el-form-item>
                   <el-form-item class="mb-24px lg-w-full" label="Min Price">
@@ -972,26 +952,35 @@ onMounted(async () => {
                   </el-form-item>
                 </el-form>
               </div>
-  
               <div class="v-line"></div>
 
               <div class="right w-full flex-col mt-24px lg:ml-20px">
-
                 <div class="flex justify-between">
-                  <p class="text-secondary text-22px lg:ml-20px">Rate alt text</p>
-                  <el-button class="add-lang-button" @click="add_language"> Add Language </el-button>
+                  <p class="text-secondary text-22px lg:ml-20px"> {{ t('rate_description') }}</p>
                 </div>
+                <div class="card-container w-full max-h-95% flex flex-wrap overflow-y-auto">
+                  <div class="w-full flex flex-wrap overflow-y-auto">
+                    <div class="card ml-20px mt-20px rounded-5px">
+                      <el-input v-model="TariffData.custom_description" :rows="10" type="textarea" class="mt-8px rounded-5px"/>
+                    </div>
+                  </div>
+                </div>
+              </div>
 
+
+              <!-- <div class="right w-full flex-col mt-24px lg:ml-20px">
+                <div class="flex justify-between">
+                  <p class="text-secondary text-22px lg:ml-20px"> {{ t('rate_description') }}</p>
+                  <el-button class="add-lang-button" @click="add_language"> {{ t('add_language') }} </el-button>
+                </div>
                 <div class="card-container w-full max-h-85% flex flex-wrap overflow-y-auto">
-
                   <el-skeleton v-if="save_status" :rows="3" animated class="flex w-full">
                     <template #template>
                       <el-skeleton-item variant="card" class="w-200px h-200px" />
                     </template>
                   </el-skeleton>
-
                   <div v-else class="w-full flex flex-wrap overflow-y-auto">
-                    <template v-for="(item, index) in TariffData.tariff_alt_text">
+                    <template v-for="(item, index) in TariffData.tariff_alt_text" :key="item">
                       <div v-if="item.text !== undefined" class="card ml-20px mt-20px rounded-5px">
                         <div class="pl-15px h-40px bg-blue-1200 text-white text-15px line-height-40px rounded-5px"> 
                           <span v-if="item.language === 'en'">English</span>
@@ -1022,12 +1011,11 @@ onMounted(async () => {
                       </div>
                     </template>
   
-                    <template v-for="item in addLanguage">
+                    <template v-for="item in addLanguage" :key="item">
                       <div v-if="addLanguage_select[item] !== 'none'" class="card ml-20px mt-20px rounded-5px">
                         <el-select v-model="addLanguage_select[item]" placeholder="Select" size="large" class="w-full">
                           <el-option v-for="item2 in languageOptions" :key="item2.value" :label="item2.label" :value="item2.value" />
                         </el-select>
-    
                         <el-input 
                           v-if="addLanguage_select[item] === 'English'"
                           v-model="textarea_en" 
@@ -1056,20 +1044,14 @@ onMounted(async () => {
                           class="mt-8px rounded-5px"
                           placeholder="...">
                         </el-input>
-                        
                         <img src="@/assets/img/station_edit_close.png" class="close-btn w-20px h-20px" @click="clear_alt_text(addLanguage_select[item], item, 'select')">
                       </div>
                     </template>
-
                   </div>
-
                 </div>
-
-              </div>
-
+              </div> -->
             </div>
           </el-tab-pane>
-
 
           <el-tab-pane label="Rate" name="two">
             <el-table 
@@ -1085,57 +1067,66 @@ onMounted(async () => {
             >
               <el-table-column
                 prop="price_components_type_str"
-                label="Type"
+                :label="t('type')"
                 sortable
                 min-width="200"
+                align="center"
               />
               <el-table-column
                 prop="price_components[0].price"
-                label="Price"
+                :label="t('price')"
                 sortable
                 min-width="100"
+                align="center"
               />
               <el-table-column
                 prop="price_components[0].vat"
-                label="Vat"
+                :label="t('vat')"
                 sortable
                 min-width="100"
+                align="center"
               />
               <el-table-column
                 prop="price_components_step_size_str"
-                label="Unit"
+                :label="t('unit')"
                 sortable
                 min-width="100"
+                align="center"
               />
               <el-table-column
                 prop="restrictions.start_time"
-                label="Start Time"
+                :label="t('start_time')"
                 sortable
                 min-width="150"
+                align="center"
               />
               <el-table-column
                 prop="restrictions.end_time"
-                label="End Time"
+                :label="t('end_time')"
                 sortable
                 min-width="150"
+                align="center"
               />
               <el-table-column
                 prop="restrictions_min_duration_str"
-                label="Active (Minute)"
+                :label="t('active_minute')"
                 sortable
                 min-width="200"
+                align="center"
               />
               <el-table-column
                 prop="restrictions_max_duration_str"
-                label="Deactivate (Minute)"
+                :label="t('deactivate_minute')"
                 sortable
                 min-width="220"
+                align="center"
               />
               <el-table-column
-                prop="restrictions.day_of_week"
-                label="Day Of Week"
+                prop="restrictions.day_of_week_str"
+                :label="t('day_of_week')"
                 sortable
                 min-width="180"
+                
               />
               <el-table-column
                 prop="detail"
@@ -1152,29 +1143,21 @@ onMounted(async () => {
           </el-tab-pane>
 
 
-          <el-tab-pane label="Charging Rate" name="three">
+          <el-tab-pane :label="t('charging_rate')" name="three">
             <div class="overflow-x-auto pb-8px">
               <FullCalendar v-if="isCalendarMounted" ref="chargingCalendarRef" :options="chargingCalendarOptions" class="min-w-992px">
-                <template v-slot:eventContent='arg'>
-                  <!-- <img src="@/assets/img/station_edit_close.png" class="close-calendar-btn w-20px h-20px" @click.prevent="removeCalendarEvent"> -->
-                </template>
               </FullCalendar>
             </div>
           </el-tab-pane>
 
-
-          <el-tab-pane label="Parking Rate" name="four">
+          <el-tab-pane :label="t('parking_rate')" name="four">
             <div class="overflow-x-auto pb-8px">
               <FullCalendar v-if="isCalendarMounted" ref="parkingCalendarRef" :options="parkingCalendarOptions" class="min-w-992px">
-                <template v-slot:eventContent='arg'>
-                  <!-- <img src="@/assets/img/station_edit_close.png" class="close-calendar-btn w-20px h-20px" @click.prevent="removeCalendarEvent"> -->
-                </template>
               </FullCalendar>
             </div>
           </el-tab-pane>
 
-
-          <el-tab-pane label="EVSE List" name="five">
+          <el-tab-pane :label="t('evse_list')" name="five">
             <!-- <p v-for="item in used_evse" :key="item" :label="item" :value="item" class="mt-18px"> {{ item.evse_id }}</p> -->
             <el-table 
               :data="used_evse" 
@@ -1189,13 +1172,13 @@ onMounted(async () => {
             >
               <el-table-column
                 prop="evse_id"
-                label="EVSE ID"
+                :label="t('evse_id')"
                 sortable
                 min-width="200"
               />
               <el-table-column
                 prop="status"
-                label="Status"
+                :label="t('status')"
                 :filters="status_filter_item"
                 :filter-method="status_filter"
                 min-width="150"
@@ -1205,36 +1188,36 @@ onMounted(async () => {
                     class="available"
                     v-if="scope.row.status === 'AVAILABLE'"
                   >
-                    {{ '●' + scope.row.status }}
+                    {{ '●' + scope.row.status_str }}
                   </p>
                   <p
                     class="charging"
                     v-else-if="scope.row.status === 'CHARGING'"
                   >
-                    {{ '●' + scope.row.status }}
+                    {{ '●' + scope.row.status_str }}
                   </p>
                   <p
                     class="offline"
                     v-else-if="scope.row.status === 'UNKNOWN'"
                   >
-                    {{ '●' + scope.row.status }}
+                    {{ '●' + scope.row.status_str }}
                   </p>
                   <p
                     class="error"
                     v-else-if="scope.row.status === 'OUTOFORDER'"
                   >
-                    {{ '●' + scope.row.status }}
+                    {{ '●' + scope.row.status_str }}
                   </p>
                 </template>
               </el-table-column>
               <el-table-column
                 prop="floor_level"
-                label="Floor Level"
+                :label="t('floor_level')"
                 min-width="150"
               />
               <el-table-column
                 prop="last_updated"
-                label="Last Updated"
+                :label="t('last_updated')"
                 sortable
                 min-width="200"
               />
@@ -1256,8 +1239,8 @@ onMounted(async () => {
       </div>
 
       <div class="flex justify-center mb-44px">
-        <el-button class="btn-secondary bg-btn-100 md:mr-44px" @click="cancel_tariff"> Cancel </el-button>
-        <el-button class="btn-secondary" @click="save_tariff"> Save </el-button>
+        <el-button class="btn-secondary bg-btn-100 md:mr-44px" @click="cancel_tariff"> {{t('cancel')}} </el-button>
+        <el-button class="btn-secondary" @click="save_tariff(ruleFormRef)"> {{t('save')}} </el-button>
       </div>
 
       <el-dialog 
@@ -1294,7 +1277,7 @@ onMounted(async () => {
 
             <div class="v-line1 mt-12px mb-12px"></div>
 
-            <div v-for="(item, index) in eventCount">
+            <div v-for="(item, index) in eventCount" :key="item">
               <div v-if="index === 0">
                 <el-form-item class="time-select mb-24px" label="Time">
                   <div class="flex justify-between flex-items-center w-full">
@@ -1341,7 +1324,7 @@ onMounted(async () => {
                     <span>{{ TariffData.currency }}</span>
                   </template>
                   <template #suffix>
-                    <span>/ kWh</span>
+                    <span> {{ '/' + t('kwh') }}</span>
                   </template>
                 </el-input>
   
@@ -1350,7 +1333,7 @@ onMounted(async () => {
                     <span>{{ TariffData.currency }}</span>
                   </template>
                   <template #suffix>
-                    <span>/ hr</span>
+                    <span> {{ '/' + t('hr') }}</span>
                   </template>
                 </el-input>
   
@@ -1359,7 +1342,7 @@ onMounted(async () => {
                     <span>{{ TariffData.currency }}</span>
                   </template>
                   <template #suffix>
-                    <span>/ hr</span>
+                    <span>{{ '/' + t('hr') }}</span>
                   </template>
                 </el-input>
               </el-form-item>
@@ -1368,26 +1351,24 @@ onMounted(async () => {
                 <el-form-item class="mb-24px" label="Unit">
                   <el-input v-if="new_element.price_type === 'ENERGY'" v-model="new_element.step_size_str" type="number" class="w-220px" :controls="false" disabled >
                     <template #suffix>
-                      <span>/ Wh</span>
+                      <span> {{ '/' + t('wh') }} </span>
                     </template>
                   </el-input>
   
                   <div v-else-if="new_element.price_type === 'TIME'">
                     <el-input v-model="new_element.step_size_str" type="number" class="w-220px" :controls="false" >
                       <template #suffix>
-                        <span>/ min</span>
+                        <span> {{ '/' + t('min') }}</span>
                       </template>
                     </el-input>
-                    <!-- <p class="color-secondary"> {{ 'i.e. ' + new_element.step_size_str + ' Min ' + new_element.price_price /  60 * new_element.step_size_str + ' Dollar ' + 'excl Vat'}}</p> -->
                   </div>
   
                   <div v-else-if="new_element.price_type === 'PARKING_TIME'">
                     <el-input v-model="new_element.step_size_str" type="number" class="w-220px" :controls="false" >
                       <template #suffix>
-                        <span>/ min</span>
+                        <span> {{ '/' + t('min') }}</span>
                       </template>
                     </el-input>
-                    <!-- <p class="color-secondary"> {{ 'i.e. ' + new_element.step_size_str + ' Min ' + new_element.price_price /  60 * new_element.step_size_str + ' Dollar ' + 'excl Vat'}}</p> -->
                   </div>
                   
                 </el-form-item>
@@ -1402,19 +1383,19 @@ onMounted(async () => {
             </div>
 
             <div v-if="new_element.price_type === 'PARKING_TIME'" class="flex justify-between">
-              <el-form-item class="mb-24px" label="Active Time (Minute)">
+              <el-form-item class="mb-24px" :label="t('active_minute')">
                 <!-- <el-input-number v-model="new_element.min_duration" :controls="false" /> -->
                 <el-input v-model="new_element.min_duration_str" type="number" class="w-220px" :controls="false" >
                   <template #suffix>
-                    <span>min</span>
+                    <span> {{ t('min') }}</span>
                   </template>
                 </el-input>
               </el-form-item>
-              <el-form-item class="mb-24px" label="Deactivate Time (Minute)">
+              <el-form-item class="mb-24px" :label="t('deactivate_minute')">
                 <!-- <el-input-number v-model="new_element.max_duration" :controls="false" /> -->
                 <el-input v-model="new_element.max_duration_str" type="number" class="w-220px" :controls="false" >
                   <template #suffix>
-                    <span>min</span>
+                    <span> {{ t('min') }}</span>
                   </template>
                 </el-input>
               </el-form-item>
@@ -1422,15 +1403,14 @@ onMounted(async () => {
           </el-form>
         </div>
 
-        
         <template #footer>
-          <el-button round class="w-48% bg-btn-100 text-white max-w-140px mb-44px" @click="editElement('cancel')">Cancel</el-button>
+          <el-button round class="w-48% bg-btn-100 text-white max-w-140px mb-44px" @click="editElement('cancel')"> {{ t('cancel') }}</el-button>
           <template v-if="element_action === 'add'">
-            <el-button round class="w-48% bg-btn-200 text-white max-w-140px mb-44px" @click="editElement('add')">Create</el-button>
+            <el-button round class="w-48% bg-btn-200 text-white max-w-140px mb-44px" @click="editElement('add')"> {{ t('create') }}</el-button>
           </template>
           <template v-else>
-            <el-button round class="w-48% bg-btn-100 text-white max-w-140px mb-44px" @click="editElement('delete')">Delete</el-button>
-            <el-button round class="w-48% bg-btn-200 text-white max-w-140px mb-44px" @click="editElement('edit')">Modify</el-button>
+            <el-button round class="w-48% bg-btn-100 text-white max-w-140px mb-44px" @click="editElement('delete')"> {{ t('delete') }}</el-button>
+            <el-button round class="w-48% bg-btn-200 text-white max-w-140px mb-44px" @click="editElement('edit')">{{ t('modify') }}</el-button>
           </template>
         </template>
       </el-dialog>

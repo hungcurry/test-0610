@@ -5,17 +5,12 @@ import ApiFunc from '@/composables/ApiFunc'
 import msi from '@/assets/msi_style'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { ElMessageBox,ElMessage } from 'element-plus'
-
+import { useI18n } from 'vue-i18n'
+const { t } = useI18n()
 const router = useRouter()
 const MsiApi = ApiFunc()
 const TariffData = reactive([])
 const isLoading = ref(false)
-// const day = ['Mon.', 'Tue.', 'Wed.', 'Thu', 'Fri.', 'Sat.', 'Sun.']
-// const tariff_select = ref ('Charging')
-// const charging_select = ref ('Time')
-// const addTariffFormVisible = ref(false)
-// const TariffOptions = [ { value: 'Charging', label: 'Charging',}, {value: 'Parking',label: 'Parking',}  ]
-// const ChargingOptions = [{ value: 'Time', label:'by Time'}, { value: 'Energy', label:'by Energy'}]
 
 const sortFunc = (obj1, obj2, column) => {
   let at = obj1[column]
@@ -49,17 +44,16 @@ const deleteTariff = async (row) => {
       }
     }
   }
-
   if(used_evse.length !== 0) {
     let used_evse_str =''
     for (let k = 0; k < used_evse.length; k++) {
       used_evse_str += used_evse[k] + ' / ' 
     }
-    ElMessage.error(used_evse_str + 'in using')
+    ElMessage.error(used_evse_str + t('in_using'))
   }
   else {
     let sendData = { class : 'Tariff', id : row.id }
-    ElMessageBox.confirm('Are you sure you want to delete?','Warning', {confirmButtonText: 'OK', cancelButtonText: 'Cancel', type: 'warning'})
+    ElMessageBox.confirm(t('do_you_want_to_delete'),'Warning', {confirmButtonText: t('ok'), cancelButtonText: t('cancel'), type: 'warning'})
     .then(async () => {
       console.log(await MsiApi.setCollectionData('delete', 'ocpi', sendData))
       let queryData = { "database":"OCPI", "collection":"Tariff", "query": {}}
@@ -67,8 +61,8 @@ const deleteTariff = async (row) => {
       TariffData.length = 0
       Object.assign(TariffData, response.data.all) 
       for (let i = 0; i < TariffData.length; i++) {
-        TariffData[i].tariff_text = TariffData[i].tariff_alt_text[0].text
-        TariffData[i].tariff_name = TariffData[i].energy_mix?.supplier_name
+        TariffData[i].name = TariffData[i].custom?.name
+        TariffData[i].description = TariffData[i].custom?.description
       }
     })
     .catch((e)=>{
@@ -87,25 +81,19 @@ const copyTariff = (row) => {
   delete senddata.id
   senddata.class = 'Tariff'
   senddata.party_id = 'MSI'
-  ElMessageBox.confirm('Are you sure you want to create?','Warning', {confirmButtonText: 'OK', cancelButtonText: 'Cancel', type: 'warning'})
+  ElMessageBox.confirm(t('do_you_want_to_create'),'Warning', {confirmButtonText: t('ok'), cancelButtonText: t('cancel'), type: 'warning'})
   .then(async () => {
-  if (senddata.profile_name === undefined ) {ElMessage.error('Oops, Profile Name required.')}
-  else if (senddata.country_code === undefined ) {ElMessage.error('Oops, Country Code required.')}
-  else if (senddata.currency === undefined) {ElMessage.error('Oops, Currency required.')}
-  else {
     let res = await MsiApi.setCollectionData('post', 'ocpi', senddata)
-  
     let queryData = { "database":"OCPI", "collection":"Tariff", "query": {}}
     let response = await MsiApi.mongoQuery(queryData)
     TariffData.length = 0
     Object.assign(TariffData, response.data.all) 
     for (let i = 0; i < TariffData.length; i++) {
-      TariffData[i].tariff_text = TariffData[i].tariff_alt_text[0].text
+      TariffData[i].name = TariffData[i].tariff_alt_text[0].text
       TariffData[i].tariff_name = TariffData[i].energy_mix?.supplier_name
     }
-
     ElMessage.success(res.data.message)
-  }
+
   })
   .catch((e)=>{
     console.log(e)
@@ -118,8 +106,8 @@ onMounted( async() => {
   let response = await MsiApi.mongoQuery(queryData)
   Object.assign(TariffData, response.data.all) 
   for (let i = 0; i < TariffData.length; i++) {
-    TariffData[i].tariff_text = TariffData[i].tariff_alt_text[0].text
-    TariffData[i].tariff_name = TariffData[i].energy_mix?.supplier_name
+    TariffData[i].name = TariffData[i].custom?.name
+    TariffData[i].description = TariffData[i].custom?.description
     TariffData[i].min_price_str = TariffData[i]?.min_price?.incl_vat
     TariffData[i].max_price_str = TariffData[i]?.max_price?.incl_vat
   }
@@ -132,7 +120,7 @@ onMounted( async() => {
   <div class="tariff">
     <div class="container lg">
       <div class="flex flex-justify-end flex-wrap lg:flex-nowrap pt-40px pb-32px">
-        <el-button class="btn-secondary box-shadow" @click="editTariff"> Add Rate Plan </el-button>
+        <el-button class="btn-secondary box-shadow" @click="editTariff"> {{t('add_rate_plan')}} </el-button>
       </div>
 
       <div class="overflow-x-auto">
@@ -149,8 +137,8 @@ onMounted( async() => {
             v-loading.fullscreen.lock="isLoading"
           >
             <el-table-column
-              prop="profile_name"
-              label="Profile Name"
+              prop="name"
+              :label="t('profile_name')"
               align="center"
               sortable
               :sort-method="(a, b) => sortFunc(a, b, 'profile_name')"
@@ -158,8 +146,8 @@ onMounted( async() => {
             />
 
             <el-table-column
-              prop="tariff_text"
-              label="Description"
+              prop="description"
+              :label="t('description')"
               align="center"
               sortable
               :sort-method="(a, b) => sortFunc(a, b, 'tariff_text')"
@@ -168,7 +156,7 @@ onMounted( async() => {
 
             <el-table-column
               prop="min_price_str"
-              label="Min Price"
+              :label="t('min_price')"
               align="center"
               sortable
               :sort-method="(a, b) => sortFunc(a, b, 'min_price_str')"
@@ -177,7 +165,7 @@ onMounted( async() => {
 
             <el-table-column
               prop="currency"
-              label="Currency"
+              :label="t('currency')"
               align="center"
               sortable
               :sort-method="(a, b) => sortFunc(a, b, 'currency')"
@@ -186,7 +174,7 @@ onMounted( async() => {
 
             <el-table-column
               prop=""
-              label="Operations"
+              :label="t('operations')"
               align="center"
               min-width="200"
             >
@@ -207,53 +195,6 @@ onMounted( async() => {
       </div>
     </div>
   </div>
-
-    <!-- 
-    <el-dialog v-model="addTariffFormVisible" title="Add Rate" draggable>
-      <p> Tariff Type </p>
-      <el-select v-model="tariff_select" class="m-2" placeholder="Select" size="large">
-        <el-option v-for="item in TariffOptions" :key="item.value" :label="item.label" :value="item.value"/>
-      </el-select>
-      <br><br>
-      <p> Time </p>
-      <el-time-select v-model="startTime" :max-time="endTime" placeholder="Start time" start="00:00" step="00:30" end="24:00"/>
-      <el-time-select v-model="endTime" :min-time="startTime" placeholder="End time" start="00:00" step="00:30" end="24:00"/>
-      <br><br>
-      <p> Applied Day of Week </p>
-      <el-checkbox-button v-for="week in day" :key="week" :label="week"> {{ week }} </el-checkbox-button>
-
-      <div v-if="tariff_select === 'Charging'">
-        <p>Charging Method</p>
-        <el-select v-model="charging_select" class="m-2" placeholder="Select" size="large">
-          <el-option v-for="item in ChargingOptions" :key="item.value" :label="item.label" :value="item.value"/>
-        </el-select>
-
-        <p>Vat</p>
-          <el-input v-model="vat" />
-        <p>Start Fee</p>
-        <el-input v-model="start_fee" />
-        <p>Charging Fee</p>
-          <el-input v-model="charging_fee" />
-      </div>
-
-      <div v-if="tariff_select === 'Parking'">
-        <p>Vat</p>
-        <el-input v-model="charging_fee" />
-        <p>Start Fee</p>
-        <el-input v-model="charging_fee" />
-        <p>Parging Fee</p>
-        <el-input v-model="charging_fee" />
-        <p>Max Fee</p>
-        <el-input v-model="charging_fee" />
-      </div>
-      <template #footer>
-        <span class="dialog-footer">
-          <el-button @click="addUser('cancel', false)">Cancel</el-button>
-          <el-button type="primary" @click="addUser('confirm', false)">Add</el-button>
-        </span>
-      </template>
-    </el-dialog> 
-    -->
 </template>
   
 <style lang="scss" scoped>
@@ -262,26 +203,5 @@ onMounted( async() => {
     height: 1.8em;
     filter: brightness(65%) saturate(100%);
   }
-//   position: relative;
-//   width: 100%;
-//   height: 100%;
-//   .tariff-list {
-//     width: calc(100% - 40px);
-//     height: calc(100% - 120px);
-//     top: 120px;
-//     left : 40px;
-//     position: absolute;
-//   }
-//   .add-tariff {
-//   width: 220px;
-//   height: 40px;
-//   top: 40px;
-//   right : 40px;
-//   position: absolute;
-//   font-size: 18px;
-//   background-color: #000000DF;
-//   color:#FFFFFF;
-//   border-radius: 20px;
-// }
 }
 </style>
