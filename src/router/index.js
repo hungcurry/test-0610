@@ -158,17 +158,12 @@ const router = createRouter({
 })
 
 router.beforeEach(async to => {
-
   if (navigator.language === 'zh-TW') i18n.global.locale.value = 'zh_tw'
   else i18n.global.locale.value = 'en_us'
 
-  if (to.meta.title) {
-    document.title = to.meta.title
-  }
-  else {
-    document.title = "m-Cloud"
-  }
-
+  if (to.meta.title) document.title = to.meta.title
+  else document.title = "m-Cloud"
+  
   if (to.fullPath === '/login') return
 
   const MStore = useMStore()

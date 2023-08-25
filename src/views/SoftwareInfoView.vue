@@ -7,7 +7,9 @@ import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { useMStore } from "../stores/m_cloud"
 import { v4 as uuidv4 } from 'uuid'
 import {  ElMessage } from 'element-plus'
+import { useI18n } from "vue-i18n"
 
+const { t } = useI18n()
 const MStore = useMStore()
 const isMSI = ref(false)
 const swData = reactive([])
@@ -19,6 +21,18 @@ const Detail_Data = reactive([])
 const type = ref('')
 const index = ref('')
 const isLoading = ref(false)
+const softwareInfo_ref = ref()
+const softwareInfo_rules = reactive({
+  version: [
+    { required: true, message: t('the_item_is_required'), trigger: 'blur' },
+  ],
+  file: [
+    { required: true, message: t('the_item_is_required'), trigger: 'blur' },
+  ],
+})
+const openDialog = () => {
+  softwareInfo_ref.value.clearValidate()
+}
 
 const download_File = () => {
   const fileName = 'update_file'
@@ -31,99 +45,105 @@ const download_File = () => {
   document.body.removeChild(link)
 }
 const confirm = async (mode) => {
-  let check_format_success = true
   if (mode === 'cancel') {
     swVisible.value = false
-  } else if (mode === 'confirm') {
-    if (Detail_Data.version === '' || Detail_Data.version === undefined) {
-      ElMessage.error('Oops, Version required.')
-      check_format_success = false
-    }
-    if (Detail_Data.file === '' || Detail_Data.file === undefined) {
-      ElMessage.error('Oops, file path required.')
-      check_format_success = false
-    }
-    if (check_format_success === true) {
-      let queryData = {
-        database: 'CPO',
-        collection: 'VersionControl',
-        query: { type: type.value },
-      }
-      let response = await MsiApi.mongoQuery(queryData)
-
-      if (response.data.all.length === 0) {
-        let sendData = {
-          class: 'VersionControl',
-          pk: uuidv4(),
-          type: type.value,
-          version: Detail_Data.version,
-          release_date: new Date(),
-          release_note: [
+  } 
+  else if (mode === 'confirm') {
+    softwareInfo_ref.value.validate(async valid => {
+      if (valid) {
+        let queryData = { 
+          "database": 'CPO', 
+          "collection": 'VersionControl', 
+          "pipelines": [
             {
-              version: Detail_Data.version,
-              file: Detail_Data.file,
-              description: Detail_Data.description,
-              update_time: new Date(),
+              $match: {
+                "type": type.value
+              }
             },
-          ],
+            {
+              $project: { _id: 1, release_note: 1 } 
+            }
+          ]
         }
-        console.log(await MsiApi.setCollectionData('post', 'cpo', sendData))
-        swVisible.value = false
-      }
-      else {
-        if (response.data.all[0].release_note === undefined)
-          response.data.all[0].release_note = []
-        let send_release_note = response.data.all[0].release_note
-        if (index.value === -1) {
-          send_release_note.unshift({ version:Detail_Data.version, file:Detail_Data.file, description:Detail_Data.description, update_time: new Date()})
+        let response = await MsiApi.mongoAggregate(queryData)
+    
+        if (response.data.result.length === 0) {
+          let sendData = {
+            class: 'VersionControl',
+            pk: uuidv4(),
+            type: type.value,
+            version: Detail_Data.version,
+            release_date: new Date(),
+            release_note: [
+              {
+                version: Detail_Data.version,
+                file: Detail_Data.file,
+                description: Detail_Data.description,
+                update_time: new Date(),
+              },
+            ],
+          }
+          console.log(await MsiApi.setCollectionData('post', 'cpo', sendData))
+          swVisible.value = false
         }
         else {
-          send_release_note[index.value] = { version:Detail_Data.version, file:Detail_Data.file, description:Detail_Data.description, update_time: new Date()}
-        }
-        let duplicate = {flag:false, i:0,j:0}
-        for (let i = 0; i < send_release_note.length; i++) {
-          for (let j = 0; j < send_release_note.length; j++) {
-            if ( i === j) {
-              break
-            }
-            else {
-              if (send_release_note[i].version === send_release_note[j].version) {
-                duplicate.flag = true
-                duplicate.i = i
-                duplicate.j = j
+          if (response.data.result[0].release_note === undefined)
+            response.data.result[0].release_note = []
+          let send_release_note = response.data.result[0].release_note
+          if (index.value === -1) {
+            send_release_note.unshift({ version:Detail_Data.version, file:Detail_Data.file, description:Detail_Data.description, update_time: new Date()})
+          }
+          else {
+            send_release_note[index.value] = { version:Detail_Data.version, file:Detail_Data.file, description:Detail_Data.description, update_time: new Date()}
+          }
+          let duplicate = {flag:false, i:0,j:0}
+          for (let i = 0; i < send_release_note.length; i++) {
+            for (let j = 0; j < send_release_note.length; j++) {
+              if ( i === j) {
+                break
+              }
+              else {
+                if (send_release_note[i].version === send_release_note[j].version) {
+                  duplicate.flag = true
+                  duplicate.i = i
+                  duplicate.j = j
+                }
               }
             }
           }
+    
+          if (duplicate.flag === false ) {
+            let sendData = { 'class' : 'VersionControl', 'pk': response.data.result[0]._id, 'release_note' : send_release_note, }
+            console.log(await MsiApi.setCollectionData('patch', 'cpo', sendData))
+          }
+          else {
+            ElMessage.error( 'index ' + duplicate.i + ' index ' + duplicate.j + ' duplicate') // TT++: zh?
+          }
+          swVisible.value = false
         }
-
-        if (duplicate.flag === false ) {
-          let sendData = { 'class' : 'VersionControl', 'pk': response.data.all[0]._id, 'release_note' : send_release_note, }
-          console.log(await MsiApi.setCollectionData('patch', 'cpo', sendData))
+        response = await MsiApi.mongoAggregate(queryData)
+        if (type.value === 'XP012') {
+          swData.length = 0
+          Object.assign(swData, response.data.result[0])
+          for (let i = 0; i < swData?.release_note?.length; i++) {
+            swData.release_note[i].update_time_str = moment(
+              swData.release_note[i].update_time
+            ).format('YYYY-MM-DD HH:mm:ss')
+          }
+        } else if (type.value === 'XP011_BT') {
+          fwData.length = 0
+          Object.assign(fwData, response.data.result[0])
+          for (let i = 0; i < fwData?.release_note?.length; i++) {
+            fwData.release_note[i].update_time_str = moment(
+              fwData.release_note[i].update_time
+            ).format('YYYY-MM-DD HH:mm:ss')
+          }
         }
-        else {
-          ElMessage.error( 'index ' + duplicate.i + ' index ' + duplicate.j + ' duplicate')
-        }
-        swVisible.value = false
       }
-      response = await MsiApi.mongoQuery(queryData)
-      if (type.value === 'XP012') {
-        swData.length = 0
-        Object.assign(swData, response.data.all[0])
-        for (let i = 0; i < swData?.release_note?.length; i++) {
-          swData.release_note[i].update_time_str = moment(
-            swData.release_note[i].update_time
-          ).format('YYYY-MM-DD HH:mm:ss')
-        }
-      } else if (type.value === 'XP011_BT') {
-        fwData.length = 0
-        Object.assign(fwData, response.data.all[0])
-        for (let i = 0; i < fwData?.release_note?.length; i++) {
-          fwData.release_note[i].update_time_str = moment(
-            fwData.release_note[i].update_time
-          ).format('YYYY-MM-DD HH:mm:ss')
-        }
+      else {
+        return false
       }
-    }
+    })
   }
 }
 const add = (selectType) => {
@@ -133,9 +153,9 @@ const add = (selectType) => {
   Detail_Data.update_time_str = ''
 
   if (selectType === 'XP012') {
-    dialog_title.value = 'Add SW Release Note'
+    dialog_title.value = t('add_sw_release_note')
   } else if (selectType === 'XP011_BT') {
-    dialog_title.value = 'Add FW Release Note'
+    dialog_title.value = t('add_fw_release_note')
   }
 
   swVisible.value = true  
@@ -146,10 +166,10 @@ const detail_info = (scope,selectType) => {
   swVisible.value = true
   type.value = selectType
   if (selectType === 'XP012') {
-    dialog_title.value = 'Edit SW Release Note'
+    dialog_title.value = t('edit_sw_release_note')
   }
   else if (selectType === 'XP011_BT') {
-    dialog_title.value = 'Edit FW Release Note'
+    dialog_title.value = t('edit_fw_release_note')
   }
   index.value = scope.$index
   Detail_Data.version = scope.row.version
@@ -160,15 +180,24 @@ const detail_info = (scope,selectType) => {
 const release = async (scope, selectType) => {
   if (selectType === 'XP012') swData.version = scope.row.version
   else if (selectType === 'XP011_BT') fwData.version = scope.row.version
-  let queryData = {
-    database: 'CPO',
-    collection: 'VersionControl',
-    query: { type: selectType },
+  let queryData = { 
+    "database": 'CPO', 
+    "collection": 'VersionControl', 
+    "pipelines": [
+      {
+        $match: {
+          "type": selectType
+        }
+      },
+      {
+        $project: { _id: 1 } 
+      }
+    ]
   }
-  let response = await MsiApi.mongoQuery(queryData)
+  let response = await MsiApi.mongoAggregate(queryData)
   let sendData = {
     class: 'VersionControl',
-    pk: response.data.all[0]._id,
+    pk: response.data.result[0]._id,
     release_date: new Date(),
     version: scope.row.version,
   }
@@ -176,22 +205,43 @@ const release = async (scope, selectType) => {
 }
 onMounted(async () => {
   isLoading.value = true
-  let queryData = {
-    database: 'CPO',
-    collection: 'VersionControl',
-    query: { type: 'XP011_BT' },
+  let queryData = { 
+    "database": 'CPO', 
+    "collection": 'VersionControl', 
+    "pipelines": [
+      {
+        $match: {
+          "type": 'XP011_BT'
+        }
+      },
+      {
+        $project: { _id: 1, version: 1, release_note: 1 } 
+      }
+    ]
   }
-  let response = await MsiApi.mongoQuery(queryData)
-  Object.assign(fwData, response.data.all[0])
+  let response = await MsiApi.mongoAggregate(queryData)
+  Object.assign(fwData, response.data.result[0])
   for (let i = 0; i < fwData?.release_note?.length; i++) {
     fwData.release_note[i].update_time_str = moment(
       fwData.release_note[i].update_time
     ).format('YYYY-MM-DD HH:mm:ss')
   }
-
-  queryData = { database: 'CPO', collection: 'VersionControl', query: { type: 'XP012' } }
-  response = await MsiApi.mongoQuery(queryData)
-  Object.assign(swData, response.data.all[0])
+  queryData = { 
+    "database": 'CPO', 
+    "collection": 'VersionControl', 
+    "pipelines": [
+      {
+        $match: {
+          "type": 'XP012'
+        }
+      },
+      {
+        $project: { _id: 1, version: 1, release_note: 1 } 
+      }
+    ]
+  }
+  response = await MsiApi.mongoAggregate(queryData)
+  Object.assign(swData, response.data.result[0])
   for (let i = 0; i < swData?.release_note?.length; i++) {
     swData.release_note[i].update_time_str = moment(
       swData.release_note[i].update_time
@@ -210,7 +260,7 @@ onMounted(async () => {
           <strong
             class="w-full text-18px md:text-20px text-blue-1200 block break-all word-wrap mb-20px"
           >
-            OTA SW Version :
+            {{ t('ota_sw_version') }} :
             <span class="block mt-5px md:inline-block md-mt-0">{{ swData.version }}</span>
           </strong>
           <el-button
@@ -218,7 +268,7 @@ onMounted(async () => {
             v-if="isMSI"
             @click="add('XP012')"
           >
-            Add SW Release</el-button
+            {{ t('add_sw_release') }}</el-button
           >
         </div>
         <div class="overflow-x-auto">
@@ -232,19 +282,19 @@ onMounted(async () => {
             size="large"
             v-loading.fullscreen.lock="isLoading"
           >
-            <el-table-column prop="version" label="Version" min-width="200" />
-            <el-table-column prop="description" label="Description" min-width="350" />
-            <el-table-column prop="update_time_str" label="Update Time" min-width="250" />
+            <el-table-column prop="version" :label="t('version')" min-width="200" />
+            <el-table-column prop="description" :label="t('description')" min-width="350" />
+            <el-table-column prop="update_time_str" :label="t('update_time')" min-width="250" />
             <el-table-column
               v-if="isMSI"
               prop=""
               class="text-right"
-              label="Release"
+              :label="t('release')"
               min-width="100"
             >
               <template #default="scope">
                 <el-button class="btn-info" @click="release(scope, 'XP012')"
-                  >Release</el-button
+                  >{{ t('release') }}</el-button
                 >
               </template>
             </el-table-column>
@@ -263,7 +313,7 @@ onMounted(async () => {
           <strong
             class="w-full text-18px md:text-20px text-blue-1200 block break-all word-wrap mb-20px"
           >
-            OTA FW Version :
+            {{ t('ota_fw_version') }} :
             <span class="block mt-5px md:inline-block md-mt-0">{{ fwData.version }}</span>
           </strong>
           <el-button
@@ -271,7 +321,7 @@ onMounted(async () => {
             v-if="isMSI"
             @click="add('XP011_BT')"
           >
-            Add FW Release</el-button
+            {{ t('add_fw_release') }}</el-button
           >
         </div>
         <div class="overflow-x-auto">
@@ -285,19 +335,19 @@ onMounted(async () => {
             size="large"
             v-loading.fullscreen.lock="isLoading"
           >
-            <el-table-column prop="version" label="Version" min-width="200" />
-            <el-table-column prop="description" label="Description" min-width="350" />
-            <el-table-column prop="update_time_str" label="Update Time" min-width="250" />
+            <el-table-column prop="version" :label="t('version')" min-width="200" />
+            <el-table-column prop="description" :label="t('description')" min-width="350" />
+            <el-table-column prop="update_time_str" :label="t('update_time')" min-width="250" />
             <el-table-column
               v-if="isMSI"
               prop=""
               class="text-right"
-              label="Release"
+              :label="t('release')"
               min-width="100"
             >
               <template #default="scope">
                 <el-button class="btn-info" @click="release(scope, 'XP011_BT')"
-                  >Release</el-button
+                  >{{ t('release') }}</el-button
                 >
               </template>
             </el-table-column>
@@ -313,7 +363,7 @@ onMounted(async () => {
       </div>
     </div>
   </div>
-  <el-dialog append-to-body v-model="swVisible" class="max-w-600px" width="90%">
+  <el-dialog append-to-body v-model="swVisible" class="max-w-600px" width="90%" @open="openDialog">
     <template #header="{ titleId, titleClass }">
       <div class="py-2rem relative bg-blue-100">
         <h4
@@ -326,22 +376,22 @@ onMounted(async () => {
       </div>
     </template>
     <div class="dialog-context">
-      <el-form :model="Detail_Data">
-        <el-form-item class="block" label="Version">
+      <el-form :model="Detail_Data" :rules="softwareInfo_rules" ref="softwareInfo_ref" :scroll-to-error=true>
+        <el-form-item class="block" :label="t('version')" prop="version">
           <el-input v-model="Detail_Data.version" />
         </el-form-item>
-        <el-form-item class="block" label="File Path">
+        <el-form-item class="block" :label="t('file_path')" prop="file">
           <el-input v-model="Detail_Data.file" />
         </el-form-item>
 
-        <el-form-item class="flex-center" label="Download File">
-          <el-button type="primary" @click="download_File">Download File</el-button>
+        <el-form-item class="flex-center" :label="t('download_file')">
+          <el-button type="primary" @click="download_File">{{ t('download_file') }}</el-button>
         </el-form-item>
 
-        <el-form-item class="block" label="Description">
+        <el-form-item class="block" :label="t('description')">
           <el-input v-model="Detail_Data.description" type="textarea" />
         </el-form-item>
-        <el-form-item class="block" label="Update time">
+        <el-form-item class="block" :label="t('update_time')">
           <el-input v-model="Detail_Data.update_time_str" disabled />
         </el-form-item>
       </el-form>
@@ -352,13 +402,13 @@ onMounted(async () => {
           round
           class="w-48% bg-btn-100 text-white max-w-140px"
           @click="confirm('cancel')"
-          >Cancel</el-button
+          >{{ t('cancel') }}</el-button
         >
         <el-button
           round
           class="w-48% bg-btn-200 text-white max-w-140px"
           @click="confirm('confirm')"
-          >Confirm</el-button
+          >{{ t('confirm') }}</el-button
         >
       </span>
     </template>

@@ -18,7 +18,7 @@ const UserData = reactive([])
 const input = ref('')
 const companyData = reactive([])
 const isLoading = ref(false)
-const company_title = ref('Add Company Info')
+const company_title = ref(t('add_company_info'))
 const company = MStore?.permission?.company?.name
 const company_ref = ref()
 
@@ -27,8 +27,14 @@ const validTaxid = (rule, value, callback) => {
   if (regex.test(value) && value?.length === 8) {
     callback()
   }
-  else {
+  else if (value?.length === 0 || value?.length === undefined) {
     callback(new Error(t('the_item_is_required')))
+  }
+  else if (value?.length !== 8) {
+    callback(new Error(t('the_tax_id_must_be_8_characters_in_length')))
+  }
+  else {
+    callback(new Error(t('please_check_the_format_of_the_tax_id')))
   }
 }
 
@@ -37,14 +43,14 @@ const company_rules = reactive({
     { required: true, message: t('the_item_is_required'), trigger: 'blur' },
   ],
   tax_id: [
-    { required: true, message: t('the_item_is_required'), trigger: 'blur', validator: validTaxid },
+    { required: true, trigger: 'blur', validator: validTaxid },
   ],
 })
   
 const AddCompany = () => {
   CompanyFormVisible.value = true
   edit_mode.value = 'create'
-  company_title.value = 'Add Company Info'
+  company_title.value = t('add_company_info')
   for (let key in companyData)
     companyData[key] = ''
   companyData.payment = {hashIV:'', hashKey:'', merchantId:'', owner:''}
@@ -67,7 +73,6 @@ const sortFunc = (obj1, obj2, column) => {
 const search = async () => {
   let queryData = null
   if (input.value === '') {
-    // queryData = { "database":"CPO", "collection":"CompanyInformation", "query": {}}
     queryData = { 
       "database": 'CPO', 
       "collection": 'CompanyInformation', 
@@ -79,10 +84,56 @@ const search = async () => {
     }
   }
   else {
+    // search for CPO.LimitPlan to find subscription plan names that match the criteria.
+    queryData = { 
+      "database": 'CPO', 
+      "collection": 'LimitPlan', 
+      "pipelines": [
+        {
+          $match : {
+            name: {
+              $regex: input.value,
+              $options: "i",
+            }
+          }
+        },
+        {
+          $project: { _id: 1, name: 1 } 
+        }
+      ]
+    }
+    let res = await MsiApi.mongoAggregate(queryData)
+    let plan_id =[]
+    for (let i=0; i<res.data.result.length; i++) {
+      plan_id.push(res.data.result[i]._id)
+    }
+    
+    let hour = (Math.floor(Math.abs(MStore.timeZoneOffset) / 60)).toString().padStart(2, '0')
+    let min = (Math.abs(MStore.timeZoneOffset) % 60).toString().padStart(2, '0')
+    let timezone = MStore.timeZoneOffset > 0? '-' + hour + min : '+' + hour + min
+
     queryData = { 
       database: 'CPO', 
       collection: 'CompanyInformation', 
       pipelines: [
+        {
+          $addFields: { "upgrade_manager.subscribe.due_plan_str": { $toString: "$upgrade_manager.subscribe.due_plan" } }
+        },
+        {
+          $addFields: {
+            "updated_date_str": { 
+              $dateToString: {
+                format: '%Y-%m-%d %H:%M:%S',
+                date: {
+                  $dateFromString: {
+                    dateString: { $toString: '$updated_date'}
+                  }
+                },
+                timezone: timezone
+              }
+            }
+          }
+        },
         {
           $match : {
             $or: [
@@ -127,6 +178,9 @@ const search = async () => {
                   $regex: input.value,
                   $options: "i",
                 },
+              },
+              {
+                "upgrade_manager.subscribe.due_plan_str": { $in: plan_id}
               }
             ]
           }
@@ -141,7 +195,7 @@ const search = async () => {
 }
 
 const detail_info = (detail) => {
-  company_title.value = 'Edit Company Info'
+  company_title.value = t('edit_company_info')
   edit_mode.value = 'edit'
   CompanyFormVisible.value = true
   for (let key in companyData)
@@ -176,7 +230,6 @@ const editCompany = async (action) => {
           companyData.payment.hashIV = companyData.payment_hashIV
           companyData.payment.hashKey = companyData.payment_hashKey
           companyData.payment.merchantId = companyData.payment_merchantId
-          companyData.upgrade_manager.enable = companyData.upgrade_manager_enable
           let sendData = {  class : 'CompanyInformation', name: companyData.name,
                             country:companyData.country, party_id:companyData.party_id,
                             city:companyData.city, detail:companyData.detail, 
@@ -458,67 +511,67 @@ onMounted( async() => {
           <div class="dialog-context">
             <el-form class="max-w-500px m-auto" :rules="company_rules" ref="company_ref" :model="companyData" :scroll-to-error=true>
               <el-form-item class="mb-24px" :label="t('name')" prop="name">
-                <el-input v-model.trim="companyData.name" />
+                <el-input v-model="companyData.name" />
               </el-form-item>
 
               <el-form-item class="mb-24px" :label="t('country')" prop="country">
-                <el-input v-model.trim="companyData.country" />
+                <el-input v-model="companyData.country" />
               </el-form-item>
 
               <!-- <el-form-item class="mb-24px" label="Operator ID">
-                <el-input v-model.trim="companyData.party_id" />
+                <el-input v-model="companyData.party_id" />
               </el-form-item> -->
 
               <el-form-item class="mb-24px" :label="t('city')" prop="city">
-                <el-input v-model.trim="companyData.city" />
+                <el-input v-model="companyData.city" />
               </el-form-item>
 
               <el-form-item class="mb-24px" :label="t('address')" prop="address">
-                <el-input v-model.trim="companyData.address" />
+                <el-input v-model="companyData.address" />
               </el-form-item>
 
               <el-form-item class="mb-24px" :label="t('tax_id')" prop="tax_id">
-                <el-input v-model.trim="companyData.tax_id" />
+                <el-input v-model="companyData.tax_id" />
               </el-form-item>
 
               <el-form-item class="mb-24px" :label="t('phone')" prop="phone">
-                <el-input v-model.trim="companyData.phone" />
+                <el-input v-model="companyData.phone" />
               </el-form-item>
 
               <!-- <el-form-item class="mb-24px" label="Remark">
-                <el-input v-model.trim="companyData.remark" />
+                <el-input v-model="companyData.remark" />
               </el-form-item> -->
 
               <el-form-item class="mb-24px" :label="t('invoice_hash_iv')">
-                <el-input v-model.trim="companyData.invoice_hashIV" />
+                <el-input v-model="companyData.invoice_hashIV" />
               </el-form-item>
 
               <el-form-item class="mb-24px" :label="t('invoice_hash_key')">
-                <el-input v-model.trim="companyData.invoice_hashKey" />
+                <el-input v-model="companyData.invoice_hashKey" />
               </el-form-item>
 
               <el-form-item class="mb-24px" :label="t('invoice_merchant_id')">
-                <el-input v-model.trim="companyData.invoice_merchantId" />
+                <el-input v-model="companyData.invoice_merchantId" />
               </el-form-item>
 
               <!-- <el-form-item class="mb-24px" label="Invoice Owner">
-                <el-input v-model.trim="companyData.invoice.owner" />
+                <el-input v-model="companyData.invoice.owner" />
               </el-form-item> -->
 
               <el-form-item class="mb-24px" :label="t('payment_hash_iv')">
-                <el-input v-model.trim="companyData.payment_hashIV" />
+                <el-input v-model="companyData.payment_hashIV" />
               </el-form-item>
 
               <el-form-item class="mb-24px" :label="t('payment_hash_key')">
-                <el-input v-model.trim="companyData.payment_hashKey" />
+                <el-input v-model="companyData.payment_hashKey" />
               </el-form-item>
 
               <el-form-item class="mb-24px" :label="t('payment_merchant_id')">
-                <el-input v-model.trim="companyData.payment_merchantId" />
+                <el-input v-model="companyData.payment_merchantId" />
               </el-form-item>
 
               <!-- <el-form-item class="mb-24px" label="Payment Owner">
-                <el-input v-model.trim="companyData.payment.owner" />
+                <el-input v-model="companyData.payment.owner" />
               </el-form-item> -->
 
               <el-form-item v-if="company === 'MSI'" class="mb-24px w-0" :label="t('active')">

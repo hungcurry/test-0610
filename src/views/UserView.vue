@@ -75,55 +75,89 @@ const detail_info = (detail) => {
 
 const search = async () => {
   let queryData = null
+
+  queryData = {
+    database: 'CPO', 
+    collection: 'CompanyInformation', 
+    pipelines: [
+      { $match: { name: {$eq: MStore.permission.company.name} } },
+      { 
+        $project: { _id: 1, name: 1 } 
+      }
+    ]
+  }
+  let res = await MsiApi.mongoAggregate(queryData)
+
   if (input.value === '') {
     queryData = { 
       database: 'CPO', 
       collection: 'UserData', 
       pipelines: [
-        { 
-          $project: { _id: 1, first_name: 1, last_name: 1, email: 1, evse_list: 1, payment_history:1, updated_date: 1, } 
-        }
+        { $match: { byCompany:  { "ObjectId" : res.data.result[0]._id} } },
+        { $project: { _id: 1, first_name: 1, last_name: 1, email: 1, evse_list: 1, payment_history:1, updated_date: 1, byCompany: 1, } }
       ]
     }
   }
   else {
+    let hour = (Math.floor(Math.abs(MStore.timeZoneOffset) / 60)).toString().padStart(2, '0')
+    let min = (Math.abs(MStore.timeZoneOffset) % 60).toString().padStart(2, '0')
+    let timezone = MStore.timeZoneOffset > 0? '-' + hour + min : '+' + hour + min
+
     queryData = { 
       database: 'CPO', 
       collection: 'UserData', 
       pipelines: [
         {
+          $addFields: {
+            "updated_date_str": { 
+              $dateToString: {
+                format: '%Y-%m-%d %H:%M:%S',
+                date: {
+                  $dateFromString: {
+                    dateString: { $toString: '$updated_date'}
+                  }
+                },
+                timezone: timezone
+              }
+            }
+          }
+        },
+        {
           $match : {
-            $or: [
+            $and: [
+              { byCompany:  { "ObjectId" : res.data.result[0]._id} },
               {
-                first_name: {
-                  $regex: input.value,
-                  $options: "i",
-                },
-              },
-              {
-                last_name: {
-                  $regex: input.value,
-                  $options: "i",
-                },
-              },
-              {
-                email: {
-                  $regex: input.value,
-                  $options: "i",
-                },
-              },
-              {
-                updated_date: {
-                  $regex: input.value,
-                  $options: "i",
-                },
+                $or: [
+                  {
+                    first_name: {
+                      $regex: input.value,
+                      $options: "i",
+                    },
+                  },
+                  {
+                    last_name: {
+                      $regex: input.value,
+                      $options: "i",
+                    },
+                  },
+                  {
+                    email: {
+                      $regex: input.value,
+                      $options: "i",
+                    },
+                  },
+                  {
+                    updated_date_str: {
+                      $regex: input.value,
+                      $options: "i",
+                    },
+                  }
+                ]
               }
             ]
           }
         },
-        { 
-          $project: { _id: 1, first_name: 1, last_name: 1, email: 1, evse_list: 1, payment_history:1, updated_date: 1, } 
-        }
+        { $project: { _id: 1, first_name: 1, last_name: 1, email: 1, evse_list: 1, payment_history:1, updated_date: 1, byCompany: 1, } }
       ]
     }
   }
@@ -212,13 +246,22 @@ const addUserDialog = async (action) => {
 }
 
 onMounted( async() => {
-  let queryData = { 
+  let queryData = {
+    database: 'CPO', 
+    collection: 'CompanyInformation', 
+    pipelines: [
+      { $match: { name: {$eq: MStore.permission.company.name} } },
+      { $project: { _id: 1, name: 1 } }
+    ]
+  }
+  let res = await MsiApi.mongoAggregate(queryData)
+  
+  queryData = { 
     database: 'CPO', 
     collection: 'UserData', 
     pipelines: [
-      { 
-        $project: { _id: 1, first_name: 1, last_name: 1, email: 1, evse_list: 1, payment_history:1, updated_date: 1, } 
-      }
+      { $match: { byCompany:  { "ObjectId" : res.data.result[0]._id} } },
+      { $project: { _id: 1, first_name: 1, last_name: 1, email: 1, evse_list: 1, payment_history:1, updated_date: 1, byCompany: 1, } }
     ]
   }
   await MongoAggregate(queryData)
@@ -346,14 +389,14 @@ onMounted( async() => {
             <el-form class="max-w-500px m-auto" :rules="add_user_rules" ref="add_user_ref" :model="newUser" :scroll-to-error=true>
               <div class="w-full flex justify-between flex-wrap">
                 <el-form-item class="mb-24px sm:w-45% w-100%" :label="t('first_name')" prop="first_name">
-                  <el-input v-model.trim="newUser.first_name" />
+                  <el-input v-model="newUser.first_name" />
                 </el-form-item>
                 <el-form-item class="mb-24px sm:w-45% w-100%" :label="t('last_name')" prop="last_name">
-                  <el-input v-model.trim="newUser.last_name" />
+                  <el-input v-model="newUser.last_name" />
                 </el-form-item>
               </div>
               <el-form-item class="mb-24px" :label="t('e_mail')" prop="email">
-                <el-input v-model.trim="newUser.email" />
+                <el-input v-model="newUser.email" />
               </el-form-item>
             </el-form>
           </div>

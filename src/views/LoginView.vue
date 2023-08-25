@@ -16,7 +16,7 @@ const pw_type = ref('password')
 const account = ref('')
 const password = ref('')
 const checkState = ref(false)
-const m_cloud_version = ref('0.1.12')
+const m_cloud_version = ref('0.1.13')
 
 const { t } = useI18n()
 

@@ -132,8 +132,8 @@ onMounted(async() => {
             type="datetimerange" 
             range-separator="-"
             :prefix-icon="Calendar"
-            start-placeholder="Start Date" 
-            end-placeholder="End Date" 
+            :start-placeholder="t('start_date')" 
+            :end-placeholder="t('end_date')" 
             @change="getEVSEOCPPLogs()"
             :default-time="defaultTime" 
             />
@@ -179,14 +179,14 @@ onMounted(async() => {
               :label="t('error_code')"
               align="center"
               sortable="custom"
-              min-width="160"
+              min-width="200"
             />
             <el-table-column
               prop="vendorErrorCode"
               :label="t('system_error_code')"
               align="center"
               sortable="custom"
-              min-width="300"
+              min-width="220"
             >
               <template #header>
                 <div class="vendorErrorCode-container">
@@ -203,7 +203,7 @@ onMounted(async() => {
               :label="t('fw_error_info')"
               align="center"
               sortable="custom"
-              min-width="120"
+              min-width="200"
             />
             
             <el-table-column
@@ -211,7 +211,7 @@ onMounted(async() => {
               :label="t('created_time')"
               align="center"
               sortable="custom"
-              min-width="180"
+              min-width="200"
             />
           </el-table>
           <el-pagination 

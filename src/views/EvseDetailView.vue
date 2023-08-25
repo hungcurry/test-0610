@@ -22,17 +22,6 @@ const tariffData = reactive([])
 const tariff_elements = reactive([])
 
 const deleteEvse = () => {
-
-// console.log(locationData.id)
-//     let evseArr = []
-//     for (let i = 0; i < locationData?.evses?.length; i++) {
-//       if (locationData.evses[i].uid === evseId) {
-//         continue
-//       }
-//       evseArr.push(locationData.evses[i]._id)
-//     }
-// console.log(evseArr)
-
   ElMessageBox.confirm(t('do_you_want_to_delete'),'Warning', {confirmButtonText: 'OK', cancelButtonText: 'Cancel', type: 'warning'})
   .then(async () => {
     let sendData = { 'class' : 'EVSE', 'id' : evseId }
@@ -114,7 +103,7 @@ onMounted( async () => {
     if(locationData.name === undefined)
       locationData.name = ''
     if(locationData.country === undefined)
-    locationData.country = ''      
+      locationData.country = ''
     if(locationData.city === undefined)
       locationData.city = ''
     if(locationData.address === undefined)

@@ -39,9 +39,9 @@ const change_country_code = (country) => {
   StationData.country_code = findObj.country_code
 }
 
-const facilities_type = [{ value: 'HOTEL', label: t('hotel') }, { value: 'RESTAURANT', label: 'Restaurant' },
-{ value: 'MALL', label: 'Mall' }, { value: 'SUPERMARKET', label: 'Super Market' },
-{ value: 'PARKING_LOT', label: 'Parking Lot' }, { value: 'WIFI', label: 'Others' },
+const facilities_type = [{ value: 'HOTEL', label: t('hotel') }, { value: 'RESTAURANT', label: t('restaurant') },
+{ value: 'MALL', label: t('mall') }, { value: 'SUPERMARKET', label: t('super_market')},
+{ value: 'PARKING_LOT', label: t('parking_lot') }, { value: 'WIFI', label: t('others') },
 ]
 
 const taiwan_city = [

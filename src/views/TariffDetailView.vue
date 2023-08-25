@@ -593,7 +593,7 @@ const save_tariff = async (formEl) => {
   }
   TariffData.tariff_alt_text = new_tariff_alt_text
   if (tariff_id) {
-    ElMessageBox.confirm(t('do_you_want_to_modify'), 'Warning', { confirmButtonText: t('ok'), cancelButtonText: t('cancel'), type: 'warning' })
+    ElMessageBox.confirm(t('do_you_want_to_modify'), t('warning'), { confirmButtonText: t('ok'), cancelButtonText: t('cancel'), type: 'warning' })
       .then(async () => {
         MsiFunc.deleteEmptyKeys(TariffData)
         save_status.value = true
@@ -619,7 +619,7 @@ const save_tariff = async (formEl) => {
       })
   }
   else {
-    ElMessageBox.confirm( t('do_you_want_to_create'), 'Warning', { confirmButtonText: t('ok'), cancelButtonText: t('cancel'), type: 'warning' })
+    ElMessageBox.confirm( t('do_you_want_to_create'), t('warning'), { confirmButtonText: t('ok'), cancelButtonText: t('cancel'), type: 'warning' })
     .then(async () => {
       MsiFunc.deleteEmptyKeys(TariffData)
       save_status.value = true
@@ -1358,7 +1358,7 @@ onMounted(async () => {
                   <div v-else-if="new_element.price_type === 'TIME'">
                     <el-input v-model="new_element.step_size_str" type="number" class="w-220px" :controls="false" >
                       <template #suffix>
-                        <span> {{ '/' + t('min') }}</span>
+                        <span> {{ t('min') }}</span>
                       </template>
                     </el-input>
                   </div>
@@ -1366,7 +1366,7 @@ onMounted(async () => {
                   <div v-else-if="new_element.price_type === 'PARKING_TIME'">
                     <el-input v-model="new_element.step_size_str" type="number" class="w-220px" :controls="false" >
                       <template #suffix>
-                        <span> {{ '/' + t('min') }}</span>
+                        <span> {{  t('min') }}</span>
                       </template>
                     </el-input>
                   </div>

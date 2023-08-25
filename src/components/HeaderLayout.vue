@@ -59,7 +59,7 @@ const emitCallBack = (res) => {
       </ul>
     </div>
     <div class="common-header shrink-0">
-      <el-dropdown>
+      <!-- <el-dropdown>
         <el-button class="user"><font-awesome-icon icon="fa-solid fa-gear" /></el-button>
         <template #dropdown>
           <el-dropdown-menu>
@@ -67,7 +67,7 @@ const emitCallBack = (res) => {
             <el-dropdown-item @click="Chinese()">繁體中文</el-dropdown-item>
           </el-dropdown-menu>
         </template>
-      </el-dropdown>
+      </el-dropdown> -->
 
       <!-- <el-button class="gear"><font-awesome-icon icon="fa-solid fa-gear" /></el-button>
       <el-button class="bell m-0"><font-awesome-icon icon="fa-solid fa-bell" /></el-button> -->
@@ -76,9 +76,9 @@ const emitCallBack = (res) => {
         <el-button class="user"><font-awesome-icon icon="fa-solid fa-user" /></el-button>
         <template #dropdown>
           <el-dropdown-menu>
-            <el-dropdown-item @click="logOut()">Log Out</el-dropdown-item>
-            <el-dropdown-item @click="resetPW()">Reset Password</el-dropdown-item>
-            <el-dropdown-item @click="Admin_Info()">Admin Info</el-dropdown-item>
+            <el-dropdown-item @click="logOut()"> {{ t('log_out') }}</el-dropdown-item>
+            <el-dropdown-item @click="resetPW()"> {{ t('reset_password') }}</el-dropdown-item>
+            <el-dropdown-item @click="Admin_Info()"> {{t('admin_info')}}</el-dropdown-item>
           </el-dropdown-menu>
         </template>
       </el-dropdown>

@@ -21,6 +21,7 @@ import {
   faClock as solidClock,
   faCoins,
   faChartLine,
+  faDeleteLeft,
 } from '@fortawesome/free-solid-svg-icons'
 import {
   faPenToSquare,
@@ -52,5 +53,6 @@ library.add(
   faCoins,
   faCalendarCheck,
   faCreditCard,
-  faChartLine
+  faChartLine,
+  faDeleteLeft
 )

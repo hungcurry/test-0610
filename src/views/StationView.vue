@@ -187,7 +187,7 @@ const renderData = async () => {
 
     item.connector_status = result
     if (item.publish === true) item.publish_str = t('true')
-    else item.publish_str = t('False')
+    else item.publish_str = t('false')
 
     Object.keys(result).forEach((key) => {
       switch (key) {

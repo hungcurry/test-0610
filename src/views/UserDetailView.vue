@@ -127,10 +127,10 @@ const select_date = async () => {
         paymentData[i].paymethod.method = t('credit')
         break
       case 'GOOGLEPAY':
-        paymentData[i].paymethod.method = t('googlepay')
+        paymentData[i].paymethod.method = t('google_pay')
         break
       case 'SAMSUNGPAY':
-        paymentData[i].paymethod.method = t('samsungpay')
+        paymentData[i].paymethod.method = t('samsung_pay')
         break
       case 'RFID':
         paymentData[i].paymethod.method = t('rfid')
@@ -202,6 +202,12 @@ const sortFunc = (obj1, obj2, column) => {
   }
 }
 
+const tableRowClassName = (row) => {
+  if (row.row.card_enable === false) {
+    return 'disable-row'
+  }
+}
+
 
 const clearEvseList = async () => {
   ElMessageBox.confirm(t('do_you_want_to_clear'), t('warning'), { confirmButtonText: t('ok'), cancelButtonText: t('cancel'), type: 'warning' })
@@ -253,8 +259,15 @@ const confirmRfid = async (confirm, index) => {
             enable: rfidData.enable, nickname: rfidData.nickname
           })
           let sendData = { 'class': 'UserData', 'pk': userData._id, 'rfids': userData.rfids }
-          await MsiApi.setCollectionData('patch', 'cpo', sendData)
-          ElMessage({ type: 'success', message: `${t('add')} ${rfidData.rfid.toUpperCase()} ${t('card_number')}` })
+          let res = await MsiApi.setCollectionData('patch', 'cpo', sendData)
+          if (res.status === 200) {
+            ElMessage({ type: 'success', message: `${t('add')} ${rfidData.rfid.toUpperCase()} ${t('card_number')}` })
+          }
+          else {
+            userData.rfids.pop()
+            // ElMessage.error(t('error'))
+            ElMessage.error(res.response.data.message)
+          }
         }
         else {
           userData.rfids[modify_card_index.value].rfid = rfidData.rfid
@@ -492,6 +505,7 @@ onMounted(async () => {
 
   for (let i = 0; i < userData?.paylist?.length; i++) {
     userData.paylistArrObj.push(JSON.parse(userData?.paylist?.[i].detail))
+    userData.paylistArrObj[i].card_enable = userData?.paylist?.[i].enable
     userData.paylistArrObj[i].card_num = userData.paylistArrObj[i].card6No + '******' +
     userData.paylistArrObj[i].card4No
   }
@@ -773,8 +787,8 @@ onMounted(async () => {
                   type="datetimerange" 
                   range-separator="-"
                   :prefix-icon="Calendar"
-                  start-placeholder="Start Date" 
-                  end-placeholder="End Date" 
+                  :start-placeholder="t('start_date')" 
+                  :end-placeholder="t('end_date')" 
                   @change="select_date()"
                   :default-time="defaultTime" 
                   />
@@ -950,7 +964,7 @@ onMounted(async () => {
               <el-input v-model="userDataMod.phone" />
             </el-form-item>
             <el-form-item :label="t('permission')">
-              <el-select class="el-select" v-model="userDataMod.permission_str" placeholder="Select" size="large">
+              <el-select class="el-select" v-model="userDataMod.permission_str" :placeholder="t('select')" size="large">
                 <el-option v-for="item in user_type" :key="item.value" :label="item.name" :value="item.name" />
               </el-select>
             </el-form-item>
@@ -1028,11 +1042,17 @@ onMounted(async () => {
         </template>
 
         <div class="dialog-context pb-24px">
-          <el-table :data="userData.paylistArrObj">
+          <el-table :data="userData.paylistArrObj" :row-class-name="tableRowClassName">
             <el-table-column property="card_num" :label="t('card_num')" width="180" />
             <!-- <el-table-column property="card4No" label="Card 4" width="200" /> -->
             <el-table-column property="expireDate" :label="t('expire_date_YY_MM')" width="200" />
-            <el-table-column property="bindingDate" :label="t('binding_date')" width="240" />
+            <el-table-column property="bindingDate" :label="t('binding_date')" width="200" />
+            <el-table-column property="card_enable" label='' width="49" >
+              <template #default="scope">
+                <font-awesome-icon v-if="scope.row.card_enable === false" class="icon w-24px h-24px mr-8px" icon="fa-solid fa-delete-left" />
+                <div v-else class="h-26.2px"></div>
+              </template>
+            </el-table-column>
           </el-table>
         </div>
 
@@ -1210,5 +1230,10 @@ onMounted(async () => {
     color: var(--white);
     width: 2rem;
   }
+}
+:deep(.disable-row) {
+  --el-table-tr-bg-color: var(--gray-100);
+  --el-table-row-hover-bg-color: var(--gray-100);
+  --el-table-current-row-bg-color: var(--gray-100);
 }
 </style>

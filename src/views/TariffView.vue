@@ -53,7 +53,7 @@ const deleteTariff = async (row) => {
   }
   else {
     let sendData = { class : 'Tariff', id : row.id }
-    ElMessageBox.confirm(t('do_you_want_to_delete'),'Warning', {confirmButtonText: t('ok'), cancelButtonText: t('cancel'), type: 'warning'})
+    ElMessageBox.confirm(t('do_you_want_to_delete'), t('warning'), {confirmButtonText: t('ok'), cancelButtonText: t('cancel'), type: 'warning'})
     .then(async () => {
       console.log(await MsiApi.setCollectionData('delete', 'ocpi', sendData))
       let queryData = { "database":"OCPI", "collection":"Tariff", "query": {}}
@@ -81,7 +81,7 @@ const copyTariff = (row) => {
   delete senddata.id
   senddata.class = 'Tariff'
   senddata.party_id = 'MSI'
-  ElMessageBox.confirm(t('do_you_want_to_create'),'Warning', {confirmButtonText: t('ok'), cancelButtonText: t('cancel'), type: 'warning'})
+  ElMessageBox.confirm(t('do_you_want_to_create'), t('warning'), {confirmButtonText: t('ok'), cancelButtonText: t('cancel'), type: 'warning'})
   .then(async () => {
     let res = await MsiApi.setCollectionData('post', 'ocpi', senddata)
     let queryData = { "database":"OCPI", "collection":"Tariff", "query": {}}

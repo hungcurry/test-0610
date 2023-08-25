@@ -6,16 +6,36 @@ import msi from '@/assets/msi_style'
 import { ElMessageBox, ElMessage } from 'element-plus'
 import { useMStore } from "../stores/m_cloud";
 import moment from "moment"
+import { useI18n } from "vue-i18n"
+import { useRouter } from 'vue-router'
+
+const { t } = useI18n()
 const MStore = useMStore()
 const MsiApi = ApiFunc()
 const AddAdminFormVisible = ref(false)
 const EditAdminFormVisible = ref(false)
 const isLoading = ref(false)
+const router = useRouter()
 
 const AddAdminData = reactive([])
 const UserData = reactive([])
 const user_type = reactive([])
 const editAdminData = reactive([])
+const AdminData_ref = ref()
+const AdminData_rules = reactive({
+  first_name: [
+    { required: true, message: t('the_item_is_required'), trigger: 'blur' },
+  ],
+  last_name: [
+    { required: true, message: t('the_item_is_required'), trigger: 'blur' },
+  ],
+  email: [
+    { required: true, message: t('the_item_is_required'), trigger: 'blur' },
+  ],
+  permission_str: [
+    { required: true, message: t('the_item_is_required'), trigger: 'change' },
+  ],
+})
 
 const sortFunc = (obj1, obj2, column) => {
   let at = obj1[column]
@@ -43,114 +63,128 @@ const detail_info = (detail) => {
   editAdminData.length = 0
   Object.assign(editAdminData, UserData[detail.$index])
   editAdminData.permission_id = editAdminData?.permission?.user
-  if (editAdminData.permission.edit === 1) {
-    editAdminData.permission_edit = true
-  }
-  if (editAdminData.permission.active === true) {
-    editAdminData.permission_active = true
-  }
+  editAdminData.permission_edit = editAdminData.permission.edit === 1? true : false
+  editAdminData.permission_active = editAdminData.permission.active === true? true : false
 }
 
 const editAdmin = async (action) => {
-  EditAdminFormVisible.value = false
   if (action === 'confirm') {
-    editAdminData.permission_edit ? 1 : 3
-    let sendData = {
-      class: 'AdminUserData', pk: editAdminData._id,
-      first_name: editAdminData.first_name, last_name: editAdminData.last_name,
-      email: editAdminData.email, phone: editAdminData.phone,
-      permission: { user: editAdminData.permission_id, edit: editAdminData.permission_edit, active: editAdminData.permission_active },
-    }
-    ElMessageBox.confirm('Do you want to modify?', 'Warning', { confirmButtonText: 'OK', cancelButtonText: 'Cancel', type: 'warning' })
-      .then(async () => {
-        let res = await MsiApi.setCollectionData('patch', 'cpo', sendData)
-        if (res.status === 200) {
-          GetPermission()
-          let queryData = { "database": "CPO", "collection": "AdminUserData", "query": {} }
-          console.log(await MongoQurey(queryData))
+    AdminData_ref.value.validate(valid => {
+      if (valid) {
+        EditAdminFormVisible.value = false
+        // if (editAdminData.permission_edit !== true && editAdminData.permission.edit !== 1) {
+        //   return
+        // }
+        editAdminData.permission_edit ? 1 : 3
+        let sendData = {
+          class: 'AdminUserData', pk: editAdminData._id,
+          first_name: editAdminData.first_name, last_name: editAdminData.last_name,
+          email: editAdminData.email, phone: editAdminData.phone,
+          permission: { user: editAdminData.permission_id, edit: editAdminData.permission_edit, active: editAdminData.permission_active },
         }
-      })
-      .catch((e) => {
-        console.log(e)
-      })
+        ElMessageBox.confirm(t('do_you_want_to_modify'), t('warning'), { confirmButtonText: t('ok'), cancelButtonText: t('cancel'), type: 'warning' })
+          .then(async () => {
+            let res = await MsiApi.setCollectionData('patch', 'cpo', sendData)
+            if (res.status === 200) {
+              GetPermission()
+              console.log(await MongoAggregate())
+            }
+          })
+          .catch((e) => {
+            console.log(e)
+            editAdminData.permission_edit = editAdminData.permission.edit === 1? true : false
+            editAdminData.permission_active = editAdminData.permission.active === true? true : false
+          })
+      }
+      else {
+        return false
+      }
+    })
+
   }
   else if (action === 'delete') {
+    EditAdminFormVisible.value = false
     let sendData = { class: 'AdminUserData', pk: editAdminData._id }
 
-    ElMessageBox.confirm('Do you want to delete?', 'Warning', { confirmButtonText: 'OK', cancelButtonText: 'Cancel', type: 'warning' })
+    ElMessageBox.confirm(t('do_you_want_to_delete'), t('warning'), { confirmButtonText: t('ok'), cancelButtonText: t('cancel'), type: 'warning' })
       .then(async () => {
         let res = await MsiApi.setCollectionData('delete', 'cpo', sendData)
         if (res.status === 200) {
           GetPermission()
-          let queryData = { "database": "CPO", "collection": "AdminUserData", "query": {} }
-          console.log(await MongoQurey(queryData))
+          console.log(await MongoAggregate())
         }
       })
       .catch((e) => {
         console.log(e)
+        editAdminData.permission_edit = editAdminData.permission.edit === 1? 1 : 0
+        editAdminData.permission_active = editAdminData.permission.active === true? true : false
       })
+  }
+  else if (action === 'cancel') {
+    EditAdminFormVisible.value = false
+    editAdminData.permission_edit = editAdminData.permission.edit === 1? true : false
+    editAdminData.permission_active = editAdminData.permission.active === true? true : false
   }
 }
 
 const AddAdmin = async (action, visable) => {
 
-  AddAdminFormVisible.value = visable
-  let check_format_success = true
   if (action === 'confirm') {
-    let edit = AddAdminData.permission_edit ? 1 : 3
-    let sendData = {
-      first_name: AddAdminData.first_name, last_name: AddAdminData.last_name,
-      permission: AddAdminData.permission_id, edit: edit, active: AddAdminData.permission_active ,
-      email: AddAdminData.email, phone: AddAdminData.phone, company: MStore.permission.company.name, password: "msi32345599", dashboard: true
-    }
-
-    if (AddAdminData.email === undefined || AddAdminData.email === '') {
-      ElMessage.error('Oops, E-mail required.')
-      check_format_success = false
-    }
-    if (AddAdminData.first_name === undefined || AddAdminData.first_name === '') {
-      ElMessage.error('Oops, First name required.')
-      check_format_success = false
-    }
-    if (AddAdminData.first_name === undefined || AddAdminData.last_name === '') {
-      ElMessage.error('Oops, Last name required.')
-      check_format_success = false
-    }
-    if (AddAdminData.permission_id === undefined || AddAdminData.permission_id === '') {
-      ElMessage.error('Oops, Permission required.')
-      check_format_success = false
-    }
-
-    if (check_format_success === true) {
-      ElMessageBox.confirm('Do you want to create?', 'Warning', { confirmButtonText: 'OK', cancelButtonText: 'Cancel', type: 'warning' })
-        .then(async () => {
-          isLoading.value = true
-          let res = await MsiApi.register_member(sendData)
-          if (res.status === 201) {
-            GetPermission()
-            let queryData = { "database": "CPO", "collection": "AdminUserData", "query": {} }
-            console.log(await MongoQurey(queryData))
-          }
-          else if(res.status === 200) {
-            ElMessage.error('email already exists')
+    AdminData_ref.value.validate(valid => {
+      if (valid) {
+        AddAdminFormVisible.value = visable
+        let edit = AddAdminData.permission_edit ? 1 : 3
+        let sendData = {
+          first_name: AddAdminData.first_name, last_name: AddAdminData.last_name,
+          permission: AddAdminData.permission_id, edit: edit, active: AddAdminData.permission_active ,
+          email: AddAdminData.email, phone: AddAdminData.phone, company: MStore.permission.company.name, password: "msi32345599", dashboard: true
+        }
+    
+        ElMessageBox.confirm(t('do_you_want_to_create'), t('warning'), { confirmButtonText: t('ok'), cancelButtonText: t('cancel'), type: 'warning' })
+          .then(async () => {
+            isLoading.value = true
+            let res = await MsiApi.register_member(sendData)
+            if (res.status === 201) {
+              GetPermission()
+              console.log(await MongoAggregate())
+            }
+            else if(res.status === 200) {
+              ElMessage.error(t('email_already_exists'))
+              isLoading.value = false
+              AddAdminFormVisible.value = true
+            }
+            else {
+              console.log(res)
+              ElMessage.error(res.data.message)    // 404: "Mail not found."
+              isLoading.value = false
+              AddAdminFormVisible.value = true
+            }
+          })
+          .catch((e) => {
+            console.log(e)
             isLoading.value = false
-          }
-        })
-        .catch((e) => {
-          console.log(e)
-          isLoading.value = false
-        })
-    }
+          })
+      }
+      else {
+        return false
+      }
+    })
+  }
+  else {
+    AddAdminFormVisible.value = visable
   }
 }
 
-const MongoQurey = async (queryData) => {
+const MongoAggregate = async () => {
   isLoading.value = true
   
-  queryData  = { "database": "CPO", "collection": "CompanyInformation", "pipelines": [ 
+  let queryData  = { "database": "CPO", "collection": "CompanyInformation", "pipelines": [ 
     { $match:  { "name": { "$eq": MStore.permission.company.name } } }, { "$project": { "_id": 1} }
   ]}
   let res = await MsiApi.mongoAggregate(queryData)
+  if (res.data.result === undefined) {
+    router.push({ name: 'login' })
+  }
 
   queryData = { "database": "CPO", "collection": "AdminUserData", "pipelines": [
                 { $match: { "byCompany": { "$eq": { "ObjectId" : res.data.result[0]._id} } } }, 
@@ -173,18 +207,54 @@ const MongoQurey = async (queryData) => {
 }
 
 const GetPermission = async () => {
-  let queryData = { "database": "CPO", "collection": "UserPermission", "query": {} }
-  let response = await MsiApi.mongoQuery(queryData)
-  user_type.length = 0
-  let filteredArr
+  let queryData = ''
   if (import.meta.env.VITE_NAME === 'dev') {
-    filteredArr = response.data.all.filter(item => item.name !== 'AnonymousUser' && item.name !== 'MemberUser'
-    && item.name !== 'DeveloperUser' && item.name !== 'CustomerServiceUser')
+    queryData = { 
+      database: 'CPO', 
+      collection: 'UserPermission', 
+      pipelines: [
+        {
+          $match: {
+            name: {
+              $nin: ['AnonymousUser', 'MemberUser', 'DeveloperUser', 'CustomerServiceUser']
+            }
+          }
+        },
+        { 
+          $project: { _id: 1, name: 1 } 
+        }
+      ]
+    }
   }
   else {
-    filteredArr = response.data.all.filter(item => item.name !== 'ttt')
+    queryData = {
+      database: 'CPO', 
+      collection: 'UserPermission', 
+      pipelines: [
+        {
+          $match: {
+            name: {
+              $nin: ['ttt']
+            }
+          }
+        },
+        { 
+          $project: { _id: 1, name: 1 } 
+        }
+      ]
+    }
   }
-  Object.assign(user_type, filteredArr)
+  let response = await MsiApi.mongoAggregate(queryData)
+  user_type.length = 0
+  Object.assign(user_type, response.data.result)
+  for (let i=0; i<user_type.length; i++) {
+    if (user_type[i].name === 'EngineerUser') {
+      user_type[i].name = t('engineeruser')
+    }
+    else if (user_type[i].name === 'AdminUser') {
+      user_type[i].name = t('adminuser')
+    }
+  }
 }
 
 const addAdminUser = async () => {
@@ -200,8 +270,7 @@ const addAdminUser = async () => {
 
 onMounted(async () => {
   await GetPermission()
-  let queryData = { "database": "CPO", "collection": "AdminUserData", "query": {} }
-  console.log(await MongoQurey(queryData))
+  console.log(await MongoAggregate())
 })
 </script>
 
@@ -209,7 +278,7 @@ onMounted(async () => {
   <div class="customer">
     <div class="container lg">
       <div class="flex flex-justify-end flex-wrap lg:flex-nowrap pt-40px pb-32px">
-        <el-button class="btn-secondary box-shadow" @click="addAdminUser"> Add Admin </el-button>
+        <el-button class="btn-secondary box-shadow" @click="addAdminUser"> {{ t('add_admin') }} </el-button>
       </div>
 
       <div class="overflow-x-auto">
@@ -227,7 +296,7 @@ onMounted(async () => {
           >
             <el-table-column
               prop="first_name"
-              label="First Name"
+              :label="t('first_name')"
               align="center"
               sortable
               :sort-method="(a, b) => sortFunc(a, b, 'first_name')"
@@ -236,7 +305,7 @@ onMounted(async () => {
 
             <el-table-column
               prop="last_name"
-              label="Last Name"
+              :label="t('last_name')"
               align="center"
               sortable
               :sort-method="(a, b) => sortFunc(a, b, 'last_name')"
@@ -245,16 +314,16 @@ onMounted(async () => {
 
             <el-table-column
               prop="email"
-              label="E-mail"
+              :label="t('e_mail')"
               align="center"
               sortable
               :sort-method="(a, b) => sortFunc(a, b, 'email')"
-              min-width="200"
+              min-width="300"
             />
 
             <el-table-column
               prop="phone"
-              label="Phone"
+              :label="t('phone')"
               align="center"
               sortable
               :sort-method="(a, b) => sortFunc(a, b, 'phone')"
@@ -263,7 +332,7 @@ onMounted(async () => {
 
             <el-table-column
               prop="permission_str"
-              label="Permission"
+              :label="t('permission')"
               align="center"
               sortable
               :sort-method="(a, b) => sortFunc(a, b, 'permission_str')"
@@ -272,7 +341,7 @@ onMounted(async () => {
 
             <el-table-column
               prop="updated_date_str"
-              label="Updated Date"
+              :label="t('updated_date')"
               align="center"
               sortable
               :sort-method="(a, b) => sortFunc(a, b, 'updated_date_str')"
@@ -307,34 +376,34 @@ onMounted(async () => {
                 :class="titleClass"
                 class="m-0 text-center text-blue-1200 font-400 text-24px line-height-26px"
               >
-                Add Admin User
+                {{ t('add_admin') }}
               </h4>
             </div>
           </template>
 
           <div class="dialog-context">
-            <el-form class="max-w-500px m-auto">
-              <el-form-item class="mb-24px" label="First Name">
-                <el-input v-model.trim="AddAdminData.first_name" />
+            <el-form class="max-w-500px m-auto" :rules="AdminData_rules" ref="AdminData_ref" :model="AddAdminData" :scroll-to-error=true>
+              <el-form-item class="mb-24px" :label="t('first_name')" prop="first_name">
+                <el-input v-model="AddAdminData.first_name" />
               </el-form-item>
 
-              <el-form-item class="mb-24px" label="Last Name">
-                <el-input v-model.trim="AddAdminData.last_name" />
+              <el-form-item class="mb-24px" :label="t('last_name')" prop="last_name">
+                <el-input v-model="AddAdminData.last_name" />
               </el-form-item>
 
-              <el-form-item class="mb-24px" label="E-mail">
-                <el-input v-model.trim="AddAdminData.email"/>
+              <el-form-item class="mb-24px" :label="t('e_mail')" prop="email">
+                <el-input v-model="AddAdminData.email"/>
               </el-form-item>
 
-              <el-form-item class="mb-24px" label="Phone">
-                <el-input v-model.trim="AddAdminData.phone" />
+              <el-form-item class="mb-24px" :label="t('phone')" prop="phone">
+                <el-input v-model="AddAdminData.phone" />
               </el-form-item>
 
-              <el-form-item class="mb-24px" label="Permission">
+              <el-form-item class="mb-24px" :label="t('permission')" prop="permission_str">
                 <el-select 
                   class="el-select" 
                   v-model="AddAdminData.permission_str" 
-                  placeholder="Select" 
+                  :placeholder="t('select')" 
                   size="large"
                   @change="setPermission"
                 >
@@ -342,12 +411,12 @@ onMounted(async () => {
                 </el-select>
               </el-form-item>
 
-              <el-form-item class="mb-24px" label="Edit">
-                <el-switch v-model.trim="AddAdminData.permission_edit" />
+              <el-form-item class="mb-24px w-0" :label="t('edit')">
+                <el-switch v-model="AddAdminData.permission_edit" />
               </el-form-item>
 
-              <el-form-item class="mb-24px" label="Active">
-                <el-switch v-model.trim="AddAdminData.permission_active" />
+              <el-form-item class="mb-24px w-0" :label="t('active')">
+                <el-switch v-model="AddAdminData.permission_active" />
               </el-form-item>
             </el-form>
           </div>
@@ -359,14 +428,14 @@ onMounted(async () => {
                 class="w-48% bg-btn-100 text-white max-w-140px"
                 @click.stop="AddAdmin('cancel', false)"
               >
-                Cancel
+                {{ t('cancel') }}
               </el-button>
               <el-button
                 round
                 class="w-48% bg-btn-200 text-white max-w-140px"
                 @click.stop="AddAdmin('confirm', false)"
               >
-                Confirm
+                {{ t('confirm') }}
               </el-button>
             </span>
           </template>
@@ -387,34 +456,34 @@ onMounted(async () => {
                 :class="titleClass"
                 class="m-0 text-center text-blue-1200 font-400 text-24px line-height-26px"
               >
-                Edit Admin User
+                {{ t('edit_admin') }}
               </h4>
             </div>
           </template>
 
           <div class="dialog-context">
-            <el-form class="max-w-500px m-auto">
-              <el-form-item class="mb-24px" label="First Name">
-                <el-input v-model.trim="editAdminData.first_name" />
+            <el-form class="max-w-500px m-auto" :rules="AdminData_rules" ref="AdminData_ref" :model="editAdminData" :scroll-to-error=true>
+              <el-form-item class="mb-24px" :label="t('first_name')" prop="first_name">
+                <el-input v-model="editAdminData.first_name" />
               </el-form-item>
 
-              <el-form-item class="mb-24px" label="Last Name">
-                <el-input v-model.trim="editAdminData.last_name" />
+              <el-form-item class="mb-24px" :label="t('last_name')" prop="last_name">
+                <el-input v-model="editAdminData.last_name" />
               </el-form-item>
 
-              <el-form-item class="mb-24px" label="E-mail">
-                <el-input v-model.trim="editAdminData.email" disabled/>
+              <el-form-item class="mb-24px" :label="t('e_mail')" prop="email">
+                <el-input v-model="editAdminData.email" disabled/>
               </el-form-item>
 
-              <el-form-item class="mb-24px" label="Phone">
-                <el-input v-model.trim="editAdminData.phone" />
+              <el-form-item class="mb-24px" :label="t('phone')" prop="phone">
+                <el-input v-model="editAdminData.phone" />
               </el-form-item>
 
-              <el-form-item class="mb-24px" label="Permission">
+              <el-form-item class="mb-24px" :label="t('permission')" prop="permission_str">
                 <el-select 
                   class="el-select" 
-                  v-model.trim="editAdminData.permission_str" 
-                  placeholder="Select" 
+                  v-model="editAdminData.permission_str" 
+                  :placeholder="t('select')" 
                   size="large"
                   @change="setPermission"
                 >
@@ -422,12 +491,12 @@ onMounted(async () => {
                 </el-select>
               </el-form-item>
 
-              <el-form-item class="mb-24px" label="Edit">
-                <el-switch v-model.trim="editAdminData.permission_edit" />
+              <el-form-item class="mb-24px w-0" :label="t('edit')">
+                <el-switch v-model="editAdminData.permission_edit" />
               </el-form-item>
 
-              <el-form-item class="mb-24px" label="Active">
-                <el-switch v-model.trim="editAdminData.permission_active" />
+              <el-form-item class="mb-24px w-0" :label="t('active')">
+                <el-switch v-model="editAdminData.permission_active" />
               </el-form-item>
             </el-form>
           </div>
@@ -439,21 +508,31 @@ onMounted(async () => {
                 class="w-48% bg-btn-100 text-white max-w-140px"
                 @click.stop="editAdmin('delete')"
               >
-              Delete
+              {{ t('delete') }}
               </el-button>
               <el-button
                 round
                 class="w-48% bg-btn-100 text-white max-w-140px"
                 @click.stop="editAdmin('cancel')"
               >
-                Cancel
+                {{ t('cancel') }}
               </el-button>
               <el-button
                 round
                 class="w-48% bg-btn-200 text-white max-w-140px"
                 @click.stop="editAdmin('confirm')"
+                v-if="editAdminData.permission_edit === false"
+                disabled
               >
-                Confirm
+                {{ t('confirm') }}
+              </el-button>
+              <el-button
+                round
+                class="w-48% bg-btn-200 text-white max-w-140px"
+                @click.stop="editAdmin('confirm')"
+                v-else
+              >
+                {{ t('confirm') }}
               </el-button>
             </span>
           </template>

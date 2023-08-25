@@ -149,18 +149,26 @@ const tableSort = async(column) => {
 }
 const tableFilter = async(filters) => {
   let filter_options = []
-  for (let i=0; i<filters.style.length; i++) {
-    if (filters.style[i] === t('completed')) {
-      filter_options.push('COMPLETED')
-    }
-    else if (filters.style[i] === t('invalid')) {
-      filter_options.push('INVALID')
-    }
-    else if (filters.style[i] === t('active')) {
-      filter_options.push('ACTIVE')
-    }
-    else if (filters.style[i] === t('pending')) {
-      filter_options.push('PENDING')
+  if (filters.style.length === 0) {
+    filter_options.push('COMPLETED')
+    filter_options.push('INVALID')
+    filter_options.push('ACTIVE')
+    filter_options.push('PENDING')
+  }
+  else {
+    for (let i=0; i<filters.style.length; i++) {
+      if (filters.style[i] === t('completed')) {
+        filter_options.push('COMPLETED')
+      }
+      else if (filters.style[i] === t('invalid')) {
+        filter_options.push('INVALID')
+      }
+      else if (filters.style[i] === t('active')) {
+        filter_options.push('ACTIVE')
+      }
+      else if (filters.style[i] === t('pending')) {
+        filter_options.push('PENDING')
+      }
     }
   }
   
@@ -190,8 +198,36 @@ const tableFilter = async(filters) => {
   let res = await MsiApi.mongoAggregate(queryData) 
   OcpiSessionDataAll.length = 0
   Object.assign(OcpiSessionDataAll, res.data.result)
-  console.log(OcpiSessionDataAll)
+  for (let i = 0; i < OcpiSessionDataAll.length; i++) {
+    OcpiSessionDataAll[i].price_str = OcpiSessionDataAll[i]?.total_cost?.incl_vat.toLocaleString()
+    OcpiSessionDataAll[i].location_str = OcpiSessionDataAll[i]?.Location?.[0]?.name
+    OcpiSessionDataAll[i].evse_str = OcpiSessionDataAll[i]?.EVSE?.[0]?.evse_id
+
+    let localStartTime =  new Date( (new Date(OcpiSessionDataAll[i].start_date_time).getTime()) + ((MStore.timeZoneOffset ) * -60000))
+    OcpiSessionDataAll[i].start_date_local_time = (moment(localStartTime).format("YYYY-MM-DD HH:mm:ss"))
+
+    let localEndTime =  new Date( (new Date(OcpiSessionDataAll[i].end_date_time).getTime()) + ((MStore.timeZoneOffset ) * -60000))
+    OcpiSessionDataAll[i].end_date_local_time = (moment(localEndTime).format("YYYY-MM-DD HH:mm:ss"))
+
+    switch (OcpiSessionDataAll[i].status) {
+      case 'COMPLETED':
+        OcpiSessionDataAll[i].status = t('completed')
+        break;
+      case 'INVALID':
+        OcpiSessionDataAll[i].status = t('invalid')
+        break;
+      case 'ACTIVE':
+        OcpiSessionDataAll[i].status = t('active')
+        break;
+      case 'PENDING':
+        OcpiSessionDataAll[i].status = t('pending')
+        break;
+      default:
+        break;
+    }
+  }
   getPageData()
+  tableRef.value.sort('start_date_local_time', 'ascending')
 }
 
 onMounted( async() => {
@@ -261,8 +297,8 @@ onMounted( async() => {
             type="datetimerange" 
             range-separator="-"
             :prefix-icon="Calendar"
-            start-placeholder="Start Date" 
-            end-placeholder="End Date" 
+            :start-placeholder="t('start_date')" 
+            :end-placeholder="t('end_date')" 
             @change="select_date()"
             :default-time="defaultTime" 
             />
