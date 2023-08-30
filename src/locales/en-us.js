@@ -179,7 +179,7 @@ export default
     log_in:                                                 'Log in',
     oops_account_or_password_error:                         'Oops! "Account or Password" is Error.',
     agree:                                                  'Agree',
-    i_fully_understand_the_contents_of_the_terms_and_conditions_and_arree_to_them:        
+    i_fully_understand_the_contents_of_the_terms_and_conditions_and_agree_to_them:        
                                                             'I fully understand the contents of the Terms and Conditions and agree to them.',
     user_agreement:                                         'User Agreement',
     forgot_password:                                        'Forgot Password',

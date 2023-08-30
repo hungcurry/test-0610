@@ -44,7 +44,7 @@ const emitCallBack = (res) => {
 </script>
 
 <template>
-  <div class="header-layout overflow-x-auto">
+  <nav class="header-layout overflow-x-auto">
     <div class="left-header flex-grow">
       <ul class="station_map list-none hidden md:flex items-center m-0 px-15px md:px-40px" v-if="route.path === '/station'">
         <!-- <div class="station_map" > -->
@@ -94,14 +94,11 @@ const emitCallBack = (res) => {
         </template>
       </el-dropdown>
     </div>
-  </div>
-  <PasswordModal :modal="reset_password_visible" @closeModal="emitCallBack" />
+    <PasswordModal :modal="reset_password_visible" @closeModal="emitCallBack" />
+  </nav>
 </template>
 
 <style lang="scss" scoped>
-
-
-
 .header-layout {
   width: 100%;
   height: 60px;

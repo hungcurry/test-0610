@@ -210,60 +210,73 @@ onUnmounted(() => {
     <div class="station-detail" v-if="show_stataion_detail">
       <div class="header px-10px md:px-0">
         <div class="station-detail-button flex justify-between">
-          <el-button @click="close_detail" class="arrow"
+          <el-button @click="close_detail" class="btn-icon arrow"
             ><font-awesome-icon icon="fa-solid fa-arrow-right"
           /></el-button>
-          <el-button @click="edit_detail(SideBarInfo.id)" class="pen"
+          <el-button @click="edit_detail(SideBarInfo.id)" class="btn-icon pen"
             ><font-awesome-icon icon="fa-regular fa-pen-to-square"
           /></el-button>
         </div>
-
-        <p class="text-26px md:text-35px text-white mt-12px mb-16px">
+        <h3 class="text-26px md:text-35px text-blue-600 font-700 mt-12px mb-16px">
           {{ SideBarInfo.name }}
-        </p>
-        <div class="flex flex-items-center mb-12px">
-          <img
+        </h3>
+        <ul class="SideBarInfo">
+          <li
             @click="edit_detail(SideBarInfo.id)"
-            class="w-20px h-20px mr-10px cursor-pointer"
-            src="@/assets/img/station_mapmode_location.png"
-            alt=""
-          />
-          <p class="text-16px text-white">{{ SideBarInfo.country}}</p>
-        </div>
-        
-        <div class="flex flex-items-center mb-12px" v-if="SideBarInfo.city">
-          
-          <p class="text-16px text-white">{{ SideBarInfo.city + SideBarInfo.address}}</p>
-        </div>
-        <div class="flex flex-items-center mb-12px" v-if="SideBarInfo.city1">
-
-          <p class="text-16px text-white">{{ SideBarInfo.city1 + SideBarInfo.address1}}</p>
-        </div>
-        <div class="flex">
-          <img
+            class="flex items-center mb-12px cursor-pointer"
+          >
+            <i class="w-20px h-20px mr-10px text-white i-octicon:location-16" />
+            <p class="text-16px text-white border-s-b-1">{{ SideBarInfo.country }}</p>
+          </li>
+          <li
             @click="edit_detail(SideBarInfo.id)"
-            class="w-20px h-20px mr-10px cursor-pointer"
-            src="@/assets/img/station_mapmode_latitude.png"
-            alt=""
-          />
-          <p class="text-15px text-white line-height-20px">
-            {{ SideBarInfo.coordinates?.latitude + ' , ' + SideBarInfo.coordinates?.longitude}}
-          </p>
-        </div>
-
-        <div class="flex flex-items-center mb-12px">
-          <p class="text-16px text-white">{{ t('publish') + ' : ' + SideBarInfo.publish_str}}</p>
-        </div>
-
-        <div class="flex flex-items-center mb-12px">
-          <p class="text-16px text-white">{{ t('type') + ' : ' + SideBarInfo.facilities_str}}</p>
-        </div>
-
+            class="flex items-center mb-12px cursor-pointer"
+          >
+            <i class="w-20px h-20px mr-10px text-white i-bi:globe2" />
+            <p class="text-15px text-white border-s-b-1">
+              {{
+                SideBarInfo.coordinates?.latitude +
+                ' , ' +
+                SideBarInfo.coordinates?.longitude
+              }}
+            </p>
+          </li>
+          <li class="flex items-center mb-12px" v-if="SideBarInfo.city">
+            <i class="w-20px h-20px mr-10px text-white i-gis:location-man-alt" />
+            <p class="text-16px text-white">
+              {{ SideBarInfo.city + SideBarInfo.address }}
+            </p>
+          </li>
+          <li class="flex items-center mb-12px" v-if="SideBarInfo.city1">
+            <i
+              class="w-20px h-20px mr-10px text-white i-gis:location-man-alt"
+              v-if="!SideBarInfo.city"
+            />
+            <p
+              class="text-15px text-white text-left"
+              :class="{ 'pl-30px': SideBarInfo.city }"
+            >
+              {{ SideBarInfo.city1 + SideBarInfo.address1 }}
+            </p>
+          </li>
+          <li class="flex items-center mb-12px">
+            <i class="w-20px h-20px mr-10px text-white i-ph:eye-bold" />
+            <p class="text-16px text-white">
+              {{ t('publish') + ' : ' + SideBarInfo.publish_str }}
+            </p>
+          </li>
+          <li class="flex items-center mb-12px">
+            <i class="w-20px h-20px mr-10px text-white i-fluent:scan-type-24-filled" />
+            <p class="text-16px text-white">
+              {{ t('type') + ' : ' + SideBarInfo.facilities_str }}
+            </p>
+          </li>
+        </ul>
         <div class="middle-line"></div>
       </div>
       <div class="scrollbar flex-grow overflow-x-auto mb-10px md:px-12px">
         <div class="flex-col mb-60px">
-          <div class="type1 mt-0px px-6px" v-if="SideBarInfo.type1_total > 0">
+          <div class="type1 px-6px" v-if="SideBarInfo.type1_total > 0">
             <div class="flex items-center">
               <img
                 class="w-30px h-30px mr-10px"
@@ -298,7 +311,7 @@ onUnmounted(() => {
               </p>
             </div>
           </div>
-          <div class="type2 mt-16px px-6px" v-if="SideBarInfo.type2_total > 0">
+          <div class="type2 px-6px" v-if="SideBarInfo.type2_total > 0">
             <div class="flex items-center">
               <img
                 class="w-30px h-30px mr-10px"
@@ -332,7 +345,7 @@ onUnmounted(() => {
               </p>
             </div>
           </div>
-          <div class="others mt-16px px-6px" v-if="SideBarInfo.others_total > 0">
+          <div class="others px-6px" v-if="SideBarInfo.others_total > 0">
             <div class="flex items-center">
               <img
                 class="w-30px h-30px mr-10px"
@@ -395,24 +408,23 @@ onUnmounted(() => {
     top: 6rem;
   }
   .station-detail-button {
-    .arrow {
+    .btn-icon {
       background-color: transparent;
       border: 0;
-      color: #ffffff;
-      margin: 0 0 20px -15px;
+      color: var(--white);
+    }
+    .arrow {
+      margin: 0 0 1rem -1.5rem;
     }
     .pen {
-      background-color: transparent;
-      border: 0;
-      color: #ffffff;
-      margin: 0 -15px 20px 0;
+      margin: 0 -1.5rem 1rem 0;
     }
     :deep(.svg-inline--fa) {
       height: 1.8em;
     }
   }
   .middle-line {
-    width: 80%;
+    width: 90%;
     border: 1px solid var(--blue-900);
     margin: 24px auto;
   }
@@ -429,6 +441,7 @@ onUnmounted(() => {
   &::-webkit-scrollbar-track,
   &::-webkit-scrollbar-corner {
     background-color: var(--blue-100);
+    border-radius: 2rem;
   }
   &::-webkit-scrollbar-thumb {
     background-color: var(--secondary);

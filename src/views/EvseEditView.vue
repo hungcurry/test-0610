@@ -278,11 +278,11 @@ onMounted(async () => {
 
 <template>
   <div class="evse-edit">
-    <div class="container lg flex-col">
+    <div class="container lg flex-col h-full">
       <div class="flex justify-between flex-wrap lg:flex-nowrap pt-40px pb-32px">
         <p class="text-30px">{{ evse_edit_title }}</p>
       </div>
-      <el-form class="w-full min-w-190px" :rules="rules" :model="evse_obj" ref="ruleFormRef">
+      <el-form class="w-full min-w-190px flex-grow" :rules="rules" :model="evse_obj" ref="ruleFormRef">
       <div class="evse-edit-main flex-grow mb-44px">
         <el-row class="h-full" :gutter="30">
           <el-col class="mb-24px lg:mb-0" :xs="24" :md="6">

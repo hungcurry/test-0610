@@ -347,7 +347,7 @@ onMounted( async () => {
                 <img class="w-24px h-24px filter-black" src="@/assets/img/charger_tariff.png" alt="">
                 <h4 class="m-0 ml-8px text-20px text-black-100">{{ t('rate') }}</h4>
               </div>
-              <div class="lg:flex mb-20px bg-blue-100 py-20px rounded-2xl">
+              <div class="lg:flex mb-20px bg-blue-100 p-20px md:px-0 rounded-2xl">
                 <div class="tariff-left lg:w-30% mb-20px lg:mb-0">
                   <div class="container-data h-full md:px-32px">
                     <div class="info-item">

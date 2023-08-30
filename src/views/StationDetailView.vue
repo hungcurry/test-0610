@@ -226,30 +226,33 @@ onMounted( async () => {
 </script>
 
 <template>
-  <div class="station-detail wh-full flex-col">
+  <div class="station-detail flex-col h-full">
     <div class="container lg">
-      <div class="pt-40px pb-20px overflow-x-auto flex">
-        <img class="w-110px h-110px mr-20px" v-if="StationData.img_str!==undefined" :src="StationData.img_str" >
-        <img class="w-110px h-110px mr-20px" v-else src="@/assets/img/null_pic.png">
-        <div class="flex-col white-space-nowrap w-full text-blue-1200 text-20px">
-          <div class="flex justify-between">
+      <div class="whiteBar pt-40px pb-20px overflow-x-auto flex">
+        <img class="w-110px h-110px rounded-2xl mr-20px" v-if="StationData.img_str!==undefined" :src="StationData.img_str" >
+        <img class="w-110px h-110px rounded-2xl mr-20px" v-else src="@/assets/img/null_pic.png">
+        <div class="flex-col white-space-nowrap text-blue-1200 text-20px lg:w-full">
+          <div class="flex justify-between mb-14px">
             <div class="flex">
               <span class="station-name text-36px font-bold mr-20px">{{ StationData.name }}</span>
-              <font-awesome-icon class="text-secondary w-32px h-32px" icon="fa-regular fa-pen-to-square" @click="go_to_station_edit_page() " style="cursor:pointer"/>
+              <font-awesome-icon class="text-secondary w-32px h-32px mt-3px" icon="fa-regular fa-pen-to-square" @click="go_to_station_edit_page() " style="cursor:pointer"/>
             </div>
             <p class="text-20px text-blue-900 ml-24px"> {{ t('last_updated') }} : {{ StationData.last_updated_str }} </p>
           </div>
-
-          <div class="flex mt-16px">
-            <img class="w-20px h-20px mr-10px" src="@/assets/img/station_listmode_location.png">
-            <span class="line-height-20px">{{ StationData.country }} {{ StationData.city }}{{ StationData.address }}</span>
-            <span class="line-height-20px">{{ "  /  " }} </span>
+          <div class="flex mb-14px">
+            <div class="flex">
+              <i class="w-20px h-20px mr-10px flex-shrink-0 text-blue-1100 i-octicon:location-16" />
+              <span class="line-height-20px">{{ StationData.country }}</span>
+            </div>
+            <span class="line-height-20px mx-8px">{{ "" }} </span>
+            <i class="w-20px h-20px mr-10px flex-shrink-0 text-blue-1100 i-gis:location-man-alt" />
+            <span class="line-height-20px">{{ StationData.city }}{{ StationData.address }}</span>
+            <span class="line-height-20px mx-8px">{{ "  /  " }} </span>
             <span class="line-height-20px">{{ StationData.city1 }}{{ StationData.address1 }}</span>
           </div>
-          
-          <div class="flex flex-row mt-12px text20px">
+          <div class="flex flex-row text-20px">
             <div class="flex mr-40px">
-              <img class="w-20px h-20px mr-10px" src="@/assets/img/station_detail_latitude.png">
+              <i class="w-20px h-20px mr-10px text-blue-1100 i-bi:globe2" />
               <span class="line-height-20px"> {{ StationData.latitude_str }} {{ "," }} {{ StationData.longitude_str }} </span>
             </div>
 
@@ -259,15 +262,14 @@ onMounted( async () => {
             </div>
 
             <div class="flex mr-40px">
-              <img class="w-20px h-20px mr-10px" src="@/assets/img/station_list_type_office1.png">
-              <span class="line-height-20px"> {{ t('type') }} : {{ StationData.facilities_str }} </span>
-            </div>
-
-            <div class="flex mr-40px">
-              <img class="w-20px h-20px mr-10px" src="@/assets/img/login_visible_pre.png">
+              <i class="w-20px h-20px mr-10px text-blue-1100 i-ph:eye-bold" />
               <span class="line-height-20px"> {{ t('publish') }} : {{ StationData.publish_str }} </span>
             </div>
 
+            <div class="flex">
+              <i class="w-20px h-20px mr-10px text-blue-1100 i-fluent:scan-type-24-filled" />
+              <span class="line-height-20px"> {{ t('type') }} : {{ StationData.facilities_str }} </span>
+            </div>
           </div>
         </div>
       </div>
@@ -305,110 +307,105 @@ onMounted( async () => {
       </el-collapse-item>
     </el-collapse> -->
 
-    <div class="pb-40px bg-blue-100 flex-grow">
-      <div class="container lg">
-        <div class="flex lg:justify-end pt-24px pb-24px overflow-x-auto">
-          <el-button v-if="editMode === true" class="btn-secondary shrink-0 update-button px-30px box-shadow" @click="updateSW"> {{ t('update_sw') }} </el-button>
-          <!-- <el-button v-if="editMode === true" class="btn-secondary shrink-0 update-button px-30px box-shadow" @click="updateFW " disabled> Update FW </el-button> -->
-          <el-button v-if="editMode === true" class="btn-secondary shrink-0 soft-reset-button px-30px box-shadow" @click="evseReset('soft')"> {{ t('soft_reset') }} </el-button>
-          <el-button v-if="editMode === true" class="btn-secondary shrink-0 hard-reset-button px-30px box-shadow" @click="evseReset('hard')"> {{ t('hard_reset') }} </el-button>
+    <div class="container lg pb-40px bg-blue-100 flex-grow">
+      <div class="flex lg:justify-end pt-24px pb-24px overflow-x-auto">
+        <el-button v-if="editMode === true" class="btn-secondary shrink-0 update-button px-30px box-shadow" @click="updateSW"> {{ t('update_sw') }} </el-button>
+        <!-- <el-button v-if="editMode === true" class="btn-secondary shrink-0 update-button px-30px box-shadow" @click="updateFW " disabled> Update FW </el-button> -->
+        <el-button v-if="editMode === true" class="btn-secondary shrink-0 soft-reset-button px-30px box-shadow" @click="evseReset('soft')"> {{ t('soft_reset') }} </el-button>
+        <el-button v-if="editMode === true" class="btn-secondary shrink-0 hard-reset-button px-30px box-shadow" @click="evseReset('hard')"> {{ t('hard_reset') }} </el-button>
           <el-button class="btn-secondary shrink-0  px-30px box-shadow" @click="edit_charger" > {{ t(edit_button_str) }}</el-button>
-        </div>
-
-        <div class="px-14px bg-white rounded-2xl">
-          <el-table 
-            :data="StationDetailEvseData" 
-            class="white-space-nowrap text-primary rounded-10px"
-            height="calc(100vh - 520px)"
-            style="width: 100%" 
-            stripe 
-            size="large" 
-            empty=""
-            :cell-style=msi_style.tb_cell 
-            :header-cell-style=msi_style.tb_header_cell 
-            @selection-change="handleSelectionChange"
-            :default-sort="{ prop: 'evse_id', order: 'ascending' }"
-          >
-            <el-table-column
-              prop="evse_id"
-              :label="t('evse_id')"
-              align="center"
-              sortable
-              min-width="250"
-            />
-            <el-table-column
-              prop="floor_level"
-              :label= "t('floor_level')"
-              align="center"
-              sortable
-              min-width="150"
-            />
-            <el-table-column
-              prop="status"
-              :label= "t('status')"
-              align="center"
-              sortable
-              min-width="150"
-            >
-              <template #default="scope">
-                <p class="available text-center" v-if="scope.row.status === 'AVAILABLE'"> {{ "● " + scope.row.status_str }}</p>
-                <p class="charging text-center" v-else-if="scope.row.status === 'CHARGING'"> {{ "● " + scope.row.status_str }}</p>
-                <p class="offline text-center" v-else-if="scope.row.status === 'UNKNOWN' "> {{ "● " + scope.row.status_str }}</p>
-                <p class="error text-center" v-else-if="scope.row.status === 'OUTOFORDER'"> {{ "● " + scope.row.status_str }}</p>
-              </template>
-            </el-table-column>
-            <el-table-column
-              prop="connector_type"
-              :label= "t('type')"
-              sortable
-              align="center"
-              min-width="200"
-            />
-            <el-table-column
-              prop="sw_version"
-              :label="t('sw_ver')"
-              sortable
-              align="center"
-              min-width="200"
-            />
-            <el-table-column
-              prop=""
-              :label= "t('latest_sw')"
-              sortable
-              align="center"
-              min-width="200"
-            >
-              <template #default="scope">
-                <p class="text-center" v-if="scope.row.sw_version === swVersion"> {{ "V" }}</p>
-              </template>
-            </el-table-column>
-            <el-table-column
-              prop="last_updated_str"
-              :label="t('updated_time')"
-              sortable
-              align="center"
-              min-width="200"
-            />
-            <el-table-column
-              v-if="editMode === false"
-              prop=""
-              label=""
-              align="center"
-              min-width="200"
-            >
-              <template #default="scope">
-                <el-button class="btn-more" @click="charger_detail(scope.row)"> <font-awesome-icon icon="fa-solid fa-ellipsis" /> </el-button>
-              </template>
-            </el-table-column>
-            <el-table-column
-              v-else
-              type="selection"
-              align="center"
-              min-width="200"
-            />
-          </el-table>
-        </div>
       </div>
+      
+      <el-table 
+        :data="StationDetailEvseData" 
+        class="white-space-nowrap text-primary rounded-10px px-14px mt-8px"
+        style="width: 100%; height: calc(100vh - 370px)"
+        stripe 
+        size="large" 
+        empty=""
+        :cell-style=msi_style.tb_cell 
+        :header-cell-style=msi_style.tb_header_cell 
+        @selection-change="handleSelectionChange"
+            :default-sort="{ prop: 'evse_id', order: 'ascending' }"
+      >
+        <el-table-column
+          prop="evse_id"
+          :label="t('evse_id')"
+          align="center"
+          sortable
+          min-width="250"
+        />
+        <el-table-column
+          prop="floor_level"
+          :label= "t('floor_level')"
+          align="center"
+          sortable
+          min-width="150"
+        />
+        <el-table-column
+          prop="status"
+          :label= "t('status')"
+          align="center"
+          sortable
+          min-width="150"
+        >
+          <template #default="scope">
+            <p class="available text-center" v-if="scope.row.status === 'AVAILABLE'"> {{ "● " + scope.row.status_str }}</p>
+            <p class="charging text-center" v-else-if="scope.row.status === 'CHARGING'"> {{ "● " + scope.row.status_str }}</p>
+            <p class="offline text-center" v-else-if="scope.row.status === 'UNKNOWN' "> {{ "● " + scope.row.status_str }}</p>
+            <p class="error text-center" v-else-if="scope.row.status === 'OUTOFORDER'"> {{ "● " + scope.row.status_str }}</p>
+          </template>
+        </el-table-column>
+        <el-table-column
+          prop="connector_type"
+          :label= "t('type')"
+          sortable
+          align="center"
+          min-width="200"
+        />
+        <el-table-column
+          prop="sw_version"
+          :label="t('sw_ver')"
+          sortable
+          align="center"
+          min-width="200"
+        />
+        <el-table-column
+          prop=""
+          :label= "t('latest_sw')"
+          sortable
+          align="center"
+          min-width="200"
+        >
+          <template #default="scope">
+            <p class="text-center" v-if="scope.row.sw_version === swVersion"> {{ "V" }}</p>
+          </template>
+        </el-table-column>
+        <el-table-column
+          prop="last_updated_str"
+          :label="t('updated_time')"
+          sortable
+          align="center"
+          min-width="200"
+        />
+        <el-table-column
+          v-if="editMode === false"
+          prop=""
+          label=""
+          align="center"
+          min-width="200"
+        >
+          <template #default="scope">
+            <el-button class="btn-more" @click="charger_detail(scope.row)"> <font-awesome-icon icon="fa-solid fa-ellipsis" /> </el-button>
+          </template>
+        </el-table-column>
+        <el-table-column
+          v-else
+          type="selection"
+          align="center"
+          min-width="200"
+        />
+      </el-table>
 
       <el-dialog
         v-model="sw_version_visable" 
@@ -445,9 +442,6 @@ onMounted( async () => {
 
 <style lang="scss" scoped>
 .station-detail {
-  .container {
-    height: auto;
-  }
   .collapse {
     :deep(.el-collapse-item__header) {
       height: 20px;
@@ -493,5 +487,9 @@ onMounted( async () => {
     background-color: var(--blue-1000);
     border-radius: 2rem;
   }
+}
+.whiteBar::-webkit-scrollbar-track,
+::-webkit-scrollbar-corner {
+  background-color: var(--white);
 }
 </style>

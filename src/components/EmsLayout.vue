@@ -13,12 +13,12 @@ const { handleClose } = sideMenuStore
 const { layoutRight, isCollapse } = storeToRefs(sideMenuStore)
 const counter = ref(0)
 const logoutTime = ref(0)
-logoutTime.value = (Date.now() / 1000) + 600
+logoutTime.value = Date.now() / 1000 + 600
 // logoutTime.value = (Date.now() / 1000) + 600
 let logoutTimer = null
 
 const reflashTimer = () => {
-  logoutTime.value = (Date.now() / 1000) + 600
+  logoutTime.value = Date.now() / 1000 + 600
   // logoutTime.value = (Date.now() / 1000) + 600
 }
 const open = () => {
@@ -29,12 +29,10 @@ const open = () => {
     },
   })
 }
-
 const checkTime = () => {
-  counter.value = parseInt(logoutTime.value) - parseInt(Date.now() / 1000 )
-  if ( parseInt((logoutTime.value - Date.now() / 1000)) == 30  )
-    open()
-  if ( Date.now() / 1000 >= logoutTime.value) {
+  counter.value = parseInt(logoutTime.value) - parseInt(Date.now() / 1000)
+  if (parseInt(logoutTime.value - Date.now() / 1000) == 30) open()
+  if (Date.now() / 1000 >= logoutTime.value) {
     ElMessageBox.close()
     router.push({ name: 'login' })
     isCollapse.value = true
@@ -52,10 +50,10 @@ onUnmounted(() => {
 </script>
 
 <template>
+  <header-layout @mousedown="reflashTimer" @click.stop="menuClose" />
   <div class="ems-layout" v-on="{ mousedown: reflashTimer }">
     <SideBar />
     <div ref="layoutRight" @click.stop="menuClose" class="layout-right">
-      <header-layout />
       <main-content />
     </div>
     <p class="logout">{{ counter }}</p>
@@ -64,8 +62,6 @@ onUnmounted(() => {
 
 <style lang="scss" scoped>
 .ems-layout {
-  width: 100%;
-  height: 100%;
   position: relative;
   .sidebar {
     height: 100%;
@@ -77,8 +73,6 @@ onUnmounted(() => {
     z-index: 99;
   }
   .layout-right {
-    height: 100%;
-    flex-grow: 1;
     padding-left: 7.2rem;
     .main-content {
       width: 100%;

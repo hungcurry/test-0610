@@ -178,7 +178,7 @@ export default
     log_in:                                                 '登入',
     oops_account_or_password_error:                         '糟糕!帳號或密碼有錯',
     agree:                                                  '同意',
-    i_fully_understand_the_contents_of_the_terms_and_conditions_and_arree_to_them:
+    i_fully_understand_the_contents_of_the_terms_and_conditions_and_agree_to_them:
                                                             '我已閱讀並同意使用者條款',
     user_agreement:                                         '使用者合約',
     forgot_password:                                        '忘記密碼',

@@ -138,7 +138,7 @@ onMounted(() => {
               v-model="checkState"
               true-value="yes"
               false-value="no"
-              >{{ t('i_fully_understand_the_contents_of_the_terms_and_conditions_and_arree_to_them') }}
+              >{{ t('i_fully_understand_the_contents_of_the_terms_and_conditions_and_agree_to_them') }}
             </el-checkbox>
             <span class="dialog-footer flex flex-center">
               <el-button
