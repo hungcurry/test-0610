@@ -131,7 +131,6 @@ const MongoQurey = async (queryData) => {
   const res =  await MsiApi.mongoAggregate(queryData)
   PaymentData.length = 0
   Object.assign(PaymentData, res.data.result)
-
   for (let i = 0; i < PaymentData.length; i++) {
     switch (PaymentData[i]?.paymethod?.method) {
       case 'CREDIT':
@@ -202,7 +201,7 @@ onMounted(async () => {
             },
           },
         },
-        { $project: { _id: 0, sessionId: 0, location: 0, detail: 0, locationId: 0, currency: 0} },
+        { $project: { _id: 0, sessionId: 0, location: 0, detail: 0, locationId: 0} },
       ],
     }
   await MongoQurey(queryData)
@@ -359,6 +358,16 @@ onMounted(async () => {
               sortable
               min-width="150"
               :sort-method="(a, b) => sortFunc(a, b, 'price_str')"
+            />
+
+            <el-table-column
+              prop="currency"
+              :label="t('currency')"
+              header-align="center"
+              align="right"
+              sortable
+              min-width="150"
+              :sort-method="(a, b) => sortFunc(a, b, 'currency')"
             />
 
             <el-table-column

@@ -174,7 +174,7 @@ onMounted(async () => {
             />
             <el-table-column
               prop="car_num"
-              :label="t('car_num')"
+              :label="t('license_plate')"
               align="center"
               sortable="custom"
               min-width="150"

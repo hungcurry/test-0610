@@ -18,7 +18,7 @@ const edit_title = ref(t('edit_station'))
 const ruleFormRef  = ref()
 
 const getCoordinates = async () => {
-  let address = StationData.country + StationData.city + StationData.address
+  let address = StationData.country + StationData.city + StationData.address + StationData.city1 + StationData.address1
   let res = await MsiApi.getCoordinates(address)
   StationData.latitude_str = res.data.data.results[0].geometry.location.lat.toFixed(6)
   StationData.longitude_str = res.data.data.results[0].geometry.location.lng.toFixed(6)
@@ -179,7 +179,7 @@ const saveStation = async (formEl) => {
     regular_hours.push({weekday:7,period_begin:formatNumberToTime(w7val.value[0]), period_end:formatNumberToTime(w7val.value[1])})
   }
 
-  let opening_times = { twentyfourseven:station_always_open.value, regular_hours:regular_hours, exceptional_openings:[], exceptional_closings:[]}
+  let opening_times = { twentyfourseven:station_always_open.value, regular_hours:regular_hours}
 
 
   const coordinates = { latitude: parseFloat(StationData.latitude_str).toFixed(6), longitude: parseFloat(StationData.longitude_str).toFixed(6) }
@@ -194,6 +194,7 @@ const saveStation = async (formEl) => {
     'country_code': StationData.country_code, 'time_zone': StationData.time_zone,
     opening_times : opening_times
   }
+  console.log(sendData)
   if (StationData.publish === undefined)
     StationData.publish = false
   sendData.party_id = 'MSI'
@@ -234,6 +235,12 @@ const saveStation = async (formEl) => {
   }
 }
 
+const convertTimeToHours = (timeString) => {
+  const hourPart = timeString.split(':')[0]
+  const hours = parseInt(hourPart)
+  return hours;
+}
+
 onMounted(async () => {
   let jsonData = { "database": "OCPI", "collection": "Location", "query": { "id": { "UUID": station_id } } }
   if (station_id === undefined) {
@@ -243,7 +250,45 @@ onMounted(async () => {
     let response = await MsiApi.mongoQuery(jsonData)
     StationData.length = 0
     Object.assign(StationData, response.data.all[0])
-    console.log(StationData)
+    
+    if (StationData?.opening_times?.regular_hours) {
+      StationData.opening_times.regular_hours.forEach ( (item) => {
+        console.log(item)
+        let hours1 = convertTimeToHours(item.period_begin);
+        let hours2 = convertTimeToHours(item.period_end);
+        switch (item.weekday) {
+          case 1:
+          w1check.value = true
+          w1val.value = [hours1, hours2]
+          break
+          case 2:
+          w2check.value = true
+          w2val.value = [hours1, hours2]
+          break
+          case 3:
+          w3check.value = true
+          w3val.value = [hours1, hours2]
+          break
+          case 4:
+          w4check.value = true
+          w4val.value = [hours1, hours2]
+          break
+          case 5:
+          w5check.value = true
+          w5val.value = [hours1, hours2]
+          break
+          case 6:
+          w6check.value = true
+          w6val.value = [hours1, hours2]
+          break
+          case 7:
+          w7check.value = true
+          w7val.value = [hours1, hours2]
+          break
+        }
+      })
+    }
+    station_always_open.value = StationData.opening_times.twentyfourseven
     StationData.owner_name_string = StationData?.owner?.name
     StationData.operator_name_string = StationData?.operator?.name
     StationData.facilities_str = StationData?.facilities?.[0]
@@ -357,7 +402,7 @@ onMounted(async () => {
                   <el-form-item :label="t('address')" class="mr-20px w-full">
                     <el-input v-model="StationData.address" placeholder="EX: 中和區立德街69號"></el-input>
                   </el-form-item>
-                  <el-form-item label="City">
+                  <el-form-item :label="t('city')">
                     <el-select v-if="StationData.country === 'Taiwan'"
                       class="el-select w-190px" 
                       v-model="StationData.city" 
@@ -383,7 +428,7 @@ onMounted(async () => {
                   <el-form-item :label="t('latitude')" class="mr-20px w-150px" prop="latitude_str">
                     <el-input v-model="StationData.latitude_str" placeholder="EX: 25.007678"></el-input>
                   </el-form-item>
-                  <el-form-item :label="t('Longitude')" class="mr-20px w-150px" prop="longitude_str">
+                  <el-form-item :label="t('longitude')" class="mr-20px w-150px" prop="longitude_str">
                     <el-input v-model="StationData.longitude_str" placeholder="EX: 121.487396"></el-input>
                   </el-form-item>
                   <el-button class="location-button" @click="getCoordinates"> {{ t('get_coordinates') }}</el-button>
@@ -410,53 +455,51 @@ onMounted(async () => {
             <div class="flex justify-between mb-44px">
               <div class="flex">
                 <img class="mr-8px w-20px h-20px" src="@/assets/img/station_edit_building.png" alt="">
-                <p class="text-secondary"> {{ t('businese_details') }} </p>
+                <p class="text-secondary"> {{ t('opening_time') }} </p>
               </div>
               <el-switch v-model="station_always_open" size="large" :inactive-text="t('always_open')" />
-              <el-switch v-model="select_all" size="large" :inactive-text= "t('select_all')" />
+              <el-switch v-model="select_all" size="large" :inactive-text= "t('select_all')" :disabled = "station_always_open" />
             </div>
             <div class="week-container pr-40px flex-grow min-w-300px">
               <div class="week">
-                <el-checkbox v-model="w0check" label="" size="large" :disabled = "!select_all" @change="change_all_week"/>
-                <!-- <el-checkbox v-model="w0check" label="" size="large" disabled @change="change_all_week"/> -->
+                <el-checkbox v-model="w0check" label="" size="large" :disabled = "!select_all || station_always_open" @change="change_all_week"/>
                 <span class="text"> {{t('all')}} </span>
-                <el-slider v-model="w0val" range :max="24" :disabled = "!select_all" @change="change_all_time"/>
-                <!-- <el-slider v-model="w0val" range :max="24" disabled @change="change_all_time"/> -->
+                <el-slider v-model="w0val" range :max="24" :disabled = "!select_all || station_always_open" @change="change_all_time"/>
               </div>
               <div class="week">
-                <el-checkbox v-model="w1check" label="" size="large" :disabled = "select_all"/>
+                <el-checkbox v-model="w1check" label="" size="large" :disabled = "select_all || station_always_open"/>
                 <span class="text"> {{t('mon')}} </span>
-                <el-slider v-model="w1val" range :max="24" :disabled = "select_all"/>
+                <el-slider v-model="w1val" range :max="24" :disabled = "select_all || station_always_open"/>
               </div>
               <div class="week">
-                <el-checkbox v-model="w2check" label="" size="large" :disabled = "select_all"/>
+                <el-checkbox v-model="w2check" label="" size="large" :disabled = "select_all || station_always_open"/>
                 <span class="text"> {{t('tue')}} </span>
-                <el-slider v-model="w2val" range :max="24" :disabled = "select_all"/>
+                <el-slider v-model="w2val" range :max="24" :disabled = "select_all || station_always_open"/>
               </div>
               <div class="week">
-                <el-checkbox v-model="w3check" label="" size="large" :disabled = "select_all"/>
+                <el-checkbox v-model="w3check" label="" size="large" :disabled = "select_all || station_always_open"/>
                 <span class="text"> {{t('wed')}} </span>
-                <el-slider v-model="w3val" range :max="24" :disabled = "select_all"/>
+                <el-slider v-model="w3val" range :max="24" :disabled = "select_all || station_always_open"/>
               </div>
               <div class="week">
-                <el-checkbox v-model="w4check" label="" size="large" :disabled = "select_all"/>
+                <el-checkbox v-model="w4check" label="" size="large" :disabled = "select_all || station_always_open"/>
                 <span class="text"> {{t('thu')}} </span>
-                <el-slider v-model="w4val" range :max="24" :disabled = "select_all"/>
+                <el-slider v-model="w4val" range :max="24" :disabled = "select_all || station_always_open"/>
               </div>
               <div class="week">
-                <el-checkbox v-model="w5check" label="" size="large" :disabled = "select_all"/>
+                <el-checkbox v-model="w5check" label="" size="large" :disabled = "select_all || station_always_open"/>
                 <span class="text"> {{t('fri')}} </span>
-                <el-slider v-model="w5val" range :max="24" :disabled = "select_all"/>
+                <el-slider v-model="w5val" range :max="24" :disabled = "select_all || station_always_open"/>
               </div>
               <div class="week">
-                <el-checkbox v-model="w6check" label="" size="large" :disabled = "select_all"/>
+                <el-checkbox v-model="w6check" label="" size="large" :disabled = "select_all || station_always_open"/>
                 <span class="text"> {{t('sat')}} </span>
-                <el-slider v-model="w6val" range :max="24" :disabled = "select_all"/>
+                <el-slider v-model="w6val" range :max="24" :disabled = "select_all || station_always_open"/>
               </div>
               <div class="week">
-                <el-checkbox v-model="w7check" label="" size="large" :disabled = "select_all"/>
+                <el-checkbox v-model="w7check" label="" size="large" :disabled = "select_all || station_always_open"/>
                 <span class="text"> {{t('sun')}} </span>
-                <el-slider v-model="w7val" range :max="24" :marks="marks" :disabled = "select_all"/>
+                <el-slider v-model="w7val" range :max="24" :marks="marks" :disabled = "select_all || station_always_open" />
               </div>
             </div>
           </div>

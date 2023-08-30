@@ -261,7 +261,7 @@ const confirmRfid = async (confirm, index) => {
           let sendData = { 'class': 'UserData', 'pk': userData._id, 'rfids': userData.rfids }
           let res = await MsiApi.setCollectionData('patch', 'cpo', sendData)
           if (res.status === 200) {
-            ElMessage({ type: 'success', message: `${t('add')} ${rfidData.rfid.toUpperCase()} ${t('card_number')}` })
+            ElMessage({ type: 'success', message: `${t('add')} ${rfidData.rfid.toUpperCase()} ${t('card_no')}` })
           }
           else {
             userData.rfids.pop()
@@ -650,13 +650,13 @@ onMounted(async () => {
                     </div>
                     <div v-if="isLoading_skeleton === false" class="mt-0px lg:mt-16px lg:50%">
                       <div class="flex mb-8px">
-                        <span class="info-item">{{ t('binding_cards') }}</span>
-                        <el-button round class="button" @click="binding_card_detail">{{ t('card_detail') }}</el-button>
+                        <span class="info-item">{{ t('binding_card') }}</span>
+                        <el-button round class="button" @click="binding_card_detail">{{ t('card_details') }}</el-button>
                       </div>
     
                       <div class="flex mb-8px">
                         <span class="info-item">{{ t('device') }}</span>
-                        <el-button round class="button" @click="device_detail">{{ t('device_detail') }}</el-button>
+                        <el-button round class="button" @click="device_detail">{{ t('device_details') }}</el-button>
                       </div>
                     </div>
                   </div>
@@ -1043,7 +1043,7 @@ onMounted(async () => {
 
         <div class="dialog-context pb-24px">
           <el-table :data="userData.paylistArrObj" :row-class-name="tableRowClassName">
-            <el-table-column property="card_num" :label="t('card_num')" width="180" />
+            <el-table-column property="card_num" :label="t('card_no')" width="180" />
             <!-- <el-table-column property="card4No" label="Card 4" width="200" /> -->
             <el-table-column property="expireDate" :label="t('expire_date_YY_MM')" width="200" />
             <el-table-column property="bindingDate" :label="t('binding_date')" width="200" />

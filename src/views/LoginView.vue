@@ -7,7 +7,6 @@ import { ElMessage } from 'element-plus'
 import { useMStore } from '@/stores/m_cloud'
 import { useI18n } from 'vue-i18n'
 
-const language = navigator.language
 const first_login = ref(false)
 const MStore = useMStore()
 const MsiApi = ApiFunc()
@@ -19,6 +18,7 @@ const checkState = ref(false)
 const m_cloud_version = ref('0.1.13')
 
 const { t } = useI18n()
+let language = localStorage.getItem("lang")
 
 const cancel_eula = () => {
   first_login.value = false
@@ -53,6 +53,12 @@ const aggre_eula = async () => {
   router.push({ name: 'dashboard' })
 }
 onMounted(() => {
+  if (!language) { 
+    if (navigator.language === 'zh-TW') 
+      language = 'zh_tw'
+    else 
+      language = 'en_us'
+  }
   let targetTimezoneOffset = new Date().getTimezoneOffset()
   MStore.timeZoneOffset = targetTimezoneOffset
   MStore.permission = undefined
@@ -111,7 +117,7 @@ onMounted(() => {
             </div>
           </template>
           <div class="h-full scrollbar">
-            <div class="h-full" v-if="language === 'zh-TW'">
+            <div class="h-full" v-if="language === 'zh_tw'">
               <iframe
                 class="w-full h-full"
                 src="https://storage.googleapis.com/msi-common/file/EULA/MSI_m-Cloud_EULA_zh.htm"
@@ -128,11 +134,11 @@ onMounted(() => {
           </div>
           <template #footer>
             <el-checkbox
-              class="w-full text-left pl-4px mb-10px lg:mb-0 md:w-auto md:absolute md:left-15% md:top-30%"
+              class="whitespace-normal w-full text-left pl-4px mb-10px lg:mb-0 "
               v-model="checkState"
               true-value="yes"
               false-value="no"
-              >{{ t('agree') }}
+              >{{ t('i_fully_understand_the_contents_of_the_terms_and_conditions_and_arree_to_them') }}
             </el-checkbox>
             <span class="dialog-footer flex flex-center">
               <el-button

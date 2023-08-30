@@ -92,7 +92,6 @@ const CancelDialog = () => {
   DialogVisible.value = false
 }
 const ConfirmDialog = () => {
-  console.log(charging_schedule_startSchedule.value)
   let startSchedule = new Date(charging_schedule_startSchedule.value)
   startSchedule = startSchedule.toISOString().slice(0, 19)
   let startTime = new Date(charging_profile_valid.value[0])
@@ -118,10 +117,6 @@ const ConfirmDialog = () => {
   sendObj.chargingSchedule.chargingSchedulePeriod.limit = DialogData.limit
   sendObj.chargingSchedule.chargingSchedulePeriod.numberPhases = DialogData.numberPhases
   MsiFunc.deleteEmptyKeys(sendObj)
-  
-  console.log(sendObj)
-
-
 }
 
 

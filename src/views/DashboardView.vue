@@ -77,7 +77,7 @@ const evse_status_option = reactive({
     x: 'right',
     y: 'center',
     formatter: function (value) {
-      return value + ' (' + status_obj[value] + ')'
+      return t(value.toLowerCase()) + ' (' + status_obj[value] + ')'
     },
   },
   series: [
@@ -87,6 +87,12 @@ const evse_status_option = reactive({
       radius: ['80%', '100%'],
       avoidLabelOverlap: false,
       label: { show: false, position: 'center' },
+      tooltip: {
+        trigger: 'item',
+        formatter: function(params) {
+        return t(params.name.toLowerCase()) + ' (' +  params.value + ')'
+        }
+      },
       color: ['#537ebc', '#64bfae', '#b1b1b1', '#ef8879'],
       labelLine: { show: false },
     },
@@ -429,7 +435,6 @@ const queryEvseStatus = async () => {
   }
   let response = await MsiApi.mongoAggregate(queryData)
   status_obj.total = status_obj.Available = status_obj.Offline = status_obj.Charging = status_obj.Error = 0
-
   if (response.data.result[0]?.totalCount?.[0]?.totalCount)
     status_obj.total = response.data.result[0].totalCount?.[0]?.totalCount
   if (response.data.result[0]?.AVAILABLE[0]?.AVAILABLE)
@@ -440,14 +445,12 @@ const queryEvseStatus = async () => {
     status_obj.Offline = response.data.result[0].UNKNOWN[0]?.UNKNOWN
   if (response.data.result[0]?.OUTOFORDER[0]?.OUTOFORDER)
     status_obj.Error = response.data.result[0].OUTOFORDER[0]?.OUTOFORDER
-
   evse_status_option.series[0].data = [
-    { value: status_obj.Available, name: t('available') },
-    { value: status_obj.Charging, name: t('charging') },
-    { value: status_obj.Offline, name: t('offline') },
-    { value: status_obj.Error, name: t('error') },
+    { value: status_obj.Available, name: 'Available' },
+    { value: status_obj.Charging, name: 'Charging' },
+    { value: status_obj.Offline, name: 'Offline' },
+    { value: status_obj.Error, name: 'Error' },
   ]
-
   let evse_status_chart = echarts.init(ref_evse_status.value)
   evse_status_option && evse_status_chart.setOption(evse_status_option)
 }

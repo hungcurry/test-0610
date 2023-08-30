@@ -28,7 +28,8 @@ let companyId = ''
 let upgrade_manager = {}
 let queryData = null
 let response = null
-
+let language = localStorage.getItem("lang")
+const first_login = ref(false)
 const adminInfo_ref = ref()
 const adminInfo_rules = reactive({
   name: [
@@ -130,7 +131,7 @@ const confirmProgram = () => {
     ElMessage.error(t('please_select_program'))
   } else {
     if (CardData.length === 0) {
-      ElMessage.error(t('please_binding_card'))
+      ElMessage.error(t('please_binding_credit_card'))
     } else {
       ProgramVisible.value = false
       CheckProgramVisible.value = true
@@ -242,6 +243,12 @@ onMounted(async () => {
   }
 })
 
+
+const display_eula = () => {
+  first_login.value=true
+  language = localStorage.getItem("lang")
+}
+
 </script>
 
 <template>
@@ -263,6 +270,17 @@ onMounted(async () => {
         <el-form-item class="block md:flex" :label="t('e_mail')">
           <el-input class="lg:w-30%" v-model="email" disabled/>
         </el-form-item>
+
+        <el-form-item class="block md:flex" label=''>
+
+          <el-button
+            class="w-full lg:w-30%"
+            @click="display_eula"
+          >
+            {{ t('eula') }}
+          </el-button>
+        </el-form-item>
+
 
         <el-form-item class="block md:flex" :label="t('credit_card')">
           <el-button
@@ -286,7 +304,7 @@ onMounted(async () => {
           </el-button>
         </el-form-item>
 
-        <el-form-item class="block md:flex" :label="t('add_program')">
+        <!-- <el-form-item class="block md:flex" :label="t('add_program')">
           <el-button
             class="w-full lg:w-30%"
             v-if="ProgramData.length > 0"
@@ -305,7 +323,7 @@ onMounted(async () => {
           <el-button class="w-full lg:w-30%" v-else @click="add_program" disabled>
             {{ t('add_program') }}
           </el-button>
-        </el-form-item>
+        </el-form-item> -->
 
         <!-- table -->
         <el-form-item class="block" :label="t('card_list')">
@@ -320,7 +338,7 @@ onMounted(async () => {
               size="large"
               v-loading.fullscreen.lock="isLoading"
             >
-              <el-table-column prop="card_num_str" :label="t('card_number')" min-width="150" />
+              <el-table-column prop="card_num_str" :label="t('card_no')" min-width="150" />
               <el-table-column
                 prop="expireDate"
                 :label="t('expire_date_mm_yy')"
@@ -375,7 +393,7 @@ onMounted(async () => {
                 align="center"
                 min-width="150"
               />
-              <el-table-column prop="user" label="User" align="center" min-width="150" />
+              <el-table-column prop="user" :label="t('user')" align="center" min-width="150" />
               <el-table-column
                 prop="admin_user"
                 :label="t('cpo_account')"
@@ -537,9 +555,7 @@ onMounted(async () => {
           <div class="mb-2 flex items-center text-sm">
             <el-radio-group v-model="Effective">
               <el-radio label="1" size="large">{{ t('effective_immediately') }}</el-radio>
-              <el-radio label="2" size="large"
-                >{{ t('effective_date_will_start_in_a_month') }}</el-radio
-              >
+              <el-radio label="2" size="large">{{ t('effective_date_will_start_in_a_month') }}</el-radio>
             </el-radio-group>
           </div>
           <el-form label-position="left" label-width="100px" :rules="adminInfo_rules" :model="companyData" ref="adminInfo_ref" :scroll-to-error=true>
@@ -603,6 +619,43 @@ onMounted(async () => {
         </span>
       </template>
     </el-dialog>
+
+    <el-dialog
+          v-model="first_login"
+          class="max-w-992px h-90% flex-col"
+          width="90%"
+          destroy-on-close
+          center
+        >
+          <template #header="{ titleId, titleClass }">
+            <div class="py-2rem relative bg-blue-100">
+              <h4
+                :id="titleId"
+                :class="titleClass"
+                class="m-0 text-center text-blue-1200 font-400 text-24px line-height-26px"
+              >
+                {{t('user_agreement')}}
+              </h4>
+            </div>
+          </template>
+          <div class="h-full scrollbar" style="height: 900px;">
+            <div class="h-full" v-if="language === 'zh_tw'">
+              <iframe
+                class="w-full h-full"
+                src="https://storage.googleapis.com/msi-common/file/EULA/MSI_m-Cloud_EULA_zh.htm"
+                frameborder="0"
+              ></iframe>
+            </div>
+            <div class="h-full" v-else>
+              <iframe
+                class="w-full h-full"
+                src="https://storage.googleapis.com/msi-common/file/EULA/MSI_m-Cloud_EULA_en.htm"
+                frameborder="0"
+              ></iframe>
+            </div>
+          </div>
+        </el-dialog>
+
   </div>
 </template>
 

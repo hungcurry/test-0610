@@ -230,9 +230,6 @@ const addUserDialog = async (action) => {
           }
           isLoading.value = false
         })
-        .catch((e)=>{
-          ElMessage.error(e)
-        })
       }
       else {
         return false

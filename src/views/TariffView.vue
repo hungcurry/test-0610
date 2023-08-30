@@ -81,7 +81,7 @@ const copyTariff = (row) => {
   delete senddata.id
   senddata.class = 'Tariff'
   senddata.party_id = 'MSI'
-  ElMessageBox.confirm(t('do_you_want_to_create'), t('warning'), {confirmButtonText: t('ok'), cancelButtonText: t('cancel'), type: 'warning'})
+  ElMessageBox.confirm(t('do_you_want_to_duplicate'), t('warning'), {confirmButtonText: t('ok'), cancelButtonText: t('cancel'), type: 'warning'})
   .then(async () => {
     let res = await MsiApi.setCollectionData('post', 'ocpi', senddata)
     let queryData = { "database":"OCPI", "collection":"Tariff", "query": {}}
@@ -138,10 +138,10 @@ onMounted( async() => {
           >
             <el-table-column
               prop="name"
-              :label="t('profile_name')"
+              :label="t('plan_name')"
               align="center"
               sortable
-              :sort-method="(a, b) => sortFunc(a, b, 'profile_name')"
+              :sort-method="(a, b) => sortFunc(a, b, 'name')"
               min-width="150"
             />
 
@@ -150,7 +150,7 @@ onMounted( async() => {
               :label="t('description')"
               align="center"
               sortable
-              :sort-method="(a, b) => sortFunc(a, b, 'tariff_text')"
+              :sort-method="(a, b) => sortFunc(a, b, 'description')"
               min-width="450"
             />
 

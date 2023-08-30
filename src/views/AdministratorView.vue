@@ -249,10 +249,13 @@ const GetPermission = async () => {
   Object.assign(user_type, response.data.result)
   for (let i=0; i<user_type.length; i++) {
     if (user_type[i].name === 'EngineerUser') {
-      user_type[i].name = t('engineeruser')
+      user_type[i].name = t('engineer_user')
     }
     else if (user_type[i].name === 'AdminUser') {
-      user_type[i].name = t('adminuser')
+      user_type[i].name = t('admin_user')
+    }
+    else if (user_type[i].name === 'DeveloperUser') {
+      user_type[i].name = t('developer_user')
     }
   }
 }

@@ -201,7 +201,6 @@ const detail_info = (detail) => {
   for (let key in companyData)
     companyData[key] = ''
   Object.assign(companyData, detail)
-  console.log(detail.upgrade_manager)
   companyData.invoice_hashIV = companyData.invoice.hashIV
   companyData.invoice_hashKey = companyData.invoice.hashKey
   companyData.invoice_merchantId = companyData.invoice.merchantId

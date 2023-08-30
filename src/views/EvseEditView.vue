@@ -46,7 +46,6 @@ const rules = reactive({
   evse_id: [{ required: true, message: t('this_item_is_required'), trigger: 'blur' },],
   floor_level: [{ required: true, message: t('this_item_is_required'), trigger: 'blur' },
                  { min: 1, max: 4, message: t('length_should_be_1_to_4'), trigger: 'blur' },],
-  rate_profile: [{ required: true, message: t('this_item_is_required'), trigger: 'blur' },],
 })
 
 const selectTariff = (select_id) => {
@@ -191,6 +190,8 @@ onMounted(async () => {
         case 'PARKING_TIME' :
           emement.price_components[0].type_str = t('parking_by_time')
           emement.price_components[0].step_size_str = emement.price_components[0].step_size / 60
+          emement.restrictions_min_duration_str = emement.restrictions.min_duration / 60
+          emement.restrictions_max_duration_str = emement.restrictions.max_duration / 60
           break
         default:
           emement.price_components[0].type_str = emement.price_components[0].type
@@ -378,7 +379,7 @@ onMounted(async () => {
               <div class="rounded-lg bg-gray-100 p-20px mb-24px">
                 <div class="mb-20px">
 
-                    <el-form-item class="block mb-4px" :label= "t('rate_profile')" prop="rate_profile">
+                    <el-form-item class="block mb-4px" :label= "t('plan_name')">
                       <el-select
                         class="el-select w-full lg:w-40%"
                         v-model="select_profile"
@@ -443,37 +444,47 @@ onMounted(async () => {
                     <el-table-column
                       prop="price_components[0].type_str"
                       :label="t('type')"
-                      min-width="150"
+                      min-width="120"
+                      align="center"
                     />
                     <el-table-column
                       prop="price_components[0].price"
                       :label="t('price')"
-                      min-width="80"
+                      min-width="60"
+                      align="center"
                     />
                     <el-table-column
                       prop="price_components[0].vat"
                       :label="t('vat')"
-                      min-width="80"
+                      min-width="40"
+                      align="center"
                     />
                     <el-table-column
                       prop="price_components[0].step_size_str"
                       :label="t('unit')"
-                      min-width="120"
+                      min-width="60"
+                      align="center"
                     />
                     <el-table-column
                       prop="restrictions.start_time"
                       :label="t('start_time')"
-                      min-width="120"
+                      min-width="70"
+                      align="center"
                     />
                     <el-table-column
                       prop="restrictions.end_time"
                       :label="t('end_time')"
-                      min-width="120"
+                      min-width="70"
+                      align="center"
                     />
+                <el-table-column prop="restrictions_min_duration_str" :label="t('active_minute')" sortable min-width="120" align="center"/>
+                <el-table-column prop="restrictions_max_duration_str" :label="t('deactivate_minute')" sortable min-width="120" align="center"/>
+                
                     <el-table-column
                       prop="restrictions.day_of_week_str"
                       :label="t('day_of_week')"
-                      min-width="300"
+                      min-width="200"
+                      align="center"
                     />
                   </el-table>
                 </div>

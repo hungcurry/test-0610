@@ -277,7 +277,7 @@ onMounted(async () => {
         >{{t('add_station')}}</el-button
       >
     </div>
-    <div class="list container lg" v-show="display_mode === 'List Mode'">
+    <div class="list container lg" v-show="display_mode === t('list_mode')">
       <div class="station-list relative top-120px">
         <div class="overflow-x-auto">
           <div class="pb-40px">
@@ -291,6 +291,7 @@ onMounted(async () => {
               :cell-style="msi.tb_cell"
               :header-cell-style="msi.tb_header_cell"
               v-loading.fullscreen.lock="isLoading"
+              :default-sort="{ prop: 'country', order: 'ascending' }"
             >
               <el-table-column
                 prop="facilities"
@@ -404,7 +405,7 @@ onMounted(async () => {
         </div>
       </div>
     </div>
-    <div class="map container full" v-show="display_mode === 'Map Mode'">
+    <div class="map container full" v-show="display_mode === t('map_mode')">
       <div class="station-map w-full h-full">
         <GoogleMap :LocationData="LocationData"></GoogleMap>
       </div>

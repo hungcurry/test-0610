@@ -57,7 +57,7 @@ const aggre_eula = async () => {
         </div>
       </template>
       <div class="h-full scrollbar">
-        <div class="h-full" v-if="language === 'zh-TW'">
+        <div class="h-full" v-if="language === 'zh_tw'">
           <iframe
             class="w-full h-full"
             src="https://storage.googleapis.com/msi-common/file/EULA/MSI_m-Cloud_EULA_zh.htm"

@@ -20,7 +20,7 @@ const activeName = ref('1')
 const route = useRoute()
 const update_file = ref('')
 const MsiApi = ApiFunc()
-const edit_button_str = ref( t('update_or_restart'))
+const edit_button_str = ref( 'update_or_restart')
 const editMode = ref(false)
 const isLoading = ref(false)
 const EvseData = reactive([])
@@ -119,10 +119,10 @@ const add_charger = () => {
 const edit = () => {
   if (editMode.value === false) {
     editMode.value = true
-    edit_button_str.value = t('cancel')
+    edit_button_str.value = 'cancel'
   } else {
     editMode.value = false
-    edit_button_str.value = t('update_or_restart')
+    edit_button_str.value = 'update_or_restart'
   }
 }
 const sortFunc = (obj1, obj2, column) => {
@@ -268,7 +268,7 @@ onMounted(async () => {
           {{ t('add_evse') }}</el-button
           >
           <el-button class="btn-secondary shrink-0 edit px-30px box-shadow" @click="edit">
-            {{ edit_button_str }}</el-button
+            {{ t(edit_button_str) }}</el-button
           >
         </div>
       </div>
@@ -286,6 +286,7 @@ onMounted(async () => {
               size="large"
               v-loading.fullscreen.lock="isLoading"
               @selection-change="handleSelectionChange"
+              :default-sort="{ prop: 'locationName', order: 'ascending' }"
             >
               <el-table-column
                 prop="locationName"

@@ -13,12 +13,21 @@ const sideMenuStore = useSideMenuStore()
 const { isCollapse } = storeToRefs(sideMenuStore)
 const { t } = useI18n()
 
-const English = () => {
-  i18n.global.locale.value = 'en_us'
+const changeLanguage = (lang) => {
+  switch (lang) {
+    case 'EN' :
+      i18n.global.locale.value = 'en_us'
+      break
+    case 'ZH' :
+      i18n.global.locale.value = 'zh_tw'
+      break
+    default:
+      i18n.global.locale.value = 'en_us'
+      break
+  }
+  localStorage.setItem("lang", i18n.global.locale.value)
 }
-const Chinese = () => {
-  i18n.global.locale.value = 'zh_tw'
-}
+
 const Admin_Info = () => {
   router.push({ name: 'adminInfo' })
 }
@@ -59,15 +68,17 @@ const emitCallBack = (res) => {
       </ul>
     </div>
     <div class="common-header shrink-0">
-      <!-- <el-dropdown>
-        <el-button class="user"><font-awesome-icon icon="fa-solid fa-gear" /></el-button>
+      <el-dropdown trigger="click">
+        <el-button class="user">        
+          <span class="material-symbols-outlined">translate</span>
+        </el-button>
         <template #dropdown>
           <el-dropdown-menu>
-            <el-dropdown-item @click="English()">English</el-dropdown-item>
-            <el-dropdown-item @click="Chinese()">繁體中文</el-dropdown-item>
+            <el-dropdown-item @click="changeLanguage('EN')">English</el-dropdown-item>
+            <el-dropdown-item @click="changeLanguage('ZH')">繁體中文</el-dropdown-item>
           </el-dropdown-menu>
         </template>
-      </el-dropdown> -->
+      </el-dropdown>
 
       <!-- <el-button class="gear"><font-awesome-icon icon="fa-solid fa-gear" /></el-button>
       <el-button class="bell m-0"><font-awesome-icon icon="fa-solid fa-bell" /></el-button> -->
@@ -88,6 +99,9 @@ const emitCallBack = (res) => {
 </template>
 
 <style lang="scss" scoped>
+
+
+
 .header-layout {
   width: 100%;
   height: 60px;

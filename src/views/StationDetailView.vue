@@ -58,7 +58,7 @@ const go_to_station_edit_page = () => {
 const handleSelectionChange = (val) => {
   multipleSelection.value = val
 }
-const edit_button_str = ref(t('update_or_restart'))
+const edit_button_str = ref('update_or_restart')
 
 const evseReset = (type) => {
   updataEvseId.length = 0
@@ -87,11 +87,11 @@ const evseReset = (type) => {
 const edit_charger = () => {
   if (editMode.value === true) {
     editMode.value = false
-    edit_button_str.value = t('update_or_restart')
+    edit_button_str.value = 'update_or_restart'
   }
   else {
     editMode.value = true
-    edit_button_str.value = t('cancel')
+    edit_button_str.value = 'cancel'
   }
 }
 const charger_detail = (row) => {
@@ -101,7 +101,6 @@ const StationDetailEvseData = reactive([])
 const StationData = reactive([])
 
 onMounted( async () => {
-  console.log(station_id)
   let queryData1 = { "database":"OCPI", "collection":"Location", "pipelines": [ 
   { $match:  { "id": { "UUID" : station_id} } },
     { "$lookup": {"from":'EVSE', "localField": "evses", "foreignField": "_id", "as":"EVSES"}},
@@ -116,7 +115,6 @@ onMounted( async () => {
   let res = await MsiApi.mongoAggregate(queryData1)
   StationData.length = 0
   Object.assign(StationData, res.data.result[0])
-  console.log(StationData)
   StationData.latitude_str = StationData.coordinates.latitude
   if (StationData.publish) 
     StationData.publish_str = t('true')
@@ -125,7 +123,6 @@ onMounted( async () => {
   StationData.longitude_str = StationData.coordinates.longitude
   StationData.last_updated_str = (moment(StationData.last_updated).format("YYYY-MM-DD HH:mm:ss"))
   StationData.img_str = StationData?.images?.[0]?.url
-  console.log(StationData)
 
   const addr_parts = StationData.address.split('\n')
     const city_parts = StationData.city.split('\n')
@@ -315,7 +312,7 @@ onMounted( async () => {
           <!-- <el-button v-if="editMode === true" class="btn-secondary shrink-0 update-button px-30px box-shadow" @click="updateFW " disabled> Update FW </el-button> -->
           <el-button v-if="editMode === true" class="btn-secondary shrink-0 soft-reset-button px-30px box-shadow" @click="evseReset('soft')"> {{ t('soft_reset') }} </el-button>
           <el-button v-if="editMode === true" class="btn-secondary shrink-0 hard-reset-button px-30px box-shadow" @click="evseReset('hard')"> {{ t('hard_reset') }} </el-button>
-          <el-button class="btn-secondary shrink-0  px-30px box-shadow" @click="edit_charger" > {{ edit_button_str }}</el-button>
+          <el-button class="btn-secondary shrink-0  px-30px box-shadow" @click="edit_charger" > {{ t(edit_button_str) }}</el-button>
         </div>
 
         <div class="px-14px bg-white rounded-2xl">
@@ -330,6 +327,7 @@ onMounted( async () => {
             :cell-style=msi_style.tb_cell 
             :header-cell-style=msi_style.tb_header_cell 
             @selection-change="handleSelectionChange"
+            :default-sort="{ prop: 'evse_id', order: 'ascending' }"
           >
             <el-table-column
               prop="evse_id"

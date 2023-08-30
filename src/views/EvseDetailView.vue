@@ -172,6 +172,8 @@ onMounted( async () => {
       case 'PARKING_TIME' :
         item.price_components[0].type_str = t('parking_by_time')
         item.step_size_str = item.price_components[0].step_size / 60
+        item.restrictions_min_duration_str = item.restrictions.min_duration / 60
+        item.restrictions_max_duration_str = item.restrictions.max_duration / 60
         break
       default:
         item.price_components[0].type_str = item.price_components[0].type
@@ -350,7 +352,7 @@ onMounted( async () => {
                   <div class="container-data h-full md:px-32px">
                     <div class="info-item">
                       <p class="info-title">
-                        <span class="font-700 text-blue-900">{{ t('rate_profile') + ':' }}  </span>
+                        <span class="font-700 text-blue-900">{{ t('plan_name') + ':' }}  </span>
                         <span class="ml-18px">{{ tariffData.name }} </span>
                       </p>
                     </div>
@@ -373,13 +375,15 @@ onMounted( async () => {
               </div>
               <el-table :data="tariff_elements" style="width: 100%; height:300px" stripe 
                 :cell-style=msi.tb_cell :header-cell-style=msi.tb_header_cell size="large">
-                <el-table-column prop="price_components[0].type_str" :label="t('type')" min-width="130"/>
-                <el-table-column prop="price_components[0].price" :label="t('price')" min-width="80"/>
-                <el-table-column prop="price_components[0].vat" :label="t('vat')" min-width="80"/>
-                <el-table-column prop="step_size_str" :label="t('unit')" min-width="120"/>
-                <el-table-column prop="restrictions.start_time" :label="t('start_time')" min-width="120"/>
-                <el-table-column prop="restrictions.end_time" :label="t('end_time')" min-width="120"/>
-                <el-table-column prop="restrictions.day_of_week_str" :label="t('day_of_week')" min-width="300"/>
+                <el-table-column prop="price_components[0].type_str" :label="t('type')" min-width="130" align="center"/>
+                <el-table-column prop="price_components[0].price" :label="t('price')" min-width="80" align="center"/>
+                <el-table-column prop="price_components[0].vat" :label="t('vat')" min-width="80" align="center"/>
+                <el-table-column prop="step_size_str" :label="t('unit')" min-width="50" align="center"/>
+                <el-table-column prop="restrictions.start_time" :label="t('start_time')" min-width="100" align="center"/>
+                <el-table-column prop="restrictions.end_time" :label="t('end_time')" min-width="100" align="center"/>
+                <el-table-column prop="restrictions_min_duration_str" :label="t('active_minute')" sortable min-width="120" align="center"/>
+                <el-table-column prop="restrictions_max_duration_str" :label="t('deactivate_minute')" sortable min-width="120" align="center"/>
+                <el-table-column prop="restrictions.day_of_week_str" :label="t('day_of_week')" min-width="200" align="center"/>
               </el-table>
             </div>
           </el-col>
