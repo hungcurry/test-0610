@@ -410,6 +410,8 @@ export default
     hmi_board_sn:                                           'HMI Board SN',
     hmi_board_sw_version:                                   'HMI Board SW Version',
     rate:                                                   'Rate',
+    // active_minute:                                       'Active (Minute)',
+    // deactivate_minute:                                   'Deactivate (Minute)',
     // charging_by_energy:                                  'Charging By Energy',
     // charging_by_time:                                    'Charging By Time',
     // parking_by_time:                                     'Parking By Time',
@@ -451,6 +453,8 @@ export default
 // EVSE Edit Page           
 //--------------------------------------------------------------    
     length_should_be_1_to_4:                                'Length should be 1 to 4',
+    // active_minute:                                        'Active (Minute)',
+    // deactivate_minute:                                    'Deactivate (Minute)',
     // edit_evse:                                           'Edit EVSE',
     // add_evse:                                            'Add EVSE',
     // name:                                                'Name',

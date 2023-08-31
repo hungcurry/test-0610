@@ -241,8 +241,8 @@ export default
 //--------------------------------------------------------------
 // Payment Page                 
 //--------------------------------------------------------------
-    // license_plate:                                          '車牌號碼',
-    // method:                                                 '方式',
+    // method:                                              '方式',
+    // license_plate:                                       '車牌號碼',
     // download:                                            '下載',
     // evse_id:                                             '充電樁ID',
     // final_paid:                                          '最後付款金額',
@@ -376,6 +376,8 @@ export default
 //--------------------------------------------------------------
     add_evse:                                               '新增充電樁',
     paired:                                                 '已配對',
+    // active_minute:                                       '啟用時間 (分鐘)',
+    // deactivate_minute:                                   '截止時間 (分鐘)',
     // available:                                           '待機',
     // charging:                                            '充電',
     // offline:                                             '離線',
@@ -410,6 +412,8 @@ export default
     hmi_board_sn:                                           'HMI板序號',
     hmi_board_sw_version:                                   'HMI板軟體版本',
     rate:                                                   '費率',
+    // active_minute:                                       '啟用時間 (分鐘)',
+    // deactivate_minute:                                   '截止時間 (分鐘)',
     // charging_by_energy:                                  '依電費計價',
     // charging_by_time:                                    '依時間計價',
     // parking_by_time:                                     '停車計價',
@@ -514,7 +518,7 @@ export default
     edit_rate:                                              '編輯費率',
     rate_profile_details:                                   '費率方案詳細資料',
     add_language:                                           '新增語系',
-    active_minute:                                          '啟用時間',
+    active_minute:                                          '啟用時間 (分鐘)',
     deactivate_minute:                                      '截止時間 (分鐘)',
     charging_rate:                                          '充電費率',
     parking_rate:                                           '停車費率',
@@ -620,6 +624,7 @@ export default
     engineer_user:                                          '工程師使用者',
     member_user:                                            '會員使用者',
     Chinese:                                                '中文',
+    card_number_already_exists:                             '卡號已經存在',
     // general:                                             '一般',
     // card_no:                                             '信用卡號',
     // language:                                            '語系',
@@ -627,7 +632,6 @@ export default
     // station:                                             '充電站',
     // evse_id:                                             '充電樁ID',
     // final_paid:                                          '最後付款金額',
-    // payment_method:                                      '付款方式',
     // e_mail:                                              '電子信箱',
     // phone:                                               '電話',
     // country:                                             '國家',
@@ -672,6 +676,8 @@ export default
     // download:                                            '下載',
     // first_name:                                          '名字',
     // last_name:                                           '姓氏',
+    // license_plate:                                       '車牌號碼',
+    // method:                                              '方式',
 //--------------------------------------------------------------
 // Company Page         
 //--------------------------------------------------------------
