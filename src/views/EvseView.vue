@@ -148,6 +148,10 @@ onMounted(async () => {
     query: { type: 'XP012' },
   }
   let response = await MsiApi.mongoQuery(queryData)
+  if (response.status === 403) {
+    isLoading.value = false
+    return
+  }
   swVersion.value = response.data.all[0].version
 
   queryData = {

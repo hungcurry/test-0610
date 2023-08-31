@@ -352,9 +352,8 @@ onUnmounted(() => {
                 src="@/assets/img/station_type_J1772.png"
                 alt=""
               />
-              <span class="text-white text-16px md:text-22px line-height-40px">{{
-                'Others (' + SideBarInfo.others_total + ')'
-              }}</span>
+              <span class="text-white text-16px md:text-22px line-height-40px">
+                {{ t('others') + '(' + SideBarInfo.others_total + ')'}}</span>
             </div>
             <div class="w-full pl-40px">
               <p class="available text-18px mt-16px">

@@ -17,6 +17,7 @@ const station_id = route.query.station_id
 const evse_id = route.query.evse_id
 const stationName = ref('')
 const ruleFormRef  = ref()
+const rateProfileFormRef = ref()
 let station_evses = []
 const evse_edit_title = ref(t('add_evse'))
 
@@ -46,6 +47,9 @@ const rules = reactive({
   evse_id: [{ required: true, message: t('this_item_is_required'), trigger: 'blur' },],
   floor_level: [{ required: true, message: t('this_item_is_required'), trigger: 'blur' },
                  { min: 1, max: 4, message: t('length_should_be_1_to_4'), trigger: 'blur' },],
+})
+const rateProfileRules = reactive({
+  rate_profile: [{ required: true, message: t('this_item_is_required'), trigger: 'change' },],
 })
 
 const selectTariff = (select_id) => {
@@ -130,7 +134,7 @@ const SaveEvseEdit = async (formEl) => {
         .then(async () => {
           await MsiApi.setCollectionData('patch', 'ocpi', connector_obj)
           let res = await MsiApi.setCollectionData('patch', 'ocpi', evse_obj)
-          ElMessage(res.data.message)
+          res.status === 200? ElMessage({message: res.data.message, type: 'success'}) : ElMessage({message: res.data.message, type: 'error'})
           router.back(-1)
         })
         .catch((e) => {
@@ -150,9 +154,9 @@ onMounted(async () => {
   Object.assign(tariff_profile, response.data.all)
 
   tariff_profile.forEach((item)=>{
-    item.elements.forEach((emement)=>{
+    item.elements.forEach((element)=>{
       let day_of_week_str = []
-      for (const day of emement.restrictions.day_of_week) {
+      for (const day of element.restrictions.day_of_week) {
         switch (day) {
           case 'MONDAY':
             day_of_week_str.push(t('mon'))
@@ -177,24 +181,24 @@ onMounted(async () => {
           break
         }
       }
-      emement.restrictions.day_of_week_str = day_of_week_str
-      switch (emement.price_components[0].type) {
+      element.restrictions.day_of_week_str = day_of_week_str
+      switch (element.price_components[0].type) {
         case 'ENERGY' :
-          emement.price_components[0].type_str = t('charging_by_energy')
-          emement.price_components[0].step_size_str = emement.price_components[0].step_size
+          element.price_components[0].type_str = t('charging_by_energy')
+          element.price_components[0].step_size_str = element.price_components[0].step_size
           break
         case 'TIME' :
-          emement.price_components[0].type_str = t('charging_by_time')
-          emement.price_components[0].step_size_str = emement.price_components[0].step_size / 60
+          element.price_components[0].type_str = t('charging_by_time')
+          element.price_components[0].step_size_str = element.price_components[0].step_size / 60
           break
         case 'PARKING_TIME' :
-          emement.price_components[0].type_str = t('parking_by_time')
-          emement.price_components[0].step_size_str = emement.price_components[0].step_size / 60
-          emement.restrictions_min_duration_str = emement.restrictions.min_duration / 60
-          emement.restrictions_max_duration_str = emement.restrictions.max_duration / 60
+          element.price_components[0].type_str = t('parking_by_time')
+          element.price_components[0].step_size_str = element.price_components[0].step_size / 60
+          element.restrictions_min_duration_str = element.restrictions.min_duration / 60
+          element.restrictions_max_duration_str = element.restrictions.max_duration / 60
           break
         default:
-          emement.price_components[0].type_str = emement.price_components[0].type
+          element.price_components[0].type_str = element.price_components[0].type
       }
     })
     item.name = item?.custom?.name
@@ -278,11 +282,11 @@ onMounted(async () => {
 
 <template>
   <div class="evse-edit">
-    <div class="container lg flex-col h-full">
+    <div class="container lg flex-col">
       <div class="flex justify-between flex-wrap lg:flex-nowrap pt-40px pb-32px">
         <p class="text-30px">{{ evse_edit_title }}</p>
       </div>
-      <el-form class="w-full min-w-190px flex-grow" :rules="rules" :model="evse_obj" ref="ruleFormRef">
+      <!-- <el-form class="w-full min-w-190px" :rules="rules" :model="evse_obj" ref="ruleFormRef"> -->
       <div class="evse-edit-main flex-grow mb-44px">
         <el-row class="h-full" :gutter="30">
           <el-col class="mb-24px lg:mb-0" :xs="24" :md="6">
@@ -297,7 +301,7 @@ onMounted(async () => {
                   <h4 class="m-0 ml-8px text-20px text-black-100">{{ t('station') }}</h4>
                 </div>
                 <div class="context rounded-lg bg-gray-100 p-20px">
-
+                  <el-form class="w-full min-w-190px" :rules="rules" :model="evse_obj" ref="ruleFormRef" :key="Math.random()">
                     <el-form-item class="block mb-4px" :label= "t('name')" prop="name">
                       <el-input v-model.trim="stationName" disabled />
                     </el-form-item>
@@ -307,7 +311,7 @@ onMounted(async () => {
                     <el-form-item class="block mb-4px" :label= "t('floor_level')" prop="floor_level">
                       <el-input v-model.trim="evse_obj.floor_level" />
                     </el-form-item>
-
+                  </el-form>
                 </div>
               </div>
               <div class="evse-edit-left-down w-full">
@@ -378,8 +382,8 @@ onMounted(async () => {
 
               <div class="rounded-lg bg-gray-100 p-20px mb-24px">
                 <div class="mb-20px">
-
-                    <el-form-item class="block mb-4px" :label= "t('plan_name')">
+                  <el-form class="w-full min-w-190px" :rules="rateProfileRules" :model="select_profile" ref="rateProfileFormRef" :key="Math.random()">
+                    <el-form-item class="block mb-4px" :label= "t('plan_name')" prop="rate_profile">
                       <el-select
                         class="el-select w-full lg:w-40%"
                         v-model="select_profile"
@@ -395,7 +399,7 @@ onMounted(async () => {
                           />
                       </el-select>
                     </el-form-item>
-                  <!-- </el-form> -->
+                  </el-form>
                 </div>
 
                 <div class="lg:flex mb-24px bg-white px-14px py-20px rounded-2xl">
@@ -493,7 +497,7 @@ onMounted(async () => {
           </el-col>
         </el-row>
       </div>
-      </el-form>
+      <!-- </el-form> -->
       <div class="flex justify-center pb-40px">
         <el-button class="btn-secondary bg-btn-100 md:mr-44px" @click="CancelEvseEdit">
           {{ t('cancel') }}

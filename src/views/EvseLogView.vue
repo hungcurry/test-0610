@@ -40,12 +40,6 @@ const download = () => {
 
 
 const select_date = async () => {
-
-  if (select_time.value === null) 
-    select_time.value = [new Date(1970, 1, 1, 0, 0, 0), new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59)]
-  if (select_time.value?.[0] === undefined) {
-    select_time.value[0] = [new Date(1970, 1, 1, 0, 0, 0) ,]
-  }
   if (select_time.value?.[1] === undefined) {
     select_time.value[1] = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59)
   }
@@ -96,6 +90,8 @@ const select_date = async () => {
         break;
     }
   }
+  await getPageData()
+  tableRef.value.sort('start_date_local_time', 'ascending')
   isLoading.value = false
 }
 

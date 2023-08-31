@@ -55,18 +55,19 @@ const deleteTariff = async (row) => {
     let sendData = { class : 'Tariff', id : row.id }
     ElMessageBox.confirm(t('do_you_want_to_delete'), t('warning'), {confirmButtonText: t('ok'), cancelButtonText: t('cancel'), type: 'warning'})
     .then(async () => {
-      console.log(await MsiApi.setCollectionData('delete', 'ocpi', sendData))
-      let queryData = { "database":"OCPI", "collection":"Tariff", "query": {}}
-      let response = await MsiApi.mongoQuery(queryData)
+      isLoading.value = true
+      await MsiApi.setCollectionData('delete', 'ocpi', sendData)
+     
       TariffData.length = 0
-      Object.assign(TariffData, response.data.all) 
+      let queryData  = { database: "OCPI", collection: "Tariff", pipelines: [ { $project: { last_updated:0} }]}
+      let res = await MsiApi.mongoAggregate(queryData)
+      Object.assign(TariffData, res.data.result) 
+
       for (let i = 0; i < TariffData.length; i++) {
         TariffData[i].name = TariffData[i].custom?.name
         TariffData[i].description = TariffData[i].custom?.description
       }
-    })
-    .catch((e)=>{
-      console.log(e)
+      isLoading.value = false
     })
   }
 }
@@ -75,36 +76,39 @@ const editTariff = (row) => {
   router.push({ name: 'ratePlanDetail', query:{id:row._id} })
 }
 
-const copyTariff = (row) => {
-  let senddata = Object.assign(TariffData[row.$index])
-  delete senddata._id
-  delete senddata.id
-  senddata.class = 'Tariff'
-  senddata.party_id = 'MSI'
+const copyTariff = (scope) => {
   ElMessageBox.confirm(t('do_you_want_to_duplicate'), t('warning'), {confirmButtonText: t('ok'), cancelButtonText: t('cancel'), type: 'warning'})
   .then(async () => {
-    let res = await MsiApi.setCollectionData('post', 'ocpi', senddata)
-    let queryData = { "database":"OCPI", "collection":"Tariff", "query": {}}
-    let response = await MsiApi.mongoQuery(queryData)
-    TariffData.length = 0
-    Object.assign(TariffData, response.data.all) 
-    for (let i = 0; i < TariffData.length; i++) {
-      TariffData[i].name = TariffData[i].tariff_alt_text[0].text
-      TariffData[i].tariff_name = TariffData[i].energy_mix?.supplier_name
-    }
-    ElMessage.success(res.data.message)
+    delete scope._id
+    delete scope.id
+    delete scope.byCompany
+    delete scope.last_updated
+    delete scope.max_price_str
+    delete scope.min_price_str
+    scope.class = 'Tariff'
+    scope.party_id = 'MSI'
 
-  })
-  .catch((e)=>{
-    console.log(e)
+    let res = await MsiApi.setCollectionData('post', 'ocpi', scope)
+    isLoading.value = true
+    let queryData  = { database: "OCPI", collection: "Tariff", pipelines: [ { $project: { last_updated:0} }]}
+    res = await MsiApi.mongoAggregate(queryData)
+    Object.assign(TariffData, res.data.result) 
+    for (let i = 0; i < TariffData.length; i++) {
+      TariffData[i].name = TariffData[i].custom?.name
+      TariffData[i].description = TariffData[i].custom?.description
+      TariffData[i].min_price_str = TariffData[i]?.min_price?.incl_vat
+      TariffData[i].max_price_str = TariffData[i]?.max_price?.incl_vat
+    }
+    isLoading.value = false
+    ElMessage.success(res.data.message)
   })
 }
 
 onMounted( async() => {
   isLoading.value = true
-  let queryData = { "database":"OCPI", "collection":"Tariff", "query": {}}
-  let response = await MsiApi.mongoQuery(queryData)
-  Object.assign(TariffData, response.data.all) 
+  let queryData  = { database: "OCPI", collection: "Tariff", pipelines: [ { $project: {   last_updated:0} }]}
+  let res = await MsiApi.mongoAggregate(queryData)
+  Object.assign(TariffData, res.data.result) 
   for (let i = 0; i < TariffData.length; i++) {
     TariffData[i].name = TariffData[i].custom?.name
     TariffData[i].description = TariffData[i].custom?.description
@@ -182,7 +186,7 @@ onMounted( async() => {
                 <el-button link type="primary" size="large" @click="deleteTariff (scope.row)" >
                   <img src="@/assets/img/tariff_delete1.png" alt="">
                 </el-button>
-                <el-button link type="primary" size="large" @click="copyTariff(scope)">
+                <el-button link type="primary" size="large" @click="copyTariff(scope.row)">
                   <img src="@/assets/img/tariff_copy1.png" alt="">
                 </el-button>
                 <el-button link type="primary" size="large" @click="editTariff(scope.row)">

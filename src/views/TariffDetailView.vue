@@ -28,10 +28,10 @@ const ruleFormRef = ref()
 
 const calPrice = (select) => {
   if (select === '1') {
-    new_element.value.price_price_incl = new_element.value.price_price * (1 + new_element.value.vat / 100)
+    new_element.value.price_price_incl = parseFloat(  (new_element.value.price_price * (1 + new_element.value.vat / 100) )  )
   }
   else {
-    new_element.value.price_price = new_element.value.price_price_incl / (1 + new_element.value.vat / 100)
+    new_element.value.price_price = parseFloat(  (new_element.value.price_price_incl / (1 + new_element.value.vat / 100))   )
   }
 }
 
@@ -39,9 +39,6 @@ const rules = reactive({
   custom_profile_name: [{ required: true, message: t('this_item_is_required'), trigger: 'blur' },],
   currency: [{ required: true, message: t('this_item_is_required'), trigger: 'blur' },],
 })
-
-
-
 
 let eventCount = 1
 let pressCloseIcon = false  // for Calendar close button
@@ -606,32 +603,29 @@ const save_tariff = async (formEl) => {
   TariffData.tariff_alt_text = new_tariff_alt_text
   if (tariff_id) {
     ElMessageBox.confirm(t('do_you_want_to_modify'), t('warning'), { confirmButtonText: t('ok'), cancelButtonText: t('cancel'), type: 'warning' })
-      .then(async () => {
-        MsiFunc.deleteEmptyKeys(TariffData)
-        save_status.value = true
-        if (TariffData.elements.length > 0) {
-          for(let i = 0; i < TariffData.elements.length; i++) {
-            delete TariffData.elements[i].price_components_type_str
-            delete TariffData.elements[i].price_components_step_size_str
-            delete TariffData.elements[i].restrictions_max_duration_str
-            delete TariffData.elements[i].restrictions_min_duration_str
-            delete TariffData.elements[i].restrictions.day_of_week_str
-            for (let j = 0; j < TariffData.elements[i].price_components.length; j++) {
-              delete TariffData.elements[i].price_components[j].price_incl
-            }
+    .then(async () => {
+      MsiFunc.deleteEmptyKeys(TariffData)
+      save_status.value = true
+      if (TariffData.elements.length > 0) {
+        for(let i = 0; i < TariffData.elements.length; i++) {
+          delete TariffData.elements[i].price_components_type_str
+          delete TariffData.elements[i].price_components_step_size_str
+          delete TariffData.elements[i].restrictions_max_duration_str
+          delete TariffData.elements[i].restrictions_min_duration_str
+          delete TariffData.elements[i].restrictions.day_of_week_str
+          for (let j = 0; j < TariffData.elements[i].price_components.length; j++) {
+            delete TariffData.elements[i].price_components[j].price_incl
           }
         }
-          let res = await MsiApi.setCollectionData('patch', 'ocpi', TariffData)
-          if (res.status === 200)
-            ElMessage.success(res.data.message)
-          else {
-            ElMessage.error(res.data.message)
-          }
-          router.push({ name: 'ratePlan' })
-      })
-      .catch((e) => {
-        console.log(e)
-      })
+      }
+      let res = await MsiApi.setCollectionData('patch', 'ocpi', TariffData)
+      if (res.status === 200)
+        ElMessage.success(res.data.message)
+      else {
+        ElMessage.error(res.data.message)
+      }
+      router.push({ name: 'ratePlan' })
+    })
   }
   else {
     ElMessageBox.confirm( t('do_you_want_to_create'), t('warning'), { confirmButtonText: t('ok'), cancelButtonText: t('cancel'), type: 'warning' })
@@ -640,27 +634,24 @@ const save_tariff = async (formEl) => {
       save_status.value = true
       if (TariffData.elements.length > 0) {
         for(let i = 0; i < TariffData.elements.length; i++) {
-            delete TariffData.elements[i].price_components_type_str
-            delete TariffData.elements[i].price_components_step_size_str
-            delete TariffData.elements[i].restrictions_max_duration_str
-            delete TariffData.elements[i].restrictions_min_duration_str
-            delete TariffData.elements[i].restrictions.day_of_week_str
-            for (let j = 0; j < TariffData.elements[i].price_components.length; j++) {
-              delete TariffData.elements[i].price_components[j].price_incl
-            }
+          delete TariffData.elements[i].price_components_type_str
+          delete TariffData.elements[i].price_components_step_size_str
+          delete TariffData.elements[i].restrictions_max_duration_str
+          delete TariffData.elements[i].restrictions_min_duration_str
+          delete TariffData.elements[i].restrictions.day_of_week_str
+          for (let j = 0; j < TariffData.elements[i].price_components.length; j++) {
+            delete TariffData.elements[i].price_components[j].price_incl
           }
+        }
       }
-        let res = await MsiApi.setCollectionData('post', 'ocpi', TariffData)
-        if (res.status === 201) {
-          ElMessage.success(res.data.message)
-        }
-        else {
-          ElMessage.error(res.data.message)
-        }
-        router.push({ name: 'ratePlan' })
-    })
-    .catch((e) => {
-      console.log(e)
+      let res = await MsiApi.setCollectionData('post', 'ocpi', TariffData)
+      if (res.status === 201) {
+        ElMessage.success(res.data.message)
+      }
+      else {
+        ElMessage.error(res.data.message)
+      }
+      router.push({ name: 'ratePlan' })
     })
   }
 }
@@ -694,10 +685,6 @@ const ShowEditElementDialog = (scope) => {
     new_element.value.step_size_str = scope.row.price_components[0].step_size / 60 
   else 
     new_element.value.step_size_str = scope.row.price_components[0].step_size
-
-
-  
-
   new_element.value.vat = scope.row.price_components[0].vat
   new_element.value.min_duration_str = scope.row.restrictions.min_duration / 60
   new_element.value.max_duration_str = scope.row.restrictions.max_duration / 60
@@ -773,6 +760,35 @@ const editElement = (action) => {
         eventCount = 1
         return
       }
+      let day_of_week_str = []
+    for (const day of element.restrictions.day_of_week) {
+      console.log(day)
+        switch (day) {
+          case 'MONDAY':
+          day_of_week_str.push(t('mon'))
+          break
+          case 'TUESDAY':
+          day_of_week_str.push(t('tue'))
+          break
+          case 'WEDNESDAY':
+          day_of_week_str.push(t('wed'))
+          break
+          case 'THURSDAY':
+          day_of_week_str.push(t('thu'))
+          break
+          case 'FRIDAY':
+          day_of_week_str.push(t('fri'))
+          break
+          case 'SATURDAY':
+          day_of_week_str.push(t('sat'))
+          break
+          case 'SUNDAY':
+          day_of_week_str.push(t('sun'))
+          break
+        }
+      }
+      element.restrictions.day_of_week_str = day_of_week_str
+
       tariff_elements.push(element)
     }
     eventCount = 1
@@ -782,7 +798,7 @@ const editElement = (action) => {
     if (tariff_elements[modifyIndex.value].price_components[0].type === "ENERGY") {
       tariff_elements[modifyIndex.value].price_components_type_str = t('charging_by_energy')
       tariff_elements[modifyIndex.value].price_components_step_size_str = 1
-      tariff_elements[modifyIndex.value].price_components[0].step_size = 1
+      tariff_elements[modifyIndex.value].price_components[0].step_size = 1  
     }
     else if (tariff_elements[modifyIndex.value].price_components[0].type === "TIME") {
       tariff_elements[modifyIndex.value].price_components_type_str = t('charging_by_time')
@@ -794,6 +810,35 @@ const editElement = (action) => {
       tariff_elements[modifyIndex.value].restrictions_min_duration_str = modify_element.restrictions.min_duration / 60
       tariff_elements[modifyIndex.value].restrictions_max_duration_str = modify_element.restrictions.max_duration / 60
     }
+    let day_of_week_str = []
+    for (const day of tariff_elements[modifyIndex.value].restrictions.day_of_week) {
+      console.log(day)
+        switch (day) {
+          case 'MONDAY':
+          day_of_week_str.push(t('mon'))
+          break
+          case 'TUESDAY':
+          day_of_week_str.push(t('tue'))
+          break
+          case 'WEDNESDAY':
+          day_of_week_str.push(t('wed'))
+          break
+          case 'THURSDAY':
+          day_of_week_str.push(t('thu'))
+          break
+          case 'FRIDAY':
+          day_of_week_str.push(t('fri'))
+          break
+          case 'SATURDAY':
+          day_of_week_str.push(t('sat'))
+          break
+          case 'SUNDAY':
+          day_of_week_str.push(t('sun'))
+          break
+        }
+      }
+      tariff_elements[modifyIndex.value].restrictions.day_of_week_str = day_of_week_str
+      console.log(tariff_elements[modifyIndex.value])
   }
   else if (action === 'delete') {
     tariff_elements.splice(modifyIndex.value, 1)
@@ -1349,7 +1394,7 @@ onMounted(async () => {
             <div v-if="new_element.price_type !== ''">
               
 
-              <el-radio-group v-model="vat_select" >
+              <el-radio-group v-model="vat_select" @change="calPrice(vat_select)">
                 <el-radio label="1" size="large">{{ t('price_excl_vat') }}</el-radio>
                 <el-radio label="2" size="large">{{ t('price_incl_vat') }}</el-radio>
               </el-radio-group>
@@ -1364,7 +1409,7 @@ onMounted(async () => {
                   </template>
                 </el-input>
   
-                <el-input v-else-if="new_element.price_type === 'TIME'" v-model="new_element.price_price" type="number" :controls="false" class="w-full" >
+                <el-input v-else-if="new_element.price_type === 'TIME'" v-model="new_element.price_price" type="number" :controls="false" class="w-full" @blur="calPrice(vat_select)" >
                   <template #prefix>
                     <span>{{ TariffData.currency }}</span>
                   </template>
@@ -1373,7 +1418,7 @@ onMounted(async () => {
                   </template>
                 </el-input>
   
-                <el-input v-else-if="new_element.price_type === 'PARKING_TIME'" v-model="new_element.price_price" type="number" :controls="false" class="w-full" >
+                <el-input v-else-if="new_element.price_type === 'PARKING_TIME'" v-model="new_element.price_price" type="number" :controls="false" class="w-full" @blur="calPrice(vat_select)">
                   <template #prefix>
                     <span>{{ TariffData.currency }}</span>
                   </template>
@@ -1395,7 +1440,7 @@ onMounted(async () => {
                   </template>
                 </el-input>
   
-                <el-input v-else-if="new_element.price_type === 'TIME'" v-model="new_element.price_price_incl" type="number" :controls="false" class="w-full" >
+                <el-input v-else-if="new_element.price_type === 'TIME'" v-model="new_element.price_price_incl" type="number" :controls="false" class="w-full" @blur="calPrice(vat_select)">
                   <template #prefix>
                     <span>{{ TariffData.currency }}</span>
                   </template>
@@ -1404,7 +1449,7 @@ onMounted(async () => {
                   </template>
                 </el-input>
   
-                <el-input v-else-if="new_element.price_type === 'PARKING_TIME'" v-model="new_element.price_price_incl" type="number" :controls="false" class="w-full" >
+                <el-input v-else-if="new_element.price_type === 'PARKING_TIME'" v-model="new_element.price_price_incl" type="number" :controls="false" class="w-full" @blur="calPrice(vat_select)" >
                   <template #prefix>
                     <span>{{ TariffData.currency }}</span>
                   </template>

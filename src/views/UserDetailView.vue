@@ -64,8 +64,14 @@ const now = new Date()
 const defaultTime = [new Date(2000, 1, 1, 0, 0, 0), new Date(2000, 1, 1, 23, 59, 59)]
 const select_time = ref([ new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0), new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59)])
 const download = () => {
-  const tHeader = ['EVSE ID','Station Name','Price', 'Currency', 'Created Time']
-  const filterVal = ['evse_id','location_name','price', 'currency', 'created_date_str']
+  const tHeader = ['Station Name', 'EVSE ID', 
+    'Parking Used Time', 'Parking Price', 'Parking License Plate', 
+    'Charging Used Time', 'Charging kWh', 'Charging Price', 
+    'Final Paid', 'Method', 'Currency', 'Created Time']
+  const filterVal = ['location_name', 'evse_id', 
+    'parking_time_str', 'parking_price_str', 'parking_car_number_str',
+    'charge_time_str', 'charge_kwh_str', 'charge_price_str', 
+    'price', 'paymethod_str', 'currency', 'created_date_str']
   const data = paymentData.map(v => filterVal.map(j => v[j]))
   export_json_to_excel ({ header: tHeader, data: data, filename: 'User Payment' })
 }
@@ -124,21 +130,22 @@ const select_date = async () => {
     }
     switch (paymentData[i].paymethod.method) {
       case 'CREDIT':
-        paymentData[i].paymethod.method = t('credit')
+        paymentData[i].paymethod_str = t('credit')
         break
       case 'GOOGLEPAY':
-        paymentData[i].paymethod.method = t('google_pay')
+        paymentData[i].paymethod_str = t('google_pay')
         break
       case 'SAMSUNGPAY':
-        paymentData[i].paymethod.method = t('samsung_pay')
+        paymentData[i].paymethod_str = t('samsung_pay')
         break
       case 'RFID':
-        paymentData[i].paymethod.method = t('rfid')
+        paymentData[i].paymethod_str = t('rfid')
         break
       case 'FREE':
-        paymentData[i].paymethod.method = t('free')
+        paymentData[i].paymethod_str = t('free')
         break
       default:
+        paymentData[i].paymethod_str = paymentData[i]?.paymethod?.method
         break
     }
     switch (paymentData[i].currency) {
@@ -172,7 +179,7 @@ const filters = [
   { text: t('samsung_pay'), value: t('samsung_pay') },
 ]
 const filterTag = (value, rowData) => {
-  return rowData.paymethod.method === value
+  return rowData.paymethod_str === value
 }
 const sortFunc = (obj1, obj2, column) => {
   let convertedNumber1 = undefined
@@ -242,6 +249,32 @@ const card_detail = (data) => {
   rfidData.nickname = data.nickname
 }
 
+const checkRfidCard = async() => {
+  let queryData = { 
+    "database": 'CPO', 
+    "collection": 'UserData', 
+    "pipelines": [
+      {
+        $unwind: "$rfids"
+      },
+      { 
+        $match: { 
+          "rfids.rfid": rfidData.rfid
+        },
+      },
+      {
+        $project: { _id: 1, rfids: 1 } 
+      }
+    ]
+  }
+  let response = await MsiApi.mongoAggregate(queryData) 
+  if (response.data.result.length !== 0) {
+    ElMessage({ type: 'error', message: t('card_number_already_exists') })
+    return false
+  }
+
+  return true
+}
 const confirmRfid = async (confirm, index) => {
 
   // const hex_pair= rfidData.rfid.match(/.{1,2}/g)
@@ -251,7 +284,7 @@ const confirmRfid = async (confirm, index) => {
 
   if (confirm === 'confirm') {
     rfidData_ref.value.validate(async valid => {
-      if (valid) {
+      if (valid && await checkRfidCard() === true) {
         EditRfidFormVisible.value = false
         if (modify_card_index.value === -1) {
           userData.rfids.push({
@@ -544,21 +577,22 @@ onMounted(async () => {
     }
     switch (paymentData[i].paymethod.method) {
       case 'CREDIT':
-        paymentData[i].paymethod.method = t('credit_card')
+        paymentData[i].paymethod_str = t('credit_card')
         break
       case 'GOOGLEPAY':
-        paymentData[i].paymethod.method = t('google_pay')
+        paymentData[i].paymethod_str = t('google_pay')
         break
       case 'SAMSUNGPAY':
-        paymentData[i].paymethod.method = t('samsung_pay')
+        paymentData[i].paymethod_str = t('samsung_pay')
         break
       case 'RFID':
-        paymentData[i].paymethod.method = t('rfid')
+        paymentData[i].paymethod_str = t('rfid')
         break
       case 'FREE':
-        paymentData[i].paymethod.method = t('free')
+        paymentData[i].paymethod_str = t('free')
         break
       default:
+        paymentData[i].paymethod_str = paymentData[i]?.paymethod?.method
         break
     }
     switch (paymentData[i].currency) {
@@ -824,22 +858,28 @@ onMounted(async () => {
                   :header-cell-style="msi.tb_header_cell"
                   v-loading.fullscreen.lock="isLoading"
                 >
-                <el-table-column
-                    prop="location_name"
-                    :label="t('station')"
-                    sortable
-                    :sort-method="(a, b) => sortFunc(a, b, 'location_name')"
-                    align="center"
-                    min-width="200"
-                  />
-                  <el-table-column
-                    prop="evse_id"
-                    :label="t('evse_id')"
-                    sortable
-                    :sort-method="(a, b) => sortFunc(a, b, 'evse_id')"
-                    align="center"
-                    min-width="200"
-                  />
+                  <el-table-column 
+                    :label= "t('station')" 
+                    align="center" 
+                    min-width="550"
+                  >
+                    <el-table-column
+                      prop="location_name"
+                      :label="t('station')"
+                      sortable
+                      :sort-method="(a, b) => sortFunc(a, b, 'location_name')"
+                      align="center"
+                      min-width="200"
+                    />
+                    <el-table-column
+                      prop="evse_id"
+                      :label="t('evse_id')"
+                      sortable
+                      :sort-method="(a, b) => sortFunc(a, b, 'evse_id')"
+                      align="center"
+                      min-width="200"
+                    />
+                  </el-table-column>
                   <el-table-column
                     v-if="parking_visible"
                     :label="t('parking')"
@@ -863,6 +903,15 @@ onMounted(async () => {
                       :sort-method="(a, b) => sortFunc(a, b, 'parking_price_str')"
                       min-width="150"
                     />
+                    <el-table-column
+                      prop="parking_car_number_str"
+                      :label="t('license_plate')"
+                      header-align="center"
+                      align="right"
+                      sortable
+                      :sort-method="(a, b) => sortFunc(a, b, 'parking_car_number_str')"
+                      min-width="200"
+                    />
                   </el-table-column>
 
                   <el-table-column
@@ -871,6 +920,15 @@ onMounted(async () => {
                     align="center"
                     min-width="450"
                   >
+                  <el-table-column
+                      prop="charge_time_str"
+                      :label="t('used_time')"
+                      header-align="center"
+                      align="right"
+                      sortable
+                      :sort-method="(a, b) => sortFunc(a, b, 'charge_time_str')"
+                      min-width="150"
+                    />
                     <el-table-column
                       prop="charge_kwh_str"
                       :label="t('kWh')"
@@ -901,8 +959,8 @@ onMounted(async () => {
                     min-width="150"
                   />
                   <el-table-column
-                    prop="paymethod.method"
-                    :label="t('payment_method')"
+                    prop="paymethod_str"
+                    :label="t('method')"
                     :filters="filters"
                     :filter-method="filterTag"
                     align="center"

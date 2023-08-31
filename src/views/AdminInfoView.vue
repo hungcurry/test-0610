@@ -638,7 +638,7 @@ const display_eula = () => {
               </h4>
             </div>
           </template>
-          <div class="h-full scrollbar" style="height: 900px;">
+          <div class="h-full scrollbar" style="height: 800px;">
             <div class="h-full" v-if="language === 'zh_tw'">
               <iframe
                 class="w-full h-full"

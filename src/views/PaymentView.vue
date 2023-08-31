@@ -164,11 +164,13 @@ const MongoQurey = async (queryData) => {
           PaymentData[i].charge_time = timeFormat
           PaymentData[i].charge_energy_str = PaymentData[i]?.operator_types[j]?.kwh
           PaymentData[i].charge_price_str = PaymentData[i]?.operator_types[j]?.price.toLocaleString()
+          PaymentData[i].charge_currency_str = PaymentData[i]?.operator_types[j]?.currency
         break
         case 'parking' :
           PaymentData[i].parking_time = timeFormat
           PaymentData[i].parking_car_num_str = PaymentData[i]?.operator_types[j]?.car_num
           PaymentData[i].parking_price_str = PaymentData[i]?.operator_types[j]?.price.toLocaleString()
+          PaymentData[i].parking_currency_str = PaymentData[i]?.operator_types[j]?.currency
         break
       }
     }
@@ -303,9 +305,20 @@ onMounted(async () => {
                 header-align="center"
                 align="right"
                 sortable
-                min-width="150"
+                min-width="100"
                 :sort-method="(a, b) => sortFunc(a, b, 'parking_price_str')"
               />
+              
+              <el-table-column
+                prop="parking_currency_str"
+                :label="t('currency')"
+                header-align="center"
+                align="center"
+                sortable
+                min-width="150"
+                :sort-method="(a, b) => sortFunc(a, b, 'parking_currency_str')"
+              />
+
               <el-table-column
                 prop="parking_car_num_str"
                 :label="t('license_plate')"
@@ -345,9 +358,20 @@ onMounted(async () => {
                 header-align="center"
                 align="right"
                 sortable
-                min-width="150"
+                min-width="100"
                 :sort-method="(a, b) => sortFunc(a, b, 'charge_price_str')"
               />
+
+              <el-table-column
+                prop="charge_currency_str"
+                :label="t('currency')"
+                header-align="center"
+                align="center"
+                sortable
+                min-width="150"
+                :sort-method="(a, b) => sortFunc(a, b, 'charge_currency_str')"
+              />
+
             </el-table-column>
 
             <el-table-column
@@ -364,7 +388,7 @@ onMounted(async () => {
               prop="currency"
               :label="t('currency')"
               header-align="center"
-              align="right"
+              align="center"
               sortable
               min-width="150"
               :sort-method="(a, b) => sortFunc(a, b, 'currency')"

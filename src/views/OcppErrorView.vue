@@ -6,7 +6,6 @@ import msi from '@/assets/msi_style'
 import moment from "moment"
 import  {export_json_to_excel}  from '@/composables/Export2Excel'
 import { useMStore } from "../stores/m_cloud"
-import { QuestionFilled } from '@element-plus/icons-vue'
 import { useI18n } from "vue-i18n"
 
 const { t } = useI18n()
@@ -17,7 +16,6 @@ const defaultTime = ref([new Date(2000, 1, 1, 0, 0, 0), new Date(2000, 1, 1, 23,
 const isLoading = ref(false)
 const MsiApi = ApiFunc()
 const ocppErrorDataAll = reactive([])
-const ErrorCodeVisible = ref(false)
 
 const ocppErrorData = reactive([])
 const cur_page = ref(1)
@@ -25,17 +23,124 @@ const item_count = ref()
 const max_page = ref()
 const tableRef = ref()
 
-const handleButtonClick = () => {
-  ErrorCodeVisible.value = true
+const convertErrorCode = () => {
+  for (let j=0; j<ocppErrorDataAll.length; j++) {
+    switch (ocppErrorDataAll[j].ocpp_errorCode) {
+      case 'OtherError':
+      ocppErrorDataAll[j].ocpp_errorCode_str = t('other_error')
+        break;
+      case 'NoError':
+      ocppErrorDataAll[j].ocpp_errorCode_str = t('no_error')
+        break;
+      case 'InternalError':
+      ocppErrorDataAll[j].ocpp_errorCode_str = t('internal_error')
+        break;
+      case 'UnderVoltage':
+      ocppErrorDataAll[j].ocpp_errorCode_str = t('under_voltage')
+        break;
+      case 'GroundFailure':
+      ocppErrorDataAll[j].ocpp_errorCode_str = t('ground_failure')
+        break;
+      default:
+      ocppErrorDataAll[j].ocpp_errorCode_str = ocppErrorDataAll[j].ocpp_errorCode
+        break;
+    }
+
+    switch (ocppErrorDataAll[j].vendorErrorCode) {
+      // Error Code
+      case '-1':
+      ocppErrorDataAll[j].syetem_error_code_str = t('control_board_not_connect')
+        break;
+      case '1':
+      ocppErrorDataAll[j].syetem_error_code_str = t('internal_error')
+        break;
+      case '5':
+      ocppErrorDataAll[j].syetem_error_code_str = t('ground_failure')
+        break;
+      case '6':
+      ocppErrorDataAll[j].syetem_error_code_str = t('ground_failure')
+        break;
+      case '8':
+      ocppErrorDataAll[j].syetem_error_code_str = t('ev_communication_error')
+        break;
+      case '18':
+      ocppErrorDataAll[j].syetem_error_code_str = t('power_switch_failure')
+        break;
+      case '19':
+      ocppErrorDataAll[j].syetem_error_code_str = t('power_switch_failure')
+        break;
+      case '20':
+      ocppErrorDataAll[j].syetem_error_code_str = t('power_switch_failure')
+        break;
+      case '21':
+      ocppErrorDataAll[j].syetem_error_code_str = t('power_switch_failure')
+        break;
+      case '22':
+      ocppErrorDataAll[j].syetem_error_code_str = t('over_current_failure')
+        break;
+      case '24':
+      ocppErrorDataAll[j].syetem_error_code_str = t('over_voltage')
+        break;
+      case '25':
+      ocppErrorDataAll[j].syetem_error_code_str = t('under_voltage')
+        break;
+      case '26':
+      ocppErrorDataAll[j].syetem_error_code_str = t('high_temperature')
+        break;
+      case '27':
+      ocppErrorDataAll[j].syetem_error_code_str = t('high_temperature')
+        break;
+      case '28':
+      ocppErrorDataAll[j].syetem_error_code_str = t('high_temperature')
+        break;
+      case '30':
+      ocppErrorDataAll[j].syetem_error_code_str = t('illegal_charging')
+        break;
+      case '33':
+      ocppErrorDataAll[j].syetem_error_code_str = t('emergency_button_triggered')
+        break;
+      case '64':
+      ocppErrorDataAll[j].syetem_error_code_str = t('pile_fault')
+        break;
+      // System Error Code
+      case '2':
+      ocppErrorDataAll[j].syetem_error_code_str = t('gfcl_initial_fault')
+        break;
+      case '3':
+      ocppErrorDataAll[j].syetem_error_code_str = t('gfcl_fault1')
+        break;
+      case '4':
+      ocppErrorDataAll[j].syetem_error_code_str = t('gfcl_fault2')
+        break;
+      case '14':
+      ocppErrorDataAll[j].syetem_error_code_str = t('firmware_update_checksum_fault')
+        break;
+      case 'CAM_ERROR':
+      ocppErrorDataAll[j].syetem_error_code_str = t('cam_error')
+        break;
+      case 'UI_ERROR':
+      ocppErrorDataAll[j].syetem_error_code_str = t('ui_error')
+        break;
+    
+      default:
+        if (ocppErrorDataAll[j].ocpp_firmware_status === 'DownloadFailed') {
+          ocppErrorDataAll[j].ocpp_firmware_status_str = t('download_failed')
+        }
+        else if (ocppErrorDataAll[j].ocpp_firmware_status === 'InstallationFailed') {
+          ocppErrorDataAll[j].ocpp_firmware_status_str = t('installation_failed')
+        }
+        break;
+    }
+  }
+}
+
+const select_date = async() => {
+  await getEVSEOCPPLogs()
+  await getPageData()
+  tableRef.value.sort('created_date_str', 'ascending')
 }
 
 const getEVSEOCPPLogs = async() => {
-  isLoading.value = true
-  if (select_time.value === null) 
-    select_time.value = [new Date(1970, 1, 1, 0, 0, 0), new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59)]
-  if (select_time.value?.[0] === undefined) {
-    select_time.value[0] = [new Date(1970, 1, 1, 0, 0, 0) ,]
-  }
   if (select_time.value?.[1] === undefined) {
     select_time.value[1] = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59)
   }
@@ -53,6 +158,7 @@ const getEVSEOCPPLogs = async() => {
       { "$project": { "_id": 0, 'created_date': 1, 'evse_id': 1, 'ocpp_errorCode': 1, 'vendorErrorCode': 1, 'ocpp_firmware_status':1} }
     ]
   }
+  isLoading.value = true
   let response = await MsiApi.mongoAggregate(queryData)
   if (response.status === 200) {
     ocppErrorDataAll.splice(0, ocppErrorDataAll.length)
@@ -68,6 +174,7 @@ const getEVSEOCPPLogs = async() => {
     ocppErrorDataAll[i].created_date_str = (moment(localEndTime).format("YYYY-MM-DD HH:mm:ss"))
     
   }
+  convertErrorCode()
 
   isLoading.value = false
 }
@@ -98,6 +205,13 @@ const tableSort = async(column) => {
   let target = column.prop
   let order = column.order
   ocppErrorDataAll.sort(function (a, b) {
+    if (a[target] === undefined) {
+      a[target] = ''
+    }
+    else if (b[target] === undefined) {
+      b[target] = ''
+    }
+
     if (order === 'ascending') {
       return a[target] > b[target]? -1 : 1
     }
@@ -134,8 +248,7 @@ onMounted(async() => {
             :prefix-icon="Calendar"
             :start-placeholder="t('start_date')" 
             :end-placeholder="t('end_date')" 
-            @change="getEVSEOCPPLogs()"
-            :default-time="defaultTime" 
+            @change="select_date()"
             />
         </div>
 
@@ -175,31 +288,21 @@ onMounted(async() => {
               min-width="200"
             />
             <el-table-column
-              prop="ocpp_errorCode"
+              prop="ocpp_errorCode_str"
               :label="t('error_code')"
               align="center"
               sortable="custom"
               min-width="200"
             />
             <el-table-column
-              prop="vendorErrorCode"
+              prop="syetem_error_code_str"
               :label="t('system_error_code')"
               align="center"
               sortable="custom"
               min-width="220"
-            >
-              <template #header>
-                <div class="vendorErrorCode-container">
-                  <span>{{ t('system_error_code') }}</span>
-                  <el-button type="text" size="large" @click.stop="handleButtonClick" class="question-icon">
-                    <el-icon><QuestionFilled /></el-icon>
-                  </el-button>
-                </div>
-              </template>
-            </el-table-column>
-  
+            />
             <el-table-column
-              prop="ocpp_firmware_status"
+              prop="ocpp_firmware_status_str"
               :label="t('fw_error_info')"
               align="center"
               sortable="custom"
@@ -222,124 +325,6 @@ onMounted(async() => {
             @current-change="getPageData" 
           />
         </div>
-  
-        <el-dialog 
-          v-model="ErrorCodeVisible" 
-          class="max-w-600px"
-          :show-close="true"
-          width="90%"
-          destroy-on-close
-          center
-          >
-          <template #header="{ titleId, titleClass }">
-            <div class="py-2rem relative bg-blue-100">
-              <h4
-                :id="titleId"
-                :class="titleClass"
-                class="m-0 text-center text-blue-1200 font-400 text-24px line-height-26px"
-              >
-                {{ t('error_code_list') }}
-              </h4>
-            </div>
-          </template>
-          <div class="dialog-context">
-            <table>
-              <tr>
-                <td class="text-right">-1</td>
-                <td>{{ t('no_communication_between_charging_board_and_hmi') }}</td>
-              </tr>
-              <tr>
-                <td class="text-right">1</td>
-                <td>{{ t('initial_setting_fault') }}</td>
-              </tr>
-              <tr>
-                <td class="text-right">2</td>
-                <td>{{ t('initial_leakage_current_protection') }}</td>
-              </tr>
-              <tr>
-                <td class="text-right">3</td>
-                <td>{{ t('high_leakage_current_protection') }}</td>
-              </tr>
-              <tr>
-                <td class="text-right">4</td>
-                <td>{{ t('low_leakage_current_protection') }}</td>
-              </tr>
-              <tr>
-                <td class="text-right">5</td>
-                <td>{{ t('ground_fault_protection_by_delta_type') }}</td>
-              </tr>
-              <tr>
-                <td class="text-right">6</td>
-                <td>{{ t('ground_fault_protection_by_y_type') }}</td>
-              </tr>
-              <tr>
-                <td class="text-right">8</td>
-                <td>{{ t('control_pilot_status_is_abnormal') }}</td>
-              </tr>
-              <tr>
-                <td class="text-right">14</td>
-                <td>{{ t('fw_update_checksum_is_abnormal') }}</td>
-              </tr>
-              <tr>
-                <td class="text-right">15</td>
-                <td>{{ t('fw_update_size_is_abnormal') }}</td>
-              </tr>
-              <tr>
-                <td class="text-right">18</td>
-                <td>{{ t('relay_detection_is_abnormal_for_non_charging_l_phase') }}</td>
-              </tr>
-              <tr>
-                <td class="text-right">19</td>
-                <td>{{ t('relay_detection_is_abnormal_for_non_charging_n_phase') }}</td>
-              </tr>
-              <tr>
-                <td class="text-right">20</td>
-                <td>{{ t('relay_detection_is_abnormal_for_charging_l_phase') }}</td>
-              </tr>
-              <tr>
-                <td class="text-right">21</td>
-                <td>{{ t('relay_detection_is_abnormal_for_charging_n_phase') }}</td>
-              </tr>
-              <tr>
-                <td class="text-right">22</td>
-                <td>{{ t('over_current_protection') }}</td>
-              </tr>
-              <tr>
-                <td class="text-right">24</td>
-                <td>{{ t('over_voltage_protection') }}</td>
-              </tr>
-              <tr>
-                <td class="text-right">25</td>
-                <td>{{ t('under_voltage_protection') }}</td>
-              </tr>
-              <tr>
-                <td class="text-right">26</td>
-                <td>{{ t('thermal_is_abnormal_for_system') }}</td>
-              </tr>
-              <tr>
-                <td class="text-right">27</td>
-                <td>{{ t('thermal_is_abnormal_for_relay') }}</td>
-              </tr>
-              <tr>
-                <td class="text-right">28</td>
-                <td>{{ t('thermal_is_abnormal_for_charging_gun') }}</td>
-              </tr>
-              <tr>
-                <td class="text-right">33</td>
-                <td>{{ t('emergency_button_is_triggered') }}</td>
-              </tr>
-              <tr>
-                <td class="text-right">64</td>
-                <td>{{ t('pile_state_is_abnormal') }}</td>
-              </tr>
-
-              <tr>
-                <td class="text-right">159</td>
-                <td>{{ t('unexpected_discharging') }}</td>
-              </tr>
-            </table>
-          </div>
-        </el-dialog>
       </div>
     </div>
 	</div>

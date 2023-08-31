@@ -414,11 +414,11 @@ onMounted(async () => {
                 </el-select>
               </el-form-item>
 
-              <el-form-item class="mb-24px w-0" :label="t('edit')">
+              <el-form-item class="mb-24px w-4em" :label="t('edit')">
                 <el-switch v-model="AddAdminData.permission_edit" />
               </el-form-item>
 
-              <el-form-item class="mb-24px w-0" :label="t('active')">
+              <el-form-item class="mb-24px w-4em" :label="t('active')">
                 <el-switch v-model="AddAdminData.permission_active" />
               </el-form-item>
             </el-form>
@@ -494,11 +494,11 @@ onMounted(async () => {
                 </el-select>
               </el-form-item>
 
-              <el-form-item class="mb-24px w-0" :label="t('edit')">
+              <el-form-item class="mb-24px w-4em" :label="t('edit')">
                 <el-switch v-model="editAdminData.permission_edit" />
               </el-form-item>
 
-              <el-form-item class="mb-24px w-0" :label="t('active')">
+              <el-form-item class="mb-24px w-4em" :label="t('active')">
                 <el-switch v-model="editAdminData.permission_active" />
               </el-form-item>
             </el-form>

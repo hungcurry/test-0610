@@ -26,6 +26,7 @@ const changeLanguage = (lang) => {
       break
   }
   localStorage.setItem("lang", i18n.global.locale.value)
+  window.location.reload()
 }
 
 const Admin_Info = () => {
@@ -46,7 +47,7 @@ const emitCallBack = (res) => {
 <template>
   <nav class="header-layout overflow-x-auto">
     <div class="left-header flex-grow">
-      <ul class="station_map list-none hidden md:flex items-center m-0 px-15px md:px-40px" v-if="route.path === '/station'">
+      <ul class="station_map list-none hidden md:flex items-center ml-72px px-15px md:px-40px" v-if="route.path === '/station'">
         <!-- <div class="station_map" > -->
         <!-- <p>{{$t('account')}}</p> -->
         <li class="flex items-center mr-20px">
@@ -67,7 +68,7 @@ const emitCallBack = (res) => {
         </li>
       </ul>
     </div>
-    <div class="common-header shrink-0">
+    <div class="common-header shrink-0 ml-72px md:ml-0">
       <el-dropdown trigger="click">
         <el-button class="user">        
           <span class="material-symbols-outlined">translate</span>

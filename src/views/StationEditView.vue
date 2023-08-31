@@ -287,7 +287,7 @@ onMounted(async () => {
         }
       })
     }
-    station_always_open.value = StationData.opening_times.twentyfourseven
+    station_always_open.value = StationData?.opening_times?.twentyfourseven
     StationData.owner_name_string = StationData?.owner?.name
     StationData.operator_name_string = StationData?.operator?.name
     StationData.facilities_str = StationData?.facilities?.[0]
@@ -425,13 +425,7 @@ onMounted(async () => {
                   </el-form-item>
                 </div>
                 
-                <div class="md:flex flex-items-end border-s-b-1 text-blue-300 mb-8px" id="TimeZone">
-                  <el-form-item :label="t('time_zone')" class="w-full md:mr-20px" prop="time_zone">
-                    <el-input v-model="StationData.time_zone"></el-input>
-                  </el-form-item>
-                  <el-button class="w-full bg-blue-200 px-0 h-30px mb-18px border-blue-300"
-                  @click="getTimeZone"> {{ t('get_time_zone') }} </el-button>
-                </div>
+
 
                 <div class="md:flex flex-items-end" id="Latitude+Longitude">
                   <el-form-item :label="t('latitude')" class="w-full md:mr-20px" prop="latitude_str">
@@ -442,6 +436,14 @@ onMounted(async () => {
                   </el-form-item>
                   <el-button class="w-full bg-blue-200 px-0 h-30px mb-18px border-blue-300"
                   @click="getCoordinates"> {{ t('get_coordinates') }}</el-button>
+                </div>
+
+                <div class="md:flex flex-items-end border-s-b-1 text-blue-300 mb-8px" id="TimeZone">
+                  <el-form-item :label="t('time_zone')" class="w-full md:mr-20px" prop="time_zone">
+                    <el-input v-model="StationData.time_zone"></el-input>
+                  </el-form-item>
+                  <el-button class="w-full bg-blue-200 px-0 h-30px mb-18px border-blue-300"
+                  @click="getTimeZone"> {{ t('get_time_zone') }} </el-button>
                 </div>
 
                 <!-- <div class="md:flex flex-items-end" id="getAddress">

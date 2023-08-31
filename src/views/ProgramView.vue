@@ -128,15 +128,15 @@ const confirmDialog = async () => {
 const add_program = async () => {
   dialog_title.value = t('add_program')
   program_dialog_visible.value = true
-  ProgramMod.name = 'Hello'
-  ProgramMod.location = 0
-  ProgramMod.evse = 0
-  ProgramMod.connector = 0
-  ProgramMod.tariff = 0
-  ProgramMod.user = 0
-  ProgramMod.admin_user = 0
-  ProgramMod.currency = t('twd')
-  ProgramMod.price = 0
+  ProgramMod.name = undefined
+  ProgramMod.location = undefined
+  ProgramMod.evse = undefined
+  ProgramMod.connector = undefined
+  ProgramMod.tariff = undefined
+  ProgramMod.user = undefined
+  ProgramMod.admin_user = undefined
+  ProgramMod.currency = undefined
+  ProgramMod.price = undefined
   ProgramMod._id = undefined
 }
 const detail_info = async (scope) => {
@@ -240,7 +240,7 @@ onMounted(async () => {
           />
           <el-table-column
             prop="admin_user"
-            :label="t('administrator')"
+            :label="t('cpo_account')"
             align="center"
             sortable
             min-width="200"
@@ -296,33 +296,33 @@ onMounted(async () => {
         </div>
       </template>
       <div class="dialog-context">
-        <el-form class="pr-10px" label-position="left" label-width="100px" :rules="program_rules" :model="ProgramMod" ref="program_ref" :scroll-to-error=true>
+        <el-form class="pr-10px" label-position="left" label-width="110px" :rules="program_rules" :model="ProgramMod" ref="program_ref" :scroll-to-error=true>
           <el-form-item :label="t('name')" prop="name">
             <el-input v-model="ProgramMod.name" />
           </el-form-item>
           <el-form-item :label="t('station')" prop="location">
-            <el-input v-model="ProgramMod.location" />
+            <el-input v-model="ProgramMod.location" placeholder="0" oninput="value=value.replace(/[^\d]/g,'')" />
           </el-form-item>
           <el-form-item :label="t('evse')" prop="evse">
-            <el-input v-model="ProgramMod.evse" />
+            <el-input v-model="ProgramMod.evse" placeholder="0" oninput="value=value.replace(/[^\d]/g,'')" />
           </el-form-item>
           <el-form-item :label="t('connector')" prop="connector">
-            <el-input v-model="ProgramMod.connector" />
+            <el-input v-model="ProgramMod.connector" placeholder="0" oninput="value=value.replace(/[^\d]/g,'')" />
           </el-form-item>
           <el-form-item :label="t('rate_plan')" prop="tariff">
-            <el-input v-model="ProgramMod.tariff" />
+            <el-input v-model="ProgramMod.tariff" placeholder="0" oninput="value=value.replace(/[^\d]/g,'')" />
           </el-form-item>
           <el-form-item :label="t('user')" prop="user">
-            <el-input v-model="ProgramMod.user" />
+            <el-input v-model="ProgramMod.user" placeholder="0" oninput="value=value.replace(/[^\d]/g,'')" />
           </el-form-item>
-          <el-form-item :label="t('administrator')" prop="name">
-            <el-input v-model="ProgramMod.admin_user" />
+          <el-form-item :label="t('cpo_account')" prop="name">
+            <el-input v-model="ProgramMod.admin_user" placeholder="0" oninput="value=value.replace(/[^\d]/g,'')" />
           </el-form-item>
           <el-form-item :label="t('currency')" prop="currency">
-            <el-input v-model="ProgramMod.currency" />
+            <el-input v-model="ProgramMod.currency" placeholder="TWD" />
           </el-form-item>
           <el-form-item :label="t('price')" prop="price">
-            <el-input v-model="ProgramMod.price" />
+            <el-input v-model="ProgramMod.price" placeholder="0" oninput="value=value.replace(/[^\d]/g,'')" />
           </el-form-item>
         </el-form>
       </div>

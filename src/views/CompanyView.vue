@@ -210,6 +210,30 @@ const detail_info = (detail) => {
   companyData.upgrade_manager_enable = companyData.upgrade_manager.enable
 }
 
+const checkCompanyName = async() => {
+  let queryData = { 
+    "database": 'CPO', 
+    "collection": 'CompanyInformation', 
+    "pipelines": [
+      { 
+        $match: { 
+          "name": companyData.name
+        },
+      },
+      {
+        $project: { _id: 1, name: 1 } 
+      }
+    ]
+  }
+  let response = await MsiApi.mongoAggregate(queryData) 
+  if (response.data.result.length !== 0) {
+    ElMessage({ type: 'error', message: t('company_already_exists') })
+    return false
+  }
+
+  return true
+}
+
 const editCompany = async (action) => {
   companyData.invoice.owner = 'ezPay'
   companyData.payment.owner = 'NewebPay'
@@ -220,8 +244,8 @@ const editCompany = async (action) => {
   }
   if (edit_mode.value === 'create') {
     if (action === 'confirm') {
-      company_ref.value.validate(valid => {
-        if (valid) {
+      company_ref.value.validate(async valid => {
+        if (valid && await checkCompanyName() === true) {
           CompanyFormVisible.value = false
           companyData.invoice.hashIV = companyData.invoice_hashIV
           companyData.invoice.hashKey = companyData.invoice_hashKey
@@ -267,27 +291,27 @@ const editCompany = async (action) => {
   }
   else if (edit_mode.value === 'edit'){
     if (action === 'confirm') {
-      company_ref.value.validate(valid => {
-        if (valid) {
+      company_ref.value.validate(async valid => {
+        if (valid && await checkCompanyName() === true) {
           CompanyFormVisible.value = false
-          companyData.invoice.hashIV = companyData.invoice_hashIV
-          companyData.invoice.hashKey = companyData.invoice_hashKey
-          companyData.invoice.merchantId = companyData.invoice_merchantId
-          companyData.payment.hashIV = companyData.payment_hashIV
-          companyData.payment.hashKey = companyData.payment_hashKey
-          companyData.payment.merchantId = companyData.payment_merchantId
-          companyData.upgrade_manager.enable = companyData.upgrade_manager_enable
-          let sendData = {  class : 'CompanyInformation', pk: companyData._id,name: companyData.name, 
-                            country:companyData.country, party_id:companyData.party_id,
-                            city:companyData.city, detail:companyData.detail, 
-                            // remark:companyData.remark,
-                            invoice:companyData.invoice, payment:companyData.payment,
-                            address:companyData.address, phone:companyData.phone,
-                            tax_id:companyData.tax_id,
-                            upgrade_manager:companyData.upgrade_manager
-                          }
           ElMessageBox.confirm(t('do_you_want_to_modify'),t('warning'), {confirmButtonText: t('ok'), cancelButtonText: t('cancel'), type: 'warning'})
           .then(async () => {
+            companyData.invoice.hashIV = companyData.invoice_hashIV
+            companyData.invoice.hashKey = companyData.invoice_hashKey
+            companyData.invoice.merchantId = companyData.invoice_merchantId
+            companyData.payment.hashIV = companyData.payment_hashIV
+            companyData.payment.hashKey = companyData.payment_hashKey
+            companyData.payment.merchantId = companyData.payment_merchantId
+            companyData.upgrade_manager.enable = companyData.upgrade_manager_enable
+            let sendData = {  class : 'CompanyInformation', pk: companyData._id,name: companyData.name, 
+                              country:companyData.country, party_id:companyData.party_id,
+                              city:companyData.city, detail:companyData.detail, 
+                              // remark:companyData.remark,
+                              invoice:companyData.invoice, payment:companyData.payment,
+                              address:companyData.address, phone:companyData.phone,
+                              tax_id:companyData.tax_id,
+                              upgrade_manager:companyData.upgrade_manager
+                            }
             let res = await MsiApi.setCollectionData('patch', 'cpo', sendData)
             if (res.status === 200) {
               let queryData = { 
@@ -573,7 +597,7 @@ onMounted( async() => {
                 <el-input v-model="companyData.payment.owner" />
               </el-form-item> -->
 
-              <el-form-item v-if="company === 'MSI'" class="mb-24px w-0" :label="t('active')">
+              <el-form-item v-if="company === 'MSI'" class="mb-24px w-4em" :label="t('active')">
                 <el-switch v-model="companyData.upgrade_manager_enable" />
               </el-form-item>
             </el-form>

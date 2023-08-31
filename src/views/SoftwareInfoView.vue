@@ -220,6 +220,10 @@ onMounted(async () => {
     ]
   }
   let response = await MsiApi.mongoAggregate(queryData)
+  if (response.status === 403) {
+    isLoading.value = false
+    return
+  }
   Object.assign(fwData, response.data.result[0])
   for (let i = 0; i < fwData?.release_note?.length; i++) {
     fwData.release_note[i].update_time_str = moment(

@@ -494,7 +494,7 @@ const queryLast7dayUsed = async () => {
         $expr: {
           $and: [
             { $gte: ['$start_date_time', { $dateFromString: { dateString: dateString0 } }] },
-            { $lt: ['$end_date_time', { $dateFromString: { dateString: dateString1 } }] },
+            { $lte: ['$start_date_time', { $dateFromString: { dateString: dateString1 } }] },
           ],
         },
       },
