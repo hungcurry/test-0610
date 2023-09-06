@@ -56,7 +56,7 @@ onUnmounted(() => {
     <div ref="layoutRight" @click.stop="menuClose" class="layout-right">
       <main-content />
     </div>
-    <p class="logout">{{ counter }}</p>
+    <!-- <p class="logout">{{ counter }}</p> -->
   </div>
 </template>
 
@@ -79,13 +79,13 @@ onUnmounted(() => {
       height: calc(100vh - 60px);
     }
   }
-  .logout {
-    bottom: 10px;
-    left: 10px;
-    font-size: 10px;
-    position: fixed;
-    color: #c5cdd8;
-    z-index: 99;
-  }
+  // .logout {
+  //   bottom: 10px;
+  //   left: 10px;
+  //   font-size: 10px;
+  //   position: fixed;
+  //   color: #c5cdd8;
+  //   z-index: 99;
+  // }
 }
 </style>

@@ -20,12 +20,13 @@ import TariffView from '@/views/TariffView.vue'
 import TariffDetailView from '@/views/TariffDetailView.vue'
 import EvseEditView from '@/views/EvseEditView.vue'
 import SoftwareInfoView from '@/views/SoftwareInfoView.vue'
-import OcppErrorView from '@/views/OcppErrorView.vue'
+import ErrorLogView from '@/views/ErrorLogView.vue'
 import TestView from '@/views/TestView.vue'
 import ParkingView from '@/views/ParkingView.vue'
 import AdminInfoView from '@/views/AdminInfoView.vue'
 import ProgramView from '@/views/ProgramView.vue'
 import ChargeProfileView from '@/views/ChargeProfileView.vue'
+import PermissionView from '@/views/PermissionView.vue'
 
 
 const router = createRouter({
@@ -123,9 +124,9 @@ const router = createRouter({
           component: EvseLogView
         },
         {
-          path: 'ocpp-error',
-          name: 'ocppError',
-          component: OcppErrorView
+          path: 'error-log',
+          name: 'errorLog',
+          component: ErrorLogView
         },
         {
           path: 'software-info',
@@ -146,6 +147,11 @@ const router = createRouter({
           path: 'charging-profile',
           name: 'chargingProfile',
           component: ChargeProfileView
+        },   
+        {
+          path: 'permission',
+          name: 'Permission',
+          component: PermissionView
         },   
         {
           path: 'test',

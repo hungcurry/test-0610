@@ -180,7 +180,7 @@ export default
     account:                                                'Account',
     password:                                               'Password',
     log_in:                                                 'Log in',
-    oops_account_or_password_error:                         'Oops! "Account or Password" is Error.',
+    oops_account_or_password_error:                         'Oops! "Account or Password" is error.',
     agree:                                                  'Agree',
     i_fully_understand_the_contents_of_the_terms_and_conditions_and_agree_to_them:        
                                                             'I fully understand the contents of the Terms and Conditions and agree to them.',
@@ -622,6 +622,8 @@ export default
     customer_service_user:                                  'Customer Service User',
     developer_user:                                         'Developer User',
     engineer_user:                                          'Engineer User',
+    viwer_user:                                             'Viwer User',
+    fae_user:                                               'FAE User',
     member_user:                                            'Member User',
     Chinese:                                                'Chinese',
     card_number_already_exists:                             'Card number already exists',

@@ -622,6 +622,8 @@ export default
     customer_service_user:                                  '客服使用者',
     developer_user:                                         '研發使用者',
     engineer_user:                                          '工程師使用者',
+    viwer_user:                                             'Viwer User',
+    fae_user:                                               'FAE User',
     member_user:                                            '會員使用者',
     Chinese:                                                '中文',
     card_number_already_exists:                             '卡號已經存在',

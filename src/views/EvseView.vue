@@ -137,6 +137,15 @@ const sortFunc = (obj1, obj2, column) => {
   }
 }
 onMounted(async () => {
+
+  let queryData1 = {
+    database: 'CPO',
+    collection: 'RFIDCashLogs',
+    query: { },
+  }
+  let response1 = await MsiApi.mongoQuery(queryData1)
+  console.log(response1)
+
   isLoading.value = true
   if (route.query.page === 'unpaired') {
     activeName.value = '2'

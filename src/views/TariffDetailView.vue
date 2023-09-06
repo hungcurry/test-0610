@@ -303,6 +303,8 @@ const handleEventCreate = (selectInfo) => {
       endTimeStr = selectInfo.endStr
       startTime = '00:00'
       endTime = moment(new Date(selectInfo.end)).format("HH:mm")
+      if (endTime === '00:00')
+        endTime = '23:59'
       multiTime[i - 1] = []
       multiTime[i - 1].start_time = startTime
       multiTime[i - 1].end_time = endTime

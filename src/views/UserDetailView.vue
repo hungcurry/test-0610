@@ -106,10 +106,10 @@ const select_date = async () => {
       }
     }
   }
+  paymentData.amount_str = paymentData.length
   for (let i = 0; i < paymentData.length; i++) {
     localEndTime =  new Date( (new Date(paymentData[i].created_date).getTime()) + ((MStore.timeZoneOffset ) * -60000))
     paymentData[i].created_date_str = (moment(localEndTime).format("YYYY-MM-DD HH:mm:ss"))
-    paymentData.amount_str = paymentData.length
     cost_str += paymentData[i].price
     paymentData[i].price_str = paymentData[i].price.toLocaleString()
     for (let j = 0; j < paymentData[i].operator_types.length; j++) {
@@ -130,7 +130,7 @@ const select_date = async () => {
     }
     switch (paymentData[i].paymethod.method) {
       case 'CREDIT':
-        paymentData[i].paymethod_str = t('credit')
+        paymentData[i].paymethod_str = t('credit_card')
         break
       case 'GOOGLEPAY':
         paymentData[i].paymethod_str = t('google_pay')
@@ -283,8 +283,8 @@ const confirmRfid = async (confirm, index) => {
   // console.log(reversedHex)
 
   if (confirm === 'confirm') {
-    rfidData_ref.value.validate(async valid => {
-      if (valid && await checkRfidCard() === true) {
+    // rfidData_ref.value.validate(async valid => {
+      // if (valid && await checkRfidCard() === true) {
         EditRfidFormVisible.value = false
         if (modify_card_index.value === -1) {
           userData.rfids.push({
@@ -310,11 +310,11 @@ const confirmRfid = async (confirm, index) => {
           let sendData = { 'class': 'UserData', 'pk': userData._id, 'rfids': userData.rfids }
           MsiApi.setCollectionData('patch', 'cpo', sendData)
         }
-      }
-      else {
-        return false
-      }
-    })
+      // }
+      // else {
+        // return false
+      // }
+    // })
   }
   else if (confirm === 'delete') {
     ElMessageBox.confirm(t('do_you_want_to_delete'), t('warning'), { confirmButtonText: t('ok'), cancelButtonText: t('cancel'), type: 'warning' })
@@ -553,10 +553,10 @@ onMounted(async () => {
   let cost_str = 0
   let charge_time_sec = 0
   let charge_kwh = 0
+  paymentData.amount_str = paymentData.length
   for (let i = 0; i < paymentData.length; i++) {
     localEndTime =  new Date( (new Date(paymentData[i].created_date).getTime()) + ((MStore.timeZoneOffset ) * -60000))
     paymentData[i].created_date_str = (moment(localEndTime).format("YYYY-MM-DD HH:mm:ss"))
-    paymentData.amount_str = paymentData.length
     cost_str += paymentData[i].price
     paymentData[i].price_str = paymentData[i].price.toLocaleString()
     for (let j = 0; j < paymentData[i].operator_types.length; j++) {
@@ -706,7 +706,7 @@ onMounted(async () => {
                     </div>
                     <el-skeleton :rows="2" v-if="isLoading_skeleton" class="mt-16px" />
                     <div v-if="isLoading_skeleton === false" class="flex mt-16px">
-                      <sapn class="info-item">{{ t('occupied_evse_id') }}</sapn>
+                      <span class="info-item">{{ t('occupied_evse_id') }}</span>
                       <p v-if="userData.evse_list_id_detail === ''" class="line-height-32px">{{ userData.evse_list_id }}</p>
                       <el-tooltip v-else placement="bottom-start">
                         <template #content>
@@ -728,8 +728,8 @@ onMounted(async () => {
                       </el-button>
                     </div>
                     <div v-if="isLoading_skeleton === false" class="mt-8px">
-                      <sapn class="info-item">{{ t('status') }}</sapn>
-                      <sapn class="line-height-32px">{{ }}</sapn>
+                      <span class="info-item">{{ t('status') }}</span>
+                      <span class="line-height-32px">{{ }}</span>
                     </div>
                   </div>
                 </div>
@@ -744,20 +744,20 @@ onMounted(async () => {
                     <el-skeleton :rows="3" v-if="isLoading_skeleton" class="mt-16px" />
                     
                     <div v-if="isLoading_skeleton === false" class="mt-16px">
-                      <sapn class="info-item">{{ t('total_used_power') }}</sapn>
-                      <sapn class="line-height-32px">{{ paymentData.charge_kwh }}</sapn>
+                      <span class="info-item">{{ t('total_used_power') }}</span>
+                      <span class="line-height-32px">{{ paymentData.charge_kwh }}</span>
                     </div>
                     <div v-if="isLoading_skeleton === false" class="mt-8px">
-                      <sapn class="info-item">{{ t('total_cost') }}</sapn>
-                      <sapn class="line-height-32px">{{ paymentData.cost_str }}</sapn>
+                      <span class="info-item">{{ t('total_cost') }}</span>
+                      <span class="line-height-32px">{{ paymentData.cost_str }}</span>
                     </div>
                     <div v-if="isLoading_skeleton === false" class="mt-8px">
-                      <sapn class="info-item">{{ t('total_times') }}</sapn>
-                      <sapn class="line-height-32px">{{ paymentData.amount_str }}</sapn>
+                      <span class="info-item">{{ t('total_times') }}</span>
+                      <span class="line-height-32px">{{ paymentData.amount_str }}</span>
                     </div>
                     <div v-if="isLoading_skeleton === false" class="mt-8px">
-                      <sapn class="info-item">{{ t('total_charging_time') }}</sapn>
-                      <sapn class="line-height-32px">{{ paymentData.charge_hr + ":" + paymentData.charge_min + ":" + paymentData.charge_sec }}</sapn>
+                      <span class="info-item">{{ t('total_charging_time') }}</span>
+                      <span class="line-height-32px">{{ paymentData.charge_hr + ":" + paymentData.charge_min + ":" + paymentData.charge_sec }}</span>
                     </div>
                   </div>
                 </div>
@@ -856,7 +856,6 @@ onMounted(async () => {
                   size="large"
                   :cell-style="msi.tb_cell"
                   :header-cell-style="msi.tb_header_cell"
-                  v-loading.fullscreen.lock="isLoading"
                 >
                   <el-table-column 
                     :label= "t('station')" 
@@ -931,7 +930,7 @@ onMounted(async () => {
                     />
                     <el-table-column
                       prop="charge_kwh_str"
-                      :label="t('kWh')"
+                      :label="t('kwh')"
                       header-align="center"
                       align="right"
                       sortable

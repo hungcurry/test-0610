@@ -16,7 +16,7 @@ const now = new Date()
 const isLoading = ref(false)
 const parking_visible = ref(true)
 const charging_visible = ref(true)
-
+// const activeName = ref('1')
 const selectTime = ref([new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0),
       new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59)])
 const defaultTime = [new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0),
@@ -135,6 +135,7 @@ const sortFunc = (obj1, obj2, column) => {
 const MongoQurey = async (queryData) => {
   isLoading.value = true
   const res =  await MsiApi.mongoAggregate(queryData)
+  console.log(res)
   PaymentData.length = 0
   Object.assign(PaymentData, res.data.result)
   for (let i = 0; i < PaymentData.length; i++) {
@@ -258,167 +259,175 @@ onMounted(async () => {
           </el-button>
         </div>
       </div>
-      <div class="overflow-x-auto">
-        <div class="payment-list pb-40px">
-          <el-table 
-            :data="PaymentData"
-            class="white-space-nowrap text-primary"
-            height="calc(100vh - 220px)"
-            style="width: 100%"
-            stripe
-            size="large"
-            :cell-style="msi.tb_cell"
-            :header-cell-style="msi.tb_header_cell"
-            v-loading.fullscreen.lock="isLoading"
-            :default-sort="{ prop: 'created_date_str', order: 'ascending' }"
-          >
-            <el-table-column :label= "t('station')" align="center" min-width="550">
-              <el-table-column
-                prop="location_name"
-                :label="t('name')"
-                align="center"
-                sortable
-                min-width="250"
-                :sort-method="(a, b) => sortFunc(a, b, 'location_name')"
-              />
-              <el-table-column
-                prop="evse_id"
-                :label="t('evse_id')"
-                align="center"
-                sortable
-                min-width="300"
-                :sort-method="(a, b) => sortFunc(a, b, 'evse_id')"
-              />
-            </el-table-column>
+      <!-- <div class="tabs">
+        <el-tabs v-model="activeName">
+          <el-tab-pane :label="t('payment')" name="1"> -->
+            <div class="overflow-x-auto">
+              <div class="payment-list pb-40px">
+                <el-table 
+                  :data="PaymentData"
+                  class="white-space-nowrap text-primary"
+                  height="calc(100vh - 220px)"
+                  style="width: 100%"
+                  stripe
+                  size="large"
+                  :cell-style="msi.tb_cell"
+                  :header-cell-style="msi.tb_header_cell"
+                  v-loading.fullscreen.lock="isLoading"
+                  :default-sort="{ prop: 'created_date_str', order: 'ascending' }"
+                >
+                  <el-table-column :label= "t('station')" align="center" min-width="550">
+                    <el-table-column
+                      prop="location_name"
+                      :label="t('name')"
+                      align="center"
+                      sortable
+                      min-width="250"
+                      :sort-method="(a, b) => sortFunc(a, b, 'location_name')"
+                    />
+                    <el-table-column
+                      prop="evse_id"
+                      :label="t('evse_id')"
+                      align="center"
+                      sortable
+                      min-width="250"
+                      :sort-method="(a, b) => sortFunc(a, b, 'evse_id')"
+                    />
+                  </el-table-column>
 
-            <el-table-column
-              v-if="parking_visible"
-              :label="t('parking')"
-              align="center"
-              min-width="450"
-            >
-              <el-table-column
-                prop="parking_time"
-                :label="t('used_time')"
-                align="center"
-                sortable
-                min-width="150"
-                :sort-method="(a, b) => sortFunc(a, b, 'parking_time')"
-              />
-              <el-table-column
-                prop="parking_price_str"
-                :label="t('price')"
-                header-align="center"
-                align="right"
-                sortable
-                min-width="100"
-                :sort-method="(a, b) => sortFunc(a, b, 'parking_price_str')"
-              />
-              
-              <el-table-column
-                prop="parking_currency_str"
-                :label="t('currency')"
-                header-align="center"
-                align="center"
-                sortable
-                min-width="150"
-                :sort-method="(a, b) => sortFunc(a, b, 'parking_currency_str')"
-              />
+                  <el-table-column
+                    v-if="parking_visible"
+                    :label="t('parking')"
+                    align="center"
+                    min-width="450"
+                  >
+                    <el-table-column
+                      prop="parking_time"
+                      :label="t('used_time')"
+                      align="center"
+                      sortable
+                      min-width="150"
+                      :sort-method="(a, b) => sortFunc(a, b, 'parking_time')"
+                    />
+                    <el-table-column
+                      prop="parking_price_str"
+                      :label="t('price')"
+                      header-align="center"
+                      align="right"
+                      sortable
+                      min-width="100"
+                      :sort-method="(a, b) => sortFunc(a, b, 'parking_price_str')"
+                    />
+                    
+                    <el-table-column
+                      prop="parking_currency_str"
+                      :label="t('currency')"
+                      header-align="center"
+                      align="center"
+                      sortable
+                      min-width="150"
+                      :sort-method="(a, b) => sortFunc(a, b, 'parking_currency_str')"
+                    />
 
-              <el-table-column
-                prop="parking_car_num_str"
-                :label="t('license_plate')"
-                align="center"
-                sortable
-                min-width="200"
-                :sort-method="(a, b) => sortFunc(a, b, 'parking_car_num_str')"
-              />
-            </el-table-column>
+                    <el-table-column
+                      prop="parking_car_num_str"
+                      :label="t('license_plate')"
+                      align="center"
+                      sortable
+                      min-width="200"
+                      :sort-method="(a, b) => sortFunc(a, b, 'parking_car_num_str')"
+                    />
+                  </el-table-column>
 
-            <el-table-column
-              v-if="charging_visible"
-              :label="t('charging')"
-              align="center"
-              min-width="450"
-            >
-              <el-table-column
-                prop="charge_time"
-                :label="t('used_time')"
-                align="center"
-                sortable
-                min-width="150"
-                :sort-method="(a, b) => sortFunc(a, b, 'charge_time')"
-              />
-              <el-table-column
-                prop="charge_energy_str"
-                :label="t('kwh')"
-                header-align="center"
-                align="right"
-                sortable
-                min-width="150"
-                :sort-method="(a, b) => sortFunc(a, b, 'charge_energy_str')"
-              />
-              <el-table-column
-                prop="charge_price_str"
-                :label="t('price')"
-                header-align="center"
-                align="right"
-                sortable
-                min-width="100"
-                :sort-method="(a, b) => sortFunc(a, b, 'charge_price_str')"
-              />
+                  <el-table-column
+                    v-if="charging_visible"
+                    :label="t('charging')"
+                    align="center"
+                    min-width="450"
+                  >
+                    <el-table-column
+                      prop="charge_time"
+                      :label="t('used_time')"
+                      align="center"
+                      sortable
+                      min-width="150"
+                      :sort-method="(a, b) => sortFunc(a, b, 'charge_time')"
+                    />
+                    <el-table-column
+                      prop="charge_energy_str"
+                      :label="t('kwh')"
+                      header-align="center"
+                      align="right"
+                      sortable
+                      min-width="150"
+                      :sort-method="(a, b) => sortFunc(a, b, 'charge_energy_str')"
+                    />
+                    <el-table-column
+                      prop="charge_price_str"
+                      :label="t('price')"
+                      header-align="center"
+                      align="right"
+                      sortable
+                      min-width="100"
+                      :sort-method="(a, b) => sortFunc(a, b, 'charge_price_str')"
+                    />
 
-              <el-table-column
-                prop="charge_currency_str"
-                :label="t('currency')"
-                header-align="center"
-                align="center"
-                sortable
-                min-width="150"
-                :sort-method="(a, b) => sortFunc(a, b, 'charge_currency_str')"
-              />
+                    <el-table-column
+                      prop="charge_currency_str"
+                      :label="t('currency')"
+                      header-align="center"
+                      align="center"
+                      sortable
+                      min-width="150"
+                      :sort-method="(a, b) => sortFunc(a, b, 'charge_currency_str')"
+                    />
 
-            </el-table-column>
+                  </el-table-column>
 
-            <el-table-column
-              prop="price_str"
-              :label="t('final_paid')"
-              header-align="center"
-              align="right"
-              sortable
-              min-width="150"
-              :sort-method="(a, b) => sortFunc(a, b, 'price_str')"
-            />
+                  <el-table-column
+                    prop="price_str"
+                    :label="t('final_paid')"
+                    header-align="center"
+                    align="right"
+                    sortable
+                    min-width="150"
+                    :sort-method="(a, b) => sortFunc(a, b, 'price_str')"
+                  />
 
-            <el-table-column
-              prop="currency"
-              :label="t('currency')"
-              header-align="center"
-              align="center"
-              sortable
-              min-width="150"
-              :sort-method="(a, b) => sortFunc(a, b, 'currency')"
-            />
+                  <el-table-column
+                    prop="currency"
+                    :label="t('currency')"
+                    header-align="center"
+                    align="center"
+                    sortable
+                    min-width="150"
+                    :sort-method="(a, b) => sortFunc(a, b, 'currency')"
+                  />
 
-            <el-table-column
-              prop="paymethod_str"
-              :label="t('method')"
-              align="center"
-              :filters="filters"
-              :filter-method="filterTag"
-              min-width="150"
-            />
+                  <el-table-column
+                    prop="paymethod_str"
+                    :label="t('method')"
+                    align="center"
+                    :filters="filters"
+                    :filter-method="filterTag"
+                    min-width="150"
+                  />
 
-            <el-table-column
-              prop="created_date_str"
-              :label="t('created_date')"
-              align="center"
-              sortable
-              min-width="250"
-              :sort-method="(a, b) => sortFunc(a, b, 'created_date_str')"
-            />
-          </el-table>
-        </div>
+                  <el-table-column
+                    prop="created_date_str"
+                    :label="t('created_date')"
+                    align="center"
+                    sortable
+                    min-width="250"
+                    :sort-method="(a, b) => sortFunc(a, b, 'created_date_str')"
+                  />
+                </el-table>
+              </div>
+            <!-- </div>
+          </el-tab-pane>
+          <el-tab-pane :label="t('unpaired')" name="2">
+          </el-tab-pane>
+        </el-tabs> -->
       </div>
     </div>
   </div>

@@ -128,8 +128,14 @@ const editAdmin = async (action) => {
 }
 
 const AddAdmin = async (action, visable) => {
-
   if (action === 'confirm') {
+    if (MStore.permission.company.name !== 'MSI') {
+      user_type.forEach((item) => {
+        if (item.name === 'AdminUser') {
+          AddAdminData.permission_id = item._id
+        }
+      })
+    }
     AdminData_ref.value.validate(valid => {
       if (valid) {
         AddAdminFormVisible.value = visable
@@ -198,7 +204,7 @@ const MongoAggregate = async () => {
     UserData[i].updated_date_str = (moment(localEndTime).format("YYYY-MM-DD HH:mm:ss"))
     for (let j = 0; j < user_type.length; j++) {     
       if (UserData[i].permission.user === user_type[j]._id) {
-        UserData[i].permission_str = user_type[j].name
+        UserData[i].permission_str = user_type[j].name_str
       }
     }
   }
@@ -234,7 +240,7 @@ const GetPermission = async () => {
         {
           $match: {
             name: {
-              $nin: ['ttt']
+              $nin: ['AnonymousUser', 'MemberUser', ]
             }
           }
         },
@@ -249,13 +255,22 @@ const GetPermission = async () => {
   Object.assign(user_type, response.data.result)
   for (let i=0; i<user_type.length; i++) {
     if (user_type[i].name === 'EngineerUser') {
-      user_type[i].name = t('engineer_user')
+      user_type[i].name_str = t('engineer_user')
     }
     else if (user_type[i].name === 'AdminUser') {
-      user_type[i].name = t('admin_user')
+      user_type[i].name_str = t('admin_user')
     }
     else if (user_type[i].name === 'DeveloperUser') {
-      user_type[i].name = t('developer_user')
+      user_type[i].name_str = t('developer_user')
+    }
+    else if (user_type[i].name === 'ViewerUser') {
+      user_type[i].name_str = t('viwer_user')
+    }
+    else if (user_type[i].name === 'FAEUser') {
+      user_type[i].name_str = t('fae_user')
+    }
+    else if (user_type[i].name === 'CustomerServiceUser') {
+      user_type[i].name_str = t('customer_service_user')
     }
   }
 }
@@ -333,7 +348,7 @@ onMounted(async () => {
               min-width="200"
             />
 
-            <el-table-column
+            <el-table-column v-if="MStore.permission.company.name === 'MSI'"
               prop="permission_str"
               :label="t('permission')"
               align="center"
@@ -402,7 +417,9 @@ onMounted(async () => {
                 <el-input v-model="AddAdminData.phone" />
               </el-form-item>
 
-              <el-form-item class="mb-24px" :label="t('permission')" prop="permission_str">
+              <el-form-item class="mb-24px" :label="t('permission')" prop="permission_str"
+              v-if="MStore.permission.company.name === 'MSI'"
+              >
                 <el-select 
                   class="el-select" 
                   v-model="AddAdminData.permission_str" 
@@ -482,7 +499,7 @@ onMounted(async () => {
                 <el-input v-model="editAdminData.phone" />
               </el-form-item>
 
-              <el-form-item class="mb-24px" :label="t('permission')" prop="permission_str">
+              <el-form-item class="mb-24px" :label="t('permission')" prop="permission_str" v-if="MStore.permission.company.name === 'MSI'">
                 <el-select 
                   class="el-select" 
                   v-model="editAdminData.permission_str" 

@@ -178,6 +178,7 @@ onMounted( async () => {
       default:
         item.price_components[0].type_str = item.price_components[0].type
     }
+    item.price_components[0].price_incl_vat = item.price_components[0].price * (1 + item.price_components[0].vat / 100)
   })
 
 })
@@ -376,7 +377,8 @@ onMounted( async () => {
               <el-table :data="tariff_elements" style="width: 100%; height:300px" stripe 
                 :cell-style=msi.tb_cell :header-cell-style=msi.tb_header_cell size="large">
                 <el-table-column prop="price_components[0].type_str" :label="t('type')" min-width="130" align="center"/>
-                <el-table-column prop="price_components[0].price" :label="t('price')" min-width="80" align="center"/>
+                <el-table-column prop="price_components[0].price" :label="t('price_excl_vat')" min-width="80" align="center"/>
+                <el-table-column prop="price_components[0].price_incl_vat" :label="t('price_incl_vat')" min-width="80" align="center"/>
                 <el-table-column prop="price_components[0].vat" :label="t('vat')" min-width="80" align="center"/>
                 <el-table-column prop="step_size_str" :label="t('unit')" min-width="50" align="center"/>
                 <el-table-column prop="restrictions.start_time" :label="t('start_time')" min-width="100" align="center"/>

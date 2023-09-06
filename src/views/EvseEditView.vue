@@ -200,6 +200,7 @@ onMounted(async () => {
         default:
           element.price_components[0].type_str = element.price_components[0].type
       }
+      element.price_components[0].price_incl_vat = element.price_components[0].price * ( 1 + element.price_components[0].vat / 100 )
     })
     item.name = item?.custom?.name
     item.description = item?.custom?.description
@@ -453,7 +454,13 @@ onMounted(async () => {
                     />
                     <el-table-column
                       prop="price_components[0].price"
-                      :label="t('price')"
+                      :label="t('price_excl_vat')"
+                      min-width="60"
+                      align="center"
+                    />
+                    <el-table-column
+                      prop="price_components[0].price_incl_vat"
+                      :label="t('price_incl_vat')"
                       min-width="60"
                       align="center"
                     />
