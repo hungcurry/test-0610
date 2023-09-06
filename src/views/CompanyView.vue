@@ -53,9 +53,11 @@ const AddCompany = () => {
   company_title.value = t('add_company_info')
   for (let key in companyData)
     companyData[key] = ''
+  companyData._id = undefined
   companyData.payment = {hashIV:'', hashKey:'', merchantId:'', owner:''}
   companyData.invoice = {hashIV:'', hashKey:'', merchantId:'', owner:''}
   companyData.upgrade_manager = {enable:true}
+  companyData.upgrade_manager_enable = true
 }
 
 const sortFunc = (obj1, obj2, column) => {
@@ -217,7 +219,14 @@ const checkCompanyName = async() => {
     "pipelines": [
       { 
         $match: { 
-          "name": companyData.name
+          $and: [
+            {
+              "name": companyData.name
+            },
+            {
+              _id: { $ne: {"ObjectId" : companyData._id}}
+            }
+          ]
         },
       },
       {
@@ -253,6 +262,7 @@ const editCompany = async (action) => {
           companyData.payment.hashIV = companyData.payment_hashIV
           companyData.payment.hashKey = companyData.payment_hashKey
           companyData.payment.merchantId = companyData.payment_merchantId
+          companyData.upgrade_manager.enable = companyData.upgrade_manager_enable
           let sendData = {  class : 'CompanyInformation', name: companyData.name,
                             country:companyData.country, party_id:companyData.party_id,
                             city:companyData.city, detail:companyData.detail, 

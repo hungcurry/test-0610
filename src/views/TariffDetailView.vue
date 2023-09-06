@@ -14,6 +14,7 @@ import timeGridPlugin from '@fullcalendar/timegrid'
 import interactionPlugin from '@fullcalendar/interaction'
 import moment from "moment"
 import tippy from 'tippy.js'
+import "tippy.js/dist/tippy.css"
 import { useI18n } from 'vue-i18n'
 const { t } = useI18n()
 const vat_select = ref('1')
@@ -61,7 +62,7 @@ const overEventHeight = (startTimeStr, endTimeStr) => {
   let startTime = parseInt(startTimeStr.split(':')[0])*60 + parseInt(startTimeStr.split(':')[1])
   let endTime = parseInt(endTimeStr.split(':')[0])*60 + parseInt(endTimeStr.split(':')[1])
   let eventHeight = (endTime - startTime) / 60 * rowHeight
-  if (eventHeight < 4 * rowHeight) {
+  if (eventHeight < 5 * rowHeight) {
     return true
   }
   return false
@@ -87,7 +88,10 @@ const handleTabClick = (tab) => {
   }
 }
 const openDialog = () => {
-  if (activeName.value === 'four') {
+  if (activeName.value === 'three' && new_element.value.price_type === '') {
+    new_element.value.price_type = 'ENERGY'
+  }
+  else if (activeName.value === 'four') {
     new_element.value.price_type = 'PARKING_TIME'
   }
 }
@@ -102,6 +106,8 @@ const fillFullCalendar = () => {
   chargingCalendarOptions.events = []
   parkingCalendarOptions.events = []
   setTimeout(() => isCalendarMounted.value = true, 0)
+  let price_excl_str = ''
+  let price_incl_str = ''
   let startTime = ''
   let endTime = ''
   let daysOfWeek = []
@@ -116,22 +122,24 @@ const fillFullCalendar = () => {
       if (tariffObj[i].restrictions.day_of_week[j] === 'FRIDAY') daysOfWeek.push('5')
       if (tariffObj[i].restrictions.day_of_week[j] === 'SATURDAY') daysOfWeek.push('6')
       if (tariffObj[i].restrictions.day_of_week[j] === 'SUNDAY') daysOfWeek.push('0')
-      startTime = tariffObj[i].restrictions.start_time
-      endTime = tariffObj[i].restrictions.end_time
-      if (endTime === '00:00')
-        endTime = '23:59'
     }
-
+    price_excl_str = tariffObj[i].price_components[0].price
+    price_incl_str = tariffObj[i].price_components[0].price_incl
+    startTime = tariffObj[i].restrictions.start_time
+    endTime = tariffObj[i].restrictions.end_time
+    if (endTime === '00:00')
+      endTime = '23:59'
     if (tariffObj[i].price_components[0].type === 'ENERGY') {
-      let price_str = tariffObj[i].price_components[0].price
-      let event_title = t('charging') + ':' + price_str + ' /' + t('kwh')
+      let event_title = 'title'
       let elements_index = i
       chargingCalendarOptions.events.push({
         daysOfWeek: daysOfWeek, startTime: startTime, endTime: endTime, title: event_title, index: elements_index,
         shortTitle: overEventHeight(startTime, endTime),
         borderColor: setEventBgColor(charging_bgColor, chargingCount),
         extendedProps: {
-          title: event_title,
+          // price_str: '$' + price_excl_str + ` ($${price_incl_str})` + ' /' + t('kwh'),
+          price_excl: '$' + price_excl_str + ' /' + t('kwh'),
+          price_incl: '$' + price_incl_str + ' /' + t('kwh'),
           time: startTime + ' - ' + endTime,
           price: tariffObj[i].price_components[0].price + ' / ' + t('kwh')
         }
@@ -139,15 +147,16 @@ const fillFullCalendar = () => {
       chargingCount++
     }
     else if (tariffObj[i].price_components[0].type === 'TIME') {
-      let price_str = tariffObj[i].price_components[0].price
-      let event_title = t('charging') + ':' + price_str + ' /' + t('hr')
+      let event_title = 'title'
       let elements_index = i
       chargingCalendarOptions.events.push({
         daysOfWeek: daysOfWeek, startTime: startTime, endTime: endTime, title: event_title, index: elements_index,
         borderColor: setEventBgColor(charging_bgColor, chargingCount),
         shortTitle: overEventHeight(startTime, endTime),
         extendedProps: {
-          title: event_title,
+          // price_str: '$' + price_excl_str + ` ($${price_incl_str})` + ' /' + t('hr'),
+          price_excl: '$' + price_excl_str + ' /' + t('hr'),
+          price_incl: '$' + price_incl_str + ' /' + t('hr'),
           time: startTime + ' - ' + endTime,
           price: (tariffObj[i].price_components[0].price / (3600 / tariffObj[i].price_components[0].step_size)).toFixed(2)
             + ' / ' + tariffObj[i].price_components[0].step_size / 60 + t('min')
@@ -156,15 +165,16 @@ const fillFullCalendar = () => {
       chargingCount++
     }
     else if (tariffObj[i].price_components[0].type === 'PARKING_TIME') {
-      let price_str = tariffObj[i].price_components[0].price
-      let event_title = t('parking') + ':' + price_str + ' /' + t('hr')
+      let event_title = 'title'
       let elements_index = i
       parkingCalendarOptions.events.push({
         daysOfWeek: daysOfWeek, startTime: startTime, endTime: endTime, title: event_title, index: elements_index,
         borderColor: setEventBgColor(parking_bgColor, parkingCount),
         shortTitle: overEventHeight(startTime, endTime),
         extendedProps: {
-          title: event_title,
+          // price_str: '$' + price_excl_str + ` ($${price_incl_str})` + ' /' + t('hr'),
+          price_excl: '$' + price_excl_str + ' /' + t('hr'),
+          price_incl: '$' + price_incl_str + ' /' + t('hr'),
           time: startTime + ' - ' + endTime,
           price:  (tariffObj[i].price_components[0].price / (3600 / tariffObj[i].price_components[0].step_size)).toFixed(2)
             + ' / ' + tariffObj[i].price_components[0].step_size / 60 + t('min')
@@ -303,7 +313,7 @@ const handleEventCreate = (selectInfo) => {
       endTimeStr = selectInfo.endStr
       startTime = '00:00'
       endTime = moment(new Date(selectInfo.end)).format("HH:mm")
-      if (endTime === '00:00')
+      if (endTime === '00:00')  
         endTime = '23:59'
       multiTime[i - 1] = []
       multiTime[i - 1].start_time = startTime
@@ -386,22 +396,71 @@ const handleEventClick = (clickInfo) => {
   }
 }
 const handleEventMouseEnter = (info) => {
-  let eve = info.event._def.extendedProps
-  if (eve.shortTitle === true) {
-    tippy(info.el, {
-      content: 
-      `<div style='width: 150px; background-color:#414c58; padding:5px; font-size:14px;'>
-        <div style='display:flex; overflow: hidden; color: #fff; line-height:30px'}">
-          ${eve.title}
-        </div>
-        <div style='display:flex; overflow: hidden; color: #fff; line-height:30px'}">
-          ${eve.time}
-        </div>
-      </div>`,
-      interactive: true,
-      allowHTML: true,
-    })
+  let index = info.event._def.extendedProps.index
+  let type_str = tariffObj[index].price_components_type_str
+  let vat_str = tariffObj[index].price_components[0].vat
+  let step_size_str = tariffObj[index].price_components_step_size_str
+  let price_excl_vat_str = tariffObj[index].price_components[0].price
+  let price_incl_vat_str = tariffObj[index].price_components[0].price * (1 + vat_str / 100)
+  let min_duration_str = tariffObj[index].restrictions.min_duration / 60
+  let max_duration_str = tariffObj[index].restrictions.max_duration / 60
+  let unit = ''
+  let duration_content = ''
+
+  switch (tariffObj[index].price_components[0].type) {
+    case 'ENERGY' :
+      step_size_str = tariffObj[index].price_components[0].step_size
+      unit = t('kwh')
+      break
+    case 'TIME' :
+      step_size_str = tariffObj[index].price_components[0].step_size / 60
+      unit = t('min')
+      break
+    case 'PARKING_TIME' :
+      step_size_str = tariffObj[index].price_components[0].step_size / 60
+      unit = t('min')
+      duration_content = 
+      `
+        ${t('active_minute')}: 
+        ${min_duration_str}
+        <br>
+        ${t('deactivate_minute')}: 
+        ${max_duration_str}
+      `
+      break
+    default:
+      break
   }
+  
+  tippy(info.el, {
+    content:
+    `
+    <div style='padding:5px; font-size:14px; border-radius: 0.5rem;'>
+    ${t('type')}: 
+    ${type_str}
+    <br>
+    ${t('price_excl_vat')}: $
+    ${price_excl_vat_str}
+    <br>
+    ${t('price_incl_vat')}: $
+    ${price_incl_vat_str}
+    <br>
+    ${t('vat')}: 
+    ${vat_str}%
+    <br>
+    ${t('unit')}: 
+    ${step_size_str}
+    ${unit}
+    <br>
+    ${duration_content}
+    </div>
+    `,
+    interactive: false,
+    allowHTML: true,
+    placement: 'right',
+    arrow: true,
+    duration: 0,
+  })
 }
 const handleEventContent = (arg) => {
   let content = '<div style="width: fit-content; margin: auto;">'
@@ -419,8 +478,9 @@ const handleEventContent = (arg) => {
     content = content + arg.timeText 
   }
   else {
-    if (arg.event.extendedProps.title)
-      content = content + arg.event.extendedProps.title + '<br><br>'
+    // content = content + arg.event.extendedProps.price_str + '<br><br>'
+    content = content + t('price_excl_vat') + '<br>' + arg.event.extendedProps.price_excl + '<br><br>'
+    content = content + t('price_incl_vat') + '<br>' + arg.event.extendedProps.price_incl + '<br><br>'
     content = content + arg.timeText + '<br>'
   }
   content = content + '</div>'

@@ -180,11 +180,11 @@ const MongoAggregate = async (queryData) => {
     }
     if (UserData[i]?.evse_list?.length > 1) {
       UserData[i].evse_list_str += ' / ...'
-    }
-    for (let j = 0; j < UserData[i]?.evse_list?.length; j++) {
-      UserData[i].evse_list_str_detail += UserData[i]?.evse_list[j]?.evseId 
-      if (UserData[i]?.evse_list?.length > 1)
-      UserData[i].evse_list_str_detail + ' /<br> '
+      for (let j = 0; j < UserData[i]?.evse_list?.length; j++) {
+        UserData[i].evse_list_str_detail += UserData[i]?.evse_list[j]?.evseId 
+        if (j !== UserData[i]?.evse_list?.length-1)
+          UserData[i].evse_list_str_detail += ' / '
+      }
     }
   }
   isLoading.value = false

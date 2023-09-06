@@ -140,6 +140,8 @@ export default
     license_plate:                                          'License Plate',
     method:                                                 'Method',
     cpo_account:                                            'CPO Account',
+    table:                                                  'Table',
+    schedule:                                               'Schedule',
 //--------------------------------------------------------------
 // header                       
 //--------------------------------------------------------------
@@ -449,6 +451,8 @@ export default
     // floor_level:                                         'Floor Level',
     // last_updated:                                        'Last Updated',
     // rate_description:                                    'Rate Description',
+    // table:                                               'Table',
+    // schedule:                                            'Schedule',
 //--------------------------------------------------------------
 // EVSE Edit Page           
 //--------------------------------------------------------------    
@@ -497,6 +501,8 @@ export default
     // edit_evse:                                           'Edit EVSE',
     // others:                                              'Others',
     // rate_description:                                    'Rate Description',
+    // table:                                               'Table',
+    // schedule:                                            'Schedule',
 //--------------------------------------------------------------
 // Rate Plan Page           
 //--------------------------------------------------------------
@@ -627,6 +633,7 @@ export default
     member_user:                                            'Member User',
     Chinese:                                                'Chinese',
     card_number_already_exists:                             'Card number already exists',
+    card_number_is_duplicated_with_user:                    'Card number is duplicated with user "{user_name}"',
     // general:                                              'General',
     // card_no:                                             'Card No.',
     // language:                                            'Language',
@@ -766,24 +773,24 @@ export default
     fw_error_info:                                          'FW Error Info',
     other_error:                                            'OtherError',
     no_error:                                               'NoError',
-    internal_error:                                         'InternalError',
-    under_voltage:                                          'UnderVoltage',
-    ground_failure:                                         'GroundFailure',
     control_board_not_connect:                              'ControlBoardNotConnect',
+    internal_error:                                         'InternalError',
+    ground_failure:                                         'GroundFailure',
     ev_communication_error:                                 'EVCommunicationError',
     power_switch_failure:                                   'PowerSwitchFailure',
     over_current_failure:                                   'OverCurrentFailure',
     over_voltage:                                           'OverVoltage',
+    under_voltage:                                          'UnderVoltage',
     high_temperature:                                       'HighTemperature',
     illegal_charging:                                       'IllegalCharging',
     emergency_button_triggered:                             'EmergencyButtonTriggered',
     pile_fault:                                             'PileFault',
-    gfcl_initial_fault:                                     'GFCLInitialFault',
-    gfcl_fault1:                                            'GFCLFault1',
-    gfcl_fault2:                                            'GFCLFault2',
-    firmware_update_checksum_fault:                         'FirmwareUpdateChecksumFault',
-    cam_error:                                              'CamError',
     ui_error:                                               'UIError',
+    cam_error:                                              'CamError',
+    gfci_initial_fault:                                     'GFCIInitialFault',
+    gfci_fault1:                                            'GFCIFault1',
+    gfci_fault2:                                            'GFCIFault2',
+    firmware_update_checksum_fault:                         'FirmwareUpdateChecksumFault',
     download_failed:                                        'DownloadFailed',
     installation_failed:                                    'InstallationFailed',
     // total_count:                                         'Total Count',

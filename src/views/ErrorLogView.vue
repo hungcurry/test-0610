@@ -23,114 +23,31 @@ const item_count = ref()
 const max_page = ref()
 const tableRef = ref()
 
-const convertErrorCode = () => {
-  for (let j=0; j<ocppErrorDataAll.length; j++) {
-    switch (ocppErrorDataAll[j].ocpp_errorCode) {
-      case 'OtherError':
-      ocppErrorDataAll[j].ocpp_errorCode_str = t('other_error')
-        break;
-      case 'NoError':
-      ocppErrorDataAll[j].ocpp_errorCode_str = t('no_error')
-        break;
-      case 'InternalError':
-      ocppErrorDataAll[j].ocpp_errorCode_str = t('internal_error')
-        break;
-      case 'UnderVoltage':
-      ocppErrorDataAll[j].ocpp_errorCode_str = t('under_voltage')
-        break;
-      case 'GroundFailure':
-      ocppErrorDataAll[j].ocpp_errorCode_str = t('ground_failure')
-        break;
-      default:
-      ocppErrorDataAll[j].ocpp_errorCode_str = ocppErrorDataAll[j].ocpp_errorCode
-        break;
-    }
-
-    switch (ocppErrorDataAll[j].vendorErrorCode) {
-      // Error Code
-      case '-1':
-      ocppErrorDataAll[j].syetem_error_code_str = t('control_board_not_connect')
-        break;
-      case '1':
-      ocppErrorDataAll[j].syetem_error_code_str = t('internal_error')
-        break;
-      case '5':
-      ocppErrorDataAll[j].syetem_error_code_str = t('ground_failure')
-        break;
-      case '6':
-      ocppErrorDataAll[j].syetem_error_code_str = t('ground_failure')
-        break;
-      case '8':
-      ocppErrorDataAll[j].syetem_error_code_str = t('ev_communication_error')
-        break;
-      case '18':
-      ocppErrorDataAll[j].syetem_error_code_str = t('power_switch_failure')
-        break;
-      case '19':
-      ocppErrorDataAll[j].syetem_error_code_str = t('power_switch_failure')
-        break;
-      case '20':
-      ocppErrorDataAll[j].syetem_error_code_str = t('power_switch_failure')
-        break;
-      case '21':
-      ocppErrorDataAll[j].syetem_error_code_str = t('power_switch_failure')
-        break;
-      case '22':
-      ocppErrorDataAll[j].syetem_error_code_str = t('over_current_failure')
-        break;
-      case '24':
-      ocppErrorDataAll[j].syetem_error_code_str = t('over_voltage')
-        break;
-      case '25':
-      ocppErrorDataAll[j].syetem_error_code_str = t('under_voltage')
-        break;
-      case '26':
-      ocppErrorDataAll[j].syetem_error_code_str = t('high_temperature')
-        break;
-      case '27':
-      ocppErrorDataAll[j].syetem_error_code_str = t('high_temperature')
-        break;
-      case '28':
-      ocppErrorDataAll[j].syetem_error_code_str = t('high_temperature')
-        break;
-      case '30':
-      ocppErrorDataAll[j].syetem_error_code_str = t('illegal_charging')
-        break;
-      case '33':
-      ocppErrorDataAll[j].syetem_error_code_str = t('emergency_button_triggered')
-        break;
-      case '64':
-      ocppErrorDataAll[j].syetem_error_code_str = t('pile_fault')
-        break;
-      // System Error Code
-      case '2':
-      ocppErrorDataAll[j].syetem_error_code_str = t('gfcl_initial_fault')
-        break;
-      case '3':
-      ocppErrorDataAll[j].syetem_error_code_str = t('gfcl_fault1')
-        break;
-      case '4':
-      ocppErrorDataAll[j].syetem_error_code_str = t('gfcl_fault2')
-        break;
-      case '14':
-      ocppErrorDataAll[j].syetem_error_code_str = t('firmware_update_checksum_fault')
-        break;
-      case 'CAM_ERROR':
-      ocppErrorDataAll[j].syetem_error_code_str = t('cam_error')
-        break;
-      case 'UI_ERROR':
-      ocppErrorDataAll[j].syetem_error_code_str = t('ui_error')
-        break;
-    
-      default:
-        if (ocppErrorDataAll[j].ocpp_firmware_status === 'DownloadFailed') {
-          ocppErrorDataAll[j].ocpp_firmware_status_str = t('download_failed')
-        }
-        else if (ocppErrorDataAll[j].ocpp_firmware_status === 'InstallationFailed') {
-          ocppErrorDataAll[j].ocpp_firmware_status_str = t('installation_failed')
-        }
-        break;
-    }
+const convertErrorCode = (item) => {
+  switch (item) {
+    case 'OtherError':                  return t('other_error')
+    case 'NoError':                     return t('no_error')
+    case 'ControlBoardNotConnect':      return t('control_board_not_connect')
+    case 'InternalError':               return t('internal_error')
+    case 'GroundFailure':               return t('ground_failure')
+    case 'EVCommunicationError':        return t('ev_communication_error')
+    case 'PowerSwitchFailure':          return t('power_switch_failure')
+    case 'OverCurrentFailure':          return t('over_current_failure')
+    case 'OverVoltage':                 return t('over_voltage')
+    case 'UnderVoltage':                return t('under_voltage')
+    case 'HighTemperature':             return t('high_temperature')
+    case 'IllegalCharging':             return t('illegal_charging')
+    case 'EmergencyButtonTriggered':    return t('emergency_button_triggered')
+    case 'PileFault':                   return t('pile_fault')
+    case 'UIError':                     return t('ui_error')
+    case 'CamError':                    return t('cam_error')
+    case 'GFCIInitialFault':            return t('gfci_initial_fault')
+    case 'GFCIFault1':                  return t('gfci_fault1')
+    case 'GFCIFault2':                  return t('gfci_fault2')
+    case 'FirmwareUpdateChecksumFault': return t('firmware_update_checksum_fault')
+    case 'DownloadFailed':              return t('download_failed')
+    case 'InstallationFailed':          return t('installation_failed')
+    default: return item
   }
 }
 
@@ -172,9 +89,9 @@ const getEVSEOCPPLogs = async() => {
     let localEndTime =  new Date( (new Date(ocppErrorDataAll[i].created_date).getTime()) + ((MStore.timeZoneOffset ) * -60000))
     
     ocppErrorDataAll[i].created_date_str = (moment(localEndTime).format("YYYY-MM-DD HH:mm:ss"))
-    
+    ocppErrorDataAll[i].ocpp_errorCode_str = convertErrorCode(ocppErrorDataAll[i].ocpp_errorCode)
+    ocppErrorDataAll[i].syetem_error_code_str = convertErrorCode(ocppErrorDataAll[i].vendorErrorCode)
   }
-  convertErrorCode()
 
   isLoading.value = false
 }

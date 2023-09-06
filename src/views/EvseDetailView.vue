@@ -1,5 +1,5 @@
 <script setup>
-import { reactive, onMounted} from 'vue'
+import { ref, reactive, onMounted} from 'vue'
 import { useRoute, useRouter} from 'vue-router'
 import ApiFunc from '@/composables/ApiFunc'
 import {  ElMessageBox } from 'element-plus'
@@ -7,6 +7,12 @@ import msi from '@/assets/msi_style'
 import { useMStore } from "../stores/m_cloud"
 import moment from "moment"
 import { useI18n } from "vue-i18n"
+import FullCalendar from '@fullcalendar/vue3'
+import dayGridPlugin from '@fullcalendar/daygrid'
+import timeGridPlugin from '@fullcalendar/timegrid'
+import interactionPlugin from '@fullcalendar/interaction'
+import tippy from 'tippy.js'
+import "tippy.js/dist/tippy.css"
 const { t } = useI18n()
 const MStore = useMStore()
 const route = useRoute()
@@ -50,6 +56,296 @@ const deleteEvse = () => {
 const edit = () => {
   router.push({ name: 'evseEdit', query: {station_id:locationData.id, evse_id:evseId} })
 }
+
+// FullCalendar ---------------------------------------------------------------
+const displaySwitch = ref(false)
+const chargingCalendarRef = ref()
+const parkingCalendarRef = ref()
+const tariffObj = reactive([])
+const charging_bgColor = '#61a8d8'
+const parking_bgColor = '#94eadb'
+
+const fillFullCalendar = () => {
+  tariffObj.length = 0
+  Object.assign(tariffObj, tariffData.elements)
+  console.log(tariffObj)
+
+  chargingCalendarOptions.events = []
+  parkingCalendarOptions.events = []
+
+  let price_excl_str = ''
+  let price_incl_str = ''
+  let startTime = ''
+  let endTime = ''
+  let daysOfWeek = []
+  let chargingCount = 0
+  let parkingCount = 0
+
+  for (let i=0; i<tariffObj.length; i++) {
+    for (let j=0; j<tariffObj[i].restrictions.day_of_week.length; j++) {
+      if (tariffObj[i].restrictions.day_of_week[j] === 'MONDAY') daysOfWeek.push('1')
+      if (tariffObj[i].restrictions.day_of_week[j] === 'TUESDAY') daysOfWeek.push('2')
+      if (tariffObj[i].restrictions.day_of_week[j] === 'WEDNESDAY') daysOfWeek.push('3')
+      if (tariffObj[i].restrictions.day_of_week[j] === 'THURSDAY') daysOfWeek.push('4')
+      if (tariffObj[i].restrictions.day_of_week[j] === 'FRIDAY') daysOfWeek.push('5')
+      if (tariffObj[i].restrictions.day_of_week[j] === 'SATURDAY') daysOfWeek.push('6')
+      if (tariffObj[i].restrictions.day_of_week[j] === 'SUNDAY') daysOfWeek.push('0')
+    }
+    price_excl_str = tariffObj[i].price_components[0].price
+    price_incl_str = tariffObj[i].price_components[0].price_incl
+    startTime = tariffObj[i].restrictions.start_time
+    endTime = tariffObj[i].restrictions.end_time
+    if (endTime === '00:00')
+      endTime = '23:59'
+    if (tariffObj[i].price_components[0].type === 'ENERGY') {
+      let event_title = 'title'
+      let elements_index = i
+      chargingCalendarOptions.events.push({
+        daysOfWeek: daysOfWeek, startTime: startTime, endTime: endTime, title: event_title, index: elements_index,
+        borderColor: setEventBgColor(charging_bgColor, chargingCount),
+        shortTitle: overEventHeight(startTime, endTime),
+        extendedProps: {
+          // price_str: '$' + price_excl_str + ` ($${price_incl_str})` + ' /' + t('kwh'),
+          price_excl: '$' + price_excl_str + ' /' + t('kwh'),
+          price_incl: '$' + price_incl_str + ' /' + t('kwh'),
+          time: startTime + ' - ' + endTime,
+          price: tariffObj[i].price_components[0].price + ' / ' + t('kwh')
+        }
+      })
+      chargingCount++
+    }
+    else if (tariffObj[i].price_components[0].type === 'TIME') {
+      let event_title = 'title'
+      let elements_index = i
+      chargingCalendarOptions.events.push({
+        daysOfWeek: daysOfWeek, startTime: startTime, endTime: endTime, title: event_title, index: elements_index,
+        borderColor: setEventBgColor(charging_bgColor, chargingCount),
+        shortTitle: overEventHeight(startTime, endTime),
+        extendedProps: {
+          // price_str: '$' + price_excl_str + ` ($${price_incl_str})` + ' /' + t('hr'),
+          price_excl: '$' + price_excl_str + ' /' + t('hr'),
+          price_incl: '$' + price_incl_str + ' /' + t('hr'),
+          time: startTime + ' - ' + endTime,
+          price: (tariffObj[i].price_components[0].price / (3600 / tariffObj[i].price_components[0].step_size)).toFixed(2)
+            + ' / ' + tariffObj[i].price_components[0].step_size / 60 + t('min')
+        }
+      })
+      chargingCount++
+    }
+    else if (tariffObj[i].price_components[0].type === 'PARKING_TIME') {
+      let event_title = 'title'
+      let elements_index = i
+      parkingCalendarOptions.events.push({
+        daysOfWeek: daysOfWeek, startTime: startTime, endTime: endTime, title: event_title, index: elements_index,
+        borderColor: setEventBgColor(parking_bgColor, parkingCount),
+        shortTitle: overEventHeight(startTime, endTime),
+        extendedProps: {
+          // price_str: '$' + price_excl_str + ` ($${price_incl_str})` + ' /' + t('hr'),
+          price_excl: '$' + price_excl_str + ' /' + t('hr'),
+          price_incl: '$' + price_incl_str + ' /' + t('hr'),
+          time: startTime + ' - ' + endTime,
+          price:  (tariffObj[i].price_components[0].price / (3600 / tariffObj[i].price_components[0].step_size)).toFixed(2)
+            + ' / ' + tariffObj[i].price_components[0].step_size / 60 + t('min')
+        }
+      })
+      parkingCount++
+    }
+    startTime = ''
+    endTime = ''
+    daysOfWeek = []
+  }
+}
+const overEventHeight = (startTimeStr, endTimeStr) => {
+  let rowHeight = 24;
+  let startTime = parseInt(startTimeStr.split(':')[0])*60 + parseInt(startTimeStr.split(':')[1])
+  let endTime = parseInt(endTimeStr.split(':')[0])*60 + parseInt(endTimeStr.split(':')[1])
+  let eventHeight = (endTime - startTime) / 120 * rowHeight
+  if (eventHeight < 5 * rowHeight) {
+    return true
+  }
+  return false
+}
+const handleEventMouseEnter = (info) => {
+  let index = info.event._def.extendedProps.index
+  let type_str = tariffObj[index].price_components[0].type_str
+  let vat_str = tariffObj[index].price_components[0].vat
+  let step_size_str = ''  // tariffObj[index].price_components[0].step_size
+  let price_excl_vat_str = tariffObj[index].price_components[0].price
+  let price_incl_vat_str = tariffObj[index].price_components[0].price_incl  // price * (1 + vat_str / 100)
+  let min_duration_str = tariffObj[index].restrictions.min_duration / 60
+  let max_duration_str = tariffObj[index].restrictions.max_duration / 60
+  let unit = ''
+  let duration_content = ''
+
+  switch (tariffObj[index].price_components[0].type) {
+    case 'ENERGY' :
+      step_size_str = tariffObj[index].price_components[0].step_size
+      unit = t('kwh')
+      break
+    case 'TIME' :
+      step_size_str = tariffObj[index].price_components[0].step_size / 60
+      unit = t('min')
+      break
+    case 'PARKING_TIME' :
+      step_size_str = tariffObj[index].price_components[0].step_size / 60
+      unit = t('min')
+      duration_content = 
+      `
+        ${t('active_minute')}: 
+        ${min_duration_str}
+        <br>
+        ${t('deactivate_minute')}: 
+        ${max_duration_str}
+      `
+      break
+    default:
+      break
+  }
+  
+  tippy(info.el, {
+    content:
+    `
+    <div style='padding:5px; font-size:14px; border-radius: 0.5rem;'>
+    ${t('type')}: 
+    ${type_str}
+    <br>
+    ${t('price_excl_vat')}: $
+    ${price_excl_vat_str}
+    <br>
+    ${t('price_incl_vat')}: $
+    ${price_incl_vat_str}
+    <br>
+    ${t('vat')}: 
+    ${vat_str}%
+    <br>
+    ${t('unit')}: 
+    ${step_size_str}
+    ${unit}
+    <br>
+    ${duration_content}
+    `,
+    interactive: false,
+    allowHTML: true,
+    placement: 'right',
+    arrow: true,
+    duration: 0,
+  })
+}
+const handleEventContent = (arg) => {
+  let content = '<div style="width: fit-content; margin: auto;">'
+  let startTimeStr = arg.timeText.split(' - ')[0]
+  let endTimeStr = arg.timeText.split(' - ')[1]
+
+  if (endTimeStr === undefined) {
+    endTimeStr = '23:59'
+  }
+  if (startTimeStr.split(':')[0] === '24') {
+    arg.timeText = '00:' + startTimeStr.split(':')[1] + ' - ' + endTimeStr
+  }
+
+  if (arg.event.extendedProps.shortTitle) {
+    content = content + arg.timeText 
+  }
+  else {
+    // content = content + arg.event.extendedProps.price_str + '<br><br>'
+    content = content + t('price_excl_vat') + '<br>' + arg.event.extendedProps.price_excl + '<br><br>'
+    content = content + t('price_incl_vat') + '<br>' + arg.event.extendedProps.price_incl + '<br><br>'
+    content = content + arg.timeText + '<br>'
+  }
+  content = content + '</div>'
+  
+  return {
+    html:`${content}`
+  }
+}
+const setEventBgColor = (bgColor, count) => {
+  let r = parseInt(bgColor.split('#')[1].substr(0,2), 16)
+  let g = parseInt(bgColor.split('#')[1].substr(2,2), 16)
+  let b = parseInt(bgColor.split('#')[1].substr(4,2), 16)
+  r += 35 * count
+  g += 35 * count
+  b += 35 * count
+  if (r > 255)  r = r % 256
+  if (g > 255)  g = g % 256
+  if (b > 255)  b = b % 256
+  bgColor = '#' + r.toString(16) + g.toString(16) + b.toString(16)
+  return bgColor
+}
+const chargingCalendarOptions = reactive({
+  plugins: [interactionPlugin, dayGridPlugin, timeGridPlugin],
+  height: 'auto',
+  initialView: 'timeGridWeek',
+  editable: false,
+  selectMirror: false,
+  selectable: false,
+  selectOverlap: false,
+  allDaySlot: false,
+  firstDay: 1,
+  headerToolbar: false,
+  slotMinTime: '00:00',
+  slotMaxTime: '24:00',
+  slotDuration: '02:00:00',
+  slotLabelFormat: {
+    hour12: false,
+    hour: '2-digit',
+    minute: '2-digit',
+  },
+  slotLabelContent: info => info.text.replace(/24:00/g, '00:00'),
+  dayHeaderFormat: {
+    weekday: 'short'
+  },
+  eventTimeFormat: {
+    hour12: false,
+    hour: '2-digit',
+    minute: '2-digit',
+  },
+  
+  events: [],
+  eventClassNames: ['mfc-event'],
+  eventColor: '#fff',
+  eventTextColor: '#000',
+  slotEventOverlap: false,    // 事件不重疊
+  eventContent: handleEventContent,
+  eventMouseEnter: handleEventMouseEnter,
+})
+const parkingCalendarOptions = reactive({
+  plugins: [interactionPlugin, dayGridPlugin, timeGridPlugin],
+  height: 'auto',
+  initialView: 'timeGridWeek',
+  editable: false,
+  selectMirror: false,
+  selectable: false,
+  selectOverlap: false,
+  allDaySlot: false,
+  firstDay: 1,
+  headerToolbar: false,
+  slotMinTime: '00:00',
+  slotMaxTime: '24:00',
+  slotDuration: '02:00:00',
+  slotLabelFormat: {
+    hour12: false,
+    hour: '2-digit',
+    minute: '2-digit',
+  },
+  slotLabelContent: info => info.text.replace(/24:00/g, '00:00'),
+  dayHeaderFormat: {
+    weekday: 'short'
+  },
+  eventTimeFormat: {
+    hour12: false,
+    hour: '2-digit',
+    minute: '2-digit',
+  },
+
+  events: [],
+  eventClassNames: ['mfc-event'],
+  eventColor: '#fff',
+  eventTextColor: '#000',
+  slotEventOverlap: false,
+  eventContent: handleEventContent,
+  eventMouseEnter: handleEventMouseEnter,
+})
+
 onMounted( async () => {
   let queryData = { "database":"OCPI", "collection":"EVSE", "query": { "uid": {"UUID":evseId}}}
   let response = await MsiApi.mongoQuery(queryData)
@@ -159,7 +455,7 @@ onMounted( async () => {
       }
     }
     item.restrictions.day_of_week_str = day_of_week_str
-
+    item.price_components[0].price_incl = item.price_components[0].price *  (1 + (item.price_components[0].vat / 100))
     switch (item.price_components[0].type) {
       case 'ENERGY' :
         item.price_components[0].type_str = t('charging_by_energy')
@@ -178,9 +474,8 @@ onMounted( async () => {
       default:
         item.price_components[0].type_str = item.price_components[0].type
     }
-    item.price_components[0].price_incl_vat = item.price_components[0].price * (1 + item.price_components[0].vat / 100)
   })
-
+  fillFullCalendar()
 })
 </script>
 
@@ -366,27 +661,51 @@ onMounted( async () => {
                   </div>
                 </div>
                 <div class="tariff-right lg:w-70%">
-                  <div class="container-data h-full md:px-32px">
+                  <!-- <div class="container-data h-full md:px-32px"> -->
+                  <div class="container-data h-full md:px-32px flex justify-between">
                     <div class="">
                       <p class="info-title font-700 text-blue-900 mb-7px"> {{ t('rate_description') + ':' }}  </p>
                       <p class="info-value">{{ tariffData.description}}</p>
                     </div>
+
+                    <el-switch
+                      v-model="displaySwitch"
+                      size="large"
+                      :active-text="t('schedule')"
+                      :inactive-text="t('table')"
+                      class="flex-items-start"
+                    />
                   </div>
                 </div>
               </div>
-              <el-table :data="tariff_elements" style="width: 100%; height:300px" stripe 
+              <el-table v-if="displaySwitch === false" :data="tariff_elements" style="width: 100%; height:300px" stripe 
                 :cell-style=msi.tb_cell :header-cell-style=msi.tb_header_cell size="large">
                 <el-table-column prop="price_components[0].type_str" :label="t('type')" min-width="130" align="center"/>
-                <el-table-column prop="price_components[0].price" :label="t('price_excl_vat')" min-width="80" align="center"/>
-                <el-table-column prop="price_components[0].price_incl_vat" :label="t('price_incl_vat')" min-width="80" align="center"/>
+                <el-table-column prop="price_components[0].price" :label="t('price_excl_vat')" min-width="120" align="center"/>
+                <el-table-column prop="price_components[0].price_incl" :label="t('price_incl_vat')" min-width="120" align="center"/>
                 <el-table-column prop="price_components[0].vat" :label="t('vat')" min-width="80" align="center"/>
-                <el-table-column prop="step_size_str" :label="t('unit')" min-width="50" align="center"/>
-                <el-table-column prop="restrictions.start_time" :label="t('start_time')" min-width="100" align="center"/>
-                <el-table-column prop="restrictions.end_time" :label="t('end_time')" min-width="100" align="center"/>
-                <el-table-column prop="restrictions_min_duration_str" :label="t('active_minute')" sortable min-width="120" align="center"/>
-                <el-table-column prop="restrictions_max_duration_str" :label="t('deactivate_minute')" sortable min-width="120" align="center"/>
+                <el-table-column prop="step_size_str" :label="t('unit')" min-width="80" align="center"/>
+                <el-table-column prop="restrictions.start_time" :label="t('start_time')" min-width="120" align="center"/>
+                <el-table-column prop="restrictions.end_time" :label="t('end_time')" min-width="120" align="center"/>
+                <el-table-column prop="restrictions_min_duration_str" :label="t('active_minute')" min-width="120" align="center"/>
+                <el-table-column prop="restrictions_max_duration_str" :label="t('deactivate_minute')" min-width="120" align="center"/>
                 <el-table-column prop="restrictions.day_of_week_str" :label="t('day_of_week')" min-width="200" align="center"/>
               </el-table>
+              
+              <div v-if="displaySwitch === true" class="overflow-x-auto">
+                <div class="flex-col 2xl:flex-row">
+                  <div class="2xl:mr-10px w-100% min-w-800px 2xl:w-50%">
+                    <p class="font-700 text-blue-900">▶ {{ t('charging') }}</p>
+                    <FullCalendar ref="chargingCalendarRef" :options="chargingCalendarOptions" class="mt-5px mb-5px w-100%" />
+                  </div>
+                  <div class="pt-30px 2xl:pt-0px w-100% min-w-800px 2xl:w-50%">
+                    <p class="font-700 text-blue-900">▶ {{ t('parking') }}</p>
+                    <FullCalendar ref="parkingCalendarRef" :options="parkingCalendarOptions" class="mt-5px mb-5px w-100%" />
+                  </div>
+                </div>
+                
+              </div>
+
             </div>
           </el-col>
         </el-row >
@@ -452,5 +771,84 @@ onMounted( async () => {
       margin-bottom: .8rem;
     }
   }
+}
+
+// FullCalendar --------------------------------------------------------------- 
+::-webkit-scrollbar {
+  width: 0.8rem;
+  height: 0.8rem;
+}
+::-webkit-scrollbar-thumb {
+  background-color: var(--gray-300);
+}
+::-webkit-scrollbar-thumb {
+  border-radius: 2rem;
+}
+
+:deep(.mfc-event) {
+  padding: 0 0 5px 0;
+  border-width: 0 0 5px !important;
+  border-style: solid !important;
+  box-shadow: 0.7rem 1.1rem 1.2rem rgba(146, 169, 196, 0.25) !important;
+}
+:deep(.fc-timegrid-event-harness) {
+  border-radius: 5px;
+  border: 2px solid var(--gray-200);
+}
+:deep(.fc-event-main) {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+:deep(.fc .fc-day-today) {
+  background-color: unset;
+}
+:deep(.fc-scrollgrid) {
+  color: var(--blue-1200);
+}
+
+// for table border
+:deep(.fc-scrollgrid) {
+  // 全部表格邊框初始化
+  border: 0px;
+  th {
+    border: 0px;
+  }
+  tr {
+    border: 0px;
+  }
+  td {
+    border: 0px;
+  }
+  // 時間軸直線 + body橫線
+  .fc-timegrid-slot-lane {
+    border: 1px solid var(--gray-200);
+  }
+  // body直線
+  .fc-timegrid-col {
+    border: 1px solid var(--gray-200);
+  }
+  // 日期標題下框線
+  .fc-day {
+    border-bottom: 1px solid var(--gray-200);
+    // body下框線
+    .fc-timegrid-col-frame {
+      border-bottom: 1px solid var(--gray-200);
+    }
+  }
+  // body最右側直線
+  .fc-timegrid-slots {
+    border-right: 1px solid var(--gray-200);
+  }
+}
+// for day title
+:deep(.fc-col-header-cell-cushion) {
+  background-color: var(--gray-300);
+  color: var(--white);
+  margin-bottom: 8px;
+  width: 44px;
+  height: 20px;
+  line-height: 20px;
+  border-radius: 5px;
 }
 </style>

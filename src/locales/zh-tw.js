@@ -140,6 +140,8 @@ export default
     license_plate:                                          '車牌號碼',
     method:                                                 '方式',
     cpo_account:                                            '營運商帳號',
+    table:                                                  '表格',
+    schedule:                                               '日程表',
 //--------------------------------------------------------------
 // header                       
 //--------------------------------------------------------------
@@ -451,6 +453,8 @@ export default
     // floor_level:                                         '樓層',
     // last_updated:                                        '最後更新時間',
     // rate_description:                                    '費率描述',
+    // table:                                               '表格',
+    // schedule:                                            '日程表',
 //--------------------------------------------------------------
 // EVSE Edit Page           
 //--------------------------------------------------------------    
@@ -497,6 +501,8 @@ export default
     // edit_evse:                                           '編輯充電樁',
     // others:                                              '其他',
     // rate_description:                                    '費率描述',
+    // table:                                               '表格',
+    // schedule:                                            '日程表',
 //--------------------------------------------------------------
 // Rate Plan Page           
 //--------------------------------------------------------------
@@ -627,6 +633,7 @@ export default
     member_user:                                            '會員使用者',
     Chinese:                                                '中文',
     card_number_already_exists:                             '卡號已經存在',
+    card_number_is_duplicated_with_user:                    '卡號與使用者 "{user_name}" 重複',
     // general:                                             '一般',
     // card_no:                                             '信用卡號',
     // language:                                            '語系',
@@ -765,24 +772,24 @@ export default
     fw_error_info:                                          '韌體錯誤訊息',
     other_error:                                            '其他錯誤',
     no_error:                                               '沒有錯誤',
-    internal_error:                                         '內部錯誤',
-    under_voltage:                                          '低電壓保護',
-    ground_failure:                                         '接地錯誤',
     control_board_not_connect:                              '控制板未連接',
+    internal_error:                                         '內部錯誤',
+    ground_failure:                                         '接地錯誤',
     ev_communication_error:                                 '與 EV 通訊異常',
     power_switch_failure:                                   '繼電器異常',
     over_current_failure:                                   '過電流保護',
     over_voltage:                                           '過電壓保護',
+    under_voltage:                                          '低電壓保護',
     high_temperature:                                       '溫度異常',
     illegal_charging:                                       '非預期的放電',
     emergency_button_triggered:                             '緊急按鈕被觸發',
     pile_fault:                                             '樁體狀態異常',
-    gfcl_initial_fault:                                     '初始漏電流保護',
-    gfcl_fault1:                                            '高漏電流保護',
-    gfcl_fault2:                                            '低漏電流保護',
-    firmware_update_checksum_fault:                         '韌體更新檢查碼錯誤',
-    cam_error:                                              '鏡頭錯誤',
     ui_error:                                               '使用者介面錯誤',
+    cam_error:                                              '鏡頭錯誤',
+    gfci_initial_fault:                                     '初始漏電流保護',
+    gfci_fault1:                                            '高漏電流保護',
+    gfci_fault2:                                            '低漏電流保護',
+    firmware_update_checksum_fault:                         '韌體更新檢查碼錯誤',
     download_failed:                                        '充電樁韌體下載失敗',
     installation_failed:                                    '新韌體安裝失敗',
     // total_count:                                         '總筆數',

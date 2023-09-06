@@ -64,14 +64,38 @@ const now = new Date()
 const defaultTime = [new Date(2000, 1, 1, 0, 0, 0), new Date(2000, 1, 1, 23, 59, 59)]
 const select_time = ref([ new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0), new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59)])
 const download = () => {
-  const tHeader = ['Station Name', 'EVSE ID', 
-    'Parking Used Time', 'Parking Price', 'Parking License Plate', 
-    'Charging Used Time', 'Charging kWh', 'Charging Price', 
-    'Final Paid', 'Method', 'Currency', 'Created Time']
-  const filterVal = ['location_name', 'evse_id', 
-    'parking_time_str', 'parking_price_str', 'parking_car_number_str',
-    'charge_time_str', 'charge_kwh_str', 'charge_price_str', 
-    'price', 'paymethod_str', 'currency', 'created_date_str']
+  const tHeader = [
+    'Station Name',
+    'Station EVSE ID',
+    'Parking Used Time',
+    'Parking Price',
+    'Parking Currency',
+    'Parking License Plate',
+    'Charging Used Time',
+    'Charging kWh',
+    'Charging Price',
+    'Charging Currency',
+    'Final Paid',
+    'Currency',
+    'Method',
+    'Created Time'
+  ]
+  const filterVal = [
+    'location_name',
+    'evse_id',
+    'parking_time_str',
+    'parking_price_str',
+    'parking_currency_str',
+    'parking_car_number_str',
+    'charge_time_str',
+    'charge_kwh_str',
+    'charge_price_str',
+    'charge_currency_str',
+    'price',
+    'currency',
+    'paymethod_str',
+    'created_date_str'
+  ]
   const data = paymentData.map(v => filterVal.map(j => v[j]))
   export_json_to_excel ({ header: tHeader, data: data, filename: 'User Payment' })
 }
@@ -239,7 +263,7 @@ const device_detail = () => {
   DeviceDialogVisible.value = true
 }
 
-const card_detail = (data) => {
+const card_detail = (data, index) => {
   rfid_title.value= t('edit_rfid')
   EditRfidFormVisible.value = true
   modify_card_index.value = userData.rfids.indexOf(data)
@@ -247,6 +271,7 @@ const card_detail = (data) => {
   rfidData.cash = data.cash
   rfidData.enable = data.enable
   rfidData.nickname = data.nickname
+  rfidData.index = index
 }
 
 const checkRfidCard = async() => {
@@ -259,18 +284,33 @@ const checkRfidCard = async() => {
       },
       { 
         $match: { 
-          "rfids.rfid": rfidData.rfid
+          $and: [
+            {
+              "rfids.rfid": rfidData.rfid
+            },
+            {
+              _id: { $ne: {"ObjectId" : userData._id}}
+            }
+          ]
         },
       },
       {
-        $project: { _id: 1, rfids: 1 } 
+        $project: { _id: 1, first_name: 1, last_name: 1, rfids: 1 } 
       }
     ]
   }
   let response = await MsiApi.mongoAggregate(queryData) 
   if (response.data.result.length !== 0) {
-    ElMessage({ type: 'error', message: t('card_number_already_exists') })
+    let user_name = response.data.result[0].first_name + ' ' + response.data.result[0].last_name
+    ElMessage({ type: 'error', message: t(`card_number_is_duplicated_with_user`, { user_name }) })
     return false
+  }
+  
+  for (let i=0; i<userData.rfids.length; i++) {
+    if (rfidData.rfid === userData.rfids[i].rfid && rfidData.index !== i) {
+      ElMessage({ type: 'error', message: t('card_number_already_exists') })
+      return false
+    }
   }
 
   return true
@@ -283,8 +323,8 @@ const confirmRfid = async (confirm, index) => {
   // console.log(reversedHex)
 
   if (confirm === 'confirm') {
-    // rfidData_ref.value.validate(async valid => {
-      // if (valid && await checkRfidCard() === true) {
+    rfidData_ref.value.validate(async valid => {
+      if (valid && await checkRfidCard() === true) {
         EditRfidFormVisible.value = false
         if (modify_card_index.value === -1) {
           userData.rfids.push({
@@ -310,11 +350,11 @@ const confirmRfid = async (confirm, index) => {
           let sendData = { 'class': 'UserData', 'pk': userData._id, 'rfids': userData.rfids }
           MsiApi.setCollectionData('patch', 'cpo', sendData)
         }
-      // }
-      // else {
-        // return false
-      // }
-    // })
+      }
+      else {
+        return false
+      }
+    })
   }
   else if (confirm === 'delete') {
     ElMessageBox.confirm(t('do_you_want_to_delete'), t('warning'), { confirmButtonText: t('ok'), cancelButtonText: t('cancel'), type: 'warning' })
@@ -507,6 +547,26 @@ onMounted(async () => {
     "collection": 'PaymentHistory', 
     "pipelines": [
       {
+        $match: {
+          $expr: {
+            $and: [
+              {
+                $gte: [
+                  '$created_date',
+                  { $dateFromString: { dateString: select_time.value[0]  } },
+                ],
+              },
+              {
+                $lte: [
+                  '$created_date',
+                  { $dateFromString: { dateString: select_time.value[1]  } },
+                ],
+              },
+            ]
+          }
+        }
+      },
+      {
         $project: { sessionId: 0, locationId: 0, location: 0, invoice: 0, detail: 0, byCompany: 0 } 
       }
     ]
@@ -522,11 +582,11 @@ onMounted(async () => {
   }
   if (userData?.evse_list?.length > 1) {
     userData.evse_list_id += ' / ...'
-  }
-  for (let i = 0; i < userData.evse_list.length; i++) {
-    userData.evse_list_id_detail += userData.evse_list?.[i]?.evseId 
-    if (userData.evse_list.length > 1)
-    userData.evse_list_id_detail + ' /<br> '
+    for (let i = 0; i < userData.evse_list.length; i++) {
+      userData.evse_list_id_detail += userData.evse_list?.[i]?.evseId 
+      if (i !== userData.evse_list.length-1)
+        userData.evse_list_id_detail += ' /<br> '
+    }
   }
   await GetPermission()
 
@@ -567,12 +627,14 @@ onMounted(async () => {
         paymentData[i].charge_time_str = moment({ h: time.hours(), m: time.minutes(), s: time.seconds(), }).format('HH:mm:ss')
         paymentData[i].charge_price_str = paymentData[i].operator_types[j].price.toLocaleString()
         paymentData[i].charge_kwh_str = paymentData[i].operator_types[j].kwh
+        paymentData[i].charge_currency_str = paymentData[i].operator_types[j]?.currency
       }
       else if (paymentData[i].operator_types[j].type === 'parking') {
         let time = moment.duration(paymentData[i].operator_types[j].time, 'seconds')
         paymentData[i].parking_time_str = moment({ h: time.hours(), m: time.minutes(), s: time.seconds(), }).format('HH:mm:ss')
         paymentData[i].parking_price_str = paymentData[i].operator_types[j].price.toLocaleString()
         paymentData[i].parking_car_number_str = paymentData[i].operator_types[j].car_num
+        paymentData[i].parking_currency_str = paymentData[i].operator_types[j]?.currency
       }
     }
     switch (paymentData[i].paymethod.method) {
@@ -793,7 +855,7 @@ onMounted(async () => {
                           <el-button link type="primary" size="large" @click="confirmRfid('delete', index)" >
                             <img class="text-blue-1100 w-24px h-24px" src="@/assets/img/tariff_delete1.png" alt="">
                           </el-button>
-                          <el-button link type="primary" size="large" @click="card_detail(item)">
+                          <el-button link type="primary" size="large" @click="card_detail(item, index)">
                             <font-awesome-icon class="text-blue-1100 w-24px h-24px" icon="fa-regular fa-pen-to-square" />
                           </el-button>
                         </div>
@@ -864,11 +926,11 @@ onMounted(async () => {
                   >
                     <el-table-column
                       prop="location_name"
-                      :label="t('station')"
+                      :label="t('name')"
                       sortable
                       :sort-method="(a, b) => sortFunc(a, b, 'location_name')"
                       align="center"
-                      min-width="200"
+                      min-width="250"
                     />
                     <el-table-column
                       prop="evse_id"
@@ -876,7 +938,7 @@ onMounted(async () => {
                       sortable
                       :sort-method="(a, b) => sortFunc(a, b, 'evse_id')"
                       align="center"
-                      min-width="200"
+                      min-width="300"
                     />
                   </el-table-column>
                   <el-table-column
@@ -900,6 +962,15 @@ onMounted(async () => {
                       align="right"
                       sortable
                       :sort-method="(a, b) => sortFunc(a, b, 'parking_price_str')"
+                      min-width="100"
+                    />
+                    <el-table-column
+                      prop="parking_currency_str"
+                      :label="t('currency')"
+                      header-align="center"
+                      align="right"
+                      sortable
+                      :sort-method="(a, b) => sortFunc(a, b, 'parking_currency_str')"
                       min-width="150"
                     />
                     <el-table-column
@@ -944,6 +1015,15 @@ onMounted(async () => {
                       align="right"
                       sortable
                       :sort-method="(a, b) => sortFunc(a, b, 'charge_price_str')"
+                      min-width="100"
+                    />
+                    <el-table-column
+                      prop="charge_currency_str"
+                      :label="t('currency')"
+                      header-align="center"
+                      align="right"
+                      sortable
+                      :sort-method="(a, b) => sortFunc(a, b, 'charge_currency_str')"
                       min-width="150"
                     />
                   </el-table-column>
@@ -958,18 +1038,18 @@ onMounted(async () => {
                     min-width="150"
                   />
                   <el-table-column
-                    prop="paymethod_str"
-                    :label="t('method')"
-                    :filters="filters"
-                    :filter-method="filterTag"
-                    align="center"
-                    min-width="200"
-                  />
-                  <el-table-column
                     prop="currency"
                     :label="t('currency')"
                     sortable
                     :sort-method="(a, b) => sortFunc(a, b, 'currency')"
+                    align="center"
+                    min-width="150"
+                  />
+                  <el-table-column
+                    prop="paymethod_str"
+                    :label="t('method')"
+                    :filters="filters"
+                    :filter-method="filterTag"
                     align="center"
                     min-width="150"
                   />
@@ -994,6 +1074,7 @@ onMounted(async () => {
         class="max-w-600px"
         width="90%"
         draggable
+        @closed="userData_ref.clearValidate()"
       >
         <template #header="{ titleId, titleClass }">
           <div class="py-2rem relative bg-blue-100">
@@ -1044,6 +1125,7 @@ onMounted(async () => {
         class="max-w-600px"
         width="90%"
         draggable
+        @closed="rfidData_ref.clearValidate()"
       >
         <template #header="{ titleId, titleClass }">
           <div class="py-2rem relative bg-blue-100">
