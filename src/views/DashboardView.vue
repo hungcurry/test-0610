@@ -764,7 +764,6 @@ onMounted(async () => {
               <div class="evse-notification-container scrollbar">
                 <p class="mb-4" v-for="value in error_evse" :key="value">
                   <a class="text-black" :href="value.url"> {{ value.name + ' ' }}</a>
-                  <!-- <span class="name" @click="aaa">{{value.name }}</span> -->
                   <span class="text-Offline-2 mr-2">{{
                     '(' + value.unknown_count + ')'
                   }}</span>

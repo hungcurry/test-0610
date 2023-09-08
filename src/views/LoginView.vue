@@ -15,7 +15,7 @@ const pw_type = ref('password')
 const account = ref('')
 const password = ref('')
 const checkState = ref(false)
-const m_cloud_version = ref('0.2.0')
+const m_cloud_version = ref('0.2.1')
 
 const { t } = useI18n()
 let language = localStorage.getItem("lang")

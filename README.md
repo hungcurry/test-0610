@@ -40,7 +40,9 @@ npm run test:unit
 npm run lint
 ```
 
-```
+### node ver
+
+```sh
 node -v
-```
 v18.15.0
+```

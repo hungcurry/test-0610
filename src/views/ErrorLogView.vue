@@ -166,6 +166,7 @@ onMounted(async() => {
             :start-placeholder="t('start_date')" 
             :end-placeholder="t('end_date')" 
             @change="select_date()"
+            :default-time="defaultTime" 
             />
         </div>
 

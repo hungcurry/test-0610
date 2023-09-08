@@ -181,7 +181,6 @@ const saveStation = async (formEl) => {
 
   let opening_times = { twentyfourseven:station_always_open.value, regular_hours:regular_hours}
 
-
   const coordinates = { latitude: parseFloat(StationData.latitude_str).toFixed(6), longitude: parseFloat(StationData.longitude_str).toFixed(6) }
   let sendData = {
     'class': 'Location', 'id': station_id,
@@ -227,7 +226,10 @@ const saveStation = async (formEl) => {
     ElMessageBox.confirm(t('do_you_want_to_modify'), 'Warning', { confirmButtonText: 'OK', cancelButtonText: 'Cancel', type: 'warning' })
       .then(async () => {
         let response = await MsiApi.setCollectionData('patch', 'ocpi', sendData)
-        if (response.status === 200) { router.push({ name: 'station' }) }
+        if (response.status === 200) { 
+          ElMessage.success(response.data.message)
+          router.push({ name: 'station' }) 
+        }
         else { ElMessage.error(response.data.message) }
       })
       .catch((e) => { console.log(e) })
@@ -288,6 +290,9 @@ onMounted(async () => {
       })
     }
     station_always_open.value = StationData?.opening_times?.twentyfourseven
+    if (StationData?.opening_times?.twentyfourseven === undefined) {
+      station_always_open.value = true
+    }
     StationData.owner_name_string = StationData?.owner?.name
     StationData.operator_name_string = StationData?.operator?.name
     StationData.facilities_str = StationData?.facilities?.[0]

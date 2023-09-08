@@ -256,7 +256,7 @@ onUnmounted(() => {
               class="text-15px text-white text-left"
               :class="{ 'pl-30px': SideBarInfo.city }"
             >
-              {{ SideBarInfo.city1 + SideBarInfo.address1 }}
+              {{ SideBarInfo.address1 + ' , ' + SideBarInfo.city1}}
             </p>
           </li>
           <li class="flex items-center mb-12px">

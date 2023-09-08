@@ -108,7 +108,7 @@ onMounted(async () => {
         <span>{{t('log_monitor')}}</span>
       </template>
       <el-menu-item v-if="(user_permission.EVSELog ==='O') || user_permission_name === undefined" class="collapse" index="evse-log">{{t('evse_log')}}</el-menu-item>
-      <el-menu-item v-if="(user_permission.ErrorLog ==='O') || user_permission_name === undefined" class="collapse" index="ocpp-error">{{t('error_log')}}</el-menu-item>
+      <el-menu-item v-if="(user_permission.ErrorLog ==='O') || user_permission_name === undefined" class="collapse" index="error-log">{{t('error_log')}}</el-menu-item>
     </el-sub-menu>
 
     <el-menu-item v-if="(user_permission.SoftwareInfo ==='O') || user_permission_name === undefined" index="software-info">

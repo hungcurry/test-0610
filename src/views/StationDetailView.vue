@@ -248,7 +248,7 @@ onMounted( async () => {
             <i class="w-20px h-20px mr-10px flex-shrink-0 text-blue-1100 i-gis:location-man-alt" />
             <span class="line-height-20px">{{ StationData.city }}{{ StationData.address }}</span>
             <span class="line-height-20px mx-8px">{{ "  /  " }} </span>
-            <span class="line-height-20px">{{ StationData.city1 }}{{ StationData.address1 }}</span>
+            <span class="line-height-20px">{{ StationData.address1  }} {{ "  ,  " }} {{ StationData.city1}}</span>
           </div>
           <div class="flex flex-row text-20px">
             <div class="flex mr-40px">
