@@ -233,6 +233,7 @@ const date_select = async (select_time) => {
   queryTotalUsedTime(select_time1)
   queryTotalUsedTimes(select_time1)
   queryTotalUsedPower(select_time1)
+  console.log(select_time1)
 }
 
 let isFetchingTotalUsedPower = false
@@ -243,8 +244,8 @@ const queryTotalUsedPower = async (select_time1) => {
     totalkwh.value = '-'
     if (select_time1 === undefined) select_time1 = new Date(1970, 1, 1)
     let queryData = {
-      database: 'OCPI',
-      collection: 'Session',
+      database: 'CPO',
+      collection: 'PaymentHistory',
       pipelines: [
         {
           $match: {
@@ -252,22 +253,29 @@ const queryTotalUsedPower = async (select_time1) => {
               $and: [
                 {
                   $gte: [
-                    '$last_updated',
-                    { $dateFromString: { dateString: select_time1 } },
-                  ],
+                  '$created_date',
+                  { $dateFromString: { dateString: select_time1 } },
+                ],
                 },
               ],
             },
           },
         },
-        { $group: { _id: null, totalkwh: { $sum: '$kwh' } } },
+        {
+          $project: { _id: 0, operator_types: 1} 
+        }
       ],
     }
     let response = await MsiApi.mongoAggregate(queryData)
-    totalkwh.value = 0
-    if (response?.data?.result?.[0]?.totalkwh) {
-      totalkwh.value = parseInt(response?.data?.result?.[0]?.totalkwh * 1000) / 1000
-    }
+    let charge_kwh = 0
+    response.data.result.forEach((item) => {
+      item.operator_types.forEach( (operator_types) => {
+        if (operator_types.type === 'charge') {
+          charge_kwh += operator_types.kwh
+        }
+      })
+    })
+    totalkwh.value = parseInt(charge_kwh * 1000) / 1000
     isFetchingTotalUsedPower = false
   }
 }
@@ -493,28 +501,45 @@ const queryLast7dayUsed = async () => {
       $match: {
         $expr: {
           $and: [
-            { $gte: ['$start_date_time', { $dateFromString: { dateString: dateString0 } }] },
-            { $lte: ['$start_date_time', { $dateFromString: { dateString: dateString1 } }] },
+            { $gte: ['$created_date', { $dateFromString: { dateString: dateString0 } }] },
+            { $lte: ['$created_date', { $dateFromString: { dateString: dateString1 } }] },
           ],
         },
       },
     }
-    pipeline[0]['$facet']['date' + (i + 1)] = [matchStage, { $project: { _id: 0, kwh: 1 } }]
+    pipeline[0]['$facet']['date' + (i + 1)] = [matchStage, { $project: { _id: 0, operator_types:1} }
+  ]
   }
 
   let aggregateQuery = {
-    database: 'OCPI',
-    collection: 'Session',
+    database: 'CPO',
+    collection: 'PaymentHistory',
     pipelines: pipeline,
   }
 
   let result = await MsiApi.mongoAggregate(aggregateQuery)
+  console.log(result)
   let dateKeys = Object.keys(result.data.result[0])
 
   for (let i = 0; i < dateKeys.length; i++) {
     let dateKey = dateKeys[i]
-    let sumkwh = result.data.result[0][dateKey].reduce((acc, item) => acc + item.kwh, 0)
-    power_times_option.series[0].data[dateKeys.length-i-1] = parseInt(sumkwh)
+    console.log(result.data.result[0][dateKey])
+
+
+
+
+    let charge_kwh = 0
+    result.data.result[0][dateKey].forEach((item) => {
+      item.operator_types.forEach( (operator_types) => {
+        if (operator_types.type === 'charge') {
+          charge_kwh += operator_types.kwh
+        }
+      })
+    })
+    console.log(charge_kwh)
+
+    // let sumkwh = result.data.result[0][dateKey].reduce((acc, item) => acc + item.kwh, 0)
+    power_times_option.series[0].data[dateKeys.length-i-1] = parseInt(charge_kwh)
     power_times_option.series[1].data[dateKeys.length-i-1] = result.data.result[0][dateKey].length
   }
 

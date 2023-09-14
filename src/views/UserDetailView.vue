@@ -144,12 +144,14 @@ const select_date = async () => {
         paymentData[i].charge_time_str = moment({ h: time.hours(), m: time.minutes(), s: time.seconds(), }).format('HH:mm:ss')
         paymentData[i].charge_price_str = paymentData[i].operator_types[j].price.toLocaleString()
         paymentData[i].charge_kwh_str = paymentData[i].operator_types[j].kwh
+        paymentData[i].charge_currency_str = paymentData[i].operator_types[j]?.currency
       }
       else if (paymentData[i].operator_types[j].type === 'parking') {
         let time = moment.duration(paymentData[i].operator_types[j].time, 'seconds')
         paymentData[i].parking_time_str = moment({ h: time.hours(), m: time.minutes(), s: time.seconds(), }).format('HH:mm:ss')
         paymentData[i].parking_price_str = paymentData[i].operator_types[j].price.toLocaleString()
         paymentData[i].parking_car_number_str = paymentData[i].operator_types[j].car_num
+        paymentData[i].parking_currency_str = paymentData[i].operator_types[j]?.currency
       }
     }
     switch (paymentData[i].paymethod.method) {
@@ -307,7 +309,7 @@ const checkRfidCard = async() => {
   }
   
   for (let i=0; i<userData.rfids.length; i++) {
-    if (rfidData.rfid === userData.rfids[i].rfid && rfidData.index !== i) {
+    if (rfidData.rfid === userData.rfids[i].rfid.toUpperCase() && rfidData.index !== i) {
       ElMessage({ type: 'error', message: t('card_number_already_exists') })
       return false
     }

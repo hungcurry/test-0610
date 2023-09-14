@@ -92,7 +92,7 @@ export default
     hard_reset :                                            'Hard Reset',
     floor_level:                                            'Floor Level',
     sw_ver:                                                 'SW Ver.',
-    latest_sw:                                              'Latest SW',
+    latest_sw:                                              'Released SW',
     updated_time:                                           'Updated Time',
     unpaired:                                               'Unpaired',
     current_version:                                        'Current Version : ',
@@ -142,6 +142,7 @@ export default
     cpo_account:                                            'CPO Account',
     table:                                                  'Table',
     schedule:                                               'Schedule',
+    now_version:                                            'Released Version',
 //--------------------------------------------------------------
 // header                       
 //--------------------------------------------------------------

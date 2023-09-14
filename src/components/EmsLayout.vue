@@ -14,12 +14,10 @@ const { layoutRight, isCollapse } = storeToRefs(sideMenuStore)
 const counter = ref(0)
 const logoutTime = ref(0)
 logoutTime.value = Date.now() / 1000 + 600
-// logoutTime.value = (Date.now() / 1000) + 600
 let logoutTimer = null
 
 const reflashTimer = () => {
   logoutTime.value = Date.now() / 1000 + 600
-  // logoutTime.value = (Date.now() / 1000) + 600
 }
 const open = () => {
   ElMessageBox.alert('System is about to log out, Please click "OK" resume', 'Title', {

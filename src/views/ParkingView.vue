@@ -177,7 +177,7 @@ onMounted(async () => {
               :label="t('license_plate')"
               align="center"
               sortable="custom"
-              min-width="150"
+              min-width="170"
             />
             <el-table-column
               prop="start_date_local_time"

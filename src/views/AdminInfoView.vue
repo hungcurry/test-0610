@@ -167,6 +167,10 @@ const add_card = async () => {
     ElMessage.error(response.data.message)
   }
 }
+const display_eula = () => {
+  first_login.value=true
+  language = localStorage.getItem("lang")
+}
 onMounted(async () => {
   first_name.value = MStore.user_data.first_name
   last_name.value = MStore.user_data.last_name
@@ -242,239 +246,135 @@ onMounted(async () => {
     ElMessage.error(response.data.message)
   }
 })
-
-
-const display_eula = () => {
-  first_login.value=true
-  language = localStorage.getItem("lang")
-}
-
 </script>
 
 <template>
 <div class="temp">
-    <div class="container lg">
-      <div class="flex justify-start flex-wrap lg:flex-nowrap pt-40px pb-32px">
-        <p class="title">{{ t('admin_info') }}</p>
-      </div>
-
-      <el-form class="pb-40px" label-width="100px" label-position="left">
-        <el-form-item class="block md:flex" :label="t('first_name')">
-          <el-input class="lg:w-30%" v-model="first_name" disabled />
-        </el-form-item>
-
-        <el-form-item class="block md:flex" :label="t('last_name')">
-          <el-input class="lg:w-30%" v-model="last_name" disabled />
-        </el-form-item>
-
-        <el-form-item class="block md:flex" :label="t('e_mail')">
-          <el-input class="lg:w-30%" v-model="email" disabled/>
-        </el-form-item>
-
-        <el-form-item class="block md:flex" label=''>
-
-          <el-button
-            class="w-full lg:w-30%"
-            @click="display_eula"
-          >
-            {{ t('eula') }}
-          </el-button>
-        </el-form-item>
-
-
-        <el-form-item class="block md:flex" :label="t('credit_card')">
-          <el-button
-            class="w-full lg:w-30%"
-            v-if="companyData.name === 'MSI'"
-            @click="add_card"
-            disabled
-          >
-            {{ t('msi_not_support_binding_card') }}
-          </el-button>
-          <el-button
-            class="w-full lg:w-30%"
-            v-else-if="CardData.length !== 0 || (first_name === undefined && last_name === undefined)"
-            @click="add_card"
-            disabled
-          >
-            {{ t('add_card') }}
-          </el-button>
-          <el-button class="w-full lg:w-30%" v-else @click="add_card">
-            {{ t('add_card') }}
-          </el-button>
-        </el-form-item>
-
-        <!-- <el-form-item class="block md:flex" :label="t('add_program')">
-          <el-button
-            class="w-full lg:w-30%"
-            v-if="ProgramData.length > 0"
-            @click="add_program"
-            disabled
-          >
-            {{ t('add_program') }}
-          </el-button>
-          <el-button
-            class="w-full lg:w-30%"
-            v-else-if="CardData.length > 0"
-            @click="add_program"
-          >
-          {{ t('add_program') }}
-          </el-button>
-          <el-button class="w-full lg:w-30%" v-else @click="add_program" disabled>
-            {{ t('add_program') }}
-          </el-button>
-        </el-form-item> -->
-
-        <!-- table -->
-        <el-form-item class="block" :label="t('card_list')">
-          <div class="overflow-x-auto">
-            <el-table
-              :data="CardData"
-              class="white-space-nowrap text-primary"
-              style="width: 100%"
-              stripe
-              :cell-style="msi.tb_cell"
-              :header-cell-style="msi.tb_header_cell"
-              size="large"
-              v-loading.fullscreen.lock="isLoading"
-            >
-              <el-table-column prop="card_num_str" :label="t('card_no')" min-width="150" />
-              <el-table-column
-                prop="expireDate"
-                :label="t('expire_date_mm_yy')"
-                min-width="200"
-              />
-              <el-table-column prop="bindingDate" :label="t('binding_date')" min-width="150" />
-              <el-table-column min-width="150">
-                <el-button @click="card_delete"> {{ t('delete_card') }}</el-button>
-              </el-table-column>
-            </el-table>
-          </div>
-        </el-form-item>
-        <el-form-item class="block" :label="t('program')">
-          <div class="overflow-x-auto">
-            <el-table
-              :data="ProgramData"
-              class="white-space-nowrap text-primary"
-              style="width: 100%"
-              stripe
-              :cell-style="msi.tb_cell"
-              :header-cell-style="msi.tb_header_cell"
-              size="large"
-              v-loading.fullscreen.lock="isLoading"
-            >
-              <el-table-column
-                prop="name"
-                :label="t('name')"
-                align="center"
-                min-width="200"
-              />
-              <el-table-column
-                prop="location"
-                :label="t('station')"
-                align="center"
-                min-width="150"
-              />
-              <el-table-column
-                prop="evse"
-                :label="t('evse_quantity')"
-                align="center"
-                min-width="200"
-              />
-              <!-- <el-table-column
-                prop="connector"
-                :label="t('connector')"
-                align="center"
-                min-width="150"
-              /> -->
-              <el-table-column
-                prop="tariff"
-                :label="t('rate_plan')"
-                align="center"
-                min-width="150"
-              />
-              <el-table-column prop="user" :label="t('user')" align="center" min-width="150" />
-              <el-table-column
-                prop="admin_user"
-                :label="t('cpo_account')"
-                align="center"
-                min-width="150"
-              />
-              <el-table-column
-                prop="currency"
-                :label="t('currency')"
-                align="center"
-                min-width="150"
-              />
-              <el-table-column
-                prop="price"
-                :label="t('price')"
-                align="center"
-                min-width="150"
-              />
-              <el-table-column>
-                <el-button @click="add_program" disabled v-if="(first_name === undefined && last_name === undefined)"> <font-awesome-icon icon="fa-solid fa-ellipsis" /></el-button>
-                <el-button v-else class="btn-more" @click="add_program">
-                  <font-awesome-icon icon="fa-solid fa-ellipsis"
-                /></el-button>
-              </el-table-column>
-            </el-table>
-          </div>
-        </el-form-item>
-      </el-form>
+  <div class="container lg">
+    <div class="flex justify-start flex-wrap lg:flex-nowrap pt-40px pb-32px">
+      <p class="title">{{ t('admin_info') }}</p>
     </div>
 
-    <el-dialog 
-      append-to-body 
-      v-model="ProgramVisible" 
-      class="max-w-1000px" 
-      width="90%"
-      @close="cancelProgram"
-    >
-      <template #header="{ titleId, titleClass }">
-        <div class="py-2rem relative bg-blue-100">
-          <h4
-            :id="titleId"
-            :class="titleClass"
-            class="m-0 text-center text-blue-1200 font-400 text-20px lg:text-24px line-height-26px"
-          >
-            {{ t('select_program') }}
-          </h4>
-        </div>
-      </template>
-      <div class="dialog-context">
-        <div class="pr-10px">
+    <el-form class="pb-40px" label-width="100px" label-position="left">
+      <el-form-item class="block md:flex" :label="t('first_name')">
+        <el-input class="lg:w-30%" v-model="first_name" disabled />
+      </el-form-item>
+
+      <el-form-item class="block md:flex" :label="t('last_name')">
+        <el-input class="lg:w-30%" v-model="last_name" disabled />
+      </el-form-item>
+
+      <el-form-item class="block md:flex" :label="t('e_mail')">
+        <el-input class="lg:w-30%" v-model="email" disabled/>
+      </el-form-item>
+
+      <el-form-item class="eula block md:flex" label=''>
+        <el-button
+          class="w-full lg:w-30%"
+          @click="display_eula"
+        >
+          {{ t('eula') }}
+        </el-button>
+      </el-form-item>
+
+      <el-form-item class="block md:flex" :label="t('credit_card')">
+        <el-button
+          class="w-full lg:w-30%"
+          v-if="companyData.name === 'MSI'"
+          @click="add_card"
+          disabled
+        >
+          {{ t('msi_not_support_binding_card') }}
+        </el-button>
+        <el-button
+          class="w-full lg:w-30%"
+          v-else-if="CardData.length !== 0 || (first_name === undefined && last_name === undefined)"
+          @click="add_card"
+          disabled
+        >
+          {{ t('add_card') }}
+        </el-button>
+        <el-button class="w-full lg:w-30%" v-else @click="add_card">
+          {{ t('add_card') }}
+        </el-button>
+      </el-form-item>
+
+      <!-- <el-form-item class="block md:flex" :label="t('add_program')">
+        <el-button
+          class="w-full lg:w-30%"
+          v-if="ProgramData.length > 0"
+          @click="add_program"
+          disabled
+        >
+          {{ t('add_program') }}
+        </el-button>
+        <el-button
+          class="w-full lg:w-30%"
+          v-else-if="CardData.length > 0"
+          @click="add_program"
+        >
+        {{ t('add_program') }}
+        </el-button>
+        <el-button class="w-full lg:w-30%" v-else @click="add_program" disabled>
+          {{ t('add_program') }}
+        </el-button>
+      </el-form-item> -->
+
+      <!-- table -->
+      <el-form-item class="block" :label="t('card_list')">
+        <div class="overflow-x-auto">
           <el-table
-            :data="program_plan"
-            @current-change="handleCurrentChange"
-            highlight-current-row
+            :data="CardData"
+            class="white-space-nowrap text-primary"
+            style="width: 100%"
+            stripe
+            :cell-style="msi.tb_cell"
+            :header-cell-style="msi.tb_header_cell"
+            size="large"
+            v-loading.fullscreen.lock="isLoading"
           >
-
-            <el-table-column min-width="40"  >
-              <template #default="scope">
-                <el-radio-group v-model="selectProgram">
-                <el-radio :label="scope.row._id" size="large"> {{""}}</el-radio>
-              </el-radio-group>
-              </template>
+            <el-table-column prop="card_num_str" :label="t('card_no')" min-width="150" />
+            <el-table-column
+              prop="expireDate"
+              :label="t('expire_date_mm_yy')"
+              min-width="200"
+            />
+            <el-table-column prop="bindingDate" :label="t('binding_date')" min-width="150" />
+            <el-table-column min-width="150">
+              <el-button @click="card_delete"> {{ t('delete_card') }}</el-button>
             </el-table-column>
-            
-
-            <el-table-column 
-              prop="name" 
-              :label="t('name')" 
-              min-width="150" 
+          </el-table>
+        </div>
+      </el-form-item>
+      <el-form-item class="block" :label="t('program')">
+        <div class="overflow-x-auto">
+          <el-table
+            :data="ProgramData"
+            class="white-space-nowrap text-primary"
+            style="width: 100%"
+            stripe
+            :cell-style="msi.tb_cell"
+            :header-cell-style="msi.tb_header_cell"
+            size="large"
+            v-loading.fullscreen.lock="isLoading"
+          >
+            <el-table-column
+              prop="name"
+              :label="t('name')"
+              align="center"
+              min-width="200"
             />
             <el-table-column
               prop="location"
               :label="t('station')"
               align="center"
-              min-width="100"
+              min-width="150"
             />
             <el-table-column
               prop="evse"
               :label="t('evse_quantity')"
               align="center"
-              min-width="150"
+              min-width="200"
             />
             <!-- <el-table-column
               prop="connector"
@@ -488,12 +388,7 @@ const display_eula = () => {
               align="center"
               min-width="150"
             />
-            <el-table-column 
-              prop="user" 
-              :label="t('user')" 
-              align="center" 
-              min-width="80" 
-            />
+            <el-table-column prop="user" :label="t('user')" align="center" min-width="150" />
             <el-table-column
               prop="admin_user"
               :label="t('cpo_account')"
@@ -504,159 +399,261 @@ const display_eula = () => {
               prop="currency"
               :label="t('currency')"
               align="center"
-              min-width="100"
+              min-width="150"
             />
-            <el-table-column 
-              prop="price" 
-              :label="t('price')" 
-              align="center" 
-              min-width="100" 
+            <el-table-column
+              prop="price"
+              :label="t('price')"
+              align="center"
+              min-width="150"
             />
+            <el-table-column>
+              <el-button @click="add_program" disabled v-if="(first_name === undefined && last_name === undefined)"> <font-awesome-icon icon="fa-solid fa-ellipsis" /></el-button>
+              <el-button v-else class="btn-more" @click="add_program">
+                <font-awesome-icon icon="fa-solid fa-ellipsis"
+              /></el-button>
+            </el-table-column>
           </el-table>
         </div>
-      </div>
-      <template #footer>
-        <span class="dialog-footer flex flex-center">
-          <el-button
-            round
-            class="w-48% bg-btn-100 text-white max-w-140px"
-            @click="cancelProgram"
-            >{{ t('cancel') }}</el-button
-          >
-          <el-button
-            round
-            class="w-48% bg-btn-100 text-white max-w-140px"
-            @click="confirmProgram"
-            >{{ t('confirm') }}</el-button
-          >
-        </span>
-      </template>
-    </el-dialog>
-    <el-dialog
-      append-to-body
-      v-model="CheckProgramVisible"
-      class="max-w-1000px"
-      width="90%"
-      @close="cancelCheckProgram"
-    >
-      <template #header="{ titleId, titleClass }">
-        <div class="py-2rem relative bg-blue-100">
-          <h4
-            :id="titleId"
-            :class="titleClass"
-            class="m-0 text-center text-blue-1200 font-400 text-20px lg:text-24px line-height-26px"
-          >
-            {{ t('check_program') }}
-          </h4>
-        </div>
-      </template>
-      <div class="dialog-context">
-        <div class="pr-10px">
-          <div class="mb-2 flex items-center text-sm">
-            <el-radio-group v-model="Effective">
-              <el-radio label="1" size="large">{{ t('effective_immediately') }}</el-radio>
-              <el-radio label="2" size="large">{{ t('effective_date_will_start_in_a_month') }}</el-radio>
-            </el-radio-group>
-          </div>
-          <el-form label-position="left" label-width="100px" :rules="adminInfo_rules" :model="companyData" ref="adminInfo_ref" :scroll-to-error=true>
-            <el-table
-              :data="select_plan"
-              @current-change="handleCurrentChange"
-              highlight-current-row
-            >
-              <el-table-column prop="name" :label="t('program_name')" min-width="150" />
-              <el-table-column prop="location" :label="t('station')" min-width="150" />
-              <el-table-column prop="evse" :label="t('evse_quantity')" min-width="150" />
-              <!-- <el-table-column prop="connector" :label="t('connector')" min-width="150" /> -->
-              <el-table-column prop="tariff" :label="t('rate_plan')" min-width="150" />
-              <el-table-column prop="user" :label="t('user')" min-width="150" />
-              <el-table-column prop="admin_user" :label="t('cpo_account')" min-width="150" />
-              <el-table-column prop="currency" :label="t('currency')" min-width="150" />
-              <el-table-column prop="price" :label="t('price')" min-width="150" />
-            </el-table>
-            <br />
-            <el-form-item :label="t('title')" prop="name">
-              <el-input v-model="companyData.name" style="width: 300px" />
-            </el-form-item>
-            <el-form-item :label="t('address')" prop="address_str">
-              <el-input v-model="companyData.address_str" style="width: 300px" />
-            </el-form-item>
-            <el-form-item :label="t('phone')" prop="phone">
-              <el-input v-model="companyData.phone" style="width: 300px" />
-            </el-form-item>
-            <el-form-item :label="t('tax_id')" prop="tax_id">
-              <el-input v-model="companyData.tax_id" style="width: 300px" />
-            </el-form-item>
-            <el-form-item :label="t('e_mail')" prop="email">
-              <el-input v-model="companyData.email" style="width: 300px"/>
-            </el-form-item>
-          </el-form>
-        </div>
-      </div>
-      <template #footer>
-        <span class="dialog-footer flex flex-center">
-          <el-button
-            round
-            class="w-48% bg-btn-100 text-white max-w-140px"
-            @click="cancelCheckProgram"
-            >{{ t('cancel') }}</el-button
-          >
-          <el-button
-            round
-            class="w-48% bg-btn-100 text-white max-w-140px"
-            v-if="companyData.name === 'MSI'"
-            disabled
-            @click="subscribeProgram"
-            >{{ t('confirm') }}</el-button
-          >
-          <el-button
-            round
-            class="w-48% bg-btn-100 text-white max-w-140px"
-            v-else
-            @click="subscribeProgram"
-            >{{ t('confirm') }}</el-button
-          >
-        </span>
-      </template>
-    </el-dialog>
-
-    <el-dialog
-          v-model="first_login"
-          class="max-w-992px h-90% flex-col"
-          width="90%"
-          destroy-on-close
-          center
-        >
-          <template #header="{ titleId, titleClass }">
-            <div class="py-2rem relative bg-blue-100">
-              <h4
-                :id="titleId"
-                :class="titleClass"
-                class="m-0 text-center text-blue-1200 font-400 text-24px line-height-26px"
-              >
-                {{t('user_agreement')}}
-              </h4>
-            </div>
-          </template>
-          <div class="h-full scrollbar" style="height: 800px;">
-            <div class="h-full" v-if="language === 'zh_tw'">
-              <iframe
-                class="w-full h-full"
-                src="https://storage.googleapis.com/msi-common/file/EULA/MSI_m-Cloud_EULA_zh.htm"
-                frameborder="0"
-              ></iframe>
-            </div>
-            <div class="h-full" v-else>
-              <iframe
-                class="w-full h-full"
-                src="https://storage.googleapis.com/msi-common/file/EULA/MSI_m-Cloud_EULA_en.htm"
-                frameborder="0"
-              ></iframe>
-            </div>
-          </div>
-        </el-dialog>
-
+      </el-form-item>
+    </el-form>
   </div>
+
+  <el-dialog 
+    append-to-body 
+    v-model="ProgramVisible" 
+    class="max-w-1000px" 
+    width="90%"
+    @close="cancelProgram"
+  >
+    <template #header="{ titleId, titleClass }">
+      <div class="py-2rem relative bg-blue-100">
+        <h4
+          :id="titleId"
+          :class="titleClass"
+          class="m-0 text-center text-blue-1200 font-400 text-20px lg:text-24px line-height-26px"
+        >
+          {{ t('select_program') }}
+        </h4>
+      </div>
+    </template>
+    <div class="dialog-context">
+      <div class="pr-10px">
+        <el-table
+          :data="program_plan"
+          @current-change="handleCurrentChange"
+          highlight-current-row
+        >
+
+          <el-table-column min-width="40"  >
+            <template #default="scope">
+              <el-radio-group v-model="selectProgram">
+              <el-radio :label="scope.row._id" size="large"> {{""}}</el-radio>
+            </el-radio-group>
+            </template>
+          </el-table-column>
+          
+
+          <el-table-column 
+            prop="name" 
+            :label="t('name')" 
+            min-width="150" 
+          />
+          <el-table-column
+            prop="location"
+            :label="t('station')"
+            align="center"
+            min-width="100"
+          />
+          <el-table-column
+            prop="evse"
+            :label="t('evse_quantity')"
+            align="center"
+            min-width="150"
+          />
+          <!-- <el-table-column
+            prop="connector"
+            :label="t('connector')"
+            align="center"
+            min-width="150"
+          /> -->
+          <el-table-column
+            prop="tariff"
+            :label="t('rate_plan')"
+            align="center"
+            min-width="150"
+          />
+          <el-table-column 
+            prop="user" 
+            :label="t('user')" 
+            align="center" 
+            min-width="80" 
+          />
+          <el-table-column
+            prop="admin_user"
+            :label="t('cpo_account')"
+            align="center"
+            min-width="150"
+          />
+          <el-table-column
+            prop="currency"
+            :label="t('currency')"
+            align="center"
+            min-width="100"
+          />
+          <el-table-column 
+            prop="price" 
+            :label="t('price')" 
+            align="center" 
+            min-width="100" 
+          />
+        </el-table>
+      </div>
+    </div>
+    <template #footer>
+      <span class="dialog-footer flex flex-center">
+        <el-button
+          round
+          class="w-48% bg-btn-100 text-white max-w-140px"
+          @click="cancelProgram"
+          >{{ t('cancel') }}</el-button
+        >
+        <el-button
+          round
+          class="w-48% bg-btn-100 text-white max-w-140px"
+          @click="confirmProgram"
+          >{{ t('confirm') }}</el-button
+        >
+      </span>
+    </template>
+  </el-dialog>
+
+  <el-dialog
+    append-to-body
+    v-model="CheckProgramVisible"
+    class="max-w-1000px"
+    width="90%"
+    @close="cancelCheckProgram"
+  >
+    <template #header="{ titleId, titleClass }">
+      <div class="py-2rem relative bg-blue-100">
+        <h4
+          :id="titleId"
+          :class="titleClass"
+          class="m-0 text-center text-blue-1200 font-400 text-20px lg:text-24px line-height-26px"
+        >
+          {{ t('check_program') }}
+        </h4>
+      </div>
+    </template>
+    <div class="dialog-context">
+      <div class="pr-10px">
+        <div class="mb-2 flex items-center text-sm">
+          <el-radio-group v-model="Effective">
+            <el-radio label="1" size="large">{{ t('effective_immediately') }}</el-radio>
+            <el-radio label="2" size="large">{{ t('effective_date_will_start_in_a_month') }}</el-radio>
+          </el-radio-group>
+        </div>
+        <el-form label-position="left" label-width="100px" :rules="adminInfo_rules" :model="companyData" ref="adminInfo_ref" :scroll-to-error=true>
+          <el-table
+            :data="select_plan"
+            @current-change="handleCurrentChange"
+            highlight-current-row
+          >
+            <el-table-column prop="name" :label="t('program_name')" min-width="150" />
+            <el-table-column prop="location" :label="t('station')" min-width="150" />
+            <el-table-column prop="evse" :label="t('evse_quantity')" min-width="150" />
+            <!-- <el-table-column prop="connector" :label="t('connector')" min-width="150" /> -->
+            <el-table-column prop="tariff" :label="t('rate_plan')" min-width="150" />
+            <el-table-column prop="user" :label="t('user')" min-width="150" />
+            <el-table-column prop="admin_user" :label="t('cpo_account')" min-width="150" />
+            <el-table-column prop="currency" :label="t('currency')" min-width="150" />
+            <el-table-column prop="price" :label="t('price')" min-width="150" />
+          </el-table>
+          <br />
+          <el-form-item :label="t('title')" prop="name">
+            <el-input v-model="companyData.name" style="width: 300px" />
+          </el-form-item>
+          <el-form-item :label="t('address')" prop="address_str">
+            <el-input v-model="companyData.address_str" style="width: 300px" />
+          </el-form-item>
+          <el-form-item :label="t('phone')" prop="phone">
+            <el-input v-model="companyData.phone" style="width: 300px" />
+          </el-form-item>
+          <el-form-item :label="t('tax_id')" prop="tax_id">
+            <el-input v-model="companyData.tax_id" style="width: 300px" />
+          </el-form-item>
+          <el-form-item :label="t('e_mail')" prop="email">
+            <el-input v-model="companyData.email" style="width: 300px"/>
+          </el-form-item>
+        </el-form>
+      </div>
+    </div>
+    <template #footer>
+      <span class="dialog-footer flex flex-center">
+        <el-button
+          round
+          class="w-48% bg-btn-100 text-white max-w-140px"
+          @click="cancelCheckProgram"
+          >{{ t('cancel') }}</el-button
+        >
+        <el-button
+          round
+          class="w-48% bg-btn-100 text-white max-w-140px"
+          v-if="companyData.name === 'MSI'"
+          disabled
+          @click="subscribeProgram"
+          >{{ t('confirm') }}</el-button
+        >
+        <el-button
+          round
+          class="w-48% bg-btn-100 text-white max-w-140px"
+          v-else
+          @click="subscribeProgram"
+          >{{ t('confirm') }}</el-button
+        >
+      </span>
+    </template>
+  </el-dialog>
+
+  <el-dialog
+    append-to-body 
+    v-model="first_login"
+    class="max-w-992px h-90% flex-col"
+    width="90%"
+    destroy-on-close
+    center
+  >
+    <template #header="{ titleId, titleClass }">
+      <div class="py-2rem relative bg-blue-100">
+        <h4
+          :id="titleId"
+          :class="titleClass"
+          class="m-0 text-center text-blue-1200 font-400 text-24px line-height-26px"
+        >
+          {{t('user_agreement')}}
+        </h4>
+      </div>
+    </template>
+    <div class="h-full scrollbar">
+      <div class="h-full" v-if="language === 'zh_tw'">
+        <iframe
+          class="w-full h-full"
+          src="https://storage.googleapis.com/msi-common/file/EULA/MSI_m-Cloud_EULA_zh.htm"
+          frameborder="0"
+        ></iframe>
+      </div>
+      <div class="h-full" v-else>
+        <iframe
+          class="w-full h-full"
+          src="https://storage.googleapis.com/msi-common/file/EULA/MSI_m-Cloud_EULA_en.htm"
+          frameborder="0"
+        ></iframe>
+      </div>
+    </div>
+  </el-dialog>
+
+</div>
 </template>
 
 <style lang="scss" scoped>
@@ -671,6 +668,15 @@ const display_eula = () => {
   :deep(.el-form-item__content) {
     display: block;
     width: 100%;
+    margin-left: 0;
+  }
+}
+.eula {
+  :deep(.el-form-item__content) {
+    margin-left: 0 !important;
+    @media (min-width: 768px) {
+      margin-left: 10rem !important;
+    }
   }
 }
 </style>

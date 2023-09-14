@@ -7,17 +7,16 @@ import { ElMessage } from 'element-plus'
 import { useMStore } from '@/stores/m_cloud'
 import { useI18n } from 'vue-i18n'
 
-const first_login = ref(false)
 const MStore = useMStore()
 const MsiApi = ApiFunc()
 const router = useRouter()
+const { t } = useI18n()
 const pw_type = ref('password')
+const m_cloud_version = ref('0.2.1')
 const account = ref('')
 const password = ref('')
 const checkState = ref(false)
-const m_cloud_version = ref('0.2.1')
-
-const { t } = useI18n()
+const first_login = ref(false)
 let language = localStorage.getItem("lang")
 
 const cancel_eula = () => {
@@ -52,6 +51,7 @@ const aggre_eula = async () => {
   await MsiApi.member_modify({ config: { m_cloud: { logged: true } } })
   router.push({ name: 'dashboard' })
 }
+
 onMounted(() => {
   if (!language) { 
     if (navigator.language === 'zh-TW') 
@@ -104,6 +104,7 @@ onMounted(() => {
           width="90%"
           destroy-on-close
           center
+          append-to-body 
         >
           <template #header="{ titleId, titleClass }">
             <div class="py-2rem relative bg-blue-100">
