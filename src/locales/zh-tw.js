@@ -139,15 +139,15 @@ export default
     price_excl_vat:                                         '價格(未稅)',
     license_plate:                                          '車牌號碼',
     method:                                                 '方式',
-    cpo_account:                                            '營運商帳號',
     table:                                                  '表格',
     schedule:                                               '日程表',
     now_version:                                            'Released Version',
+    admin_user:                                             '管理使用者',
+    reset_password:                                         '重置密碼',
 //--------------------------------------------------------------
 // header                       
 //--------------------------------------------------------------
     log_out:                                                '登出',
-    reset_password:                                         '重置密碼',
     m_cloud_info:                                           'm-Cloud資訊',
     // language:                                            '語系',
     // admin_info:                                          '管理者資訊',
@@ -155,6 +155,7 @@ export default
     // available:                                           '待機',
     // offline:                                             '離線',
     // error:                                               '錯誤',
+    // reset_password:                                      '重置密碼',
 //--------------------------------------------------------------
 // Sidebar                      
 //--------------------------------------------------------------
@@ -189,6 +190,14 @@ export default
                                                             '我已閱讀並同意使用者條款',
     user_agreement:                                         '使用者合約',
     forgot_password:                                        '忘記密碼',
+    we_will_send_an_email_to_you:                           '我們會寄郵件給您。',
+    the_link_in_the_email_will_expire_in_30_minutes:        '電子信箱中的變更密碼連結將在30分鐘後到期。',
+    please_enter_your_email:                                '請輸入您的電子信箱',
+    send:                                                   '傳送',
+    success:                                                '傳送成功',
+    mail_is_sent_please_check_your_mailbox_to_change_your_password: 
+                                                            '請確認你的電子信箱並修改密碼',
+    error_please_check_the_email_you_entered:               '錯誤！請檢查輸入的信箱。',
     // version:                                             '版本',
     // cancel:                                              '取消',
 //--------------------------------------------------------------
@@ -625,7 +634,6 @@ export default
     enable:                                                 '開啟',
     disable:                                                '關閉',
     anonymous_user:                                         '匿名使用者',
-    admin_user:                                             '管理使用者',
     customer_service_user:                                  '客服使用者',
     developer_user:                                         '研發使用者',
     engineer_user:                                          '工程師使用者',
@@ -635,6 +643,7 @@ export default
     Chinese:                                                '中文',
     card_number_already_exists:                             '卡號已經存在',
     card_number_is_duplicated_with_user:                    '卡號與使用者 "{user_name}" 重複',
+    // admin_user:                                          '管理使用者',
     // general:                                             '一般',
     // card_no:                                             '信用卡號',
     // language:                                            '語系',
@@ -843,7 +852,6 @@ export default
     // connector:                                           '充電槍',
     // user:                                                '使用者',
     // the_item_is_required:                                '這個項目必填',
-    // cpo_account:                                         '營運商帳號',
 //--------------------------------------------------------------
 // Parking Page
 //--------------------------------------------------------------
@@ -873,7 +881,12 @@ export default
     title:                                                  '標題',
     card_list:                                              '卡片列表',
     eula:                                                   '使用者授權合約',
-    // cpo_account:                                         '營運商帳號',
+    next_program:                                           '下期訂閱方案',
+    unable_to_select_a_plan_beyond_the_current_configuration: 
+                                                            '無法選擇超出目前配置的方案',
+    when_selecting_a_plan_with_a_lower_price_than_the_current_one_you_can_only_choose_effective_date_will_start_in_a_month: 
+                                                            '當選擇的方案價格低於目前使用方案時，只能選擇"生效日期將在一個月後開始"',
+    // admin_user:                                          '管理使用者',
     // user:                                                '使用者',
     // admin_info:                                          '管理者資訊',
     // first_name:                                          '名字',
@@ -897,5 +910,19 @@ export default
     // tax_id:                                              '統一編號',
     // program:                                             '訂閱方案',
     // the_item_is_required:                                '這個項目必填',
+//--------------------------------------------------------------
+// Reset Password                       
+//--------------------------------------------------------------
+    please_key_in_a_new_password :                          '請輸入新的密碼',
+    please_key_in_the_new_password_again :                  '請再輸入一次新的密碼',
+    your_password_and_confirmation_password_must_match:     '請重新輸入並確保輸入密碼相同',
+    password_cannot_include_symbols_and_space:              '密碼不可包含符號 \\ | / , . ; : { } [ ] ( )以及空格',
+    password_should_include_1_lowercase_letter:             '密碼必須包含至少一個小寫英文字母',
+    password_should_include_1_number:                       '密碼必須包含至少一個數字',
+    password_length_should_be_at_least_8_characters_but_cannot_over_20_characters: 
+                                                            '密碼長度至少要8個字元，但不可超過20個字元',
+    // reset_password:                                      '重置密碼',
+    // cancel:                                              '取消',
+    // confirm:                                             '確認',
 //--------------------------------------------------------------
 }

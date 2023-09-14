@@ -7,16 +7,21 @@ import { ElMessage } from 'element-plus'
 import { useMStore } from '@/stores/m_cloud'
 import { useI18n } from 'vue-i18n'
 
+const first_login = ref(false)
 const MStore = useMStore()
 const MsiApi = ApiFunc()
 const router = useRouter()
-const { t } = useI18n()
 const pw_type = ref('password')
-const m_cloud_version = ref('0.2.1')
 const account = ref('')
 const password = ref('')
+const forgotPWVisable = ref(false)
+const email = ref('')
+const sendEmailCompleted = ref(false)
+const isLoading = ref(false)
 const checkState = ref(false)
-const first_login = ref(false)
+const m_cloud_version = ref('0.2.1')
+
+const { t } = useI18n()
 let language = localStorage.getItem("lang")
 
 const cancel_eula = () => {
@@ -52,6 +57,23 @@ const aggre_eula = async () => {
   router.push({ name: 'dashboard' })
 }
 
+const showForgotPWDialog = () => {
+  sendEmailCompleted.value = false
+  email.value = ''
+}
+const sendEmail = async() => {
+  isLoading.value = true
+  let sendData = { email: email.value, dashboard: true }
+  let res = await MsiApi.forgotPW(sendData)
+
+  isLoading.value = false
+  if (res.status === 200) {
+    sendEmailCompleted.value = true
+  }
+  else if (res.status === 404) {
+    ElMessage.error(t('error_please_check_the_email_you_entered'))
+  }
+}
 onMounted(() => {
   if (!language) { 
     if (navigator.language === 'zh-TW') 
@@ -80,7 +102,7 @@ onMounted(() => {
           v-model.trim="account"
         />
         <label class="password" for="input-password">{{ t('password') }}</label>
-        <div class="pw-container mb-20 lg:mb-25">
+        <div class="pw-container ">
           <input
             class="input-password"
             id="input-password"
@@ -96,6 +118,10 @@ onMounted(() => {
             @click="pwVisible()"
           />
           <img v-else src="@/assets/img/login_unvisible_nor.png" @click="pwVisible()" />
+        </div>
+
+        <div class="forgot-container mb-20 lg:mb-25">
+          <button type="button" class="forgot-password" @click="forgotPWVisable = true">{{ t('forgot_password') }}</button>
         </div>
 
         <el-dialog
@@ -172,6 +198,43 @@ onMounted(() => {
         <img class="logo block mx-auto" src="@/assets/img/login_msilogo.png" />
       </div>
     </div>
+    <el-dialog
+      v-model="forgotPWVisable"
+      class="flex-col max-w-600px"
+      width="90%"
+      destroy-on-close
+      center
+      @open="showForgotPWDialog"
+    >
+      <template #header="{ titleId, titleClass }">
+        <div class="py-2rem relative bg-blue-100">
+          <h4
+            :id="titleId"
+            :class="titleClass"
+            class="m-0 text-center text-blue-1200 font-400 text-24px line-height-26px"
+          >
+            {{t('forgot_password')}}
+          </h4>
+        </div>
+      </template>
+      <div class="forgot-dialog" v-loading.fullscreen.lock="isLoading">
+        <el-form v-if="sendEmailCompleted === false" class="max-w-500px m-auto" @submit.native.prevent>
+          <p class="text-18px text-center">{{ t('we_will_send_an_email_to_you') }}</p>
+          <p class="text-18px text-center">{{ t('the_link_in_the_email_will_expire_in_30_minutes') }}</p>
+          <el-form-item class="mt-30px mb-24px text-16px" :label="t('please_enter_your_email')">
+            <el-input v-model="email" @keyup.enter="sendEmail" />
+          </el-form-item>
+        </el-form>
+        
+        <div v-else>
+          <p class="text-20px text-center h-30px">{{ t('success') }} !</p>
+          <p class="text-16px text-center h-25px">{{ t('mail_is_sent_please_check_your_mailbox_to_change_your_password') }}</p>
+        </div>
+      </div>
+      <template #footer>
+        <el-button v-if="sendEmailCompleted === false" class="btn-secondary" @click="sendEmail">{{ t('send') }}</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -266,13 +329,14 @@ onMounted(() => {
     width: 100%;
   }
   .forgot-password {
-    margin: 6px 0 136px 0;
+    margin: 6px 0 22px 0;
     background-color: transparent;
     border-style: none;
     color: var(--secondary);
     border-bottom-style: solid;
     border-color: #92a9c4;
     font-size: 22px;
+    cursor: pointer;
   }
   .log-in {
     width: 200px;
@@ -284,6 +348,18 @@ onMounted(() => {
     caret-color: transparent;
     border: 0;
     cursor: pointer;
+  }
+  .forgot-dialog {
+    .el-form-item {
+      display: block;
+    }
+    :deep(.el-form-item__label) {
+      display: block;
+      font-size: 1.6rem;
+    }
+  }
+  .input-email {
+    width: 300px;
   }
 }
 :deep(.el-overlay-dialog .el-dialog__body) {

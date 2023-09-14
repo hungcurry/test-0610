@@ -29,6 +29,7 @@ import {
   faUser,
   faCalendarCheck,
   faCreditCard,
+  faFile
 } from '@fortawesome/free-regular-svg-icons'
 
 const app = createApp(App)
@@ -54,5 +55,6 @@ library.add(
   faCalendarCheck,
   faCreditCard,
   faChartLine,
-  faDeleteLeft
+  faDeleteLeft,
+  faFile
 )

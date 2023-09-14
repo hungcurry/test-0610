@@ -193,9 +193,16 @@ export default function () {
     return response
   }
 
+  const forgotPW = async (json) => {
+    AuthToken = VueCookies.get('AuthToken')
+    const response = await postJsonData(api1 + '/member/forgot/pw', json, AuthToken)
+    return response
+  }
+
   return {
       setCollectionData, getToken, checkToken, mongoQuery, mongoAggregate,
       register_member,  resetPW, reset_evse, updateFw, getTimeZone, getCoordinates, getAddress,
-      bind_card, search_bind_card, unregister_bind_card, auth_payment, subscribe_plan, member_modify
+      bind_card, search_bind_card, unregister_bind_card, auth_payment, subscribe_plan, member_modify,
+      forgotPW
   }
 }

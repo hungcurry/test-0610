@@ -139,15 +139,15 @@ export default
     price_excl_vat:                                         'Price (excl. vat)',
     license_plate:                                          'License Plate',
     method:                                                 'Method',
-    cpo_account:                                            'CPO Account',
     table:                                                  'Table',
     schedule:                                               'Schedule',
+    admin_user:                                             'Admin User',
     now_version:                                            'Released Version',
+    reset_password:                                         'Reset Password',
 //--------------------------------------------------------------
 // header                       
 //--------------------------------------------------------------
     log_out:                                                'Log Out',
-    reset_password:                                         'Reset Password',
     m_cloud_info:                                           'm-Cloud Info',
     // language:                                            'Language',
     // admin_info:                                          'Admin Info',
@@ -155,6 +155,7 @@ export default
     // available:                                           'Available',
     // offline:                                             'Offline',
     // error:                                               'Error',
+    // reset_password:                                      'Reset Password',
 //--------------------------------------------------------------
 // Sidebar                      
 //--------------------------------------------------------------
@@ -189,6 +190,14 @@ export default
                                                             'I fully understand the contents of the Terms and Conditions and agree to them.',
     user_agreement:                                         'User Agreement',
     forgot_password:                                        'Forgot Password',
+    we_will_send_an_email_to_you:                           'We will send an email to you.',
+    the_link_in_the_email_will_expire_in_30_minutes:        'The link in the email will expire in 30 minutes.',
+    please_enter_your_email:                                'Please enter your email',
+    send:                                                   'Send',
+    success:                                                'Success',
+    mail_is_sent_please_check_your_mailbox_to_change_your_password: 
+                                                            'Mail is sent.  Please check your mailbox to change your password.',
+    error_please_check_the_email_you_entered:               'Error! Please check the email you entered',
     // version:                                             'Version',
     // cancel:                                              'Cancel',
 //--------------------------------------------------------------
@@ -625,7 +634,6 @@ export default
     enable:                                                 'Enable',
     disable:                                                'Disable',
     anonymous_user:                                         'Anonymous User',
-    admin_user:                                             'Admin User',
     customer_service_user:                                  'Customer Service User',
     developer_user:                                         'Developer User',
     engineer_user:                                          'Engineer User',
@@ -635,6 +643,7 @@ export default
     Chinese:                                                'Chinese',
     card_number_already_exists:                             'Card number already exists',
     card_number_is_duplicated_with_user:                    'Card number is duplicated with user "{user_name}"',
+    // admin_user:                                          'Admin User',
     // general:                                              'General',
     // card_no:                                             'Card No.',
     // language:                                            'Language',
@@ -828,6 +837,7 @@ export default
     create_success:                                         'Create Success',
     edit_program:                                           'Edit Program',
     evse:                                                   'EVSE',
+    cpo_account:                                            'CPO Account',
     // warning:                                             'Warning !',
     // ok:                                                  'OK',
     // cancel:                                              'Cancel',
@@ -843,7 +853,6 @@ export default
     // connector:                                           'Connector',
     // user:                                                'User',
     // the_item_is_required:                                'The item is required',
-    // cpo_account:                                         'CPO Account',
 //--------------------------------------------------------------
 // Parking Page
 //--------------------------------------------------------------
@@ -874,7 +883,12 @@ export default
     title:                                                  'Title',
     card_list:                                              'Card List',
     eula:                                                   'EULA',
-    // cpo_account:                                         'CPO Account',
+    next_program:                                           'Next Program',
+    unable_to_select_a_plan_beyond_the_current_configuration: 
+                                                            'Unable to select a plan beyond the current configuration',
+    when_selecting_a_plan_with_a_lower_price_than_the_current_one_you_can_only_choose_effective_date_will_start_in_a_month: 
+                                                            'When selecting a plan with a lower price than the current one, you can only choose "Effective date will start in a month"',
+    // admin_user:                                          'Admin User',
     // user:                                                'User',
     // admin_info:                                          'Admin Info',
     // first_name:                                          'First Name',
@@ -898,5 +912,20 @@ export default
     // tax_id:                                              'Tax ID',
     // program:                                             'Program',
     // the_item_is_required:                                'The item is required',
+//--------------------------------------------------------------
+// Reset Password                       
+//--------------------------------------------------------------
+    please_key_in_a_new_password :                          'Please key in a new password',
+    please_key_in_the_new_password_again :                  'Please key in the new password again',
+    your_password_and_confirmation_password_must_match:     'Your password and confirmation password must match.',
+    password_cannot_include_symbols_and_space:              'Password cannot include symbols \\ | / , . ; : { } [ ] ( ) and space.',
+    password_should_include_1_lowercase_letter:             'Password should include 1 lowercase letter.',
+    password_should_include_1_number:                       'Password should include 1 number.',
+    password_length_should_be_at_least_8_characters_but_cannot_over_20_characters: 
+                                                            'Password length should be at least 8 characters, but cannot over 20 characters.',
+    // reset_password:                                      'Reset Password',
+    // cancel:                                              'Cancel',
+    // confirm:                                             'Confirm',
+
 //--------------------------------------------------------------
 }
