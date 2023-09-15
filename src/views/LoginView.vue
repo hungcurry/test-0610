@@ -19,7 +19,7 @@ const email = ref('')
 const sendEmailCompleted = ref(false)
 const isLoading = ref(false)
 const checkState = ref(false)
-const m_cloud_version = ref('0.2.1')
+const m_cloud_version = ref('0.2.2')
 
 const { t } = useI18n()
 let language = localStorage.getItem("lang")

@@ -64,8 +64,6 @@ const country_list = [
 ]
 
 const station_always_open = ref(true)
-const w1val = ref([0, 24]), w2val = ref([0, 24]), w3val = ref([0, 24]), w4val = ref([0, 24]), w5val = ref([0, 24]), w6val = ref([0, 24]), w7val = ref([0, 24])
-const w1check = ref(), w2check = ref(), w3check = ref(), w4check = ref(), w5check = ref(), w6check = ref(), w7check = ref()
 const w1 = reactive( {val: ref([0, 24]), check : ref(), label: t('mon') })
 const w2 = reactive( {val: ref([0, 24]), check : ref(), label: t('tue') })
 const w3 = reactive( {val: ref([0, 24]), check : ref(), label: t('wed') })
@@ -146,32 +144,14 @@ const saveStation = async (formEl) => {
   })
   if (check_format_success === false) 
     return 
-
   let regular_hours = []
-  if (w1check.value) {
-    regular_hours.push({weekday:1,period_begin:formatNumberToTime(w1val.value[0]), period_end:formatNumberToTime(w1val.value[1])})
-  }
-  if (w2check.value) {
-    regular_hours.push({weekday:2,period_begin:formatNumberToTime(w2val.value[0]), period_end:formatNumberToTime(w2val.value[1])})
-  }
-  if (w3check.value) {
-    regular_hours.push({weekday:3,period_begin:formatNumberToTime(w3val.value[0]), period_end:formatNumberToTime(w3val.value[1])})
-  }
-  if (w4check.value) {
-    regular_hours.push({weekday:4,period_begin:formatNumberToTime(w4val.value[0]), period_end:formatNumberToTime(w4val.value[1])})
-  }
-  if (w5check.value) {
-    regular_hours.push({weekday:5,period_begin:formatNumberToTime(w5val.value[0]), period_end:formatNumberToTime(w5val.value[1])})
-  }
-  if (w6check.value) {
-    regular_hours.push({weekday:6,period_begin:formatNumberToTime(w6val.value[0]), period_end:formatNumberToTime(w6val.value[1])})
-  }
-  if (w7check.value) {
-    regular_hours.push({weekday:7,period_begin:formatNumberToTime(w7val.value[0]), period_end:formatNumberToTime(w7val.value[1])})
+  for (let i = 0; i < 7; i++) {
+    if (week[i]?.check)
+      regular_hours.push({weekday: i+1 ,period_begin:formatNumberToTime(week[i].val[0]), period_end:formatNumberToTime(week[i].val[1])})
   }
 
   let opening_times = { twentyfourseven:station_always_open.value, regular_hours:regular_hours}
-
+  console.log(opening_times)
   const coordinates = { latitude: parseFloat(StationData.latitude_str).toFixed(6), longitude: parseFloat(StationData.longitude_str).toFixed(6) }
   if (StationData.publish === undefined)
     StationData.publish = false
@@ -243,42 +223,12 @@ onMounted(async () => {
     let response = await MsiApi.mongoQuery(jsonData)
     StationData.length = 0
     Object.assign(StationData, response.data.all[0])
-    
     if (StationData?.opening_times?.regular_hours) {
       StationData.opening_times.regular_hours.forEach ( (item) => {
-        console.log(item)
         let hours1 = convertTimeToHours(item.period_begin);
         let hours2 = convertTimeToHours(item.period_end);
-        switch (item.weekday) {
-          case 1:
-          w1check.value = true
-          w1val.value = [hours1, hours2]
-          break
-          case 2:
-          w2check.value = true
-          w2val.value = [hours1, hours2]
-          break
-          case 3:
-          w3check.value = true
-          w3val.value = [hours1, hours2]
-          break
-          case 4:
-          w4check.value = true
-          w4val.value = [hours1, hours2]
-          break
-          case 5:
-          w5check.value = true
-          w5val.value = [hours1, hours2]
-          break
-          case 6:
-          w6check.value = true
-          w6val.value = [hours1, hours2]
-          break
-          case 7:
-          w7check.value = true
-          w7val.value = [hours1, hours2]
-          break
-        }
+        week[item.weekday-1].check = true
+        week[item.weekday-1].val = [hours1, hours2]
       })
     }
     station_always_open.value = StationData?.opening_times?.twentyfourseven
@@ -465,47 +415,13 @@ onMounted(async () => {
             </div>
             <div class="week-container md:pr-40px flex-grow min-w-600px">
 
-              <div class="week" v-for = "item in week"  :key="item" :disabled = "station_always_open">
+              <div class="week" v-for = "(item, index) in week"  :key="item" :disabled = "station_always_open">
                 <el-checkbox v-model="item.check" size="large" :disabled = "station_always_open"/>
                 <span class="text"> {{ item.label}} </span>
-                <el-slider v-model="item.val" range :max="24" :disabled = "station_always_open"/>
+                <span class="text"> {{ index}} </span>
+                <el-slider v-if="index !== 6" v-model="item.val" range :max="24" :disabled = "station_always_open"/>
+                <el-slider v-else v-model="item.val" range :max="24" :marks="marks" :disabled = "station_always_open"/>
               </div>
-<!-- 
-              <div class="week">
-                <el-checkbox v-model="w1check" size="large" :disabled = "station_always_open"/>
-                <span class="text"> {{t('mon')}} </span>
-                <el-slider v-model="w1val" range :max="24" :disabled = "station_always_open"/>
-              </div>
-              <div class="week">
-                <el-checkbox v-model="w2check" size="large" :disabled = "station_always_open"/>
-                <span class="text"> {{t('tue')}} </span>
-                <el-slider v-model="w2val" range :max="24" :disabled = "station_always_open"/>
-              </div>
-              <div class="week">
-                <el-checkbox v-model="w3check" size="large" :disabled = "station_always_open"/>
-                <span class="text"> {{t('wed')}} </span>
-                <el-slider v-model="w3val" range :max="24" :disabled = "station_always_open"/>
-              </div>
-              <div class="week">
-                <el-checkbox v-model="w4check" size="large" :disabled = "station_always_open"/>
-                <span class="text"> {{t('thu')}} </span>
-                <el-slider v-model="w4val" range :max="24" :disabled = "station_always_open"/>
-              </div>
-              <div class="week">
-                <el-checkbox v-model="w5check" size="large" :disabled = "station_always_open"/>
-                <span class="text"> {{t('fri')}} </span>
-                <el-slider v-model="w5val" range :max="24" :disabled = "station_always_open"/>
-              </div>
-              <div class="week">
-                <el-checkbox v-model="w6check" size="large" :disabled = "station_always_open"/>
-                <span class="text"> {{t('sat')}} </span>
-                <el-slider v-model="w6val" range :max="24" :disabled = "station_always_open"/>
-              </div>
-              <div class="week">
-                <el-checkbox v-model="w7check" size="large" :disabled = "station_always_open"/>
-                <span class="text"> {{t('sun')}} </span>
-                <el-slider v-model="w7val" range :max="24" :marks="marks" :disabled = "station_always_open" />
-              </div> -->
             </div>
           </div>
         </div>

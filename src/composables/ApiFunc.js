@@ -5,7 +5,7 @@ let AuthToken = null
 let response = null
 let api1 = ''
 if (import.meta.env.VITE_API === undefined) {
-  api1 = 'api10/api'
+  api1 = 'api10/api2'
 }
 else {
   api1 = import.meta.env.VITE_API
