@@ -1,86 +1,118 @@
 <script setup>
 import ApiFunc from '@/composables/ApiFunc'
 import VueCookies from 'vue-cookies'
-import { onMounted, ref } from 'vue'
+import { onMounted,onBeforeMount, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { useMStore } from '@/stores/m_cloud'
 import { useI18n } from 'vue-i18n'
 
+const { t } = useI18n()
 const first_login = ref(false)
 const MStore = useMStore()
 const MsiApi = ApiFunc()
 const router = useRouter()
-const pw_type = ref('password')
 const account = ref('')
 const password = ref('')
-const forgotPWVisable = ref(false)
 const email = ref('')
+const pw_type = ref('password')
+const language = ref ('en_us')
+const forgotPWVisable = ref(false)
 const sendEmailCompleted = ref(false)
 const isLoading = ref(false)
 const checkState = ref(false)
-const m_cloud_version = ref('0.2.2')
-
-const { t } = useI18n()
-let language = localStorage.getItem("lang")
 
 const cancel_eula = () => {
   first_login.value = false
   VueCookies.remove('AuthToken')
 }
+
 const pwVisible = () => {
   if (pw_type.value === 'password') pw_type.value = 'text'
   else pw_type.value = 'password'
 }
+
 const login = async () => {
-  const response = await MsiApi.getToken({
-    email: account.value,
-    password: password.value,
-    expMethod: '6M',
-    dashboard: true,
-  })
-  if (response.status === 200) {
-    let res = await MsiApi.checkToken()
-    if (res?.data?.config?.m_cloud?.logged) {
-      router.push({ name: 'dashboard' })
+  try {
+    const response = await MsiApi.getToken({ email: account.value, password: password.value, expMethod: '6M', dashboard: true})
+    if (response.status === 200) {
+      VueCookies.set('AuthToken', { headers: { Authorization: response.data.token } }, '6M')
+    } else if (response.status === 400 || response.status === 404) {
+      ElMessage.error(t('oops_account_or_password_error'))
+      return
     } else {
-      first_login.value = true
+      ElMessage.error('Error.')
+      return
     }
-  } else if (response.status === 400 || response.status === 404) {
-    ElMessage.error(t('oops_account_or_password_error'))
-  } else {
-    ElMessage.error('Error.')
+    const response1 = await MsiApi.checkToken()
+    if (response1.status === 200) {
+      if (response1.data?.permission?.user === undefined || response1.data?.config?.m_cloud?.logged) 
+        router.push({ name: 'dashboard' })
+      else 
+        first_login.value = true
+    }
+    else {
+      ElMessage.error('Error.')
+      return
+    }
+  }
+  catch  {
+    ElMessage.error('An unexpected error occurred.')
   }
 }
+
 const aggre_eula = async () => {
-  await MsiApi.member_modify({ config: { m_cloud: { logged: true } } })
-  router.push({ name: 'dashboard' })
+  try {
+    const response = await MsiApi.member_modify({ config: { m_cloud: { logged: true } } })
+    if (response.status === 200) {
+      router.push({ name: 'dashboard' })
+    }
+    else {
+      ElMessage.error('Error.')
+    }
+  }
+  catch {
+    ElMessage.error('An unexpected error occurred.')
+  }
 }
 
 const showForgotPWDialog = () => {
   sendEmailCompleted.value = false
   email.value = ''
 }
-const sendEmail = async() => {
-  isLoading.value = true
-  let sendData = { email: email.value, dashboard: true }
-  let res = await MsiApi.forgotPW(sendData)
 
-  isLoading.value = false
-  if (res.status === 200) {
-    sendEmailCompleted.value = true
+const sendEmail = async() => {
+  try {
+    isLoading.value = true
+    let sendData = { email: email.value, dashboard: true }
+    let res = await MsiApi.forgotPW(sendData)
+    isLoading.value = false
+    if (res.status === 200) {
+      sendEmailCompleted.value = true
+    }
+    else if (res.status === 404) {
+      ElMessage.error(t('error_please_check_the_email_you_entered'))
+    }
+    else {
+      ElMessage.error('Error.')
+    }
   }
-  else if (res.status === 404) {
-    ElMessage.error(t('error_please_check_the_email_you_entered'))
+  catch {
+    ElMessage.error('An unexpected error occurred.')
   }
 }
-onMounted(() => {
-  if (!language) { 
-    if (navigator.language === 'zh-TW') 
-      language = 'zh_tw'
-    else 
-      language = 'en_us'
+
+onBeforeMount(() => {
+  if (localStorage.getItem("lang")) {
+    language.value = localStorage.getItem("lang")
   }
+  else {
+    if (navigator.language === 'zh-TW') 
+      language.value = 'zh_tw'
+  }
+})
+
+onMounted(() => {
   let targetTimezoneOffset = new Date().getTimezoneOffset()
   MStore.timeZoneOffset = targetTimezoneOffset
   MStore.permission = undefined
@@ -193,7 +225,7 @@ onMounted(() => {
       </form>
       <div>
         <p class="text-30px text-white text-center">
-          {{ t('version') + ':' + m_cloud_version }}
+          {{ t('version') + ':' + APP_VERSION }}
         </p>
         <img class="logo block mx-auto" src="@/assets/img/login_msilogo.png" />
       </div>
@@ -218,7 +250,7 @@ onMounted(() => {
         </div>
       </template>
       <div class="forgot-dialog" v-loading.fullscreen.lock="isLoading">
-        <el-form v-if="sendEmailCompleted === false" class="max-w-500px m-auto" @submit.native.prevent>
+        <el-form v-if="sendEmailCompleted === false" class="max-w-500px m-auto" @submit.prevent>
           <p class="text-18px text-center">{{ t('we_will_send_an_email_to_you') }}</p>
           <p class="text-18px text-center">{{ t('the_link_in_the_email_will_expire_in_30_minutes') }}</p>
           <el-form-item class="mt-30px mb-24px text-16px" :label="t('please_enter_your_email')">

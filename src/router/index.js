@@ -16,8 +16,8 @@ import EvseLogView from '@/views/EvseLogView.vue'
 import PaymentView from '@/views/PaymentView.vue'
 import CompanyView from '@/views/CompanyView.vue'
 import EvseDetailView from '@/views/EvseDetailView.vue'
-import TariffView from '@/views/TariffView.vue'
-import TariffDetailView from '@/views/TariffDetailView.vue'
+import RatePlanView from '@/views/RatePlanView.vue'
+import RatePlanDetailView from '@/views/RatePlanDetailView.vue'
 import EvseEditView from '@/views/EvseEditView.vue'
 import SoftwareInfoView from '@/views/SoftwareInfoView.vue'
 import ErrorLogView from '@/views/ErrorLogView.vue'
@@ -91,12 +91,12 @@ const router = createRouter({
         {
           path: 'rate-plan',
           name: 'ratePlan',
-          component: TariffView
+          component: RatePlanView
         },
         {
           path: 'rate-plan-detail',
           name: 'ratePlanDetail',
-          component: TariffDetailView
+          component: RatePlanDetailView,
         },
         {
           path: 'user',
@@ -185,14 +185,14 @@ router.beforeEach(async to => {
     MStore.timeZoneOffset = new Date().getTimezoneOffset()
   if (MStore.permission === undefined) {
     let res = await MsiApi.checkToken()
-    if (res === 0) 
-      return '/login'  
-    else {
+    if (res.status === 200) {
       MStore.permission = res.data.permission
       MStore.user_data.first_name = res.data.first_name
       MStore.user_data.last_name = res.data.last_name
       MStore.user_data.email = res.data.email
-    }
+    } 
+    else 
+      return '/login'  
   }
 
   if (MStore.permission === 0) 

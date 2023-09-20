@@ -418,7 +418,6 @@ onMounted(async () => {
               <div class="week" v-for = "(item, index) in week"  :key="item" :disabled = "station_always_open">
                 <el-checkbox v-model="item.check" size="large" :disabled = "station_always_open"/>
                 <span class="text"> {{ item.label}} </span>
-                <span class="text"> {{ index}} </span>
                 <el-slider v-if="index !== 6" v-model="item.val" range :max="24" :disabled = "station_always_open"/>
                 <el-slider v-else v-model="item.val" range :max="24" :marks="marks" :disabled = "station_always_open"/>
               </div>

@@ -33,6 +33,23 @@ const status_filter_item = [
   { text: t('error'), value: 'ERROR' },
 ]
 
+const change_availability = async () => {
+  updataEvseId.length = 0
+  for (let i = 0; i < multipleSelection.value.length; i++) {
+    updataEvseId.push(multipleSelection.value[i].evse_id)
+  }
+  console.log(updataEvseId)
+  let sendData = {
+
+    evse_id: "NTUT-LEO-0101",
+    connectorId: "0",
+    type: "Operative"
+  }
+  // sendData.evse_ids = "NTUT-LEO-0101"
+  console.log(sendData)
+  console.log(await MsiApi.change_availability(sendData))
+}
+
 const updateSW = async () => {
   sw_version_visable.value = true
   let queryData = {
@@ -252,6 +269,13 @@ onMounted(async () => {
     <div class="container lg pb-40px">
       <div class="pt-40px pb-20px overflow-x-auto">
         <div class="flex lg:justify-end pr-10px">
+          <!-- <el-button
+            v-if="editMode === true"
+            class="btn-secondary shrink-0 update-button px-30px box-shadow"
+            @click="change_availability"
+          >
+          {{ t('change_availability') }}
+          </el-button> -->
           <el-button
             v-if="editMode === true"
             class="btn-secondary shrink-0 update-button px-30px box-shadow"

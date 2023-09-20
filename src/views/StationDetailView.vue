@@ -427,7 +427,7 @@ onMounted( async () => {
           </div>
         </template>
         <div class="dialog-context">
-          <p class="text-center"> {{ t('now_version')  +  ':  ' }} +  {{ fwVersion }}</p>
+          <p class="text-center"> {{ t('now_version')  +  ' : ' }}  {{ fwVersion }}</p>
         </div>
         <template #footer>
           <span class="dialog-footer flex flex-center">

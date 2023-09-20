@@ -2,12 +2,9 @@ import VueCookies from 'vue-cookies'
 import axios from 'axios'
 
 let AuthToken = null
-let response = null
-let api1 = ''
-if (import.meta.env.VITE_API === undefined) {
-  api1 = 'api10/api2'
-}
-else {
+let api1 = 'api10/api2'
+
+if (import.meta.env.VITE_API !== undefined) {
   api1 = import.meta.env.VITE_API
 }
 
@@ -20,11 +17,10 @@ export default function () {
       Token.headers['X-Client-From'] = 'm-Cloud'
     }
     try {
-      response = await axios.get(path, Token)
+      const response = await axios.get(path, Token)
       return response
-    } catch (error) {
-      console.log(error)
-      return error.response
+    } catch (e) {
+      return e.response
     }
   }
 
@@ -35,22 +31,20 @@ export default function () {
       Token.headers['X-Client-From'] = 'm-Cloud'
     }
     try {
-      response = await axios.post(path, data, Token,)
+      const response = await axios.post(path, data, Token,)
       return response
-    } catch (error) {
-      console.log(error)
-      return error.response
+    } catch (e) {
+      return e.response
     }
   }
 
   const patchJsonData = async function (path, data, Token) {
     try {
       Token.headers['X-Client-From'] = 'm-Cloud'
-      response = await axios.patch(path, data, Token)
+      const response = await axios.patch(path, data, Token)
       return response
-    } catch (error) {
-      console.log(error)
-      return error
+    } catch (e) {
+      return e.response
     }
   }
 
@@ -58,17 +52,15 @@ export default function () {
     try {
       const Token1 = Token.headers
       Token1['X-Client-From'] = 'm-Cloud'
-      response = await axios.delete(path, { headers: Token1, data: data1 });
+      const response = await axios.delete(path, { headers: Token1, data: data1 });
       return response
-    } catch (error) {
-      console.log(error)
-      return error
+    } catch (e) {
+      return e.response
     }
   }
 
-  const setCollectionData = async function (method, collection, data) {
+  const setCollectionData = async function (method, collection, json) {
     AuthToken = VueCookies.get('AuthToken')
-    const json = JSON.stringify(data)
     if (method === 'post') {
       const response = await postJsonData(api1 + '/' + collection + '/set', json, AuthToken)
       return response
@@ -81,27 +73,17 @@ export default function () {
       const response = await delJsonData(api1 + '/' + collection + '/set', json, AuthToken)
       return response
     }
-    return response
   }
 
-  const getToken = async function (userAccount) {
-    const json = JSON.stringify(userAccount)
+  const getToken = async function (json) {
     const response = await postJsonData(api1 + '/member/login', json)
-    if (response.status === 200) {
-      AuthToken = { headers: { Authorization: response.data.token } }
-      VueCookies.set('AuthToken', AuthToken, '14d')
-    }
     return response
   }
 
   const checkToken = async function () {
     AuthToken = VueCookies.get('AuthToken')
     const response = await getJsonData(api1 + '/member/about', AuthToken)
-    if (response.status === 200) {
-      return response
-    }
-    else
-      return 0
+    return response
 }
 
   const mongoQuery = async (json) => {
@@ -199,10 +181,16 @@ export default function () {
     return response
   }
 
+  const change_availability = async (json) => {
+    AuthToken = VueCookies.get('AuthToken')
+    const response = await postJsonData(api1 + '/cp/ocpp/v16/change_availability', json, AuthToken)
+    return response
+  }
+
   return {
       setCollectionData, getToken, checkToken, mongoQuery, mongoAggregate,
       register_member,  resetPW, reset_evse, updateFw, getTimeZone, getCoordinates, getAddress,
       bind_card, search_bind_card, unregister_bind_card, auth_payment, subscribe_plan, member_modify,
-      forgotPW
+      forgotPW, change_availability
   }
 }

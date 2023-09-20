@@ -350,14 +350,17 @@ const handleEventEdit = (clickInfo) => {
   new_element.value.day_of_week.length =  0
   new_element.value.price_type = tariffObj[modifyIndex.value].price_components[0].type
   new_element.value.price_price = tariffObj[modifyIndex.value].price_components[0].price
-  new_element.value.price_price = tariffObj[modifyIndex.value].price_components[0].price
+  new_element.value.price_price_incl = tariffObj[modifyIndex.value].price_components[0].price * (1 + tariffObj[modifyIndex.value].price_components[0].vat / 100)
+  // console.log(tariffObj[modifyIndex.value].price_components[0].step_size)
+  // console.log(tariffObj[modifyIndex.value].price_components[0].price)
+  // console.log(tariffObj[modifyIndex.value].price_components[0].price / (60 / (tariffObj[modifyIndex.value].price_components[0].step_size / 60)))
   if (new_element.value.price_type !== 'ENERGY') 
     new_element.value.step_size_str = tariffObj[modifyIndex.value].price_components[0].step_size / 60 
   else 
     new_element.value.step_size_str = tariffObj[modifyIndex.value].price_components[0].step_size
   new_element.value.vat = tariffObj[modifyIndex.value].price_components[0].vat
-  new_element.value.min_duration_str =tariffObj[modifyIndex.value].restrictions.min_duration / 60
-  new_element.value.max_duration_str =tariffObj[modifyIndex.value].restrictions.max_duration / 60
+  new_element.value.min_duration_str = tariffObj[modifyIndex.value].restrictions.min_duration / 60
+  new_element.value.max_duration_str = tariffObj[modifyIndex.value].restrictions.max_duration / 60
   new_element.value.start_time = tariffObj[modifyIndex.value].restrictions.start_time 
   new_element.value.end_time = tariffObj[modifyIndex.value].restrictions.end_time
   for (let i = 0; i < tariffObj[modifyIndex.value].restrictions.day_of_week.length; i++) {
@@ -824,7 +827,6 @@ const editElement = (action) => {
       }
       let day_of_week_str = []
     for (const day of element.restrictions.day_of_week) {
-      console.log(day)
         switch (day) {
           case 'MONDAY':
           day_of_week_str.push(t('mon'))
@@ -874,7 +876,6 @@ const editElement = (action) => {
     }
     let day_of_week_str = []
     for (const day of tariff_elements[modifyIndex.value].restrictions.day_of_week) {
-      console.log(day)
         switch (day) {
           case 'MONDAY':
           day_of_week_str.push(t('mon'))
@@ -900,7 +901,6 @@ const editElement = (action) => {
         }
       }
       tariff_elements[modifyIndex.value].restrictions.day_of_week_str = day_of_week_str
-      console.log(tariff_elements[modifyIndex.value])
   }
   else if (action === 'delete') {
     tariff_elements.splice(modifyIndex.value, 1)

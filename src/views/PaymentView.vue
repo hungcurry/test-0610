@@ -98,8 +98,7 @@ const select_date = async () => {
         { $project: { _id: 0, sessionId: 0, location: 0, detail: 0, locationId: 0} },
       ],
     }
-  let aaa = await MongoQurey(queryData)
-  console.log(aaa)
+  await MongoQurey(queryData)
 }
 
 const sortFunc = (obj1, obj2, column) => {

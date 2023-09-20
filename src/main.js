@@ -40,6 +40,9 @@ app.use(i18n)
 app.component('font-awesome-icon', FontAwesomeIcon)
 app.mount('#app')
 
+/* global APP_VERSION */
+app.config.globalProperties.APP_VERSION = APP_VERSION
+
 library.add(
   faUser,
   faBell,

@@ -1,7 +1,6 @@
 <script setup>
 import * as echarts from 'echarts'
 import ApiFunc from '@/composables/ApiFunc'
-// import SelectDropdown from '@/components/Input/SelectDropdown.vue'
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useMStore } from '@/stores/m_cloud'
@@ -27,39 +26,13 @@ const member = ref(0)
 const business = ref(0)
 const totalkwh = ref(0)
 const station_count = ref(0)
+let isFetchingTotalUsedPower = false
+let isFetchingTotalUsedTime = false
+let isFetchingTotalUsedTimes = false
 
 const charger_time = reactive({ hr: 0, min: 0, sec: 0 })
 const parking_time = reactive({ hr: 0, min: 0, sec: 0 })
 const status_obj = reactive({ Available: 0, Charging: 0, Offline: 0, Error: 0})
-
-// selectDropdown
-// const select_country = ref('Country')
-// const select_city = ref('City')
-// const select_station = ref('Station')
-
-// const country_options = ref([
-//   { value: 'Taiwan' },
-//   { value: 'Japan' },
-//   { value: 'South Korea' },
-//   { value: 'Thailand' },
-//   { value: 'Vietnam' },
-// ])
-// const city_options = ref([
-//   { value: 'Taipei' },
-//   { value: 'Kaohsiung' },
-//   { value: 'Taichung' },
-//   { value: 'Tainan' },
-//   { value: 'Hsinchu' },
-// ])
-// const station_options = ref([
-//   { value: 'Option1' },
-//   { value: 'Option2' },
-//   { value: 'Option3' },
-//   { value: 'Option4' },
-//   { value: 'Option5' },
-// ])
-
-
 const payment_method_option = {
   tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
   legend: { y: 'bottom', x: 'left' },
@@ -233,10 +206,7 @@ const date_select = async (select_time) => {
   queryTotalUsedTime(select_time1)
   queryTotalUsedTimes(select_time1)
   queryTotalUsedPower(select_time1)
-  console.log(select_time1)
 }
-
-let isFetchingTotalUsedPower = false
 
 const queryTotalUsedPower = async (select_time1) => {
   if (!isFetchingTotalUsedPower) {
@@ -280,7 +250,6 @@ const queryTotalUsedPower = async (select_time1) => {
   }
 }
 
-let isFetchingTotalUsedTime = false
 const queryTotalUsedTime = async (select_time1) => {
   if (!isFetchingTotalUsedTime) {
     parking_time.min = parking_time.hr = charger_time.min = charger_time.hr = '-'
@@ -330,101 +299,98 @@ const queryTotalUsedTime = async (select_time1) => {
   }
 }
 
-let isFetchingTotalUsedTimes = false
-
 const queryTotalUsedTimes = async (select_time1) => {
   if (!isFetchingTotalUsedTimes) {
     isFetchingTotalUsedTimes = true
-  rfid.value = visitor.value = income.value = ev_life.value = '-'
+    rfid.value = visitor.value = income.value = ev_life.value = '-'
 
-  if (select_time1 === undefined) select_time1 = new Date(1970, 1, 1)
-  let queryData = {
-    database: 'CPO',
-    collection: 'PaymentHistory',
-    pipelines: [
-      {
-        $match: {
-          $expr: {
-            $and: [
-              {
-                $gte: [
-                  '$created_date',
-                  { $dateFromString: { dateString: select_time1 } },
-                ],
-              },
-            ],
+    if (select_time1 === undefined) select_time1 = new Date(1970, 1, 1)
+    let queryData = {
+      database: 'CPO',
+      collection: 'PaymentHistory',
+      pipelines: [
+        {
+          $match: {
+            $expr: {
+              $and: [
+                {
+                  $gte: [
+                    '$created_date',
+                    { $dateFromString: { dateString: select_time1 } },
+                  ],
+                },
+              ],
+            },
           },
         },
-      },
-      {
-        $facet: {
-          guestEmail: [
-            { $match: { guestEmail: { $ne: null } } },
-            { $count: 'guestEmail' },
-          ],
-          RFID: [{ $match: { 'paymethod.method': 'RFID' } }, { $count: 'RFID' }],
-          CREDIT: [{ $match: { 'paymethod.method': 'CREDIT' } }, { $count: 'CREDIT' }],
-          FREE: [{ $match: { 'paymethod.method': 'FREE' } }, { $count: 'FREE' }],
-          APPLEPAY: [
-            { $match: { 'paymethod.method': 'APPLEPAY' } },
-            { $count: 'APPLEPAY' },
-          ],
-          SAMSUNGPAY: [
-            { $match: { 'paymethod.method': 'SAMSUNGPAY' } },
-            { $count: 'SAMSUNGPAY' },
-          ],
-          GOOGLEPAY: [
-            { $match: { 'paymethod.method': 'GOOGLEPAY' } },
-            { $count: 'GOOGLEPAY' },
-          ],
-          totalCount: [{ $group: { _id: null, totalCount: { $sum: 1 } } }],
-          income: [{ $group: { _id: null, income: { $sum: '$price' } } }],
+        {
+          $facet: {
+            guestEmail: [
+              { $match: { guestEmail: { $ne: null } } },
+              { $count: 'guestEmail' },
+            ],
+            RFID: [{ $match: { 'paymethod.method': 'RFID' } }, { $count: 'RFID' }],
+            CREDIT: [{ $match: { 'paymethod.method': 'CREDIT' } }, { $count: 'CREDIT' }],
+            FREE: [{ $match: { 'paymethod.method': 'FREE' } }, { $count: 'FREE' }],
+            APPLEPAY: [
+              { $match: { 'paymethod.method': 'APPLEPAY' } },
+              { $count: 'APPLEPAY' },
+            ],
+            SAMSUNGPAY: [
+              { $match: { 'paymethod.method': 'SAMSUNGPAY' } },
+              { $count: 'SAMSUNGPAY' },
+            ],
+            GOOGLEPAY: [
+              { $match: { 'paymethod.method': 'GOOGLEPAY' } },
+              { $count: 'GOOGLEPAY' },
+            ],
+            totalCount: [{ $group: { _id: null, totalCount: { $sum: 1 } } }],
+            income: [{ $group: { _id: null, income: { $sum: '$price' } } }],
+          },
         },
-      },
-    ],
-  }
+      ],
+    }
+    
+    let response = await MsiApi.mongoAggregate(queryData)
+    rfid.value = visitor.value = ev_life.value = income.value = 0
+    if (typeof response.data.result[0].RFID[0]?.RFID === 'number')
+      rfid.value = response.data.result[0].RFID[0]?.RFID
+    if (typeof response.data.result[0].guestEmail[0]?.guestEmail === 'number')
+      visitor.value = response.data.result[0].guestEmail[0]?.guestEmail
+    if (typeof response.data.result[0].totalCount[0]?.totalCount === 'number')
+      ev_life.value = response.data.result[0].totalCount[0]?.totalCount - rfid.value - visitor.value
+    if (typeof response.data.result[0].income[0]?.income === 'number')
+      income.value = response.data.result[0].income[0]?.income.toLocaleString()
+    
+    let payment_method_obj = {
+      credit: 0,
+      rfid: 0,
+      free: 0,
+      googlepay: 0,
+      samsungpay: 0,
+    }
+    payment_method_obj.credit = response.data.result[0].CREDIT[0]?.CREDIT
+    payment_method_obj.rfid = response.data.result[0].RFID[0]?.RFID
+    payment_method_obj.googlepay = response.data.result[0].GOOGLEPAY[0]?.GOOGLEPAY
+    payment_method_obj.samsungpay = response.data.result[0].SAMSUNGPAY[0]?.SAMSUNGPAY
+    payment_method_obj.free = response.data.result[0].FREE[0]?.FREE
 
-  
-  let response = await MsiApi.mongoAggregate(queryData)
-  rfid.value = visitor.value = ev_life.value = income.value = 0
-  if (typeof response.data.result[0].RFID[0]?.RFID === 'number')
-    rfid.value = response.data.result[0].RFID[0]?.RFID
-  if (typeof response.data.result[0].guestEmail[0]?.guestEmail === 'number')
-    visitor.value = response.data.result[0].guestEmail[0]?.guestEmail
-  if (typeof response.data.result[0].totalCount[0]?.totalCount === 'number')
-    ev_life.value =
-      response.data.result[0].totalCount[0]?.totalCount - rfid.value - visitor.value
-  if (typeof response.data.result[0].income[0]?.income === 'number')
-    income.value = response.data.result[0].income[0]?.income.toLocaleString()
-  
-  let payment_method_obj = {
-    credit: 0,
-    rfid: 0,
-    free: 0,
-    googlepay: 0,
-    samsungpay: 0,
+    payment_method_option.series[0].data = [
+      payment_method_obj.samsungpay,
+      payment_method_obj.googlepay,
+      payment_method_obj.free,
+      payment_method_obj.rfid,
+      payment_method_obj.credit,
+    ]
+    
+    if (echarts.getInstanceByDom(ref_payment_chart.value) !== undefined)
+      echarts.dispose(ref_payment_chart.value)
+    let payment_chart = echarts.init(ref_payment_chart.value)
+    payment_method_option && payment_chart.setOption(payment_method_option)
+    isFetchingTotalUsedTimes = false
   }
-  payment_method_obj.credit = response.data.result[0].CREDIT[0]?.CREDIT
-  payment_method_obj.rfid = response.data.result[0].RFID[0]?.RFID
-  payment_method_obj.googlepay = response.data.result[0].GOOGLEPAY[0]?.GOOGLEPAY
-  payment_method_obj.samsungpay = response.data.result[0].SAMSUNGPAY[0]?.SAMSUNGPAY
-  payment_method_obj.free = response.data.result[0].FREE[0]?.FREE
+}
 
-  payment_method_option.series[0].data = [
-    payment_method_obj.samsungpay,
-    payment_method_obj.googlepay,
-    payment_method_obj.free,
-    payment_method_obj.rfid,
-    payment_method_obj.credit,
-  ]
-  
-  if (echarts.getInstanceByDom(ref_payment_chart.value) !== undefined)
-    echarts.dispose(ref_payment_chart.value)
-  let payment_chart = echarts.init(ref_payment_chart.value)
-  payment_method_option && payment_chart.setOption(payment_method_option)
-  isFetchingTotalUsedTimes = false
-}
-}
 const queryEvseStatus = async () => {
   let queryData = {
     database: 'OCPI',
@@ -483,7 +449,6 @@ const queryCustomers = async () => {
 }
 
 const queryLast7dayUsed = async () => {
-
   let today = new Date()
   today.setHours(0, 0, 0, 0)
   let dates = Array.from({ length: 8 }, (_, index) => new Date(today.getTime() - index * 24 * 60 * 60 * 1000))
@@ -518,16 +483,10 @@ const queryLast7dayUsed = async () => {
   }
 
   let result = await MsiApi.mongoAggregate(aggregateQuery)
-  console.log(result)
   let dateKeys = Object.keys(result.data.result[0])
 
   for (let i = 0; i < dateKeys.length; i++) {
     let dateKey = dateKeys[i]
-    console.log(result.data.result[0][dateKey])
-
-
-
-
     let charge_kwh = 0
     result.data.result[0][dateKey].forEach((item) => {
       item.operator_types.forEach( (operator_types) => {
@@ -536,9 +495,6 @@ const queryLast7dayUsed = async () => {
         }
       })
     })
-    console.log(charge_kwh)
-
-    // let sumkwh = result.data.result[0][dateKey].reduce((acc, item) => acc + item.kwh, 0)
     power_times_option.series[0].data[dateKeys.length-i-1] = parseInt(charge_kwh)
     power_times_option.series[1].data[dateKeys.length-i-1] = result.data.result[0][dateKey].length
   }
@@ -703,46 +659,6 @@ onMounted(async () => {
 <template>
   <div class="dashboard">
     <div class="container lg mb-36px">
-      <!-- <div
-        class="selectDropdown md:flex md:flex-nowrap justify-center lg:justify-start pt-40px"
-      >
-        <SelectDropdown
-          v-model="select_country"
-          :data="country_options"
-          class="Country select mr-8px lg:mr-32px mb-20px md:mb-0"
-        >
-          <img
-            class="w-20px mr-8px"
-            src="@/assets/img/dashboard_dropdown_area.png"
-            alt=""
-          />
-        </SelectDropdown>
-
-        <SelectDropdown
-          v-model="select_city"
-          :data="city_options"
-          class="City select mr-8px lg:mr-32px mb-20px md:mb-0"
-        >
-          <img
-            class="w-20px mr-8px"
-            src="@/assets/img/dashboard_dropdown_location.png"
-            alt=""
-          />
-        </SelectDropdown>
-
-        <SelectDropdown
-          v-model="select_station"
-          :data="station_options"
-          class="Station select mb-10px md:mb-0"
-        >
-          <img
-            class="w-20px mr-8px"
-            src="@/assets/img/dashboard_dropdown_station.png"
-            alt=""
-          />
-        </SelectDropdown>
-      </div> -->
-      
       <p class="m-0 text-20px text-blue-1200 py-20px text-center">{{ t('real_time_status') }}</p>
       <el-row class="realtimeStatus" :gutter="30">
         <el-col class="mb-24px lg:mb-0" :xs="24" :md="12">
@@ -1011,8 +927,6 @@ onMounted(async () => {
   }
   .evse-status {
     height: 100%;
-    &-container {
-    }
     &-chart {
       width: 100%;
       min-width: 34rem;
