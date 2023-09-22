@@ -200,8 +200,8 @@ const addUserDialog = async (action) => {
   if (action === 'confirm') {
     add_user_ref.value.validate(valid => {
       if (valid) {
-        let sendData = {'first_name' : newUser.first_name, 'last_name' : newUser.last_name,
-        'email' : newUser.email, 'password': newUser.password, company:MStore.permission.company.name} 
+        let sendData = {'role': 'member', 'first_name' : newUser.first_name, 'last_name' : newUser.last_name,
+        'email' : newUser.email, 'password': newUser.password} 
 
         dialogFormVisible.value = false
         ElMessageBox.confirm(t('do_you_want_to_create'),t('warning'), {confirmButtonText: t('ok'), cancelButtonText: t('cancel'), type: 'warning'})
@@ -270,7 +270,7 @@ onMounted( async() => {
   <div class="customer">
     <div class="container lg">
       <div class="flex justify-between flex-wrap lg:flex-nowrap pt-40px pb-32px">
-        <el-input class="search-input" v-model="input" :placeholder="t('search')" @keyup.enter="search">
+        <el-input class="search-input mb-12px lg:mb-0" v-model="input" :placeholder="t('search')" @keyup.enter="search">
           <template #append>
             <el-button :icon="Search" @click="search" />
           </template>

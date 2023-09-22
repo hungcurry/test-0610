@@ -3,7 +3,7 @@ import axios from 'axios'
 
 let AuthToken = null
 let api1 = 'api10/api2'
-
+axios.defaults.timeout = 15000
 if (import.meta.env.VITE_API !== undefined) {
   api1 = import.meta.env.VITE_API
 }
@@ -24,14 +24,14 @@ export default function () {
     }
   }
 
-  const postJsonData = async function (path, data, Token,) {
+  const postJsonData = async function (path, data, Token) {
     if (Token === undefined) {
       Token = {}
       Token.headers = {}
       Token.headers['X-Client-From'] = 'm-Cloud'
     }
     try {
-      const response = await axios.post(path, data, Token,)
+      const response = await axios.post(path, data, Token)
       return response
     } catch (e) {
       return e.response
@@ -99,7 +99,32 @@ export default function () {
   }
 
   const register_member = async (json) => {
-    const response = await postJsonData(api1 + '/member/register', json)
+    AuthToken = VueCookies.get('AuthToken')
+    const response = await postJsonData(api1 + '/account', json, AuthToken)
+    return response
+  }
+
+  const get_account_info = async (role) => {
+    AuthToken = VueCookies.get('AuthToken')
+    const response = await getJsonData(api1 + '/account?role=' + role + '&type=info', AuthToken)
+    return response
+  }
+
+  const get_account_detail = async (role, id) => {
+    AuthToken = VueCookies.get('AuthToken')
+    const response = await getJsonData(api1 + '/account?role=' + role + '&type=detail&people=' + id, AuthToken)
+    return response
+  }
+
+  const edit_account = async (json) => {
+    AuthToken = VueCookies.get('AuthToken')
+    const response = await patchJsonData(api1 + '/account', json, AuthToken)
+    return response
+  }
+
+  const delete_account = async (params) => {
+    AuthToken = VueCookies.get('AuthToken')
+    const response = await delJsonData(api1 + '/account?tag_id=' + params.tag_id + '&byCompany=' + params.byCompany, '', AuthToken)
     return response
   }
 
@@ -181,6 +206,49 @@ export default function () {
     return response
   }
 
+  const add_rfid_data = async (json) => {
+    AuthToken = VueCookies.get('AuthToken')
+    const response = await postJsonData(api1 + '/rfid', json, AuthToken)
+    return response
+  }
+
+  const edit_rfid_data = async (json) => {
+    AuthToken = VueCookies.get('AuthToken')
+    const response = await patchJsonData(api1 + '/rfid', json, AuthToken)
+    return response
+  }
+
+  const delete_rfid_data = async (params) => {
+    AuthToken = VueCookies.get('AuthToken')
+    const response = await delJsonData(api1 + '/rfid?id=' + params.id + '&rfid=' + params.rfid, '', AuthToken)
+    return response
+  }
+
+  const set_rfid_cash = async (json) => {
+    AuthToken = VueCookies.get('AuthToken')
+    const response = await patchJsonData(api1 + '/rfid', json, AuthToken)
+    return response
+  }
+
+  const get_transaction = async (params) => {
+    AuthToken = VueCookies.get('AuthToken')
+    let path = '/log?'
+    if (params.type !== undefined) {
+      path += ('record_type=' + params.type)
+    }
+    if (params.user !== undefined) {
+      path += ('&user=' + params.user)
+    }
+    if (params.id !== undefined) {
+      path += ('&id=' + params.id)
+    }
+    if (params.start_date !== undefined && params.end_date !== undefined) {
+      path += ('&start_date=' + params.start_date + '&end_date=' + params.end_date )
+    }
+    const response = await getJsonData(api1 + path, AuthToken)
+    return response
+  }
+  
   const change_availability = async (json) => {
     AuthToken = VueCookies.get('AuthToken')
     const response = await postJsonData(api1 + '/cp/ocpp/v16/change_availability', json, AuthToken)
@@ -189,8 +257,10 @@ export default function () {
 
   return {
       setCollectionData, getToken, checkToken, mongoQuery, mongoAggregate,
-      register_member,  resetPW, reset_evse, updateFw, getTimeZone, getCoordinates, getAddress,
+      register_member, get_account_info, get_account_detail, edit_account, delete_account,
+      resetPW, reset_evse, updateFw, getTimeZone, getCoordinates, getAddress,
       bind_card, search_bind_card, unregister_bind_card, auth_payment, subscribe_plan, member_modify,
-      forgotPW, change_availability
+      forgotPW, add_rfid_data, edit_rfid_data, delete_rfid_data, set_rfid_cash, 
+      get_transaction, change_availability
   }
 }

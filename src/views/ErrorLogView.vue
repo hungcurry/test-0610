@@ -113,6 +113,9 @@ const getPageData = async() => {
   if (cur_page.value * 10 === max_page.value) {
     count = ocppErrorDataAll.length - (cur_page.value-1) * item_count.value
   }
+  else if (max_page.value === 0) {
+    count = 0
+  }
   for (let i=0; i<count; i++) {
     ocppErrorData.push(ocppErrorDataAll[(cur_page.value - 1) * item_count.value + i])
   }

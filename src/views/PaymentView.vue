@@ -6,21 +6,26 @@ import moment from 'moment'
 import { ref, reactive, onMounted } from 'vue'
 import { export_json_to_excel } from '@/composables/Export2Excel'
 import { useMStore } from '../stores/m_cloud'
-import { useI18n } from "vue-i18n"
+import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
 const MStore = useMStore()
 const MsiApi = ApiFunc()
 const PaymentData = reactive([])
+const RFIDData = reactive([])
 const now = new Date()
 const isLoading = ref(false)
 const parking_visible = ref(true)
 const charging_visible = ref(true)
-// const activeName = ref('1')
-const selectTime = ref([new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0),
-      new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59)])
-const defaultTime = [new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0),
-      new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59)]
+const activeName = ref('first')
+const selectTime = ref([
+  new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0),
+  new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59),
+])
+const defaultTime = [
+  new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0),
+  new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59),
+]
 const filters = [
   { text: t('credit_card'), value: 'CREDIT' },
   { text: t('rfid'), value: 'RFID' },
@@ -53,52 +58,44 @@ const download = () => {
     'parking_price_str',
     'parking_currency_str',
     'parking_car_num_str',
-    'charge_time',
-    'charge_energy_str',
-    'charge_price_str',
-    'charge_currency_str',
-    'price_str',
+    'charging_time',
+    'charging_energy_str',
+    'charging_price_str',
+    'charging_currency_str',
+    'money',
     'currency',
     'paymethod_str',
     'created_date_str',
   ]
   const data = PaymentData.map((v) => filterVal.map((j) => v[j]))
-  export_json_to_excel({ header: tHeader, data: data, filename: 'Payment' })
+  export_json_to_excel({ header: tHeader, data: data, filename: 'Transaction List' })
 }
-
+const downloadRFID = () => {
+  const tHeader = [
+    'ID/Email',
+    'Name',
+    'RFID Num',
+    'Amount',
+    'Create Time',
+  ]
+  const filterVal = [
+    'tag_id',
+    'name',
+    'rfid',
+    'money',
+    'created_date_str',
+  ]
+  const data = RFIDData.map((v) => filterVal.map((j) => v[j]))
+  export_json_to_excel({ header: tHeader, data: data, filename: 'Top-up List' })
+}
 const filterTag = (value, rowData) => {
-  return rowData.paymethod.method === value
+  return rowData.paymethod === value
 }
 
 const select_date = async () => {
-  const queryData = {
-      database: 'CPO',
-      collection: 'PaymentHistory',
-      pipelines: [
-        {
-          $match: {
-            $expr: {
-              $and: [
-                {
-                  $gte: [
-                    '$created_date',
-                    { $dateFromString: { dateString: selectTime.value[0]  } },
-                  ],
-                },
-                {
-                  $lte: [
-                    '$created_date',
-                    { $dateFromString: { dateString: selectTime.value[1]  } },
-                  ],
-                },
-              ],
-            },
-          },
-        },
-        { $project: { _id: 0, sessionId: 0, location: 0, detail: 0, locationId: 0} },
-      ],
-    }
-  await MongoQurey(queryData)
+  isLoading.value = true
+  await getPaymentData()
+  isLoading.value = false
 }
 
 const sortFunc = (obj1, obj2, column) => {
@@ -107,8 +104,8 @@ const sortFunc = (obj1, obj2, column) => {
   let convertedNumber2 = undefined
   if (
     column === 'parking_price_str' ||
-    column === 'price_str' ||
-    column === 'charge_price_str'
+    column === 'money' ||
+    column === 'charging_price_str'
   ) {
     if (obj1[column] !== undefined) {
       convertedNumber1 = parseFloat(obj1[column].replace(/,/g, ''))
@@ -132,88 +129,65 @@ const sortFunc = (obj1, obj2, column) => {
   }
 }
 
-const MongoQurey = async (queryData) => {
-  isLoading.value = true
-  const res =  await MsiApi.mongoAggregate(queryData)
-  console.log(res)
+const getPaymentData = async() => {
+  let response = null
+  let params = null
+  
+  if (selectTime.value === null) {
+    return
+  }
+
+  const startTime = new Date(selectTime.value[0].getTime() - MStore.timeZoneOffset * -60000)
+  const endTime = new Date(selectTime.value[1].getTime() - MStore.timeZoneOffset * -60000)
+
+  params = {type: 'payment', start_date: startTime, end_date: endTime}
+  response = await MsiApi.get_transaction(params)
   PaymentData.length = 0
-  Object.assign(PaymentData, res.data.result)
-  for (let i = 0; i < PaymentData.length; i++) {
-    switch (PaymentData[i]?.paymethod?.method) {
+  Object.assign(PaymentData, response?.data?.data?.logs)
+
+  let RFIDDataTemp = [] // Tony: for 初步去識別化，過濾 DELETE 的資料
+  params = {type: 'cash', start_date: startTime, end_date: endTime}
+  response = await MsiApi.get_transaction(params)
+  RFIDDataTemp.length = 0
+  Object.assign(RFIDDataTemp, response?.data?.data?.logs)
+
+  PaymentData.forEach((item) => {
+    switch (item?.paymethod) {
       case 'CREDIT':
-        PaymentData[i].paymethod_str = t('credit_card')
+        item.paymethod_str = t('credit_card')
         break
       case 'GOOGLEPAY':
-        PaymentData[i].paymethod_str = t('google_pay')
+        item.paymethod_str = t('google_pay')
         break
       case 'SAMSUNGPAY':
-        PaymentData[i].paymethod_str = t('samsung_pay')
-        break 
+        item.paymethod_str = t('samsung_pay')
+        break
       case 'FREE':
-        PaymentData[i].paymethod_str = t('free')
+        item.paymethod_str = t('free')
         break
       case 'RFID':
-        PaymentData[i].paymethod_str = t('rfid')
+        item.paymethod_str = t('rfid')
         break
       default:
-        PaymentData[i].paymethod_str = PaymentData[i]?.paymethod?.method
+        item.paymethod_str = item?.paymethod
     }
-    
-    PaymentData[i].price_str = PaymentData[i]?.price?.toLocaleString()
-    let localTime = new Date(new Date(PaymentData[i].created_date).getTime() + MStore.timeZoneOffset * -60000)
-    PaymentData[i].created_date_str = moment(localTime).format('YYYY-MM-DD HH:mm:ss')
+    let localTime = new Date(new Date(item.created_date).getTime() + MStore.timeZoneOffset * -60000)
+    item.created_date_str = moment(localTime).format('YYYY-MM-DD HH:mm:ss')
+  })
 
-    for (let j = 0; j < PaymentData[i]?.operator_types?.length; j++) {
-      let time = moment.duration(PaymentData[i]?.operator_types?.[j]?.time, 'seconds')
-      let timeFormat = moment({ h: time.hours(), m: time.minutes(), s: time.seconds()}).format('HH:mm:ss')
-      switch (PaymentData[i].operator_types[j].type) {
-        case 'charge' :
-          PaymentData[i].charge_time = timeFormat
-          PaymentData[i].charge_energy_str = PaymentData[i]?.operator_types[j]?.kwh
-          PaymentData[i].charge_price_str = PaymentData[i]?.operator_types[j]?.price.toLocaleString()
-          PaymentData[i].charge_currency_str = PaymentData[i]?.operator_types[j]?.currency
-        break
-        case 'parking' :
-          PaymentData[i].parking_time = timeFormat
-          PaymentData[i].parking_car_num_str = PaymentData[i]?.operator_types[j]?.car_num
-          PaymentData[i].parking_price_str = PaymentData[i]?.operator_types[j]?.price.toLocaleString()
-          PaymentData[i].parking_currency_str = PaymentData[i]?.operator_types[j]?.currency
-        break
-      }
+  RFIDData.length = 0
+  RFIDDataTemp.forEach((item) => {
+    if (item.tag_id !== 'DELETE' && item.name !== 'DELETE') {
+      let localTime = new Date(new Date(item.created_date).getTime() + MStore.timeZoneOffset * -60000)
+      item.created_date_str = moment(localTime).format('YYYY-MM-DD HH:mm:ss')
+      RFIDData.push(item)
     }
-  }
-  isLoading.value = false
+  })
 }
-
 onMounted(async () => {
-  const queryData = {
-      database: 'CPO',
-      collection: 'PaymentHistory',
-      pipelines: [
-        {
-          $match: {
-            $expr: {
-              $and: [
-                {
-                  $gte: [
-                    '$created_date',
-                    { $dateFromString: { dateString: selectTime.value[0]  } },
-                  ],
-                },
-                {
-                  $lte: [
-                    '$created_date',
-                    { $dateFromString: { dateString: selectTime.value[1]  } },
-                  ],
-                },
-              ],
-            },
-          },
-        },
-        { $project: { _id: 0, sessionId: 0, location: 0, detail: 0, locationId: 0} },
-      ],
-    }
-  await MongoQurey(queryData)
+  isLoading.value = true
+  await getPaymentData()
+  isLoading.value = false
 })
 </script>
 
@@ -234,40 +208,51 @@ onMounted(async () => {
             :default-time="defaultTime"
           />
         </div>
-        <div
-          class="w-full mt-4 md:mt-8 lg:mt-0 md:flex justify-between lg:justify-end items-center"
-        >
-          <div class="w-full lg:w-auto flex justify-between md:justify-start">
+        <div class="w-full mt-4 md:mt-8 lg:mt-0 md:flex justify-end items-center">
+          <div v-if="activeName === 'first'" class="w-full lg:w-auto flex justify-between md:justify-start">
             <el-checkbox
               class="mr-0 md:mr-30px"
               v-model="parking_visible"
-              :label= "t('parking')"
+              :label="t('parking')"
               size="large"
             />
-            <el-checkbox v-model="charging_visible" :label= "t('charging')" size="large" />
+            <el-checkbox v-model="charging_visible" :label="t('charging')" size="large" />
           </div>
-          <el-button
-            class="download-btn w-full md:w-auto mt-4 md:mt-0 md:ml-30px box-shadow"
-            @click="download"
-          >
+          <template v-if="true">
+            <el-button v-if="activeName === 'first'"
+              class="download-btn w-full md:w-auto mt-4 md:mt-0 md:ml-30px box-shadow"
+              @click="download"
+            >
             <span class="lg:hidden"> {{ t('download') }}</span>
             <img
               class="w-24px h-24px ml-10px lg:ml-0"
               src="@/assets/img/station_download.png"
               alt="station_download"
             />
-          </el-button>
+            </el-button>
+            <el-button v-if="activeName === 'second'"
+              class="download-btn w-full md:w-auto mt-4 md:mt-0 box-shadow"
+              @click="downloadRFID"
+            >
+              <span class="lg:hidden"> {{ t('download') }}</span>
+              <img
+                class="w-24px h-24px ml-10px lg:ml-0"
+                src="@/assets/img/station_download.png"
+                alt="station_download"
+              />
+            </el-button>
+          </template>
         </div>
       </div>
-      <!-- <div class="tabs">
+      <div class="tabs">
         <el-tabs v-model="activeName">
-          <el-tab-pane :label="t('payment')" name="1"> -->
+          <el-tab-pane :label="t('transaction_list')" name="first">
             <div class="overflow-x-auto">
-              <div class="payment-list pb-40px">
-                <el-table 
+              <div class="transaction-list pb-40px">
+                <el-table
                   :data="PaymentData"
                   class="white-space-nowrap text-primary"
-                  height="calc(100vh - 220px)"
+                  height="calc(100vh - 280px)"
                   style="width: 100%"
                   stripe
                   size="large"
@@ -276,7 +261,7 @@ onMounted(async () => {
                   v-loading.fullscreen.lock="isLoading"
                   :default-sort="{ prop: 'created_date_str', order: 'ascending' }"
                 >
-                  <el-table-column :label= "t('station')" align="center" min-width="550">
+                  <el-table-column :label="t('station')" align="center" min-width="550">
                     <el-table-column
                       prop="location_name"
                       :label="t('name')"
@@ -318,7 +303,7 @@ onMounted(async () => {
                       min-width="100"
                       :sort-method="(a, b) => sortFunc(a, b, 'parking_price_str')"
                     />
-                    
+
                     <el-table-column
                       prop="parking_currency_str"
                       :label="t('currency')"
@@ -346,52 +331,51 @@ onMounted(async () => {
                     min-width="450"
                   >
                     <el-table-column
-                      prop="charge_time"
+                      prop="charging_time"
                       :label="t('used_time')"
                       align="center"
                       sortable
                       min-width="150"
-                      :sort-method="(a, b) => sortFunc(a, b, 'charge_time')"
+                      :sort-method="(a, b) => sortFunc(a, b, 'charging_time')"
                     />
                     <el-table-column
-                      prop="charge_energy_str"
+                      prop="charging_energy_str"
                       :label="t('kwh')"
                       header-align="center"
                       align="right"
                       sortable
                       min-width="150"
-                      :sort-method="(a, b) => sortFunc(a, b, 'charge_energy_str')"
+                      :sort-method="(a, b) => sortFunc(a, b, 'charging_energy_str')"
                     />
                     <el-table-column
-                      prop="charge_price_str"
+                      prop="charging_price_str"
                       :label="t('price')"
                       header-align="center"
                       align="right"
                       sortable
                       min-width="100"
-                      :sort-method="(a, b) => sortFunc(a, b, 'charge_price_str')"
+                      :sort-method="(a, b) => sortFunc(a, b, 'charging_price_str')"
                     />
 
                     <el-table-column
-                      prop="charge_currency_str"
+                      prop="charging_currency_str"
                       :label="t('currency')"
                       header-align="center"
                       align="center"
                       sortable
                       min-width="150"
-                      :sort-method="(a, b) => sortFunc(a, b, 'charge_currency_str')"
+                      :sort-method="(a, b) => sortFunc(a, b, 'charging_currency_str')"
                     />
-
                   </el-table-column>
 
                   <el-table-column
-                    prop="price_str"
+                    prop="money"
                     :label="t('final_paid')"
                     header-align="center"
                     align="right"
                     sortable
-                    min-width="150"
-                    :sort-method="(a, b) => sortFunc(a, b, 'price_str')"
+                    min-width="180"
+                    :sort-method="(a, b) => sortFunc(a, b, 'money')"
                   />
 
                   <el-table-column
@@ -423,11 +407,74 @@ onMounted(async () => {
                   />
                 </el-table>
               </div>
-            <!-- </div>
+            </div>
           </el-tab-pane>
-          <el-tab-pane :label="t('unpaired')" name="2">
+          <el-tab-pane :label="t('top_up_list')" name="second">
+            <div class="overflow-x-auto">
+              <div class="topup-list pb-40px">
+                <el-table
+                  :data="RFIDData"
+                  class="white-space-nowrap text-primary"
+                  height="calc(100vh - 220px)"
+                  style="width: 100%"
+                  stripe
+                  size="large"
+                  :cell-style="msi.tb_cell"
+                  :header-cell-style="msi.tb_header_cell"
+                  v-loading.fullscreen.lock="isLoading"
+                  :default-sort="{ prop: 'created_date_str', order: 'ascending' }"
+                >
+                  <el-table-column
+                    prop="tag_id"
+                    :label="t('id_email')"
+                    align="center"
+                    sortable
+                    min-width="200"
+                    :sort-method="(a, b) => sortFunc(a, b, 'tag_id')"
+                  />
+
+                  <el-table-column
+                    prop="name"
+                    :label="t('name')"
+                    align="center"
+                    sortable
+                    min-width="200"
+                    :sort-method="(a, b) => sortFunc(a, b, 'name')"
+                  />
+
+                  <el-table-column
+                    prop="rfid"
+                    :label="t('rfid_num')"
+                    align="center"
+                    sortable
+                    min-width="150"
+                    :sort-method="(a, b) => sortFunc(a, b, 'rfid')"
+                  />
+
+                  <el-table-column
+                    prop="money"
+                    :label="t('amount')"
+                    header-align="center"
+                    align="right"
+                    sortable
+                    min-width="150"
+                    :sort-method="(a, b) => sortFunc(a, b, 'money')"
+                  />
+
+                  <el-table-column
+                    prop="created_date_str"
+                    :label="t('created_time')"
+                    align="center"
+                    sortable
+                    min-width="200"
+                    :sort-method="(a, b) => sortFunc(a, b, 'created_date_str')"
+                  />
+
+                </el-table>
+              </div>
+            </div>
           </el-tab-pane>
-        </el-tabs> -->
+        </el-tabs>
       </div>
     </div>
   </div>

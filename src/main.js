@@ -3,7 +3,6 @@ import { createPinia } from 'pinia'
 import i18n from '@/locales'
 import router from './router'
 import App from './App.vue'
-
 import 'normalize.css/normalize.css'
 import 'uno.css'
 import '@/assets/scss/all.scss'
@@ -34,14 +33,16 @@ import {
 
 const app = createApp(App)
 
+/* global APP_VERSION */
+app.config.globalProperties.APP_VERSION = APP_VERSION
+
 app.use(createPinia())
 app.use(router)
 app.use(i18n)
 app.component('font-awesome-icon', FontAwesomeIcon)
 app.mount('#app')
 
-/* global APP_VERSION */
-app.config.globalProperties.APP_VERSION = APP_VERSION
+
 
 library.add(
   faUser,

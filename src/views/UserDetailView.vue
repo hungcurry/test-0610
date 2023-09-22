@@ -288,7 +288,7 @@ const checkRfidCard = async() => {
         $match: { 
           $and: [
             {
-              "rfids.rfid": rfidData.rfid
+              "rfids.rfid": rfidData.rfid.toUpperCase()
             },
             {
               _id: { $ne: {"ObjectId" : userData._id}}
@@ -696,9 +696,8 @@ onMounted(async () => {
         <el-tabs v-model="activeName">
           <el-tab-pane :label="t('general')" name="first" >
             <div class="flex flex-col 2xl:flex-row">
-
-              <div class="general-info overflow-x-auto scrollbar p-24px pl-0px">
-                <div class="card-container card-rounded box-shadow">
+              <div class="general-info overflow-x-auto scrollbar py-24px lg:pr-24px">
+                <div class="card-container card-rounded box-shadow p-4 md:p-6">
                   <div class="flex justify-between">
                     <div class="flex">
                       <font-awesome-icon class="icon w-24px h-24px mr-8px" icon="fa-regular fa-user"/>
@@ -712,49 +711,49 @@ onMounted(async () => {
                     <el-skeleton :rows="8" v-if="isLoading_skeleton" />
                     <div v-if="isLoading_skeleton === false" class="mt-16px lg:w-50%">
                       <div class="mb-8px">
-                        <span class="info-item">{{ t('e_mail') }}</span>
-                        <span class="line-height-32px">{{ userData.email }}</span>
+                        <span class="info-item min-w-110px">{{ t('e_mail') }}</span>
+                        <span class="line-height-32px font-500 text-blue-1200">{{ userData.email }}</span>
                       </div>
     
                       <div class="mb-8px">
-                        <span class="info-item">{{ t('phone') }}</span>
-                        <span class="line-height-32px">{{ userData.phone }}</span>
+                        <span class="info-item min-w-110px ">{{ t('phone') }}</span>
+                        <span class="line-height-32px font-500 text-blue-1200">{{ userData.phone }}</span>
                       </div>
     
                       <div class="mb-8px">
-                        <span class="info-item">{{ t('country') }}</span>
-                        <span class="line-height-32px">{{ userData.country }}</span>
+                        <span class="info-item min-w-110px ">{{ t('country') }}</span>
+                        <span class="line-height-32px font-500 text-blue-1200">{{ userData.country }}</span>
                       </div>
     
                       <div class="mb-8px">
-                        <span class="info-item">{{ t('language') }}</span>
-                        <span class="line-height-32px">{{ userData.language }}</span>
+                        <span class="info-item min-w-110px ">{{ t('language') }}</span>
+                        <span class="line-height-32px font-500 text-blue-1200">{{ userData.language }}</span>
                       </div>
     
                       <div class="mb-8px">
-                        <span class="info-item">{{ t('permission') }}</span>
-                        <span class="line-height-32px">{{ userData.permission_str }}</span>
+                        <span class="info-item min-w-110px ">{{ t('permission') }}</span>
+                        <span class="line-height-32px font-500 text-blue-1200">{{ userData.permission_str }}</span>
                       </div>
     
                       <div class="mb-8px">
-                        <span class="info-item white-space-nowrap">{{ t('updated_date') }}</span>
-                        <span class="line-height-32px white-space-nowrap">{{ userData.updated_date_str }}</span>
+                        <span class="info-item min-w-110px white-space-nowrap">{{ t('updated_date') }}</span>
+                        <span class="line-height-32px font-500 text-blue-1200 white-space-nowrap">{{ userData.updated_date_str }}</span>
                       </div>
     
                       <div class="mb-8px">
-                        <span class="info-item white-space-nowrap">{{ t('created_date') }}</span>
-                        <span class="line-height-32px white-space-nowrap">{{ userData.created_date_str }}</span>
+                        <span class="info-item min-w-110px white-space-nowrap">{{ t('created_date') }}</span>
+                        <span class="line-height-32px font-500 text-blue-1200 white-space-nowrap">{{ userData.created_date_str }}</span>
                       </div>
                     </div>
-                    <div v-if="isLoading_skeleton === false" class="mt-0px lg:mt-16px lg:50%">
-                      <div class="flex mb-8px">
-                        <span class="info-item">{{ t('binding_card') }}</span>
-                        <el-button round class="button" @click="binding_card_detail">{{ t('card_details') }}</el-button>
+                    <div v-if="isLoading_skeleton === false" class="mt-0px lg:mt-16px lg:w-50%">
+                      <div class="md:flex mb-8px">
+                        <span class="info-item min-w-110px">{{ t('binding_card') }}</span>
+                        <el-button round class="button w-full" @click="binding_card_detail">{{ t('card_details') }}</el-button>
                       </div>
     
-                      <div class="flex mb-8px">
-                        <span class="info-item">{{ t('device') }}</span>
-                        <el-button round class="button" @click="device_detail">{{ t('device_details') }}</el-button>
+                      <div class="md:flex mb-8px">
+                        <span class="info-item min-w-110px">{{ t('device') }}</span>
+                        <el-button round class="button w-full" @click="device_detail">{{ t('device_details') }}</el-button>
                       </div>
                     </div>
                   </div>
@@ -762,16 +761,16 @@ onMounted(async () => {
               </div>
 
               <div class="flex-col w-full  2xl:flex-col 2xl:w-40%">
-                <div class="real-time-info overflow-x-auto scrollbar p-24px pl-0px">
-                  <div class="card-container card-rounded box-shadow">
+                <div class="real-time-info overflow-x-auto scrollbar py-24px lg:pr-10px">
+                  <div class="card-container card-rounded box-shadow p-4 md:p-6">
                     <div class="flex">
                       <img class="icon w-24px h-24px mr-8px" src="@/assets/img/customer_time.png" alt="">
                       <span class="line-height-24px">{{ t('real_time_info') }}</span>
                     </div>
                     <el-skeleton :rows="2" v-if="isLoading_skeleton" class="mt-16px" />
-                    <div v-if="isLoading_skeleton === false" class="flex mt-16px">
-                      <span class="info-item">{{ t('occupied_evse_id') }}</span>
-                      <p v-if="userData.evse_list_id_detail === ''" class="line-height-32px">{{ userData.evse_list_id }}</p>
+                    <div v-if="isLoading_skeleton === false" class="md:flex mt-16px">
+                      <span class="info-item min-w-150px">{{ t('occupied_evse_id') }}</span>
+                      <p v-if="userData.evse_list_id_detail === ''" class="line-height-32px font-500 text-blue-1200">{{ userData.evse_list_id }}</p>
                       <el-tooltip v-else placement="bottom-start">
                         <template #content>
                           <div v-html="userData.evse_list_id_detail"></div>
@@ -784,7 +783,7 @@ onMounted(async () => {
                       <el-button 
                         v-if="company === 'MSI'" 
                         round
-                        class="button ml-15px w-100px"
+                        class="button md:ml-auto w-full"
                         @click="clearEvseList"
                       >
                         <font-awesome-icon class="mr-8px" icon="fa-solid fa-gear" /> 
@@ -792,14 +791,13 @@ onMounted(async () => {
                       </el-button>
                     </div>
                     <div v-if="isLoading_skeleton === false" class="mt-8px">
-                      <span class="info-item">{{ t('status') }}</span>
-                      <span class="line-height-32px">{{ }}</span>
+                      <span class="info-item min-w-150px">{{ t('status') }}</span>
+                      <span class="line-height-32px font-500 text-blue-1200">{{ }}</span>
                     </div>
                   </div>
                 </div>
-
-                <div class="total-record-info overflow-x-auto scrollbar p-24px pl-0px">
-                  <div class="card-container card-rounded box-shadow">
+                <div class="total-record-info overflow-x-auto scrollbar py-24px lg:pr-10px">
+                  <div class="card-container card-rounded box-shadow p-4 md:p-6">
                     <div class="flex">
                       <font-awesome-icon class="icon w-24px h-24px mr-8px" icon="fa-solid fa-chart-line" />
                       <span class="line-height-24px">{{ t('usage_summary') }}</span>
@@ -808,35 +806,34 @@ onMounted(async () => {
                     <el-skeleton :rows="3" v-if="isLoading_skeleton" class="mt-16px" />
                     
                     <div v-if="isLoading_skeleton === false" class="mt-16px">
-                      <span class="info-item">{{ t('total_used_power') }}</span>
-                      <span class="line-height-32px">{{ paymentData.charge_kwh }}</span>
+                      <span class="info-item min-w-150px">{{ t('total_used_power') }}</span>
+                      <span class="line-height-32px font-500 text-blue-1200">{{ paymentData.charge_kwh }}</span>
                     </div>
                     <div v-if="isLoading_skeleton === false" class="mt-8px">
-                      <span class="info-item">{{ t('total_cost') }}</span>
-                      <span class="line-height-32px">{{ paymentData.cost_str }}</span>
+                      <span class="info-item min-w-150px">{{ t('total_cost') }}</span>
+                      <span class="line-height-32px font-500 text-blue-1200">{{ paymentData.cost_str }}</span>
                     </div>
                     <div v-if="isLoading_skeleton === false" class="mt-8px">
-                      <span class="info-item">{{ t('total_times') }}</span>
-                      <span class="line-height-32px">{{ paymentData.amount_str }}</span>
+                      <span class="info-item min-w-150px">{{ t('total_times') }}</span>
+                      <span class="line-height-32px font-500 text-blue-1200">{{ paymentData.amount_str }}</span>
                     </div>
                     <div v-if="isLoading_skeleton === false" class="mt-8px">
-                      <span class="info-item">{{ t('total_charging_time') }}</span>
-                      <span class="line-height-32px">{{ paymentData.charge_hr + ":" + paymentData.charge_min + ":" + paymentData.charge_sec }}</span>
+                      <span class="info-item min-w-150px">{{ t('total_charging_time') }}</span>
+                      <span class="line-height-32px font-500 text-blue-1200">{{ paymentData.charge_hr + ":" + paymentData.charge_min + ":" + paymentData.charge_sec }}</span>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
-
-            <div class="rfid-info overflow-x-auto scrollbar p-24px pl-0px">
-              <div class="card-container card-rounded box-shadow">
-                <div class="flex justify-between mb-24px min-w-250px">
-                  <div class="flex">
+            <div class="rfid-info overflow-x-auto scrollbar py-24px lg:pr-10px">
+              <div class="card-container card-rounded box-shadow p-4 md:p-6">
+                <div class="md:flex justify-between mb-24px min-w-250px">
+                  <div class="flex mb-8px md:mb-0">
                     <img class="icon w-24px h-24px mr-8px" src="@/assets/img/customer_rfid.png" alt="">
                     <span class="line-height-24px">{{ t('rfid') }}</span>
                   </div>
                   <el-button 
-                    class="button h-32px w-150px" 
+                    class="button h-32px w-full md:w-150px" 
                     round
                     @click="editRfid"
                   >
@@ -876,9 +873,8 @@ onMounted(async () => {
           </el-tab-pane>
 
           <el-tab-pane :label="t('payment')" name="second">
-
             <div class="flex justify-between flex-wrap lg:flex-nowrap pt-24px pb-32px">
-              <div class="date-picker w-full">
+              <div class="date-picker w-full blue-1100">
                 <el-date-picker 
                   v-model="select_time" 
                   class="mr-16px rounded-full"
@@ -898,7 +894,7 @@ onMounted(async () => {
                   <el-checkbox class="mr-0 md:mr-30px" v-model="parking_visible" :label="t('parking')" />
                   <el-checkbox v-model="charging_visible" :label="t('charging')" />
                 </div>
-                <el-button class="download-btn w-full md:w-auto mt-4 md:mt-0 md:ml-30px box-shadow" @click="download">
+                <el-button class="download-btn w-full md:w-auto mt-4 md:mt-0 md:ml-30px lg:mr-10px box-shadow" @click="download">
                   <span class="lg:hidden">{{ t('download') }}</span>
                   <img
                     class="w-24px h-24px ml-10px lg:ml-0"
@@ -908,7 +904,6 @@ onMounted(async () => {
                 </el-button>
               </div>
             </div>
-
             <div class="overflow-x-auto">
               <div class="">
                 <el-table 
@@ -1232,7 +1227,6 @@ onMounted(async () => {
 
 <style lang="scss" scoped >
 .customers-detail {
-
   .card-container {
     height: 100%;
     border: 2px solid var(--gray-100);
@@ -1241,11 +1235,14 @@ onMounted(async () => {
   .info-item {
     display: inline-block;
     width: fit-content;
-    min-width: 150px;
     line-height: 32px;
-    margin-right: 24px;
+    margin-right: 10px;
+    font-size: 14px;
+    @media (min-width: 768px) {
+      font-size: 16px;
+      margin-right: 20px;
+    }
   }
-
   .general-info {
     @media (min-width: 1400px) {
       width: 60%;
@@ -1265,14 +1262,15 @@ onMounted(async () => {
   }
   .rfid-info {
     .rfid-card {
-      width: 300px;
+      width: 100%;
       height: 150px;
       border-radius: 16px;
-      margin: 0 20px 20px 0;
+      margin: 0 0px 20px 0;
       border: 2px solid var(--gray-100);
       @media (min-width: 992px) {
-        width: 354px;
-    }
+        width: 380px;
+        margin-right: 20px;
+      }
     }
     .rfid-card-down {
       border-top: 2px solid var(--gray-200);
@@ -1281,8 +1279,6 @@ onMounted(async () => {
       align-items: center;
     }
   }
-
-
   .enable {
     font-weight: 600;
     color: var(--blue-800);
@@ -1295,12 +1291,14 @@ onMounted(async () => {
     color: var(--blue-1100);
   }
   .button {
-    width: 18rem;
     padding: 0.8rem 2rem;
     font-size: 1.8rem;
     color: var(--secondary);
     border-color: var(--secondary);
     border-radius: 2rem;
+    @media (min-width: 768px) {
+      width: 18rem;
+    }
   }
   .download-btn {
     height: 4rem;
@@ -1343,7 +1341,6 @@ onMounted(async () => {
     }
   }
 }
-
 .scrollbar {
   &::-webkit-scrollbar {
     width: 0.8rem;
@@ -1358,7 +1355,6 @@ onMounted(async () => {
     border-radius: 2rem;
   }
 }
-
 :deep(.el-form-item__label) {
   width: 102px;
   display: block;

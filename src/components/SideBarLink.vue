@@ -42,7 +42,7 @@ const pathResetHandler = () => {
 }
 onMounted(async () => {
   let value = m_cloud_permission[user_permission_name]
-  console.log(value)
+  // console.log(value)
   if (value !== undefined)
     user_permission = value
   if (
@@ -93,7 +93,8 @@ onMounted(async () => {
         <el-icon class="opacity-50"><UserFilled /></el-icon>
         <span>{{t('account_management')}}</span>
       </template>
-      <el-menu-item v-if="(user_permission.User ==='O') || user_permission_name === undefined" class="collapse" index="user">{{t('rfid_user_app_member')}}</el-menu-item>
+      <el-menu-item v-if="company === 'MSI' && ((user_permission.User ==='O') || user_permission_name === undefined)" class="collapse" index="user">{{t('app_member')}}</el-menu-item>
+      <el-menu-item v-if="company !== 'MSI' && ((user_permission.RfidUser ==='O') || user_permission_name === undefined)" class="collapse" index="rfid-user">{{t('rfid_user')}}</el-menu-item>
       <el-menu-item class="collapse" v-if="company === 'MSI' && ((user_permission.Company ==='O') || user_permission_name === undefined)" index="company"
         >{{t('company_cpo')}}</el-menu-item
       >

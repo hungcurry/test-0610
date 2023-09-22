@@ -1,14 +1,13 @@
 <script setup>
-import ApiFunc from '@/composables/ApiFunc'
-import VueCookies from 'vue-cookies'
-import { onMounted,onBeforeMount, ref } from 'vue'
+import { onMounted, onBeforeMount, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { ElMessage } from 'element-plus'
 import { useMStore } from '@/stores/m_cloud'
-import { useI18n } from 'vue-i18n'
+import VueCookies from 'vue-cookies'
+import ApiFunc from '@/composables/ApiFunc'
 
 const { t } = useI18n()
-const first_login = ref(false)
 const MStore = useMStore()
 const MsiApi = ApiFunc()
 const router = useRouter()
@@ -17,6 +16,7 @@ const password = ref('')
 const email = ref('')
 const pw_type = ref('password')
 const language = ref ('en_us')
+const first_login = ref(false)
 const forgotPWVisable = ref(false)
 const sendEmailCompleted = ref(false)
 const isLoading = ref(false)
@@ -28,8 +28,10 @@ const cancel_eula = () => {
 }
 
 const pwVisible = () => {
-  if (pw_type.value === 'password') pw_type.value = 'text'
-  else pw_type.value = 'password'
+  if (pw_type.value === 'password') 
+    pw_type.value = 'text'
+  else 
+    pw_type.value = 'password'
 }
 
 const login = async () => {
@@ -44,9 +46,15 @@ const login = async () => {
       ElMessage.error('Error.')
       return
     }
-    const response1 = await MsiApi.checkToken()
-    if (response1.status === 200) {
-      if (response1.data?.permission?.user === undefined || response1.data?.config?.m_cloud?.logged) 
+  }
+  catch {
+    ElMessage.error('An unexpected error occurred.')
+  }  
+
+  try {
+    const response = await MsiApi.checkToken()
+    if (response.status === 200) {
+      if (response.data?.permission?.user === undefined || response.data?.config?.m_cloud?.logged) 
         router.push({ name: 'dashboard' })
       else 
         first_login.value = true
@@ -56,7 +64,7 @@ const login = async () => {
       return
     }
   }
-  catch  {
+  catch {
     ElMessage.error('An unexpected error occurred.')
   }
 }
@@ -85,12 +93,12 @@ const sendEmail = async() => {
   try {
     isLoading.value = true
     let sendData = { email: email.value, dashboard: true }
-    let res = await MsiApi.forgotPW(sendData)
+    const response = await MsiApi.forgotPW(sendData)
     isLoading.value = false
-    if (res.status === 200) {
+    if (response.status === 200) {
       sendEmailCompleted.value = true
     }
-    else if (res.status === 404) {
+    else if (response.status === 404) {
       ElMessage.error(t('error_please_check_the_email_you_entered'))
     }
     else {
@@ -147,9 +155,9 @@ onMounted(() => {
           <img
             v-if="pw_type === 'text'"
             src="@/assets/img/login_visible_nor.png"
-            @click="pwVisible()"
+            @click="pwVisible"
           />
-          <img v-else src="@/assets/img/login_unvisible_nor.png" @click="pwVisible()" />
+          <img v-else src="@/assets/img/login_unvisible_nor.png" @click="pwVisible" />
         </div>
 
         <div class="forgot-container mb-20 lg:mb-25">
@@ -219,7 +227,7 @@ onMounted(() => {
           </template>
         </el-dialog>
 
-        <button type="button" class="log-in" @click="login()">
+        <button type="button" class="log-in" @click="login">
           {{ t('log_in') }}
         </button>
       </form>

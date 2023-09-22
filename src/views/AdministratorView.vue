@@ -140,28 +140,32 @@ const AddAdmin = async (action, visable) => {
       if (valid) {
         AddAdminFormVisible.value = visable
         let edit = AddAdminData.permission_edit ? 1 : 3
-        let sendData = {
-          first_name: AddAdminData.first_name, last_name: AddAdminData.last_name,
-          permission: AddAdminData.permission_id, edit: edit, active: AddAdminData.permission_active ,
-          email: AddAdminData.email, phone: AddAdminData.phone, company: MStore.permission.company.name, password: "msi32345599", dashboard: true
-        }
-    
         ElMessageBox.confirm(t('do_you_want_to_create'), t('warning'), { confirmButtonText: t('ok'), cancelButtonText: t('cancel'), type: 'warning' })
           .then(async () => {
             isLoading.value = true
+            let sendData = {
+              role: 'admin',
+              first_name: AddAdminData.first_name, last_name: AddAdminData.last_name,
+              email: AddAdminData.email, phone: AddAdminData.phone, password: "msi32345599",
+              permission: AddAdminData.permission_id, edit: edit, active: AddAdminData.permission_active ,
+            }
             let res = await MsiApi.register_member(sendData)
             if (res.status === 201) {
               GetPermission()
               console.log(await MongoAggregate())
             }
-            else if(res.status === 200) {
+            else if(res.data.message === 'User is exist') {
               ElMessage.error(t('email_already_exists'))
               isLoading.value = false
               AddAdminFormVisible.value = true
             }
+            else if (res.data.message === 'Mail not found') {
+              ElMessage.error(t('email_not_found'))
+              isLoading.value = false
+              AddAdminFormVisible.value = true
+            }
             else {
-              console.log(res)
-              ElMessage.error(res.data.message)    // 404: "Mail not found."
+              ElMessage.error(t('error'))
               isLoading.value = false
               AddAdminFormVisible.value = true
             }
@@ -264,7 +268,7 @@ const GetPermission = async () => {
       user_type[i].name_str = t('developer_user')
     }
     else if (user_type[i].name === 'ViewerUser') {
-      user_type[i].name_str = t('viwer_user')
+      user_type[i].name_str = t('viewer_user')
     }
     else if (user_type[i].name === 'FAEUser') {
       user_type[i].name_str = t('fae_user')

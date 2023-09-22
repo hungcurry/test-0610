@@ -323,8 +323,8 @@ onMounted(async () => {
   if (response.status === 200) {
     companyId = response.data.result[0]._id
     upgrade_manager = response.data.result[0]?.upgrade_manager
-    let localEndTime =  new Date( (new Date(upgrade_manager.subscribe.due_date_time).getTime()) + ((MStore.timeZoneOffset ) * -60000))
-    // 續約日期
+    let localEndTime = new Date( (new Date(upgrade_manager.subscribe.due_date_time).getTime()) + ((MStore.timeZoneOffset ) * -60000))
+
     due_date_time_str.value = getNextProgramDate(moment(localEndTime).format("YYYY-MM-DD"))
   } else {
     ElMessage.error(response.data.message)
@@ -825,7 +825,7 @@ onMounted(async () => {
           </h4>
         </div>
       </template>
-      <div class="h-full scrollbar" style="height: 800px;">
+      <div class="h-full scrollbar">
         <div class="h-full" v-if="language === 'zh_tw'">
           <iframe
             class="w-full h-full"
@@ -864,5 +864,13 @@ onMounted(async () => {
 }
 ::-webkit-scrollbar-thumb {
   border-radius: 2rem;
+}
+.eula {
+  :deep(.el-form-item__content) {
+    margin-left: 0 !important;
+    @media (min-width: 768px) {
+      margin-left: 10rem !important;
+    }
+  }
 }
 </style>

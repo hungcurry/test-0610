@@ -13,6 +13,8 @@ let m_cloud_permission =  {
         RatePlanDetail:'O', RatePlanDetail__Add_Rate_Plan:'O',
         User:'O', User__Add_User:'O', User__User_Detail:'O',
         UserDetail:'O', UserDetail__Clear:'O', UserDetail__User_Edit:'O', UserDetail__Card_Details:'O', UserDetail__Device_Detail:'O', UserDetail__Add_RFID:'O',
+        RfidUser:'O', RfidUser__Add_User:'O', RfidUser__User_Detail:'O',
+        RfidUserDetail:'O', RfidUserDetail__User_Edit:'O', RfidUserDetail__Add_RFID:'O',
         Company:'O', Company__Add_Company:'O', Company__Detail:'O',
         Administrator:'O',
         EVSELog:'O',

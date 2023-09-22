@@ -27,6 +27,8 @@ import AdminInfoView from '@/views/AdminInfoView.vue'
 import ProgramView from '@/views/ProgramView.vue'
 import ChargeProfileView from '@/views/ChargeProfileView.vue'
 import PermissionView from '@/views/PermissionView.vue'
+import RfidUserView from '@/views/RfidUserView.vue'
+import RfidUserDetailView from '@/views/RfidUserDetailView.vue'
 
 
 const router = createRouter({
@@ -153,6 +155,16 @@ const router = createRouter({
           name: 'Permission',
           component: PermissionView
         },   
+        {
+          path: 'rfid-user',
+          name: 'rfidUser',
+          component: RfidUserView
+        },
+        {
+          path: 'rfid-user-detail',
+          name: 'rfidUserDetail',
+          component: RfidUserDetailView
+        },
         {
           path: 'test',
           name: 'test',

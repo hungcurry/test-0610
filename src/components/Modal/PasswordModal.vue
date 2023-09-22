@@ -24,9 +24,9 @@ const resetValue = () => {
   reset_password2.value = ''
 }
 const checkPasswordRule = () => {
-  const regex0 = /^(?!=.*[\\|/,.;:{}[]()])[A-Za-z0-9]+$/
-  const regex1 = /^(?=.*[a-z])[A-Za-z0-9]+$/
-  const regex2 = /^(?=.*[0-9])[A-Za-z0-9]+$/
+  const regex0 = /^[^\\|\/.,;:{}\[\]\(\)\s]*$/
+  const regex1 = /[a-z]/
+  const regex2 = /[0-9]/
   let res = true
   if (reset_password1.value !== reset_password2.value) {
     ElMessage({
