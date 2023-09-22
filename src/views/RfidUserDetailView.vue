@@ -195,7 +195,7 @@ const editUserDialog = (action) => {
     else {
       ElMessageBox.confirm(t('do_you_want_to_delete'), t('warning'), { confirmButtonText: t('ok'), cancelButtonText: t('cancel'), type: 'warning' })
         .then(async () => {
-          const params = { tag_id: general.tag_id, byCompany: MStore?.permission?.user?.byCompany }
+          const params = { id: general._id }
           let res = await MsiApi.delete_account(params)
           if (res.data.status === 'Accepted') {
             router.push({ name: 'rfidUser' })
@@ -257,6 +257,15 @@ const updateRfidCash = (type) => {
   }
   else if (type === 'refund') {
     if (!(rfidData.refund > 0 && rfidData.refundCheck === true)) {
+      return
+    }
+    else if (rfidData.cash <= 0) {
+      ElNotification({
+        title: t('error'),
+        message: t('rfid_card_is_non_refundable_as_the_amount_must_be_greater_than_0'),
+        type: 'error',
+      });
+      rfidData.refundCheck = false
       return
     }
     messages = `${t('are_you_sure_to_refund')} $ ${rfidData.refund} ?`

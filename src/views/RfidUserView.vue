@@ -49,7 +49,7 @@ const sortFunc = (obj1, obj2, column) => {
 
 //   RfidUserData[0].rowspan = 0
 //   for (let i=1; i<RfidUserData.length; i++) {
-//     if (RfidUserData[i]._id === RfidUserData[i-1]._id) {
+//     if (RfidUserData[i]._id === RfidUserData[i - 1]._id) {
 //       RfidUserData[i].rowspan = 0
 //       row_span++
 //     }

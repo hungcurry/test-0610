@@ -978,12 +978,15 @@ export default
     are_you_sure_to_top_up:                                 'Are you sure to top up',
     are_you_sure_to_refund:                                 'Are you sure to refund',
     the_amount_entered_must_not_be_0:                       'The amount entered must not be 0',
+    the_amount_entered_must_be_greater_than_0:              'The amount entered must be greater than 0',
     rfid_card_cannot_be_removed_because_the_amount_is_not_0:
                                                             'RFID card cannot be removed, Because the amount is not 0.',
     rfid_card_cannot_be_removed_because_the_evse_is_occupied:
                                                             'RFID card cannot be removed, Because the EVSE is occupied.',
     user_cannot_be_deteted_because_the_total_amount_is_not_0:
                                                             'User cannot be deleted, Because the total amount is not 0.',
+    rfid_card_is_non_refundable_as_the_amount_must_be_greater_than_0: 
+                                                            'RFID card is non-refundable as the amount must be greater than 0.',
     top_up_successful:                                      'Top-up Successful',
     refund_successful:                                      'Refund Successful',
     // general:                                             'General',

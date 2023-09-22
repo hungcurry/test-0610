@@ -124,7 +124,7 @@ export default function () {
 
   const delete_account = async (params) => {
     AuthToken = VueCookies.get('AuthToken')
-    const response = await delJsonData(api1 + '/account?tag_id=' + params.tag_id + '&byCompany=' + params.byCompany, '', AuthToken)
+    const response = await delJsonData(api1 + '/account?id=' + params.id, '', AuthToken)
     return response
   }
 
