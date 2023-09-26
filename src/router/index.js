@@ -29,7 +29,7 @@ import ChargeProfileView from '@/views/ChargeProfileView.vue'
 import PermissionView from '@/views/PermissionView.vue'
 import RfidUserView from '@/views/RfidUserView.vue'
 import RfidUserDetailView from '@/views/RfidUserDetailView.vue'
-
+import { ElMessage } from 'element-plus'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -176,16 +176,15 @@ const router = createRouter({
 })
 
 router.beforeEach(async to => {
-  let value = localStorage.getItem("lang")
-  if (value)
-    i18n.global.locale.value = value
+  let lang = localStorage.getItem("lang")
+  if (lang)
+    i18n.global.locale.value = lang
   else {
     if (navigator.language === 'zh-TW') 
       i18n.global.locale.value = 'zh_tw'
     else 
       i18n.global.locale.value = 'en_us'
   }
-
   if (to.meta.title) document.title = to.meta.title
   else document.title = "m-Cloud"
   
@@ -197,14 +196,34 @@ router.beforeEach(async to => {
     MStore.timeZoneOffset = new Date().getTimezoneOffset()
   if (MStore.permission === undefined) {
     let res = await MsiApi.checkToken()
-    if (res.status === 200) {
-      MStore.permission = res.data.permission
-      MStore.user_data.first_name = res.data.first_name
-      MStore.user_data.last_name = res.data.last_name
-      MStore.user_data.email = res.data.email
-    } 
-    else 
+    try {
+      if (res.status === 200) {
+        MStore.permission = res.data.permission
+        if (res.data.permission.company.name === 'MSI') {
+          MStore.permission.isMSI = true
+        }
+        else {
+          MStore.permission.isMSI = false
+        }
+        if (res.data.email) {
+          MStore.permission.isCompany = false
+          MStore.user_data.email = res.data.email
+          MStore.user_data.first_name = res.data.first_name
+          MStore.user_data.last_name = res.data.last_name
+        }
+        else {
+          MStore.permission.isCompany = true
+        }
+      } 
+      else { 
+        ElMessage.error('Error')
+        return '/login'  
+      }
+    }
+    catch {
+      ElMessage.error('An unexpected error occurred.')
       return '/login'  
+    }
   }
 
   if (MStore.permission === 0) 

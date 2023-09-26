@@ -52,7 +52,7 @@ export default function () {
     try {
       const Token1 = Token.headers
       Token1['X-Client-From'] = 'm-Cloud'
-      const response = await axios.delete(path, { headers: Token1, data: data1 });
+      const response = await axios.delete(path, { headers: Token1, data: data1 })
       return response
     } catch (e) {
       return e.response

@@ -1,5 +1,4 @@
 <script setup>
-import { Close } from '@element-plus/icons-vue'
 import { ref, watchEffect } from 'vue'
 const modalVisible = ref(false)
 const props = defineProps({

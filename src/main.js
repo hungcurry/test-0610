@@ -9,7 +9,7 @@ import '@/assets/scss/all.scss'
 import 'default-passive-events'
 import { library } from '@fortawesome/fontawesome-svg-core'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-
+import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 import {
   faUser as solidUser,
   faBell,
@@ -35,14 +35,15 @@ const app = createApp(App)
 
 /* global APP_VERSION */
 app.config.globalProperties.APP_VERSION = APP_VERSION
-
 app.use(createPinia())
 app.use(router)
 app.use(i18n)
 app.component('font-awesome-icon', FontAwesomeIcon)
 app.mount('#app')
 
-
+for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
+  app.component(key, component)
+}
 
 library.add(
   faUser,

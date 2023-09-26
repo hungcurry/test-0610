@@ -6,6 +6,7 @@ import { ElementPlusResolver } from 'unplugin-vue-components/resolvers'
 import ElementPlus from 'unplugin-element-plus/vite'
 import unocss from 'unocss/vite'
 export default ({ mode }) => {
+  // eslint-disable-next-line no-undef
   let env = loadEnv(mode, process.cwd(), '')
   return defineConfig({
     define: {
@@ -42,7 +43,6 @@ export default ({ mode }) => {
       proxy: {
         '/api10': {
           target: 'https://evse.msi.com',
-          // target: 'https://m-cloud.msi.com',
           changeOrigin: true,
           rewrite: (path) => path.replace(/^\/api10/, ''),
           secure: false,
@@ -50,12 +50,10 @@ export default ({ mode }) => {
 
         '/google10': {
           target: 'https://storage.googleapis.com',
-          // target: 'https://m-cloud.msi.com',
           changeOrigin: true,
           rewrite: (path) => path.replace(/^\/google10/, ''),
           secure: false,
         },
-
       },
       open: true,
       port: 8080,

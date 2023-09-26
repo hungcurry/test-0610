@@ -1,56 +1,31 @@
 <script setup>
-import { onMounted, reactive, ref, watch } from 'vue'
+import { onMounted, reactive, ref } from 'vue'
 import { useMStore } from '../stores/m_cloud'
 import { storeToRefs } from 'pinia'
 import { useSideMenuStore } from '@/stores/sidemenu'
 import { useRoute } from 'vue-router'
 import { m_cloud_permission } from '@/composables/permission'
-import {
-  Menu as IconMenu,
-  Calendar,
-  Postcard,
-  Location,
-  UserFilled,
-  InfoFilled,
-  EditPen,
-  Edit,
-  View,
-  Timer,
-} from '@element-plus/icons-vue'
 import { useI18n } from "vue-i18n"
+
 const { t } = useI18n()
 const MStore = useMStore()
-const company = MStore?.permission?.company?.name
 const user_permission_name = MStore?.permission?.user?.name
 const dev_member = ref(false)
 const sideMenuStore = useSideMenuStore()
 const route = useRoute()
-const path = ref('')
+const path = route.path.slice(1)
 const { isCollapse } = storeToRefs(sideMenuStore)
 
-let  user_permission = reactive({})
+let rule_permission = reactive({})
 
-const pathResetHandler = () => {
-  path.value = route.path
-  watch(
-    () => route.path,
-    (newV) => {
-      path.value = newV
-    }
-  )
-  path.value = path.value.slice(1)
-}
 onMounted(async () => {
-  let value = m_cloud_permission[user_permission_name]
-  // console.log(value)
-  if (value !== undefined)
-    user_permission = value
+  if (m_cloud_permission[user_permission_name])
+    rule_permission = m_cloud_permission[user_permission_name]
   if (
     MStore.user_data.first_name === 'Steven' 
   ) {
     dev_member.value = true
   }
-  pathResetHandler()
 })
 </script>
 
@@ -63,70 +38,66 @@ onMounted(async () => {
     router
     :collapse="isCollapse"
   >
-    <el-menu-item v-if="(user_permission.Dashboard ==='O') || user_permission_name === undefined" index="dashboard">
-      <el-icon class="opacity-70"><icon-menu /></el-icon>
+    <el-menu-item v-if="rule_permission.Dashboard === 'O' || MStore.permission.isCompany" index="dashboard">
+      <el-icon class="opacity-70"><Menu /></el-icon>
       <template #title>
         <span> {{t('dashboard')}}</span>
       </template>
     </el-menu-item>
-    <el-menu-item v-if="(user_permission.Payment ==='O') || user_permission_name === undefined" index="payment">
+    <el-menu-item v-if="rule_permission.Payment === 'O' || MStore.permission.isCompany" index="payment">
       <el-icon class="opacity-50"><Postcard /></el-icon>
       <template #title>
         <span>{{t('payment')}}</span>
       </template>
     </el-menu-item>
 
-    <el-sub-menu v-if="(user_permission.Station ==='O') || (user_permission.EVSE ==='O') || (user_permission.RatePlan ==='O') || user_permission_name === undefined" index="station">
+    <el-sub-menu v-if="rule_permission.Station === 'O' || rule_permission.EVSE === 'O' || rule_permission.RatePlan === 'O' || MStore.permission.isCompany" index="station">
       <template #title>
         <el-icon class="opacity-70"><Location /></el-icon>
         <span>{{t('evse_management')}}</span>
       </template>
-      <el-menu-item v-if="(user_permission.Station ==='O') || user_permission_name === undefined" class="collapse" index="station" :route="{ path: 'station' }"
-        >{{t('by_station')}}</el-menu-item
-      >
-      <el-menu-item v-if="(user_permission.EVSE ==='O') || user_permission_name === undefined" class="collapse" index="evse">{{t('by_evse')}}</el-menu-item>
-      <el-menu-item v-if="(user_permission.RatePlan ==='O') || user_permission_name === undefined" class="collapse" index="rate-plan">{{t('rate_plan')}}</el-menu-item>
+      <el-menu-item v-if="rule_permission.Station === 'O' || MStore.permission.isCompany" class="collapse" index="station">
+        {{t('by_station')}}
+      </el-menu-item>
+      <el-menu-item v-if="rule_permission.EVSE === 'O' || MStore.permission.isCompany" class="collapse" index="evse">{{t('by_evse')}}</el-menu-item>
+      <el-menu-item v-if="rule_permission.RatePlan === 'O' || MStore.permission.isCompany" class="collapse" index="rate-plan">{{t('rate_plan')}}</el-menu-item>
     </el-sub-menu>
 
-    <el-sub-menu index="administrator" v-if="(user_permission.User ==='O') || (user_permission.Company ==='O') || (user_permission.Administrator ==='O') || user_permission_name === undefined">
+    <el-sub-menu index="administrator" v-if="(rule_permission.User === 'O' || rule_permission.RfidUser === 'O') || rule_permission.Company === 'O' || rule_permission.Administrator === 'O' || MStore.permission.isCompany">
       <template #title>
         <el-icon class="opacity-50"><UserFilled /></el-icon>
         <span>{{t('account_management')}}</span>
       </template>
-      <el-menu-item v-if="company === 'MSI' && ((user_permission.User ==='O') || user_permission_name === undefined)" class="collapse" index="user">{{t('app_member')}}</el-menu-item>
-      <el-menu-item v-if="company !== 'MSI' && ((user_permission.RfidUser ==='O') || user_permission_name === undefined)" class="collapse" index="rfid-user">{{t('rfid_user')}}</el-menu-item>
-      <el-menu-item class="collapse" v-if="company === 'MSI' && ((user_permission.Company ==='O') || user_permission_name === undefined)" index="company"
-        >{{t('company_cpo')}}</el-menu-item
-      >
-      <el-menu-item v-if="(user_permission.Administrator ==='O') || user_permission_name === undefined" class="collapse" index="administrator">
-        {{t('m_cloud_administrator')}}</el-menu-item
-      >
+      <el-menu-item v-if="MStore.permission.isMSI && (rule_permission.User === 'O' || MStore.permission.isCompany)" class="collapse" index="user">{{t('app_member')}}</el-menu-item>
+      <el-menu-item v-else-if="MStore.permission.isMSI === false && (rule_permission.RfidUser === 'O' || MStore.permission.isCompany)" class="collapse" index="rfid-user">{{t('rfid_user')}}</el-menu-item>
+      <el-menu-item v-if="MStore.permission.isMSI && (rule_permission.Company === 'O' || MStore.permission.isCompany)" class="collapse" index="company">{{t('company_cpo')}}</el-menu-item>
+      <el-menu-item v-if="rule_permission.Administrator === 'O' || MStore.permission.isCompany" class="collapse" index="administrator">{{t('m_cloud_administrator')}}</el-menu-item>
     </el-sub-menu>
     
-    <el-sub-menu index="evse-log" v-if="(user_permission.EVSELog ==='O') || (user_permission.ErrorLog ==='O') || user_permission_name === undefined">
+    <el-sub-menu index="evse-log" v-if="rule_permission.EVSELog === 'O' || rule_permission.ErrorLog === 'O' || MStore.permission.isCompany">
       <template #title>
         <el-icon class="opacity-70"><Calendar /></el-icon>
         <span>{{t('log_monitor')}}</span>
       </template>
-      <el-menu-item v-if="(user_permission.EVSELog ==='O') || user_permission_name === undefined" class="collapse" index="evse-log">{{t('evse_log')}}</el-menu-item>
-      <el-menu-item v-if="(user_permission.ErrorLog ==='O') || user_permission_name === undefined" class="collapse" index="error-log">{{t('error_log')}}</el-menu-item>
+      <el-menu-item v-if="rule_permission.EVSELog === 'O' || MStore.permission.isCompany" class="collapse" index="evse-log">{{t('evse_log')}}</el-menu-item>
+      <el-menu-item v-if="rule_permission.ErrorLog === 'O' || MStore.permission.isCompany" class="collapse" index="error-log">{{t('error_log')}}</el-menu-item>
     </el-sub-menu>
 
-    <el-menu-item v-if="(user_permission.SoftwareInfo ==='O') || user_permission_name === undefined" index="software-info">
+    <el-menu-item v-if="rule_permission.SoftwareInfo === 'O' || MStore.permission.isCompany" index="software-info">
       <el-icon class="opacity-50"><InfoFilled /></el-icon>
       <template #title>
         <span>{{t('softwart_info')}}</span>
       </template>
     </el-menu-item>
 
-    <el-menu-item v-if="company === 'MSI' && ((user_permission.Parking ==='O') || user_permission_name === undefined)" index="parking">
+    <el-menu-item v-if="MStore.permission.isMSI && (rule_permission.Parking === 'O' || MStore.permission.isCompany)" index="parking">
       <el-icon class="opacity-70"><View /></el-icon>
       <template #title>
         <span>{{t('parking')}}</span>
       </template>
     </el-menu-item>
 
-    <el-menu-item v-if="company === 'MSI' && ((user_permission.Program ==='O') || user_permission_name === undefined)" index="program">
+    <el-menu-item v-if="MStore.permission.isMSI && (rule_permission.Program === 'O' || MStore.permission.isCompany)" index="program">
       <el-icon class="opacity-70"><EditPen /></el-icon>
       <template #title>
         <span>{{t('program')}}</span>

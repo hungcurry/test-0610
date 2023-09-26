@@ -105,6 +105,7 @@ const search = async () => {
       ]
     }
     let res = await MsiApi.mongoAggregate(queryData)
+
     let plan_id =[]
     for (let i=0; i<res.data.result.length; i++) {
       plan_id.push(res.data.result[i]._id)
@@ -193,7 +194,7 @@ const search = async () => {
       ]
     }
   }
-  await MongoAggregate(queryData)
+  console.log(await MongoAggregate(queryData))
 }
 
 const detail_info = (detail) => {
@@ -511,7 +512,7 @@ onMounted( async() => {
               min-width="200"
             />
             <el-table-column
-              prop="detail"
+              prop=""
               label=""
               align="center"
               min-width="150"

@@ -402,8 +402,12 @@ onMounted( async () => {
       locationData.country = ''
     if(locationData.city === undefined)
       locationData.city = ''
+    if(locationData.city1 === undefined)
+      locationData.city1 = ''
     if(locationData.address === undefined)
       locationData.address = ''
+    if(locationData.address1 === undefined)
+      locationData.address1 = ''
   }
   else {
     Object.assign(locationData, response.data.all[0])

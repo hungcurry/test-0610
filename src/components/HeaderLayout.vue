@@ -81,9 +81,6 @@ const emitCallBack = (res) => {
         </template>
       </el-dropdown>
 
-      <!-- <el-button class="gear"><font-awesome-icon icon="fa-solid fa-gear" /></el-button>
-      <el-button class="bell m-0"><font-awesome-icon icon="fa-solid fa-bell" /></el-button> -->
-
       <el-dropdown trigger="click">
         <el-button class="user"><font-awesome-icon icon="fa-solid fa-user" /></el-button>
         <template #dropdown>
@@ -111,7 +108,7 @@ const emitCallBack = (res) => {
   top: 0;
   right: 0;
   z-index: 90;
-  .gear,.bell,.user {
+  .user {
     width: 60px;
     height: 60px;
     background-color: transparent;

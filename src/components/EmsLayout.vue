@@ -19,6 +19,7 @@ let logoutTimer = null
 const reflashTimer = () => {
   logoutTime.value = Date.now() / 1000 + 600
 }
+
 const open = () => {
   ElMessageBox.alert('System is about to log out, Please click "OK" resume', 'Title', {
     confirmButtonText: 'OK',
@@ -27,6 +28,7 @@ const open = () => {
     },
   })
 }
+
 const checkTime = () => {
   counter.value = parseInt(logoutTime.value) - parseInt(Date.now() / 1000)
   if (parseInt(logoutTime.value - Date.now() / 1000) == 30) open()
@@ -36,12 +38,15 @@ const checkTime = () => {
     isCollapse.value = true
   }
 }
+
 const menuClose = () => {
   handleClose()
 }
+
 onMounted(() => {
   logoutTimer = setInterval(checkTime, 1000)
 })
+
 onUnmounted(() => {
   clearTimeout(logoutTimer)
 })
@@ -54,7 +59,6 @@ onUnmounted(() => {
     <div ref="layoutRight" @click.stop="menuClose" class="layout-right">
       <main-content />
     </div>
-    <!-- <p class="logout">{{ counter }}</p> -->
   </div>
 </template>
 
@@ -77,13 +81,5 @@ onUnmounted(() => {
       height: calc(100vh - 60px);
     }
   }
-  // .logout {
-  //   bottom: 10px;
-  //   left: 10px;
-  //   font-size: 10px;
-  //   position: fixed;
-  //   color: #c5cdd8;
-  //   z-index: 99;
-  // }
 }
 </style>

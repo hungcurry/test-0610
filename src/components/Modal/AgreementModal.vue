@@ -1,6 +1,5 @@
 <script setup>
 import ApiFunc from '@/composables/ApiFunc'
-import { Close } from '@element-plus/icons-vue'
 import { ref, watchEffect } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'

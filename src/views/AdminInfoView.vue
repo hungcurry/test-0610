@@ -7,7 +7,6 @@ import { useMStore } from '../stores/m_cloud'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { ElMessage } from 'element-plus'
 import { useI18n } from "vue-i18n"
-import { QuestionFilled } from '@element-plus/icons-vue'
 
 const { t } = useI18n()
 const MStore = useMStore()
@@ -76,7 +75,7 @@ const getNextProgramDate = (date) => {
     newMonth = '0' + newMonth
   }
 
-  let newProgramDate = newYear + '-' + newMonth + '-' + newDay
+  // let newProgramDate = newYear + '-' + newMonth + '-' + newDay
   // console.log(date)
   // console.log(newProgramDate)
 }
@@ -294,6 +293,7 @@ const display_eula = () => {
   language = localStorage.getItem("lang")
 }
 onMounted(async () => {
+  if (MStore.permission)
   first_name.value = MStore.user_data.first_name
   last_name.value = MStore.user_data.last_name
   email.value = MStore.user_data.email
