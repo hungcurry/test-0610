@@ -7,12 +7,15 @@ import { ref, reactive, onMounted } from 'vue'
 import { export_json_to_excel } from '@/composables/Export2Excel'
 import { useMStore } from '../stores/m_cloud'
 import { useI18n } from 'vue-i18n'
+import { ElMessage } from 'element-plus'
 
 const { t } = useI18n()
 const MStore = useMStore()
 const MsiApi = ApiFunc()
 const PaymentData = reactive([])
+const PaymentPageData = reactive([])
 const RFIDData = reactive([])
+const RFIDPageData = reactive([])
 const now = new Date()
 const isLoading = ref(false)
 const parking_visible = ref(true)
@@ -26,13 +29,25 @@ const defaultTime = [
   new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0),
   new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59),
 ]
-const filters = [
+const filters_method = [
   { text: t('credit_card'), value: 'CREDIT' },
   { text: t('rfid'), value: 'RFID' },
   { text: t('free'), value: 'FREE' },
   { text: t('google_pay'), value: 'GOOGLEPAY' },
   { text: t('samsung_pay'), value: 'SAMSUNGPAY' },
 ]
+const filters_type = [
+  { text: t('top_up'), value: 'Top-up' },
+  { text: t('refund'), value: 'Refund' },
+]
+const item_count = ref()
+const TransactionTableRef = ref()
+const payment_cur_page = ref(1)
+const payment_max_page = ref()
+
+const TopupTableRef = ref()
+const RFID_cur_page = ref(1)
+const RFID_max_page = ref()
 
 const download = () => {
   const tHeader = [
@@ -72,6 +87,7 @@ const download = () => {
 }
 const downloadRFID = () => {
   const tHeader = [
+    'Type',
     'ID/Email',
     'Name',
     'RFID Num',
@@ -79,6 +95,7 @@ const downloadRFID = () => {
     'Create Time',
   ]
   const filterVal = [
+    'type_str',
     'tag_id',
     'name',
     'rfid',
@@ -88,105 +105,329 @@ const downloadRFID = () => {
   const data = RFIDData.map((v) => filterVal.map((j) => v[j]))
   export_json_to_excel({ header: tHeader, data: data, filename: 'Top-up List' })
 }
-const filterTag = (value, rowData) => {
-  return rowData.paymethod === value
-}
-
 const select_date = async () => {
   isLoading.value = true
-  await getPaymentData()
+  await getPaymentData(null)
+  await getCashLogData(null)
+
+  getPayment_PageData()
+  getTopup_PageData()
+
+  TransactionTableRef.value.clearFilter()
+  TopupTableRef.value.clearFilter()
+
+  TransactionTableRef.value.sort('created_date_str', 'ascending')
+  TopupTableRef.value.sort('created_date_str', 'ascending')
   isLoading.value = false
 }
 
-const sortFunc = (obj1, obj2, column) => {
+const transactionTableSort = async(column) => {
+  let target = column.prop
+  let order = column.order
+  PaymentData.sort(function (a, b) {
+    if (a[target] === undefined) {
+      a[target] = ''
+    }
+    else if (b[target] === undefined) {
+      b[target] = ''
+    }
 
-  let convertedNumber1 = undefined
-  let convertedNumber2 = undefined
-  if (
-    column === 'parking_price_str' ||
-    column === 'money' ||
-    column === 'charging_price_str'
-  ) {
-    if (obj1[column] !== undefined) {
-      convertedNumber1 = parseFloat(obj1[column].replace(/,/g, ''))
+    if (target === 'parking_price_str' || target === 'money' || target === 'charging_price_str') {
+      let a_num = parseFloat(a[target]?.replace(/,/g, ""))
+      let b_num = parseFloat(b[target]?.replace(/,/g, ""))
+      if (order === 'ascending')
+        return a_num > b_num? -1 : 1
+      else
+        return a_num > b_num? 1 : -1
     }
-    if (obj2[column] !== undefined) {
-      convertedNumber2 = parseFloat(obj2[column].replace(/,/g, ''))
+    else if (target === 'parking_time' || target === 'charging_time') {
+      let a_num = Number(a[target]?.replace(/:/g, ""))
+      let b_num = Number(b[target]?.replace(/:/g, ""))
+      if (order === 'ascending')
+        return a_num > b_num? -1 : 1
+      else
+        return a_num > b_num? 1 : -1
     }
-    if (convertedNumber2 === undefined) return -1
-    if (convertedNumber1 > convertedNumber2) {
-      return -1
+
+    if (order === 'ascending') {
+      return a[target] > b[target]? -1 : 1
     }
-  } else {
-    let at = obj1[column]
-    let bt = obj2[column]
-    if (bt === undefined) {
-      return -1
+    else {
+      return a[target] > b[target]? 1 : -1
     }
-    if (at > bt) {
-      return -1
+  })
+
+  getPayment_PageData()
+}
+const topupTableSort = async(column) => {
+  let target = column.prop
+  let order = column.order
+  RFIDData.sort(function (a, b) {
+    if (a[target] === undefined) {
+      a[target] = ''
     }
+    else if (b[target] === undefined) {
+      b[target] = ''
+    }
+
+    if (target === 'money') {
+      let a_num = parseFloat(a[target]?.replace(/,/g, ""))
+      let b_num = parseFloat(b[target]?.replace(/,/g, ""))
+      if (order === 'ascending')
+        return a_num > b_num? -1 : 1
+      else
+        return a_num > b_num? 1 : -1
+    }
+
+    if (order === 'ascending') {
+      return a[target] > b[target]? -1 : 1
+    }
+    else {
+      return a[target] > b[target]? 1 : -1
+    }
+  })
+
+  getTopup_PageData()
+}
+const transactionTableFilter = async(filters) => {
+  isLoading.value = true
+  await getPaymentData(filters)
+  getPayment_PageData()
+  TransactionTableRef.value.sort('created_date_str', 'ascending')
+  isLoading.value = false
+}
+const topupTableFilter = async(filters) => {
+  isLoading.value = true
+  await getCashLogData(filters)
+  getTopup_PageData()
+  TopupTableRef.value.sort('created_date_str', 'ascending')
+  isLoading.value = false
+}
+
+const mongodb_getPaymentData = async(filters) => {
+  try {
+    if (selectTime.value === null) {
+      return
+    }
+    let queryData = {
+      database: 'CPO',
+      collection: 'PaymentHistory',
+      pipelines: [
+        {
+          $match: {
+            $expr: {
+              $and: [
+                {
+                  $gte: [
+                    '$created_date',
+                    { $dateFromString: { dateString: selectTime.value[0] } },
+                  ],
+                },
+                {
+                  $lte: [
+                    '$created_date',
+                    { $dateFromString: { dateString: selectTime.value[1] } },
+                  ],
+                },
+              ],
+            },
+          },
+        },
+        { $project: { _id: 0, sessionId: 0, location: 0, detail: 0, locationId: 0} },
+      ],
+    }
+    let res = await MsiApi.mongoAggregate(queryData)
+    PaymentData.length = 0
+    res.data.result.forEach((item) => {
+      if (filters === null || filters?.tag.length === 0 || filters?.tag.includes(item.paymethod?.method)) {
+        switch (item.paymethod?.method) {
+          case 'CREDIT':
+            item.paymethod_str = t('credit_card')
+            break
+          case 'GOOGLEPAY':
+            item.paymethod_str = t('google_pay')
+            break
+          case 'SAMSUNGPAY':
+            item.paymethod_str = t('samsung_pay')
+            break
+          case 'FREE':
+            item.paymethod_str = t('free')
+            break
+          case 'RFID':
+            item.paymethod_str = t('rfid')
+            break
+          default:
+            item.paymethod_str = item.paymethod?.method
+            break
+        }
+    
+        item.price_str = item.price?.toLocaleString()
+        let localTime = new Date(new Date(item.created_date).getTime() + MStore.timeZoneOffset * -60000)
+        item.created_date_str = moment(localTime).format('YYYY-MM-DD HH:mm:ss')
+        item.money = item.price_str
+    
+        item.operator_types?.forEach((item2) => {
+          let time = moment.duration(item2.time, 'seconds')
+          let timeFormat = String(time.days()*24 + time.hours()).padStart(2, 0) + ':' + String(time.minutes()).padStart(2, 0) + ':' + String(time.seconds()).padStart(2, 0)
+          switch (item2.type) {
+            case 'charge' :
+              item.charging_time = timeFormat
+              item.charging_energy_str = item2.kwh
+              item.charging_price_str = item2.price.toLocaleString()
+              item.charging_currency_str = item2.currency
+            break
+            case 'parking' :
+              item.parking_time = timeFormat
+              item.parking_car_num_str = item2.car_num
+              item.parking_price_str = item2.price.toLocaleString()
+              item.parking_currency_str = item2.currency
+            break
+          }
+        })
+        PaymentData.push(item)
+      }
+    })
+  }
+  catch {
+    ElMessage.error('An unexpected error occurred.')
+  }
+}
+const api_getPaymentData = async(filters) => {
+  try {
+    if (selectTime.value === null) {
+      return
+    }
+    const startTime = new Date(selectTime.value[0].getTime() - MStore.timeZoneOffset * -60000)
+    const endTime = new Date(selectTime.value[1].getTime() - MStore.timeZoneOffset * -60000)
+    let params = {type: 'payment', start_date: startTime, end_date: endTime}
+    let response = await MsiApi.get_transaction(params)
+    PaymentData.length = 0
+    response?.data?.data?.logs.forEach((item) => {
+      if (filters === null || filters?.tag.length === 0 || filters?.tag.includes(item?.paymethod)) {
+        switch (item?.paymethod) {
+          case 'CREDIT':
+            item.paymethod_str = t('credit_card')
+            break
+          case 'GOOGLEPAY':
+            item.paymethod_str = t('google_pay')
+            break
+          case 'SAMSUNGPAY':
+            item.paymethod_str = t('samsung_pay')
+            break
+          case 'FREE':
+            item.paymethod_str = t('free')
+            break
+          case 'RFID':
+            item.paymethod_str = t('rfid')
+            break
+          default:
+            item.paymethod_str = item?.paymethod
+        }
+        let localTime = new Date(new Date(item.created_date).getTime() + MStore.timeZoneOffset * -60000)
+        item.created_date_str = moment(localTime).format('YYYY-MM-DD HH:mm:ss')
+        PaymentData.push(item)
+      }
+    })
+  }
+  catch {
+    ElMessage.error('An unexpected error occurred.')
+  }
+}
+// Tony ++ 
+const getPaymentData = async(filters) => {
+  await mongodb_getPaymentData(filters)
+  // await api_getPaymentData(filters)
+}
+const getCashLogData = async(filters) => {
+  try {
+    if (selectTime.value === null) {
+      return
+    }
+    const startTime = new Date(selectTime.value[0].getTime() - MStore.timeZoneOffset * -60000)
+    const endTime = new Date(selectTime.value[1].getTime() - MStore.timeZoneOffset * -60000)
+    let params = {type: 'cash', start_date: startTime, end_date: endTime}
+    let response = await MsiApi.get_transaction(params)
+    RFIDData.length = 0
+    response?.data?.data?.logs.forEach((item) => {
+      if (filters === null || filters?.tag.length === 0 || filters?.tag.includes(item?.type)) {
+        if (item.tag_id !== 'DELETE' && item.name !== 'DELETE') {
+          switch (item?.type) {
+            case 'Top-up':
+              item.type_str = t('top_up')
+              break
+            case 'Refund':
+              item.type_str = t('refund')
+              break
+            default:
+              item.type_str = item?.type
+          }
+          let localTime = new Date(new Date(item.created_date).getTime() + MStore.timeZoneOffset * -60000)
+          item.created_date_str = moment(localTime).format('YYYY-MM-DD HH:mm:ss')
+          RFIDData.push(item)
+        }
+      }
+    })
+  }
+  catch {
+    ElMessage.error('An unexpected error occurred.')
   }
 }
 
-const getPaymentData = async() => {
-  let response = null
-  let params = null
-  
-  if (selectTime.value === null) {
-    return
+const getPayment_PageData = async() => {
+  let table_body_height = window.innerHeight - 320 - 45
+  item_count.value = Math.floor(table_body_height / 45)
+  payment_max_page.value = Math.ceil(PaymentData.length / item_count.value) * 10
+
+  let count = item_count.value
+  PaymentPageData.length = 0
+  if (payment_cur_page.value * 10 === payment_max_page.value) {
+    count = PaymentData.length - (payment_cur_page.value-1) * item_count.value
   }
-
-  const startTime = new Date(selectTime.value[0].getTime() - MStore.timeZoneOffset * -60000)
-  const endTime = new Date(selectTime.value[1].getTime() - MStore.timeZoneOffset * -60000)
-
-  params = {type: 'payment', start_date: startTime, end_date: endTime}
-  response = await MsiApi.get_transaction(params)
-  PaymentData.length = 0
-  Object.assign(PaymentData, response?.data?.data?.logs)
-
-  let RFIDDataTemp = [] // Tony: for 初步去識別化，過濾 DELETE 的資料
-  params = {type: 'cash', start_date: startTime, end_date: endTime}
-  response = await MsiApi.get_transaction(params)
-  RFIDDataTemp.length = 0
-  Object.assign(RFIDDataTemp, response?.data?.data?.logs)
-
-  PaymentData.forEach((item) => {
-    switch (item?.paymethod) {
-      case 'CREDIT':
-        item.paymethod_str = t('credit_card')
-        break
-      case 'GOOGLEPAY':
-        item.paymethod_str = t('google_pay')
-        break
-      case 'SAMSUNGPAY':
-        item.paymethod_str = t('samsung_pay')
-        break
-      case 'FREE':
-        item.paymethod_str = t('free')
-        break
-      case 'RFID':
-        item.paymethod_str = t('rfid')
-        break
-      default:
-        item.paymethod_str = item?.paymethod
-    }
-    let localTime = new Date(new Date(item.created_date).getTime() + MStore.timeZoneOffset * -60000)
-    item.created_date_str = moment(localTime).format('YYYY-MM-DD HH:mm:ss')
-  })
-
-  RFIDData.length = 0
-  RFIDDataTemp.forEach((item) => {
-    if (item.tag_id !== 'DELETE' && item.name !== 'DELETE') {
-      let localTime = new Date(new Date(item.created_date).getTime() + MStore.timeZoneOffset * -60000)
-      item.created_date_str = moment(localTime).format('YYYY-MM-DD HH:mm:ss')
-      RFIDData.push(item)
-    }
-  })
+  else if (payment_max_page.value === 0) {
+    count = 0
+  }
+  for (let i=0; i<count; i++) {
+    PaymentPageData.push(PaymentData[(payment_cur_page.value - 1) * item_count.value + i])
+  }
 }
+const getTopup_PageData = async() => {
+  let table_body_height = window.innerHeight - 320 - 45
+  item_count.value = Math.floor(table_body_height / 45)
+  RFID_max_page.value = Math.ceil(RFIDData.length / item_count.value) * 10
+
+  let count = item_count.value
+  RFIDPageData.length = 0
+  if (RFID_cur_page.value * 10 === RFID_max_page.value) {
+    count = RFIDData.length - (RFID_cur_page.value-1) * item_count.value
+  }
+  else if (RFID_max_page.value === 0) {
+    count = 0
+  }
+  for (let i=0; i<count; i++) {
+    RFIDPageData.push(RFIDData[(RFID_cur_page.value - 1) * item_count.value + i])
+  }
+}
+
 onMounted(async () => {
   isLoading.value = true
-  await getPaymentData()
+  await getPaymentData(null)
+  await getCashLogData(null)
+
+  getPayment_PageData()
+  getTopup_PageData()
+
+  TransactionTableRef.value.sort('created_date_str', 'ascending')
+  TopupTableRef.value.sort('created_date_str', 'ascending')
+
+  window.addEventListener("resize", async function () {
+    if (activeName.value === 'first') {
+      getPayment_PageData()
+    }
+    else {
+      getTopup_PageData()
+    }
+  })
+
   isLoading.value = false
 })
 </script>
@@ -250,15 +491,18 @@ onMounted(async () => {
             <div class="overflow-x-auto">
               <div class="transaction-list pb-40px">
                 <el-table
-                  :data="PaymentData"
+                  ref="TransactionTableRef"
+                  :data="PaymentPageData"
                   class="white-space-nowrap text-primary"
-                  height="calc(100vh - 280px)"
+                  height="calc(100vh - 300px)"
                   style="width: 100%"
                   stripe
                   size="large"
                   :cell-style="msi.tb_cell"
                   :header-cell-style="msi.tb_header_cell"
                   v-loading.fullscreen.lock="isLoading"
+                  @sort-change="transactionTableSort"
+                  @filter-change="transactionTableFilter"
                   :default-sort="{ prop: 'created_date_str', order: 'ascending' }"
                 >
                   <el-table-column :label="t('station')" align="center" min-width="550">
@@ -266,17 +510,15 @@ onMounted(async () => {
                       prop="location_name"
                       :label="t('name')"
                       align="center"
-                      sortable
+                      sortable="custom"
                       min-width="250"
-                      :sort-method="(a, b) => sortFunc(a, b, 'location_name')"
                     />
                     <el-table-column
                       prop="evse_id"
                       :label="t('evse_id')"
                       align="center"
-                      sortable
+                      sortable="custom"
                       min-width="250"
-                      :sort-method="(a, b) => sortFunc(a, b, 'evse_id')"
                     />
                   </el-table-column>
 
@@ -290,18 +532,16 @@ onMounted(async () => {
                       prop="parking_time"
                       :label="t('used_time')"
                       align="center"
-                      sortable
+                      sortable="custom"
                       min-width="150"
-                      :sort-method="(a, b) => sortFunc(a, b, 'parking_time')"
                     />
                     <el-table-column
                       prop="parking_price_str"
                       :label="t('price')"
                       header-align="center"
                       align="right"
-                      sortable
+                      sortable="custom"
                       min-width="100"
-                      :sort-method="(a, b) => sortFunc(a, b, 'parking_price_str')"
                     />
 
                     <el-table-column
@@ -309,18 +549,16 @@ onMounted(async () => {
                       :label="t('currency')"
                       header-align="center"
                       align="center"
-                      sortable
+                      sortable="custom"
                       min-width="150"
-                      :sort-method="(a, b) => sortFunc(a, b, 'parking_currency_str')"
                     />
 
                     <el-table-column
                       prop="parking_car_num_str"
                       :label="t('license_plate')"
                       align="center"
-                      sortable
+                      sortable="custom"
                       min-width="200"
-                      :sort-method="(a, b) => sortFunc(a, b, 'parking_car_num_str')"
                     />
                   </el-table-column>
 
@@ -334,27 +572,24 @@ onMounted(async () => {
                       prop="charging_time"
                       :label="t('used_time')"
                       align="center"
-                      sortable
+                      sortable="custom"
                       min-width="150"
-                      :sort-method="(a, b) => sortFunc(a, b, 'charging_time')"
                     />
                     <el-table-column
                       prop="charging_energy_str"
                       :label="t('kwh')"
                       header-align="center"
                       align="right"
-                      sortable
+                      sortable="custom"
                       min-width="150"
-                      :sort-method="(a, b) => sortFunc(a, b, 'charging_energy_str')"
                     />
                     <el-table-column
                       prop="charging_price_str"
                       :label="t('price')"
                       header-align="center"
                       align="right"
-                      sortable
+                      sortable="custom"
                       min-width="100"
-                      :sort-method="(a, b) => sortFunc(a, b, 'charging_price_str')"
                     />
 
                     <el-table-column
@@ -362,9 +597,8 @@ onMounted(async () => {
                       :label="t('currency')"
                       header-align="center"
                       align="center"
-                      sortable
+                      sortable="custom"
                       min-width="150"
-                      :sort-method="(a, b) => sortFunc(a, b, 'charging_currency_str')"
                     />
                   </el-table-column>
 
@@ -373,9 +607,8 @@ onMounted(async () => {
                     :label="t('final_paid')"
                     header-align="center"
                     align="right"
-                    sortable
+                    sortable="custom"
                     min-width="180"
-                    :sort-method="(a, b) => sortFunc(a, b, 'money')"
                   />
 
                   <el-table-column
@@ -383,17 +616,16 @@ onMounted(async () => {
                     :label="t('currency')"
                     header-align="center"
                     align="center"
-                    sortable
+                    sortable="custom"
                     min-width="150"
-                    :sort-method="(a, b) => sortFunc(a, b, 'currency')"
                   />
 
                   <el-table-column
                     prop="paymethod_str"
                     :label="t('method')"
                     align="center"
-                    :filters="filters"
-                    :filter-method="filterTag"
+                    :filters="filters_method"
+                    :column-key="'tag'"
                     min-width="150"
                   />
 
@@ -401,11 +633,17 @@ onMounted(async () => {
                     prop="created_date_str"
                     :label="t('created_date')"
                     align="center"
-                    sortable
+                    sortable="custom"
                     min-width="250"
-                    :sort-method="(a, b) => sortFunc(a, b, 'created_date_str')"
                   />
                 </el-table>
+                <el-pagination 
+                  class="justify-center"
+                  layout="prev, pager, next" 
+                  :total="payment_max_page" 
+                  v-model:current-page="payment_cur_page" 
+                  @current-change="getPayment_PageData" 
+                />
               </div>
             </div>
           </el-tab-pane>
@@ -413,42 +651,51 @@ onMounted(async () => {
             <div class="overflow-x-auto">
               <div class="topup-list pb-40px">
                 <el-table
-                  :data="RFIDData"
+                  ref="TopupTableRef"
+                  :data="RFIDPageData"
                   class="white-space-nowrap text-primary"
-                  height="calc(100vh - 220px)"
+                  height="calc(100vh - 300px)"
                   style="width: 100%"
                   stripe
                   size="large"
                   :cell-style="msi.tb_cell"
                   :header-cell-style="msi.tb_header_cell"
                   v-loading.fullscreen.lock="isLoading"
+                  @sort-change="topupTableSort"
+                  @filter-change="topupTableFilter"
                   :default-sort="{ prop: 'created_date_str', order: 'ascending' }"
                 >
+                  <el-table-column
+                    prop="type_str"
+                    :label="t('type')"
+                    align="center"
+                    :filters="filters_type"
+                    :column-key="'tag'"
+                    min-width="200"
+                  />
+
                   <el-table-column
                     prop="tag_id"
                     :label="t('id_email')"
                     align="center"
-                    sortable
+                    sortable="custom"
                     min-width="200"
-                    :sort-method="(a, b) => sortFunc(a, b, 'tag_id')"
                   />
 
                   <el-table-column
                     prop="name"
                     :label="t('name')"
                     align="center"
-                    sortable
+                    sortable="custom"
                     min-width="200"
-                    :sort-method="(a, b) => sortFunc(a, b, 'name')"
                   />
 
                   <el-table-column
                     prop="rfid"
                     :label="t('rfid_num')"
                     align="center"
-                    sortable
+                    sortable="custom"
                     min-width="150"
-                    :sort-method="(a, b) => sortFunc(a, b, 'rfid')"
                   />
 
                   <el-table-column
@@ -456,21 +703,26 @@ onMounted(async () => {
                     :label="t('amount')"
                     header-align="center"
                     align="right"
-                    sortable
+                    sortable="custom"
                     min-width="150"
-                    :sort-method="(a, b) => sortFunc(a, b, 'money')"
                   />
 
                   <el-table-column
                     prop="created_date_str"
                     :label="t('created_time')"
                     align="center"
-                    sortable
+                    sortable="custom"
                     min-width="200"
-                    :sort-method="(a, b) => sortFunc(a, b, 'created_date_str')"
                   />
 
                 </el-table>
+                <el-pagination 
+                  class="justify-center"
+                  layout="prev, pager, next" 
+                  :total="RFID_max_page" 
+                  v-model:current-page="RFID_cur_page" 
+                  @current-change="getTopup_PageData" 
+                />
               </div>
             </div>
           </el-tab-pane>

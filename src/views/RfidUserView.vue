@@ -43,45 +43,6 @@ const sortFunc = (obj1, obj2, column) => {
   }
 }
 
-// const handleParticipator = async() => {
-//   let row_span = 1
-//   let index = 0
-
-//   RfidUserData[0].rowspan = 0
-//   for (let i=1; i<RfidUserData.length; i++) {
-//     if (RfidUserData[i]._id === RfidUserData[i - 1]._id) {
-//       RfidUserData[i].rowspan = 0
-//       row_span++
-//     }
-//     else {
-//       RfidUserData[index].rowspan = row_span
-//       row_span = 1
-//       index = i
-//     }
-//   }
-//   RfidUserData[index].rowspan = row_span
-// }
-// // Tony: add in el-table => :span-method="objectSpanMethod"
-// const objectSpanMethod = (row) => {
-//   if (row.columnIndex === 0 || row.columnIndex === 1 || row.columnIndex === 2 
-//     || row.columnIndex === 5 || row.columnIndex === 6 || row.columnIndex === 7
-//     // || row.columnIndex === 8
-//   ) {
-//     if (row.row.rowspan !== 0) {
-//       return {
-//         rowspan: row.row.rowspan,
-//         colspan: 1,
-//       }
-//     }
-//     else {
-//       return {
-//         rowspan: 0,
-//         colspan: 0,
-//       }
-//     }
-//   }
-// }
-
 const search = async() => {
   RfidUserData.length = 0
   total_amount.value = 0
@@ -131,54 +92,63 @@ const detail_info = (detail) => {
   router.push({ name: 'rfidUserDetail', query:{id:detail._id} })
 }
 const getUserData = async() => {
-  let response = await MsiApi.get_account_info('rfid')
-  UserData.length = 0
-  RfidUserData.length = 0
-  console.log(response)
-  total_amount.value = response.data?.data?.total_amount.toLocaleString()
-  Object.assign(UserData, response?.data?.data?.rfid_infos)
-  UserData.forEach((item) => {
-    if (item.tag_id !== 'DELETE' || item.name !== 'DELETE') {
-      let localTime = new Date(new Date(item.updated_date).getTime() + MStore.timeZoneOffset * -60000)
-      item.updated_date_str = moment(localTime).format('YYYY-MM-DD HH:mm:ss')
-      item.amount_str = item.amount?.toLocaleString()
-      RfidUserData.push(item)
-    }
-  })
-  // await handleParticipator()
-}
-const addRfidUserDialog = (action) => {
-  if (action === 'confirm') {
-    add_rfid_user_ref.value.validate(async valid => {
-      if (valid) {
-        let sendData = {
-          "role": 'rfid',
-          'tag_id': newUser.id,
-          'name': newUser.name,
-          'phone': newUser.phone,
-        }
-        let res = await MsiApi.register_member(sendData)
-        if (res.data.status === 'Accepted') {
-          dialogFormVisible.value = false
-          await getUserData()
-        }
-        else if (res.data.message === 'User is exist') {
-          ElMessage.error(t('id_already_exists'))
-        }
-        else if (res.data.message === 'Please chat to Administrator/IT.') {
-          ElMessage.error(t('please_chat_to_administrator_it'))
-        }
-        else { 
-          ElMessage.error(t('error'))
-        }
-      }
-      else {
-        return false
+  try {
+    let response = await MsiApi.get_account_info('rfid')
+    UserData.length = 0
+    RfidUserData.length = 0
+    total_amount.value = response.data?.data?.total_amount.toLocaleString()
+    if (total_amount.value === undefined) total_amount.value = '0'
+    Object.assign(UserData, response?.data?.data?.rfid_infos)
+    UserData.forEach((item) => {
+      if (item.tag_id !== 'DELETE' || item.name !== 'DELETE') {
+        let localTime = new Date(new Date(item.updated_date).getTime() + MStore.timeZoneOffset * -60000)
+        item.updated_date_str = moment(localTime).format('YYYY-MM-DD HH:mm:ss')
+        item.amount_str = item.amount?.toLocaleString()
+        RfidUserData.push(item)
       }
     })
   }
-  else if (action === 'cancel') {
-    dialogFormVisible.value = false
+  catch {
+    ElMessage.error('An unexpected error occurred.')
+  }
+}
+const addRfidUserDialog = (action) => {
+  try {
+    if (action === 'confirm') {
+      add_rfid_user_ref.value.validate(async valid => {
+        if (valid) {
+          let sendData = {
+            "role": 'rfid',
+            'tag_id': newUser.id,
+            'name': newUser.name,
+            'phone': newUser.phone,
+          }
+          let res = await MsiApi.register_member(sendData)
+          if (res.data.status === 'Accepted') {
+            dialogFormVisible.value = false
+            await getUserData()
+          }
+          else if (res.data.message === 'User is exist') {
+            ElMessage.error(t('id_already_exists'))
+          }
+          else if (res.data.message === 'Please chat to Administrator/IT.') {
+            ElMessage.error(t('please_chat_to_administrator_it'))
+          }
+          else { 
+            ElMessage.error(t('error'))
+          }
+        }
+        else {
+          return false
+        }
+      })
+    }
+    else if (action === 'cancel') {
+      dialogFormVisible.value = false
+    }
+  }
+  catch {
+    ElMessage.error('An unexpected error occurred.')
   }
 }
 

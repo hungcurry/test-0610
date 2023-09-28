@@ -28,6 +28,7 @@ let occupied_str = ref()
 let occupied_detail_str = ref()
 
 const paymentData = reactive([])
+const paymentPageData = reactive([])
 const userDataMod = reactive([])
 const EditUserFormVisible = ref(false)
 const isDeleteBtn = ref(false)
@@ -59,6 +60,10 @@ const rfidData_rules = reactive({
 })
 const parking_visible = ref(true)
 const charging_visible = ref(true)
+const item_count = ref()
+const TransactionTableRef = ref()
+const cur_page = ref(1)
+const max_page = ref()
 const now = new Date()
 const select_time = ref([
   new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0),
@@ -74,13 +79,49 @@ const filters = [
   { text: t('charging'), value: 'Charging' },
   { text: t('parking'), value: 'Parking' },
 ]
-const type_filter = (value, rowData) => {
-  if (rowData.type === 'Charging+Parking' && (value === 'Charging' || value === 'Parking')) {
-    return true
-  }
-  else {
-    return rowData.type === value
-  }
+
+const tableSort = async(column) => {
+  let target = column.prop
+  let order = column.order
+  paymentData.sort(function (a, b) {
+    if (a[target] === undefined) {
+      a[target] = ''
+    }
+    else if (b[target] === undefined) {
+      b[target] = ''
+    }
+
+    if (target === 'parking_price_str' || target === 'money' || target === 'charging_price_str' || target === 'balance') {
+      let a_num = parseFloat(a[target]?.replace(/,/g, ""))
+      let b_num = parseFloat(b[target]?.replace(/,/g, ""))
+      if (order === 'ascending')
+        return a_num > b_num? -1 : 1
+      else
+        return a_num > b_num? 1 : -1
+    }
+    else if (target === 'parking_time' || target === 'charging_time') {
+      let a_num = Number(a[target]?.replace(/:/g, ""))
+      let b_num = Number(b[target]?.replace(/:/g, ""))
+      if (order === 'ascending')
+        return a_num > b_num? -1 : 1
+      else
+        return a_num > b_num? 1 : -1
+    }
+
+    if (order === 'ascending') {
+      return a[target] > b[target]? -1 : 1
+    }
+    else {
+      return a[target] > b[target]? 1 : -1
+    }
+  })
+
+  getTransaction_PageData()
+}
+const tableFilter = async(filters) => {
+  await getTransactionData(filters)
+  getTransaction_PageData()
+  TransactionTableRef.value.sort('created_date_str', 'ascending')
 }
 
 const download = () => {
@@ -118,37 +159,10 @@ const download = () => {
   export_json_to_excel({ header: tHeader, data: data, filename: 'Transaction' })
 }
 const select_date = async () => {
-  await getTransactionData()
-}
-const sortFunc = (obj1, obj2, column) => {
-
-let convertedNumber1 = undefined
-let convertedNumber2 = undefined
-if (
-  column === 'parking_price_str' ||
-  column === 'money' ||
-  column === 'charging_price_str'
-) {
-  if (obj1[column] !== undefined) {
-    convertedNumber1 = parseFloat(obj1[column].replace(/,/g, ''))
-  }
-  if (obj2[column] !== undefined) {
-    convertedNumber2 = parseFloat(obj2[column].replace(/,/g, ''))
-  }
-  if (convertedNumber2 === undefined) return -1
-  if (convertedNumber1 > convertedNumber2) {
-    return -1
-  }
-} else {
-  let at = obj1[column]
-  let bt = obj2[column]
-  if (bt === undefined) {
-    return -1
-  }
-  if (at > bt) {
-    return -1
-  }
-}
+  await getTransactionData(null)
+  getTransaction_PageData()
+  TransactionTableRef.value.clearFilter()
+  TransactionTableRef.value.sort('created_date_str', 'ascending')
 }
 
 const editUser = () => {
@@ -159,54 +173,59 @@ const editUser = () => {
   EditUserFormVisible.value = true
 }
 const editUserDialog = (action) => {
-  if (action === 'confirm') {
-    userData_ref.value.validate((valid) => {
-      if (valid) {
-        EditUserFormVisible.value = false
-        ElMessageBox.confirm(t('do_you_want_to_modify'), t('warning'), { confirmButtonText: t('ok'), cancelButtonText: t('cancel'), type: 'warning' })
+  try {
+    if (action === 'confirm') {
+      userData_ref.value.validate((valid) => {
+        if (valid) {
+          EditUserFormVisible.value = false
+          ElMessageBox.confirm(t('do_you_want_to_modify'), t('warning'), { confirmButtonText: t('ok'), cancelButtonText: t('cancel'), type: 'warning' })
+            .then(async () => {
+              const json = JSON.stringify({ role: 'rfid', id: general._id, name: userDataMod.name, phone: userDataMod.phone, 
+                permission: {user: general.permission.user, edit: general.permission.edit, active: userDataMod.permission_active_str} })
+              let res = await MsiApi.edit_account(json)
+              if (res.data.status === 'Accepted') {
+                await getRfidUserData()
+              }
+              else {
+                ElMessage.error(t('error'))
+              }
+            })
+            .catch((e) => {
+              EditUserFormVisible.value = true
+            })
+        }
+        else {
+          return false
+        }
+      })
+    } 
+    else if (action === 'cancel') {
+      EditUserFormVisible.value = false
+    } 
+    else if (action === 'delete') {
+      EditUserFormVisible.value = false
+      if (isDeleteBtn.value === true) {
+        ElMessage({ type: 'error', message: t('user_cannot_be_deteted_because_the_total_amount_is_not_0') })
+      }
+      else {
+        ElMessageBox.confirm(t('do_you_want_to_delete'), t('warning'), { confirmButtonText: t('ok'), cancelButtonText: t('cancel'), type: 'warning' })
           .then(async () => {
-            const json = JSON.stringify({ role: 'rfid', id: general._id, name: userDataMod.name, phone: userDataMod.phone, 
-              permission: {user: general.permission.user, edit: general.permission.edit, active: userDataMod.permission_active_str} })
-            let res = await MsiApi.edit_account(json)
+            const params = { id: general._id }
+            let res = await MsiApi.delete_account(params)
             if (res.data.status === 'Accepted') {
-              await getRfidUserData()
+              router.push({ name: 'rfidUser' })
             }
             else {
               ElMessage.error(t('error'))
             }
           })
           .catch((e) => {
-            EditUserFormVisible.value = true
           })
       }
-      else {
-        return false
-      }
-    })
-  } 
-  else if (action === 'cancel') {
-    EditUserFormVisible.value = false
-  } 
-  else if (action === 'delete') {
-    EditUserFormVisible.value = false
-    if (isDeleteBtn.value === true) {
-      ElMessage({ type: 'error', message: t('user_cannot_be_deteted_because_the_total_amount_is_not_0') })
     }
-    else {
-      ElMessageBox.confirm(t('do_you_want_to_delete'), t('warning'), { confirmButtonText: t('ok'), cancelButtonText: t('cancel'), type: 'warning' })
-        .then(async () => {
-          const params = { id: general._id }
-          let res = await MsiApi.delete_account(params)
-          if (res.data.status === 'Accepted') {
-            router.push({ name: 'rfidUser' })
-          }
-          else {
-            ElMessage.error(t('error'))
-          }
-        })
-        .catch((e) => {
-        })
-    }
+  }
+  catch {
+    ElMessage.error('An unexpected error occurred.')
   }
 }
 const editRfid = () => {
@@ -273,121 +292,138 @@ const updateRfidCash = (type) => {
     cash = rfidData.refund * (-1)
   }
 
-  ElMessageBox.confirm( messages, 'Warning', {
-      confirmButtonText: t('ok'),
-      cancelButtonText: t('cancel'),
-      type: 'warning',
-    })
-    .then(async() => {
-      const json = JSON.stringify({ id: general._id, rfid: {rfid: rfidData.rfid.toUpperCase(), cash: cash} })
-      let res = await MsiApi.set_rfid_cash(json)
-      if (res.data.status === 'Accepted') {
-        await getRfidUserData()
-        await getTransactionData()
-        isDeleteBtn.value = false
-        rfids.forEach((item) => {
-          if (rfidData.rfid.toUpperCase() === item.rfid) {
-            rfidData.cash_str = item.cash_str
-          }
-          if (item.cash !== 0) {
-            isDeleteBtn.value = true
-          }
-        })
-        ElMessage({
-          type: 'success',
-          message: response_msg,
-        })
-      }
-      else {
-        ElMessage.error(t('error'))
-      }
-    })
-    .catch((e) => {
-      if (type === 'top_up') {
-        rfidData.top_up = ''
-        rfidData.topUpCheck = false
-      }
-      else if (type === 'refund') {
-        rfidData.refund = ''
-        rfidData.refundCheck = false
-      }
-    })
+  try {
+    ElMessageBox.confirm( messages, t('warning'), {
+        confirmButtonText: t('ok'),
+        cancelButtonText: t('cancel'),
+        type: 'warning',
+      })
+      .then(async() => {
+        const json = JSON.stringify({ id: general._id, rfid: {rfid: rfidData.rfid.toUpperCase(), cash: cash} })
+        let res = await MsiApi.set_rfid_cash(json)
+        if (res.data.status === 'Accepted') {
+          await getRfidUserData()
+          await getTransactionData(null)
+          getTransaction_PageData()
+          TransactionTableRef.value.sort('created_date_str', 'ascending')
+          isDeleteBtn.value = false
+          rfids.forEach((item) => {
+            if (rfidData.rfid.toUpperCase() === item.rfid) {
+              rfidData.cash_str = item.cash_str
+            }
+            if (item.cash !== 0) {
+              isDeleteBtn.value = true
+            }
+          })
+          ElMessage({
+            type: 'success',
+            message: response_msg,
+          })
+        }
+        else {
+          ElMessage.error(t('error'))
+        }
+      })
+      .catch((e) => {
+        if (type === 'top_up') {
+          rfidData.top_up = ''
+          rfidData.topUpCheck = false
+        }
+        else if (type === 'refund') {
+          rfidData.refund = ''
+          rfidData.refundCheck = false
+        }
+      })
+  }
+  catch {
+    ElMessage.error('An unexpected error occurred.')
+  }
 }
 const checkRfidCard = async() => {
-  let response = await MsiApi.get_account_info('rfid')
-  let RfidUserData = response.data.data.rfid_infos
-  for (let i=0; i<RfidUserData.length; i++) {
-    if (RfidUserData[i].rfid === rfidData.rfid.toUpperCase()) {
-      if (RfidUserData[i].tag_id === general.tag_id && rfidData.index === undefined) {
-        ElMessage({ type: 'error', message: t('card_number_already_exists') })
-        return false
-      }
-      else if (RfidUserData[i].tag_id !== general.tag_id) {
-        let user_name = RfidUserData[i].name
-        ElMessage({ type: 'error', message: t(`card_number_is_duplicated_with_user`, { user_name }) })
-        return false
+  try {
+    let response = await MsiApi.get_account_info('rfid')
+    let RfidUserData = response.data.data.rfid_infos
+    for (let i=0; i<RfidUserData.length; i++) {
+      if (RfidUserData[i].rfid === rfidData.rfid.toUpperCase()) {
+        if (RfidUserData[i].tag_id === general.tag_id && rfidData.index === undefined) {
+          ElMessage({ type: 'error', message: t('card_number_already_exists') })
+          return false
+        }
+        else if (RfidUserData[i].tag_id !== general.tag_id) {
+          let user_name = RfidUserData[i].name
+          ElMessage({ type: 'error', message: t(`card_number_is_duplicated_with_user`, { user_name }) })
+          return false
+        }
       }
     }
+    return true
   }
-
-  return true
+  catch {
+    ElMessage.error('An unexpected error occurred.')
+    return false
+  }
 }
 const confirmRfid = (action, index) => {
-  if (action === 'confirm') {
-    rfidData_ref.value.validate(async valid => {
-      if (valid && await checkRfidCard() === true) {
-        EditRfidFormVisible.value = false
-        // Add RFID Card
-        if (modify_card_index.value === -1) {
-          const json = JSON.stringify({ id: general._id, rfid: {rfid: rfidData.rfid.toUpperCase(), cash: parseInt(rfidData.cash), enable: rfidData.enable, nickname: rfidData.nickname} })
-          let res = await MsiApi.add_rfid_data(json)
-          if (res.data.status === 'Accepted') {
-            ElMessage({ type: 'success', message: `${t('add')} ${rfidData.rfid.toUpperCase()} ${t('card_no')}` })
-            await getRfidUserData()
-            await getTransactionData()
+  try {
+    if (action === 'confirm') {
+      rfidData_ref.value.validate(async valid => {
+        if (valid && await checkRfidCard() === true) {
+          EditRfidFormVisible.value = false
+          // Add RFID Card
+          if (modify_card_index.value === -1) {
+            const json = JSON.stringify({ id: general._id, rfid: {rfid: rfidData.rfid.toUpperCase(), cash: parseInt(rfidData.cash), enable: rfidData.enable, nickname: rfidData.nickname} })
+            let res = await MsiApi.add_rfid_data(json)
+            if (res.data.status === 'Accepted') {
+              ElMessage({ type: 'success', message: `${t('add')} ${rfidData.rfid.toUpperCase()} ${t('card_no')}` })
+              await getRfidUserData()
+              await getTransactionData(null)
+              getTransaction_PageData()
+              TransactionTableRef.value.sort('created_date_str', 'ascending')
+            }
+            else {
+              ElMessage.error(t('error'))
+            }
           }
+          // Edit RFID Card
           else {
-            ElMessage.error(t('error'))
+            const json = JSON.stringify({ id: general._id, rfid: {rfid: rfidData.rfid.toUpperCase(), enable: rfidData.enable, nickname: rfidData.nickname} })
+            let res = await MsiApi.edit_rfid_data(json)
+            if (res.data.status === 'Accepted') {
+              await getRfidUserData()
+            }
+            else {
+              ElMessage.error(t('error'))
+            }
           }
         }
-        // Edit RFID Card
         else {
-          const json = JSON.stringify({ id: general._id, rfid: {rfid: rfidData.rfid.toUpperCase(), enable: rfidData.enable, nickname: rfidData.nickname} })
-          let res = await MsiApi.edit_rfid_data(json)
-          if (res.data.status === 'Accepted') {
-            await getRfidUserData()
-          }
-          else {
-            ElMessage.error(t('error'))
-          }
+          return false
         }
+      })
+    }
+    else if (action === 'cancel') {
+      EditRfidFormVisible.value = false
+    }
+    else if (action === 'delete') {
+      if (index !== undefined) {
+        modify_card_index.value = index
+      }
+      if (real_time.length !== 0) {
+        ElMessageBox.alert(t('rfid_card_cannot_be_removed_because_the_evse_is_occupied'), t('warning'), { confirmButtonText: t('ok'), type: 'warning', 'close-on-click-modal': true })
+      }
+      else if (rfids[modify_card_index.value].cash !== 0) {
+        ElMessageBox.alert(t('rfid_card_cannot_be_removed_because_the_amount_is_not_0'), t('warning'), { confirmButtonText: t('ok'), type: 'warning', 'close-on-click-modal': true })
       }
       else {
-        return false
-      }
-    })
-  }
-  else if (action === 'cancel') {
-    EditRfidFormVisible.value = false
-  }
-  else if (action === 'delete') {
-    if (index !== undefined) {
-      modify_card_index.value = index
-    }
-    if (real_time.length !== 0) {
-      ElMessageBox.alert(t('rfid_card_cannot_be_removed_because_the_evse_is_occupied'), t('warning'), { confirmButtonText: t('ok'), type: 'warning', 'close-on-click-modal': true })
-    }
-    else if (rfids[modify_card_index.value].cash !== 0) {
-      ElMessageBox.alert(t('rfid_card_cannot_be_removed_because_the_amount_is_not_0'), t('warning'), { confirmButtonText: t('ok'), type: 'warning', 'close-on-click-modal': true })
-    }
-    else {
-      ElMessageBox.confirm(t('do_you_want_to_delete'), t('warning'), { confirmButtonText: t('ok'), cancelButtonText: t('cancel'), type: 'warning' })
+        ElMessageBox.confirm(t('do_you_want_to_delete'), t('warning'), { confirmButtonText: t('ok'), cancelButtonText: t('cancel'), type: 'warning' })
         .then(async () => {
           const params = { id: general._id, rfid: rfids[modify_card_index.value].rfid }
           let res = await MsiApi.delete_rfid_data(params)
           if (res.data.status === 'Accepted') {
             await getRfidUserData()
-            await getTransactionData()
+            await getTransactionData(null)
+            getTransaction_PageData()
+            TransactionTableRef.value.sort('created_date_str', 'ascending')
           }
           else {
             ElMessage.error(t('error'))
@@ -395,7 +431,11 @@ const confirmRfid = (action, index) => {
         })
         .catch((e) => {
         })
+      }
     }
+  }
+  catch {
+    ElMessage.error('An unexpected error occurred.')
   }
 }
 const card_detail = (data, index) => {
@@ -415,96 +455,127 @@ const card_detail = (data, index) => {
 }
 
 const getRfidUserData = async() => {
-  let response = await MsiApi.get_account_detail('rfid', user_id)
-  let localTime = null
-
-  general.length = 0
-  Object.assign(general, response.data.data.general)
-  localTime = new Date(new Date(general.updated_date).getTime() + MStore.timeZoneOffset * -60000)
-  general.updated_date_str = moment(localTime).format('YYYY-MM-DD HH:mm:ss')
-  localTime = new Date(new Date(general.create_date).getTime() + MStore.timeZoneOffset * -60000)
-  general.create_date_str = moment(localTime).format('YYYY-MM-DD HH:mm:ss')
-  general.total_amount_str = general.total_amount.toLocaleString()
-
-  real_time.length = 0
-  Object.assign(real_time, response.data.data.real_time)
+  try {
+    let response = await MsiApi.get_account_detail('rfid', user_id)
+    let localTime = null
   
-  rfids.length = 0
-  Object.assign(rfids, response.data.data.rfids)
-  rfids.forEach((item) => {
-    item.cash_str = item.cash.toLocaleString()
-  })
+    general.length = 0
+    Object.assign(general, response.data.data.general)
+    localTime = new Date(new Date(general.updated_date).getTime() + MStore.timeZoneOffset * -60000)
+    general.updated_date_str = moment(localTime).format('YYYY-MM-DD HH:mm:ss')
+    localTime = new Date(new Date(general.create_date).getTime() + MStore.timeZoneOffset * -60000)
+    general.create_date_str = moment(localTime).format('YYYY-MM-DD HH:mm:ss')
+    general.total_amount_str = general.total_amount.toLocaleString()
   
-  summary.length = 0
-  Object.assign(summary, response.data.data.summary)
-  summary.cost_str = summary.cost.toLocaleString()
-
-  let time = moment.duration(summary?.charging_time, 'seconds')
-  let timeFormat = moment({ h: time.hours(), m: time.minutes(), s: time.seconds()}).format('HH:mm:ss')
-  summary.charging_time_str = timeFormat
+    real_time.length = 0
+    Object.assign(real_time, response.data.data.real_time)
+    
+    rfids.length = 0
+    Object.assign(rfids, response.data.data.rfids)
+    rfids.forEach((item) => {
+      item.cash_str = item.cash.toLocaleString()
+    })
+    
+    summary.length = 0
+    Object.assign(summary, response.data.data.summary)
+    summary.cost_str = summary.cost.toLocaleString()
   
-  occupied_str.value = real_time[0]
-  occupied_detail_str.value = ''
-  if (real_time.length > 1) {
-    occupied_str.value += ' / ...'
-
-    for (let i=0; i<real_time.length; i++) {
-      occupied_detail_str.value += real_time[i]
-      if (i !== real_time.length-1) {
-        occupied_detail_str.value += ' / '
+    let time = moment.duration(summary?.charging_time, 'seconds')
+    let timeFormat = moment({ h: time.hours(), m: time.minutes(), s: time.seconds()}).format('HH:mm:ss')
+    summary.charging_time_str = timeFormat
+    
+    occupied_str.value = real_time[0]
+    occupied_detail_str.value = ''
+    if (real_time.length > 1) {
+      occupied_str.value += ' / ...'
+  
+      for (let i=0; i<real_time.length; i++) {
+        occupied_detail_str.value += real_time[i]
+        if (i !== real_time.length-1) {
+          occupied_detail_str.value += ' / '
+        }
       }
     }
   }
-}
-const getTransactionData = async() => {
-  let response = null
-  let params = null
-
-  if (select_time.value === null) {
-    return
+  catch {
+    ElMessage.error('An unexpected error occurred.')
   }
-
-  const startTime = new Date(select_time.value[0].getTime() - MStore.timeZoneOffset * -60000)
-  const endTime = new Date(select_time.value[1].getTime() - MStore.timeZoneOffset * -60000)
-
-  params = {user: 'rfid', id: user_id, start_date: startTime, end_date: endTime}
-  response = await MsiApi.get_transaction(params)
-  paymentData.length = 0
-  Object.assign(paymentData, response.data.data.logs)
-  paymentData.forEach((item) => {
-    let localTime = new Date(new Date(item.created_date).getTime() + MStore.timeZoneOffset * -60000)
-    item.created_date_str = moment(localTime).format('YYYY-MM-DD HH:mm:ss')
-    item.balance_int = parseFloat(String(item.balance).replace(/,/g, ''))
-    switch (item.type) {
-      case 'Top-up':
-        item.type_str  = t('top_up')
-      break
-      case 'Refund':
-        item.type_str  = t('refund')
-        break
-      case 'Charging':
-      item.type_str  = t('charging')
-        break
-      case 'Parking':
-        item.type_str  = t('parking')
-      break
-      case 'Charging+Parking':
-        item.type_str  = t('charging') + '+' + t('parking')
-      break
-      default:
-      break
+}
+const getTransactionData = async(filters) => {
+  try {
+    if (select_time.value === null) {
+      return
     }
-  })
+    const startTime = new Date(select_time.value[0].getTime() - MStore.timeZoneOffset * -60000)
+    const endTime = new Date(select_time.value[1].getTime() - MStore.timeZoneOffset * -60000)
+    let params = {user: 'rfid', id: user_id, start_date: startTime, end_date: endTime}
+    let response = await MsiApi.get_transaction(params)
+    paymentData.length = 0
+    response.data.data.logs.forEach((item) => {
+      if (filters === null || filters?.tag.length === 0 || filters?.tag.some(i => item?.type.includes(i))) {
+        let localTime = new Date(new Date(item.created_date).getTime() + MStore.timeZoneOffset * -60000)
+        item.created_date_str = moment(localTime).format('YYYY-MM-DD HH:mm:ss')
+        item.balance_int = parseFloat(String(item.balance).replace(/,/g, ''))
+        switch (item.type) {
+          case 'Top-up':
+            item.type_str  = t('top_up')
+          break
+          case 'Refund':
+            item.type_str  = t('refund')
+            break
+          case 'Charging':
+          item.type_str  = t('charging')
+            break
+          case 'Parking':
+            item.type_str  = t('parking')
+          break
+          case 'Charging+Parking':
+            item.type_str  = t('charging') + '+' + t('parking')
+          break
+          default:
+          break
+        }
+        paymentData.push(item)
+      }
+    })
+  }
+  catch {
+    ElMessage.error('An unexpected error occurred.')
+  }
+}
+
+const getTransaction_PageData = async() => {
+  let table_body_height = window.innerHeight - 410 - 45
+  item_count.value = Math.floor(table_body_height / 45)
+  max_page.value = Math.ceil(paymentData.length / item_count.value) * 10
+
+  let count = item_count.value
+  paymentPageData.length = 0
+  if (cur_page.value * 10 === max_page.value) {
+    count = paymentData.length - (cur_page.value-1) * item_count.value
+  }
+  else if (max_page.value === 0) {
+    count = 0
+  }
+  for (let i=0; i<count; i++) {
+    paymentPageData.push(paymentData[(cur_page.value - 1) * item_count.value + i])
+  }
 }
 
 onMounted(async () => {
   await getRfidUserData()
-  await getTransactionData()
+  await getTransactionData(null)
 
   rfids.forEach((item) => {
     if (item.cash !== 0) {
       isDeleteBtn.value = true
     }
+  })
+
+  getTransaction_PageData()
+  TransactionTableRef.value.sort('created_date_str', 'ascending')
+  window.addEventListener("resize", async function () {
+    getTransaction_PageData()
   })
 })
 onUnmounted(() => {
@@ -561,7 +632,7 @@ onUnmounted(() => {
                       <div class="mb-8px">
                         <span class="info-item min-w-110px">{{ t('status') }}</span>
                         <span v-if="general.permission?.active === true" class="line-height-32px font-500 text-blue-1200">{{ t('active') }}</span>
-                        <span v-else class="line-height-32px font-500 text-blue-1200">{{ t('disable') }}</span>
+                        <span v-else-if="general.permission?.active === false" class="line-height-32px font-500 text-blue-1200">{{ t('disable') }}</span>
                       </div>
                     </div>
                     <div
@@ -764,14 +835,17 @@ onUnmounted(() => {
             </div>
             <div class="overflow-x-auto">
               <el-table
-                :data="paymentData"
+                ref="TransactionTableRef"
+                :data="paymentPageData"
                 class="white-space-nowrap text-primary"
-                height="calc(100vh - 350px)"
+                height="calc(100vh - 380px)"
                 style="width: 100%"
                 stripe
                 size="large"
                 :cell-style="msi.tb_cell"
                 :header-cell-style="msi.tb_header_cell"
+                @sort-change="tableSort"
+                @filter-change="tableFilter"
                 :default-sort="{ prop: 'created_date_str', order: 'ascending' }"
               >
                 <el-table-column
@@ -779,7 +853,7 @@ onUnmounted(() => {
                   :label="t('type')"
                   align="center"
                   :filters="filters"
-                  :filter-method="type_filter"
+                  :column-key="'tag'"
                   min-width="250"
                 />
 
@@ -787,16 +861,14 @@ onUnmounted(() => {
                   <el-table-column
                     prop="location_name"
                     :label="t('name')"
-                    sortable
-                    :sort-method="(a, b) => sortFunc(a, b, 'location_name')"
+                    sortable="custom"
                     align="center"
                     min-width="250"
                   />
                   <el-table-column
                     prop="evse_id"
                     :label="t('evse_id')"
-                    sortable
-                    :sort-method="(a, b) => sortFunc(a, b, 'evse_id')"
+                    sortable="custom"
                     align="center"
                     min-width="300"
                   />
@@ -812,8 +884,7 @@ onUnmounted(() => {
                     prop="parking_time"
                     :label="t('used_time')"
                     align="center"
-                    sortable
-                    :sort-method="(a, b) => sortFunc(a, b, 'parking_time')"
+                    sortable="custom"
                     min-width="150"
                   />
                   <el-table-column
@@ -821,8 +892,7 @@ onUnmounted(() => {
                     :label="t('price')"
                     header-align="center"
                     align="right"
-                    sortable
-                    :sort-method="(a, b) => sortFunc(a, b, 'parking_price_str')"
+                    sortable="custom"
                     min-width="100"
                   />
                   <el-table-column
@@ -830,8 +900,7 @@ onUnmounted(() => {
                     :label="t('license_plate')"
                     header-align="center"
                     align="center"
-                    sortable
-                    :sort-method="(a, b) => sortFunc(a, b, 'parking_car_num_str')"
+                    sortable="custom"
                     min-width="200"
                   />
                 </el-table-column>
@@ -847,8 +916,7 @@ onUnmounted(() => {
                     :label="t('used_time')"
                     header-align="center"
                     align="center"
-                    sortable
-                    :sort-method="(a, b) => sortFunc(a, b, 'charging_time')"
+                    sortable="custom"
                     min-width="150"
                   />
                   <el-table-column
@@ -856,8 +924,7 @@ onUnmounted(() => {
                     :label="t('kwh')"
                     header-align="center"
                     align="right"
-                    sortable
-                    :sort-method="(a, b) => sortFunc(a, b, 'charging_energy_str')"
+                    sortable="custom"
                     min-width="150"
                   />
                   <el-table-column
@@ -865,8 +932,7 @@ onUnmounted(() => {
                     :label="t('price')"
                     header-align="center"
                     align="right"
-                    sortable
-                    :sort-method="(a, b) => sortFunc(a, b, 'charging_price_str')"
+                    sortable="custom"
                     min-width="100"
                   />
                 </el-table-column>
@@ -874,8 +940,7 @@ onUnmounted(() => {
                 <el-table-column
                   prop="money"
                   :label="t('final_paid')"
-                  sortable
-                  :sort-method="(a, b) => sortFunc(a, b, 'money')"
+                  sortable="custom"
                   header-align="center"
                   align="right"
                   min-width="180"
@@ -884,8 +949,7 @@ onUnmounted(() => {
                 <el-table-column
                   prop="rfid"
                   :label="t('rfid_num')"
-                  sortable
-                  :sort-method="(a, b) => sortFunc(a, b, 'rfid')"
+                  sortable="custom"
                   align="center"
                   min-width="150"
                 />
@@ -893,8 +957,7 @@ onUnmounted(() => {
                 <el-table-column
                   prop="balance"
                   :label="t('balance')"
-                  sortable
-                  :sort-method="(a, b) => sortFunc(a, b, 'balance_int')"
+                  sortable="custom"
                   header-align="center"
                   align="right"
                   min-width="150"
@@ -908,12 +971,18 @@ onUnmounted(() => {
                 <el-table-column
                   prop="created_date_str"
                   :label="t('created_time')"
-                  sortable
-                  :sort-method="(a, b) => sortFunc(a, b, 'created_date_str')"
+                  sortable="custom"
                   align="center"
                   min-width="200"
                 />
               </el-table>
+              <el-pagination 
+                class="justify-center"
+                layout="prev, pager, next" 
+                :total="max_page" 
+                v-model:current-page="cur_page" 
+                @current-change="getTransaction_PageData" 
+              />
             </div>
           </el-tab-pane>
         </el-tabs>

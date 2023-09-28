@@ -68,214 +68,256 @@ const detail_info = (detail) => {
 }
 
 const editAdmin = async (action) => {
-  if (action === 'confirm') {
-    AdminData_ref.value.validate(valid => {
-      if (valid) {
-        EditAdminFormVisible.value = false
-        // if (editAdminData.permission_edit !== true && editAdminData.permission.edit !== 1) {
-        //   return
-        // }
-        editAdminData.permission_edit ? 1 : 3
-        let sendData = {
-          class: 'AdminUserData', pk: editAdminData._id,
-          first_name: editAdminData.first_name, last_name: editAdminData.last_name,
-          email: editAdminData.email, phone: editAdminData.phone,
-          permission: { user: editAdminData.permission_id, edit: editAdminData.permission_edit, active: editAdminData.permission_active },
+  try {
+    if (action === 'confirm') {
+      AdminData_ref.value.validate(valid => {
+        if (valid) {
+          EditAdminFormVisible.value = false
+          // if (editAdminData.permission_edit !== true && editAdminData.permission.edit !== 1) {
+          //   return
+          // }
+          editAdminData.permission_edit ? 1 : 3
+          let sendData = {
+            class: 'AdminUserData', pk: editAdminData._id,
+            first_name: editAdminData.first_name, last_name: editAdminData.last_name,
+            email: editAdminData.email, phone: editAdminData.phone,
+            permission: { user: editAdminData.permission_id, edit: editAdminData.permission_edit, active: editAdminData.permission_active },
+          }
+          ElMessageBox.confirm(t('do_you_want_to_modify'), t('warning'), { confirmButtonText: t('ok'), cancelButtonText: t('cancel'), type: 'warning' })
+            .then(async () => {
+              let res = await MsiApi.setCollectionData('patch', 'cpo', sendData)
+              if (res.status === 200) {
+                GetPermission()
+                console.log(await MongoAggregate())
+              }
+            })
+            .catch((e) => {
+              console.log(e)
+              editAdminData.permission_edit = editAdminData.permission.edit === 1? true : false
+              editAdminData.permission_active = editAdminData.permission.active === true? true : false
+            })
         }
-        ElMessageBox.confirm(t('do_you_want_to_modify'), t('warning'), { confirmButtonText: t('ok'), cancelButtonText: t('cancel'), type: 'warning' })
-          .then(async () => {
-            let res = await MsiApi.setCollectionData('patch', 'cpo', sendData)
-            if (res.status === 200) {
-              GetPermission()
-              console.log(await MongoAggregate())
-            }
-          })
-          .catch((e) => {
-            console.log(e)
-            editAdminData.permission_edit = editAdminData.permission.edit === 1? true : false
-            editAdminData.permission_active = editAdminData.permission.active === true? true : false
-          })
-      }
-      else {
-        return false
-      }
-    })
-
-  }
-  else if (action === 'delete') {
-    EditAdminFormVisible.value = false
-    let sendData = { class: 'AdminUserData', pk: editAdminData._id }
-
-    ElMessageBox.confirm(t('do_you_want_to_delete'), t('warning'), { confirmButtonText: t('ok'), cancelButtonText: t('cancel'), type: 'warning' })
-      .then(async () => {
-        let res = await MsiApi.setCollectionData('delete', 'cpo', sendData)
-        if (res.status === 200) {
-          GetPermission()
-          console.log(await MongoAggregate())
+        else {
+          return false
         }
       })
-      .catch((e) => {
-        console.log(e)
-        editAdminData.permission_edit = editAdminData.permission.edit === 1? 1 : 0
-        editAdminData.permission_active = editAdminData.permission.active === true? true : false
-      })
+  
+    }
+    else if (action === 'delete') {
+      EditAdminFormVisible.value = false
+      let sendData = { class: 'AdminUserData', pk: editAdminData._id }
+  
+      ElMessageBox.confirm(t('do_you_want_to_delete'), t('warning'), { confirmButtonText: t('ok'), cancelButtonText: t('cancel'), type: 'warning' })
+        .then(async () => {
+          let res = await MsiApi.setCollectionData('delete', 'cpo', sendData)
+          if (res.status === 200) {
+            GetPermission()
+            console.log(await MongoAggregate())
+          }
+        })
+        .catch((e) => {
+          console.log(e)
+          editAdminData.permission_edit = editAdminData.permission.edit === 1? 1 : 0
+          editAdminData.permission_active = editAdminData.permission.active === true? true : false
+        })
+    }
+    else if (action === 'cancel') {
+      EditAdminFormVisible.value = false
+      editAdminData.permission_edit = editAdminData.permission.edit === 1? true : false
+      editAdminData.permission_active = editAdminData.permission.active === true? true : false
+    }
   }
-  else if (action === 'cancel') {
-    EditAdminFormVisible.value = false
-    editAdminData.permission_edit = editAdminData.permission.edit === 1? true : false
-    editAdminData.permission_active = editAdminData.permission.active === true? true : false
+  catch {
+    ElMessage.error('An unexpected error occurred.')
   }
 }
 
 const AddAdmin = async (action, visable) => {
-  if (action === 'confirm') {
-    if (MStore.permission.company.name !== 'MSI') {
-      user_type.forEach((item) => {
-        if (item.name === 'AdminUser') {
-          AddAdminData.permission_id = item._id
+  try {
+    if (action === 'confirm') {
+      if (MStore.permission.company.name !== 'MSI') {
+        user_type.forEach((item) => {
+          if (item.name === 'AdminUser') {
+            AddAdminData.permission_id = item._id
+          }
+        })
+      }
+      AdminData_ref.value.validate(valid => {
+        if (valid) {
+          AddAdminFormVisible.value = visable
+          let edit = AddAdminData.permission_edit ? 1 : 3
+          ElMessageBox.confirm(t('do_you_want_to_create'), t('warning'), { confirmButtonText: t('ok'), cancelButtonText: t('cancel'), type: 'warning' })
+            .then(async () => {
+              isLoading.value = true
+              let res = null
+              // Tony S ++ ======================================================= Prod api not ready ...
+              if (import.meta.env.VITE_NAME === 'prod') {
+                let sendData = {
+                  first_name: AddAdminData.first_name, last_name: AddAdminData.last_name,
+                  email: AddAdminData.email, phone: AddAdminData.phone, password: "msi32345599",
+                  permission: AddAdminData.permission_id, edit: edit, active: AddAdminData.permission_active ,
+                  company: MStore.permission.company.name, dashboard: true, 
+                }
+                res = await MsiApi.register_member_v0(sendData)
+              }
+              else {
+                let sendData = {
+                  role: 'admin',
+                  first_name: AddAdminData.first_name, last_name: AddAdminData.last_name,
+                  email: AddAdminData.email, phone: AddAdminData.phone, password: "msi32345599",
+                  permission: AddAdminData.permission_id, edit: edit, active: AddAdminData.permission_active ,
+                }
+                res = await MsiApi.register_member(sendData)
+              }
+              // Tony E ++ =======================================================
+              if (res.status === 201) {
+                GetPermission()
+                console.log(await MongoAggregate())
+              }
+              else if(res.data.message === 'User is exist') {
+                ElMessage.error(t('email_already_exists'))
+                isLoading.value = false
+                AddAdminFormVisible.value = true
+              }
+              // Tony S ++ ======================================================= Prod api not ready ...
+              else if(res.status === 200 && import.meta.env.VITE_NAME === 'prod') {
+                ElMessage.error(t('email_already_exists'))
+                isLoading.value = false
+                AddAdminFormVisible.value = true
+              }
+              // Tony E ++ =======================================================
+              else if (res.data.message === 'Mail not found') {
+                ElMessage.error(t('email_not_found'))
+                isLoading.value = false
+                AddAdminFormVisible.value = true
+              }
+              else {
+                ElMessage.error(t('error'))
+                isLoading.value = false
+                AddAdminFormVisible.value = true
+              }
+            })
+            .catch((e) => {
+              console.log(e)
+              isLoading.value = false
+            })
+        }
+        else {
+          return false
         }
       })
     }
-    AdminData_ref.value.validate(valid => {
-      if (valid) {
-        AddAdminFormVisible.value = visable
-        let edit = AddAdminData.permission_edit ? 1 : 3
-        ElMessageBox.confirm(t('do_you_want_to_create'), t('warning'), { confirmButtonText: t('ok'), cancelButtonText: t('cancel'), type: 'warning' })
-          .then(async () => {
-            isLoading.value = true
-            let sendData = {
-              role: 'admin',
-              first_name: AddAdminData.first_name, last_name: AddAdminData.last_name,
-              email: AddAdminData.email, phone: AddAdminData.phone, password: "msi32345599",
-              permission: AddAdminData.permission_id, edit: edit, active: AddAdminData.permission_active ,
-            }
-            let res = await MsiApi.register_member(sendData)
-            if (res.status === 201) {
-              GetPermission()
-              console.log(await MongoAggregate())
-            }
-            else if(res.data.message === 'User is exist') {
-              ElMessage.error(t('email_already_exists'))
-              isLoading.value = false
-              AddAdminFormVisible.value = true
-            }
-            else if (res.data.message === 'Mail not found') {
-              ElMessage.error(t('email_not_found'))
-              isLoading.value = false
-              AddAdminFormVisible.value = true
-            }
-            else {
-              ElMessage.error(t('error'))
-              isLoading.value = false
-              AddAdminFormVisible.value = true
-            }
-          })
-          .catch((e) => {
-            console.log(e)
-            isLoading.value = false
-          })
-      }
-      else {
-        return false
-      }
-    })
+    else {
+      AddAdminFormVisible.value = visable
+    }
   }
-  else {
-    AddAdminFormVisible.value = visable
+  catch {
+    ElMessage.error('An unexpected error occurred.')
   }
 }
 
 const MongoAggregate = async () => {
   isLoading.value = true
   
-  let queryData  = { "database": "CPO", "collection": "CompanyInformation", "pipelines": [ 
-    { $match:  { "name": { "$eq": MStore.permission.company.name } } }, { "$project": { "_id": 1} }
-  ]}
-  let res = await MsiApi.mongoAggregate(queryData)
-  if (res.data.result === undefined) {
-    router.push({ name: 'login' })
-  }
-
-  queryData = { "database": "CPO", "collection": "AdminUserData", "pipelines": [
-                { $match: { "byCompany": { "$eq": { "ObjectId" : res.data.result[0]._id} } } }, 
-                { "$project": {  "hashed_password_1": 0,"hashed_password_2": 0,"salt": 0} }
-  ]}
-  res = (await MsiApi.mongoAggregate(queryData))
-  UserData.length = 0
-  Object.assign(UserData, res.data.result)
-  for (let i = 0; i < UserData.length; i++) {
-    let localEndTime =  new Date( (new Date(UserData[i].updated_date).getTime()) + ((MStore.timeZoneOffset ) * -60000))
-    UserData[i].updated_date_str = (moment(localEndTime).format("YYYY-MM-DD HH:mm:ss"))
-    for (let j = 0; j < user_type.length; j++) {     
-      if (UserData[i].permission.user === user_type[j]._id) {
-        UserData[i].permission_str = user_type[j].name_str
+  try {
+    let queryData  = { "database": "CPO", "collection": "CompanyInformation", "pipelines": [ 
+      { $match:  { "name": { "$eq": MStore.permission.company.name } } }, { "$project": { "_id": 1} }
+    ]}
+    let res = await MsiApi.mongoAggregate(queryData)
+    if (res.data.result === undefined) {
+      router.push({ name: 'login' })
+    }
+  
+    queryData = { "database": "CPO", "collection": "AdminUserData", "pipelines": [
+                  { $match: { "byCompany": { "$eq": { "ObjectId" : res.data.result[0]._id} } } }, 
+                  { "$project": {  "hashed_password_1": 0,"hashed_password_2": 0,"salt": 0} }
+    ]}
+    res = (await MsiApi.mongoAggregate(queryData))
+    UserData.length = 0
+    Object.assign(UserData, res.data.result)
+    for (let i = 0; i < UserData.length; i++) {
+      let localEndTime =  new Date( (new Date(UserData[i].updated_date).getTime()) + ((MStore.timeZoneOffset ) * -60000))
+      UserData[i].updated_date_str = (moment(localEndTime).format("YYYY-MM-DD HH:mm:ss"))
+      for (let j = 0; j < user_type.length; j++) {     
+        if (UserData[i].permission.user === user_type[j]._id) {
+          UserData[i].permission_str = user_type[j].name_str
+        }
       }
     }
+    isLoading.value = false
+    return res.data.result
   }
-  isLoading.value = false
-  return res.data.result
+  catch {
+    isLoading.value = false
+    ElMessage.error('An unexpected error occurred.')
+  }
 }
 
 const GetPermission = async () => {
   let queryData = ''
-  if (import.meta.env.VITE_NAME === 'dev') {
-    queryData = { 
-      database: 'CPO', 
-      collection: 'UserPermission', 
-      pipelines: [
-        {
-          $match: {
-            name: {
-              $nin: ['AnonymousUser', 'MemberUser', 'DeveloperUser', 'CustomerServiceUser']
+  try {
+    if (import.meta.env.VITE_NAME === 'dev') {
+      queryData = { 
+        database: 'CPO', 
+        collection: 'UserPermission', 
+        pipelines: [
+          {
+            $match: {
+              name: {
+                $nin: ['AnonymousUser', 'MemberUser', 'DeveloperUser', 'CustomerServiceUser']
+              }
             }
+          },
+          { 
+            $project: { _id: 1, name: 1 } 
           }
-        },
-        { 
-          $project: { _id: 1, name: 1 } 
-        }
-      ]
+        ]
+      }
+    }
+    else {
+      queryData = {
+        database: 'CPO', 
+        collection: 'UserPermission', 
+        pipelines: [
+          {
+            $match: {
+              name: {
+                $nin: ['AnonymousUser', 'MemberUser', ]
+              }
+            }
+          },
+          { 
+            $project: { _id: 1, name: 1 } 
+          }
+        ]
+      }
+    }
+    let response = await MsiApi.mongoAggregate(queryData)
+    user_type.length = 0
+    Object.assign(user_type, response.data.result)
+    for (let i=0; i<user_type.length; i++) {
+      if (user_type[i].name === 'EngineerUser') {
+        user_type[i].name_str = t('engineer_user')
+      }
+      else if (user_type[i].name === 'AdminUser') {
+        user_type[i].name_str = t('admin_user')
+      }
+      else if (user_type[i].name === 'DeveloperUser') {
+        user_type[i].name_str = t('developer_user')
+      }
+      else if (user_type[i].name === 'ViewerUser') {
+        user_type[i].name_str = t('viewer_user')
+      }
+      else if (user_type[i].name === 'FAEUser') {
+        user_type[i].name_str = t('fae_user')
+      }
+      else if (user_type[i].name === 'CustomerServiceUser') {
+        user_type[i].name_str = t('customer_service_user')
+      }
     }
   }
-  else {
-    queryData = {
-      database: 'CPO', 
-      collection: 'UserPermission', 
-      pipelines: [
-        {
-          $match: {
-            name: {
-              $nin: ['AnonymousUser', 'MemberUser', ]
-            }
-          }
-        },
-        { 
-          $project: { _id: 1, name: 1 } 
-        }
-      ]
-    }
-  }
-  let response = await MsiApi.mongoAggregate(queryData)
-  user_type.length = 0
-  Object.assign(user_type, response.data.result)
-  for (let i=0; i<user_type.length; i++) {
-    if (user_type[i].name === 'EngineerUser') {
-      user_type[i].name_str = t('engineer_user')
-    }
-    else if (user_type[i].name === 'AdminUser') {
-      user_type[i].name_str = t('admin_user')
-    }
-    else if (user_type[i].name === 'DeveloperUser') {
-      user_type[i].name_str = t('developer_user')
-    }
-    else if (user_type[i].name === 'ViewerUser') {
-      user_type[i].name_str = t('viewer_user')
-    }
-    else if (user_type[i].name === 'FAEUser') {
-      user_type[i].name_str = t('fae_user')
-    }
-    else if (user_type[i].name === 'CustomerServiceUser') {
-      user_type[i].name_str = t('customer_service_user')
-    }
+  catch {
+    ElMessage.error('An unexpected error occurred.')
   }
 }
 

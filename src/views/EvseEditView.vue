@@ -396,7 +396,7 @@ const chargingCalendarOptions = reactive({
   eventClassNames: ['mfc-event'],
   eventColor: '#fff',
   eventTextColor: '#000',
-  slotEventOverlap: false,    // ¨Æ¥ó¤£­«Å|
+  slotEventOverlap: false,    // ï¿½Æ¥ó¤£­ï¿½ï¿½|
   eventContent: handleEventContent,
   eventMouseEnter: handleEventMouseEnter,
 })
@@ -880,7 +880,7 @@ onMounted(async () => {
 
 // for table border
 :deep(.fc-scrollgrid) {
-  // ¥þ³¡ªí®æÃä®Øªì©l¤Æ
+  // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Øªï¿½lï¿½ï¿½
   border: 0px;
   th {
     border: 0px;
@@ -891,23 +891,23 @@ onMounted(async () => {
   td {
     border: 0px;
   }
-  // ®É¶¡¶bª½½u + body¾î½u
+  // ï¿½É¶ï¿½ï¿½bï¿½ï¿½ï¿½u + bodyï¿½ï¿½u
   .fc-timegrid-slot-lane {
     border: 1px solid var(--gray-200);
   }
-  // bodyª½½u
+  // bodyï¿½ï¿½ï¿½u
   .fc-timegrid-col {
     border: 1px solid var(--gray-200);
   }
-  // ¤é´Á¼ÐÃD¤U®Ø½u
+  // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Dï¿½Uï¿½Ø½u
   .fc-day {
     border-bottom: 1px solid var(--gray-200);
-    // body¤U®Ø½u
+    // bodyï¿½Uï¿½Ø½u
     .fc-timegrid-col-frame {
       border-bottom: 1px solid var(--gray-200);
     }
   }
-  // body³Ì¥k°¼ª½½u
+  // bodyï¿½Ì¥kï¿½ï¿½ï¿½ï¿½ï¿½u
   .fc-timegrid-slots {
     border-right: 1px solid var(--gray-200);
   }

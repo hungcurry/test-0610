@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, reactive, ref } from 'vue'
+import { reactive, ref, onBeforeMount } from 'vue'
 import { useMStore } from '../stores/m_cloud'
 import { storeToRefs } from 'pinia'
 import { useSideMenuStore } from '@/stores/sidemenu'
@@ -15,18 +15,16 @@ const sideMenuStore = useSideMenuStore()
 const route = useRoute()
 const path = route.path.slice(1)
 const { isCollapse } = storeToRefs(sideMenuStore)
-
 let rule_permission = reactive({})
 
-onMounted(async () => {
+onBeforeMount ( async () => {
   if (m_cloud_permission[user_permission_name])
     rule_permission = m_cloud_permission[user_permission_name]
-  if (
-    MStore.user_data.first_name === 'Steven' 
-  ) {
-    dev_member.value = true
+  if ( MStore.user_data.first_name === 'Steven' ) {
+    dev_member.value = true  
   }
 })
+
 </script>
 
 <template>

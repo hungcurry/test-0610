@@ -57,6 +57,19 @@ const edit = () => {
   router.push({ name: 'evseEdit', query: {station_id:locationData.id, evse_id:evseId} })
 }
 
+const changeAvailability = async () => {
+  let change_type = "Inoperative"
+  if (evseData.status === 'INOPERATIVE') {
+    change_type = 'Operative'
+  }
+  let sendData = {
+    evse_id: evseData.evse_id,
+    connectorId: "0",
+    type: change_type
+  }
+  console.log(await MsiApi.change_availability(sendData))
+}
+
 // FullCalendar ---------------------------------------------------------------
 const displaySwitch = ref(false)
 const chargingCalendarRef = ref()
@@ -366,6 +379,9 @@ onMounted( async () => {
     case 'OUTOFORDER':
       evseData.status_str = t('error')
     break
+    case 'INOPERATIVE':
+      evseData.status_str = t('INOPERATIVE')
+    break
     default:
       evseData.status_str = t('others')
   }
@@ -494,7 +510,8 @@ onMounted( async () => {
               <p class="status pb-20px available" v-if="evseData.status === 'AVAILABLE'"> {{ "●" + evseData.status_str }}</p>
               <p class="status pb-20px charging" v-else-if="evseData.status === 'CHARGING'"> {{ "●" + evseData.status_str }}</p>
               <p class="status pb-20px offline" v-else-if="evseData.status === 'UNKNOWN'"> {{ "●" + evseData.status_str }}</p>
-              <p class="status pb-20px error" v-else-if="evseData.status === 'ERROR' || evseData.status === 'OUTOFORDER'"> {{ "●" + evseData.status_str }}</p>
+              <p class="status pb-20px error" v-else-if="evseData.status === 'ERROR' || evseData.status === 'OUTOFORDER' || evseData.status === 'INOPERATIVE'"> {{ "●" + evseData.status_str }}</p>
+              
             </div>
           </el-col>
           <el-col class="el-col" :xs="24" :md="10">
@@ -503,6 +520,7 @@ onMounted( async () => {
               <p class="location-addr text-right mb-20px">{{ locationData.country + ' ' + locationData.city + locationData.address + '/' + locationData.city1 + locationData.address1}}</p>
               <div class="flex justify-end">
                 <!-- <el-button type="primary" class="btn-secondary box-shadow delete" @click="download"> Download </el-button> -->
+                <!-- <el-button type="primary" class="btn-secondary box-shadow delete" @click="changeAvailability"> {{t('change_availability')}} </el-button> -->
                 <el-button type="primary" class="btn-secondary box-shadow delete" @click="deleteEvse"> {{t('delete')}} </el-button>
                 <el-button type="primary" class="btn-secondary box-shadow edit" @click="edit"> {{t('edit')}} </el-button>
               </div>

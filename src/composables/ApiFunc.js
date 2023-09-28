@@ -2,7 +2,7 @@ import VueCookies from 'vue-cookies'
 import axios from 'axios'
 
 let AuthToken = null
-let api1 = 'api10/api2'
+let api1 = 'api10/api'
 axios.defaults.timeout = 15000
 if (import.meta.env.VITE_API !== undefined) {
   api1 = import.meta.env.VITE_API
@@ -95,6 +95,11 @@ export default function () {
   const mongoAggregate = async (json) => {
     AuthToken = VueCookies.get('AuthToken')
     const response = await postJsonData(api1 + '/cpo/database/aggregate', json, AuthToken)
+    return response
+  }
+
+  const register_member_v0 = async (json) => {
+    const response = await postJsonData(api1 + '/member/register', json)
     return response
   }
 
@@ -257,7 +262,7 @@ export default function () {
 
   return {
       setCollectionData, getToken, checkToken, mongoQuery, mongoAggregate,
-      register_member, get_account_info, get_account_detail, edit_account, delete_account,
+      register_member_v0, register_member, get_account_info, get_account_detail, edit_account, delete_account,
       resetPW, reset_evse, updateFw, getTimeZone, getCoordinates, getAddress,
       bind_card, search_bind_card, unregister_bind_card, auth_payment, subscribe_plan, member_modify,
       forgotPW, add_rfid_data, edit_rfid_data, delete_rfid_data, set_rfid_cash, 

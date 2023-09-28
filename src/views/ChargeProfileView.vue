@@ -1,10 +1,11 @@
 <script setup>
-import CommpnFunc from '@/composables/CommonFunc'
+// import test from '@/composables/test1'
+import CommonFunc from '@/composables/CommonFunc1'
 import ApiFunc from '@/composables/ApiFunc'
 import Calendar from '@/components/icons/IconCalendar.vue'
 import { ref, reactive, onMounted } from 'vue'
 
-const MsiFunc = CommpnFunc()
+const MsiFunc = CommonFunc()
 const MsiApi = ApiFunc()
 
 const chargingProfilePurpose = [

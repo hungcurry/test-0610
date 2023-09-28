@@ -100,102 +100,107 @@ const download = () => {
   export_json_to_excel ({ header: tHeader, data: data, filename: 'User Payment' })
 }
 const select_date = async () => {
-  let queryData = { "database": "CPO", "collection": "PaymentHistory", 
-    "pipelines": [ 
-      {
-        "$match": {
-          "$expr": { 
-            "$and" : [ 
-              { "$gte" : [ "$created_date", { "$dateFromString": {"dateString": select_time.value[0]}}]},
-              { "$lte" : [ "$created_date", { "$dateFromString": {"dateString": select_time.value[1]}}]}
-            ]
+  try {
+    let queryData = { "database": "CPO", "collection": "PaymentHistory", 
+      "pipelines": [ 
+        {
+          "$match": {
+            "$expr": { 
+              "$and" : [ 
+                { "$gte" : [ "$created_date", { "$dateFromString": {"dateString": select_time.value[0]}}]},
+                { "$lte" : [ "$created_date", { "$dateFromString": {"dateString": select_time.value[1]}}]}
+              ]
+            }
           }
+        },
+      ]
+    }
+    let localEndTime = ''
+    let response = await MsiApi.mongoAggregate(queryData)
+    let PaymentDataAll = []
+    PaymentDataAll = response.data.result
+    paymentData.length = 0
+    let cost_str = 0
+    let charge_time_sec = 0
+    let charge_kwh = 0
+  
+    for (let i = 0; i < userData?.payment_history?.length; i++) {
+      for (let j = 0; j < PaymentDataAll.length; j++) {
+        if (userData.payment_history[i] === PaymentDataAll[j]._id) {
+          paymentData.push(PaymentDataAll[j])
         }
-      },
-    ]
-  }
-  let localEndTime = ''
-  let response = await MsiApi.mongoAggregate(queryData)
-  let PaymentDataAll = []
-  PaymentDataAll = response.data.result
-  paymentData.length = 0
-  let cost_str = 0
-  let charge_time_sec = 0
-  let charge_kwh = 0
-
-  for (let i = 0; i < userData?.payment_history?.length; i++) {
-    for (let j = 0; j < PaymentDataAll.length; j++) {
-      if (userData.payment_history[i] === PaymentDataAll[j]._id) {
-        paymentData.push(PaymentDataAll[j])
       }
     }
-  }
-  paymentData.amount_str = paymentData.length
-  for (let i = 0; i < paymentData.length; i++) {
-    localEndTime =  new Date( (new Date(paymentData[i].created_date).getTime()) + ((MStore.timeZoneOffset ) * -60000))
-    paymentData[i].created_date_str = (moment(localEndTime).format("YYYY-MM-DD HH:mm:ss"))
-    cost_str += paymentData[i].price
-    paymentData[i].price_str = paymentData[i].price.toLocaleString()
-    for (let j = 0; j < paymentData[i].operator_types.length; j++) {
-      if (paymentData[i].operator_types[j].type === 'charge') {
-        charge_time_sec += paymentData[i].operator_types[j].time
-        charge_kwh += paymentData[i].operator_types[j].kwh
-        let time = moment.duration(paymentData[i].operator_types[j].time, 'seconds')
-        paymentData[i].charge_time_str = moment({ h: time.hours(), m: time.minutes(), s: time.seconds(), }).format('HH:mm:ss')
-        paymentData[i].charge_price_str = paymentData[i].operator_types[j].price.toLocaleString()
-        paymentData[i].charge_kwh_str = paymentData[i].operator_types[j].kwh
-        paymentData[i].charge_currency_str = paymentData[i].operator_types[j]?.currency
+    paymentData.amount_str = paymentData.length
+    for (let i = 0; i < paymentData.length; i++) {
+      localEndTime =  new Date( (new Date(paymentData[i].created_date).getTime()) + ((MStore.timeZoneOffset ) * -60000))
+      paymentData[i].created_date_str = (moment(localEndTime).format("YYYY-MM-DD HH:mm:ss"))
+      cost_str += paymentData[i].price
+      paymentData[i].price_str = paymentData[i].price.toLocaleString()
+      for (let j = 0; j < paymentData[i].operator_types.length; j++) {
+        if (paymentData[i].operator_types[j].type === 'charge') {
+          charge_time_sec += paymentData[i].operator_types[j].time
+          charge_kwh += paymentData[i].operator_types[j].kwh
+          let time = moment.duration(paymentData[i].operator_types[j].time, 'seconds')
+          paymentData[i].charge_time_str = String(time.days()*24 + time.hours()).padStart(2, 0) + ':' + String(time.minutes()).padStart(2, 0) + ':' + String(time.seconds()).padStart(2, 0)
+          paymentData[i].charge_price_str = paymentData[i].operator_types[j].price.toLocaleString()
+          paymentData[i].charge_kwh_str = paymentData[i].operator_types[j].kwh
+          paymentData[i].charge_currency_str = paymentData[i].operator_types[j]?.currency
+        }
+        else if (paymentData[i].operator_types[j].type === 'parking') {
+          let time = moment.duration(paymentData[i].operator_types[j].time, 'seconds')
+          paymentData[i].parking_time_str = String(time.days()*24 + time.hours()).padStart(2, 0) + ':' + String(time.minutes()).padStart(2, 0) + ':' + String(time.seconds()).padStart(2, 0)
+          paymentData[i].parking_price_str = paymentData[i].operator_types[j].price.toLocaleString()
+          paymentData[i].parking_car_number_str = paymentData[i].operator_types[j].car_num
+          paymentData[i].parking_currency_str = paymentData[i].operator_types[j]?.currency
+        }
       }
-      else if (paymentData[i].operator_types[j].type === 'parking') {
-        let time = moment.duration(paymentData[i].operator_types[j].time, 'seconds')
-        paymentData[i].parking_time_str = moment({ h: time.hours(), m: time.minutes(), s: time.seconds(), }).format('HH:mm:ss')
-        paymentData[i].parking_price_str = paymentData[i].operator_types[j].price.toLocaleString()
-        paymentData[i].parking_car_number_str = paymentData[i].operator_types[j].car_num
-        paymentData[i].parking_currency_str = paymentData[i].operator_types[j]?.currency
+      switch (paymentData[i].paymethod.method) {
+        case 'CREDIT':
+          paymentData[i].paymethod_str = t('credit_card')
+          break
+        case 'GOOGLEPAY':
+          paymentData[i].paymethod_str = t('google_pay')
+          break
+        case 'SAMSUNGPAY':
+          paymentData[i].paymethod_str = t('samsung_pay')
+          break
+        case 'RFID':
+          paymentData[i].paymethod_str = t('rfid')
+          break
+        case 'FREE':
+          paymentData[i].paymethod_str = t('free')
+          break
+        default:
+          paymentData[i].paymethod_str = paymentData[i]?.paymethod?.method
+          break
+      }
+      switch (paymentData[i].currency) {
+        case 'TWD':
+          paymentData[i].currency = t('twd')
+          break
+        case 'USD':
+          paymentData[i].currency = t('usd')
+          break
+        case 'JPY':
+          paymentData[i].currency = t('jpy')
+          break
+        case 'EUR':
+          paymentData[i].currency = t('eur')
+          break
+        default:
+          break
       }
     }
-    switch (paymentData[i].paymethod.method) {
-      case 'CREDIT':
-        paymentData[i].paymethod_str = t('credit_card')
-        break
-      case 'GOOGLEPAY':
-        paymentData[i].paymethod_str = t('google_pay')
-        break
-      case 'SAMSUNGPAY':
-        paymentData[i].paymethod_str = t('samsung_pay')
-        break
-      case 'RFID':
-        paymentData[i].paymethod_str = t('rfid')
-        break
-      case 'FREE':
-        paymentData[i].paymethod_str = t('free')
-        break
-      default:
-        paymentData[i].paymethod_str = paymentData[i]?.paymethod?.method
-        break
-    }
-    switch (paymentData[i].currency) {
-      case 'TWD':
-        paymentData[i].currency = t('twd')
-        break
-      case 'USD':
-        paymentData[i].currency = t('usd')
-        break
-      case 'JPY':
-        paymentData[i].currency = t('jpy')
-        break
-      case 'EUR':
-        paymentData[i].currency = t('eur')
-        break
-      default:
-        break
-    }
+    paymentData.cost_str = cost_str
+    paymentData.charge_kwh = charge_kwh
+    paymentData.charge_hr = moment( {h:moment.duration(charge_time_sec, 'second').hours()}).format('HH')
+    paymentData.charge_min = moment( {m:moment.duration(charge_time_sec, 'second').minutes()}).format('mm')
+    paymentData.charge_sec = moment( {s:moment.duration(charge_time_sec, 'second').hours()}).format('ss')
   }
-  paymentData.cost_str = cost_str
-  paymentData.charge_kwh = charge_kwh
-  paymentData.charge_hr = moment( {h:moment.duration(charge_time_sec, 'second').hours()}).format('HH')
-  paymentData.charge_min = moment( {m:moment.duration(charge_time_sec, 'second').minutes()}).format('mm')
-  paymentData.charge_sec = moment( {s:moment.duration(charge_time_sec, 'second').hours()}).format('ss')
+  catch {
+    ElMessage.error('An unexpected error occurred.')
+  }
 }
 const filters = [
   { text: t('credit_card'), value: t('credit_card') },
@@ -243,7 +248,8 @@ const tableRowClassName = (row) => {
 
 
 const clearEvseList = async () => {
-  ElMessageBox.confirm(t('do_you_want_to_clear'), t('warning'), { confirmButtonText: t('ok'), cancelButtonText: t('cancel'), type: 'warning' })
+  try {
+    ElMessageBox.confirm(t('do_you_want_to_clear'), t('warning'), { confirmButtonText: t('ok'), cancelButtonText: t('cancel'), type: 'warning' })
       .then(async () => {
         let sendData = { 'class': 'UserData', 'pk': userData._id, 'evse_list': [] }
         let res = await MsiApi.setCollectionData('patch', 'cpo', sendData)
@@ -255,6 +261,10 @@ const clearEvseList = async () => {
       .catch((e) => {
         console.log(e)
       })
+  }
+  catch {
+    ElMessage.error('An unexpected error occurred.')
+  }
 }
 
 const binding_card_detail = () => {
@@ -277,45 +287,51 @@ const card_detail = (data, index) => {
 }
 
 const checkRfidCard = async() => {
-  let queryData = { 
-    "database": 'CPO', 
-    "collection": 'UserData', 
-    "pipelines": [
-      {
-        $unwind: "$rfids"
-      },
-      { 
-        $match: { 
-          $and: [
-            {
-              "rfids.rfid": rfidData.rfid.toUpperCase()
-            },
-            {
-              _id: { $ne: {"ObjectId" : userData._id}}
-            }
-          ]
+  try {
+    let queryData = { 
+      "database": 'CPO', 
+      "collection": 'UserData', 
+      "pipelines": [
+        {
+          $unwind: "$rfids"
         },
-      },
-      {
-        $project: { _id: 1, first_name: 1, last_name: 1, rfids: 1 } 
-      }
-    ]
-  }
-  let response = await MsiApi.mongoAggregate(queryData) 
-  if (response.data.result.length !== 0) {
-    let user_name = response.data.result[0].first_name + ' ' + response.data.result[0].last_name
-    ElMessage({ type: 'error', message: t(`card_number_is_duplicated_with_user`, { user_name }) })
-    return false
-  }
-  
-  for (let i=0; i<userData.rfids.length; i++) {
-    if (rfidData.rfid === userData.rfids[i].rfid.toUpperCase() && rfidData.index !== i) {
-      ElMessage({ type: 'error', message: t('card_number_already_exists') })
+        { 
+          $match: { 
+            $and: [
+              {
+                "rfids.rfid": rfidData.rfid.toUpperCase()
+              },
+              {
+                _id: { $ne: {"ObjectId" : userData._id}}
+              }
+            ]
+          },
+        },
+        {
+          $project: { _id: 1, first_name: 1, last_name: 1, rfids: 1 } 
+        }
+      ]
+    }
+    let response = await MsiApi.mongoAggregate(queryData) 
+    if (response.data.result.length !== 0) {
+      let user_name = response.data.result[0].first_name + ' ' + response.data.result[0].last_name
+      ElMessage({ type: 'error', message: t(`card_number_is_duplicated_with_user`, { user_name }) })
       return false
     }
+    
+    for (let i=0; i<userData.rfids.length; i++) {
+      if (rfidData.rfid === userData.rfids[i].rfid.toUpperCase() && rfidData.index !== i) {
+        ElMessage({ type: 'error', message: t('card_number_already_exists') })
+        return false
+      }
+    }
+  
+    return true
   }
-
-  return true
+  catch {
+    ElMessage.error('An unexpected error occurred.')
+    return false
+  }
 }
 const confirmRfid = async (confirm, index) => {
 
@@ -324,100 +340,110 @@ const confirmRfid = async (confirm, index) => {
   // const reversedHex = reversedHexPairs.join('');
   // console.log(reversedHex)
 
-  if (confirm === 'confirm') {
-    rfidData_ref.value.validate(async valid => {
-      if (valid && await checkRfidCard() === true) {
-        EditRfidFormVisible.value = false
-        if (modify_card_index.value === -1) {
-          userData.rfids.push({
-            rfid: rfidData.rfid.toUpperCase(), cash: parseInt(rfidData.cash),
-            enable: rfidData.enable, nickname: rfidData.nickname
-          })
-          let sendData = { 'class': 'UserData', 'pk': userData._id, 'rfids': userData.rfids }
-          let res = await MsiApi.setCollectionData('patch', 'cpo', sendData)
-          if (res.status === 200) {
-            ElMessage({ type: 'success', message: `${t('add')} ${rfidData.rfid.toUpperCase()} ${t('card_no')}` })
+  try {
+    if (confirm === 'confirm') {
+      rfidData_ref.value.validate(async valid => {
+        if (valid && await checkRfidCard() === true) {
+          EditRfidFormVisible.value = false
+          if (modify_card_index.value === -1) {
+            userData.rfids.push({
+              rfid: rfidData.rfid.toUpperCase(), cash: parseInt(rfidData.cash),
+              enable: rfidData.enable, nickname: rfidData.nickname
+            })
+            let sendData = { 'class': 'UserData', 'pk': userData._id, 'rfids': userData.rfids }
+            let res = await MsiApi.setCollectionData('patch', 'cpo', sendData)
+            if (res.status === 200) {
+              ElMessage({ type: 'success', message: `${t('add')} ${rfidData.rfid.toUpperCase()} ${t('card_no')}` })
+            }
+            else {
+              userData.rfids.pop()
+              // ElMessage.error(t('error'))
+              ElMessage.error(res.response.data.message)
+            }
           }
           else {
-            userData.rfids.pop()
-            // ElMessage.error(t('error'))
-            ElMessage.error(res.response.data.message)
+            userData.rfids[modify_card_index.value].rfid = rfidData.rfid
+            userData.rfids[modify_card_index.value].cash = rfidData.cash
+            userData.rfids[modify_card_index.value].enable = rfidData.enable
+            userData.rfids[modify_card_index.value].nickname = rfidData.nickname
+            let sendData = { 'class': 'UserData', 'pk': userData._id, 'rfids': userData.rfids }
+            MsiApi.setCollectionData('patch', 'cpo', sendData)
           }
         }
         else {
-          userData.rfids[modify_card_index.value].rfid = rfidData.rfid
-          userData.rfids[modify_card_index.value].cash = rfidData.cash
-          userData.rfids[modify_card_index.value].enable = rfidData.enable
-          userData.rfids[modify_card_index.value].nickname = rfidData.nickname
+          return false
+        }
+      })
+    }
+    else if (confirm === 'delete') {
+      ElMessageBox.confirm(t('do_you_want_to_delete'), t('warning'), { confirmButtonText: t('ok'), cancelButtonText: t('cancel'), type: 'warning' })
+        .then(async () => {
+          if (index !== undefined) {
+            modify_card_index.value = index
+          }
+          userData.rfids.splice(modify_card_index.value, 1)
           let sendData = { 'class': 'UserData', 'pk': userData._id, 'rfids': userData.rfids }
-          MsiApi.setCollectionData('patch', 'cpo', sendData)
-        }
-      }
-      else {
-        return false
-      }
-    })
+          await MsiApi.setCollectionData('patch', 'cpo', sendData)
+        })
+        .catch((e) => {
+          console.log(e)
+        })
+    }
+    else if (confirm === 'cancel')
+      EditRfidFormVisible.value = false
   }
-  else if (confirm === 'delete') {
-    ElMessageBox.confirm(t('do_you_want_to_delete'), t('warning'), { confirmButtonText: t('ok'), cancelButtonText: t('cancel'), type: 'warning' })
-      .then(async () => {
-        if (index !== undefined) {
-          modify_card_index.value = index
-        }
-        userData.rfids.splice(modify_card_index.value, 1)
-        let sendData = { 'class': 'UserData', 'pk': userData._id, 'rfids': userData.rfids }
-        await MsiApi.setCollectionData('patch', 'cpo', sendData)
-      })
-      .catch((e) => {
-        console.log(e)
-      })
+  catch {
+    ElMessage.error('An unexpected error occurred.')
   }
-  else if (confirm === 'cancel')
-    EditRfidFormVisible.value = false
 }
 
 const GetPermission = async () => {
-  let queryData = { 
-    database: 'CPO', 
-    collection: 'UserPermission', 
-    pipelines: [
-      { 
-        $project: { _id: 1, name: 1 } 
+  try {
+    let queryData = { 
+      database: 'CPO', 
+      collection: 'UserPermission', 
+      pipelines: [
+        { 
+          $project: { _id: 1, name: 1 } 
+        }
+      ]
+    }
+    let response = await MsiApi.mongoAggregate(queryData)
+    user_type.length = 0
+    let member_permission = []
+    for (let i = 0; i < response.data.result.length; i++) {
+      if (response.data.result[i].name === 'AnonymousUser' || response.data.result[i].name === 'MemberUser') {
+        member_permission.push(response.data.result[i])
       }
-    ]
-  }
-  let response = await MsiApi.mongoAggregate(queryData)
-  user_type.length = 0
-  let member_permission = []
-  for (let i = 0; i < response.data.result.length; i++) {
-    if (response.data.result[i].name === 'AnonymousUser' || response.data.result[i].name === 'MemberUser') {
-      member_permission.push(response.data.result[i])
+    }
+    Object.assign(user_type, member_permission)
+    for (let i=0; i<user_type.length; i++) {
+      switch (user_type[i].name) {
+        case 'AnonymousUser':
+          user_type[i].name = t('anonymous_user')
+          break
+        case 'AdminUser':
+          user_type[i].name = t('admin_user')
+          break
+        case 'CustomerServiceUser':
+          user_type[i].name = t('customer_service_user')
+          break
+        case 'DeveloperUser':
+          user_type[i].name = t('developer_user')
+          break
+        case 'EngineerUser':
+          user_type[i].name = t('engineer_user')
+          break
+        case 'MemberUser':
+          user_type[i].name = t('member_user')
+          break
+        default:
+          break
+      }
     }
   }
-  Object.assign(user_type, member_permission)
-  for (let i=0; i<user_type.length; i++) {
-    switch (user_type[i].name) {
-      case 'AnonymousUser':
-        user_type[i].name = t('anonymous_user')
-        break
-      case 'AdminUser':
-        user_type[i].name = t('admin_user')
-        break
-      case 'CustomerServiceUser':
-        user_type[i].name = t('customer_service_user')
-        break
-      case 'DeveloperUser':
-        user_type[i].name = t('developer_user')
-        break
-      case 'EngineerUser':
-        user_type[i].name = t('engineer_user')
-        break
-      case 'MemberUser':
-        user_type[i].name = t('member_user')
-        break
-      default:
-        break
-    }
+  catch {
+    ElMessage.error('An unexpected error occurred.')
   }
 }
 
@@ -429,8 +455,6 @@ const editRfid = () => {
   rfidData.cash = ''
   rfidData.nickname = ''
   rfidData.enable = true
-
-  
 }
 
 const editUser = () => {
@@ -445,242 +469,261 @@ const editUser = () => {
 }
 
 const editUserDialog = (action) => {
-  if (action === 'confirm') {
-    userData_ref.value.validate(valid => {
-      if (valid) {
-        EditCustomerFormVisible.value = false
-        let permission_id = ''
-        for (let i = 0; i < user_type.length; i++) {
-          if (user_type[i].name === userDataMod.permission_str) {
-            permission_id = user_type[i]._id
+  try {
+    if (action === 'confirm') {
+      userData_ref.value.validate(valid => {
+        if (valid) {
+          EditCustomerFormVisible.value = false
+          let permission_id = ''
+          for (let i = 0; i < user_type.length; i++) {
+            if (user_type[i].name === userDataMod.permission_str) {
+              permission_id = user_type[i]._id
+            }
           }
-        }
-        
-        ElMessageBox.confirm(t('do_you_want_to_modify'), t('warning'), { confirmButtonText: t('ok'), cancelButtonText: t('cancel'), type: 'warning' })
-          .then(async () => {
-            let sendData = { class: 'UserData', pk: userData._id, first_name: userDataMod.first_name, last_name: userDataMod.last_name,
-              email: userDataMod.email , phone: userDataMod.phone , permission: { user: permission_id, active: userDataMod.permission_active_str },
-            }
-            let res = await MsiApi.setCollectionData('patch', 'cpo', sendData)
-            if (res.status === 200) {
-              let queryData = { 
-                "database": 'CPO', 
-                "collection": 'UserData', 
-                "pipelines": [
-                  { 
-                    $match: { 
-                      "_id": { "ObjectId": user_id }
+          
+          ElMessageBox.confirm(t('do_you_want_to_modify'), t('warning'), { confirmButtonText: t('ok'), cancelButtonText: t('cancel'), type: 'warning' })
+            .then(async () => {
+              let sendData = { class: 'UserData', pk: userData._id, first_name: userDataMod.first_name, last_name: userDataMod.last_name,
+                email: userDataMod.email , phone: userDataMod.phone , permission: { user: permission_id, active: userDataMod.permission_active_str },
+              }
+              let res = await MsiApi.setCollectionData('patch', 'cpo', sendData)
+              if (res.status === 200) {
+                let queryData = { 
+                  "database": 'CPO', 
+                  "collection": 'UserData', 
+                  "pipelines": [
+                    { 
+                      $match: { 
+                        "_id": { "ObjectId": user_id }
+                      },
                     },
-                  },
-                  {
-                    $project: { _id: 1, first_name: 1, last_name: 1, name: 1, permission: 1, phone: 1, updated_date: 1 } 
-                  }
-                ]
-              }
-              let response = await MsiApi.mongoAggregate(queryData)
-              userData.first_name = response.data.result[0]?.first_name
-              userData.last_name = response.data.result[0]?.last_name
-              userData.phone = response.data.result[0]?.phone
-              for (let i = 0; i < user_type.length; i++) {
-                if (user_type[i]._id === response.data.result[0].permission.user) {
-                  userData.permission_str = user_type[i].name
+                    {
+                      $project: { _id: 1, first_name: 1, last_name: 1, name: 1, permission: 1, phone: 1, updated_date: 1 } 
+                    }
+                  ]
                 }
+                let response = await MsiApi.mongoAggregate(queryData)
+                userData.first_name = response.data.result[0]?.first_name
+                userData.last_name = response.data.result[0]?.last_name
+                userData.phone = response.data.result[0]?.phone
+                for (let i = 0; i < user_type.length; i++) {
+                  if (user_type[i]._id === response.data.result[0].permission.user) {
+                    userData.permission_str = user_type[i].name
+                  }
+                }
+                userData.permission.active = response.data.result[0]?.permission.active
+                let localEndTime =  new Date( (new Date(response.data.result[0].updated_date).getTime()) + ((MStore.timeZoneOffset ) * -60000))
+                userData.updated_date_str = (moment(localEndTime).format("YYYY-MM-DD HH:mm:ss"))
               }
-              userData.permission.active = response.data.result[0]?.permission.active
-              let localEndTime =  new Date( (new Date(response.data.result[0].updated_date).getTime()) + ((MStore.timeZoneOffset ) * -60000))
-              userData.updated_date_str = (moment(localEndTime).format("YYYY-MM-DD HH:mm:ss"))
-            }
-          })
-          .catch((e) => {
-            console.log(e)
-          })
-      }
-      else {
-        return false
-      }
-    })
-
-  }
-  else if (action === 'delete') {
-    EditCustomerFormVisible.value = false
-    let sendData = { class: 'UserData', pk: userData._id }
-    ElMessageBox.confirm(t('do_you_want_to_delete'), t('warning'), { confirmButtonText: t('ok'), cancelButtonText: t('cancel'), type: 'warning' })
-      .then(async () => {
-        console.log(await MsiApi.setCollectionData('delete', 'cpo', sendData))
-        router.push({ name: 'user' })
+            })
+            .catch((e) => {
+              console.log(e)
+            })
+        }
+        else {
+          return false
+        }
       })
-      .catch((e) => {
-        console.log(e)
-      })
+  
+    }
+    else if (action === 'delete') {
+      EditCustomerFormVisible.value = false
+      let sendData = { class: 'UserData', pk: userData._id }
+      ElMessageBox.confirm(t('do_you_want_to_delete'), t('warning'), { confirmButtonText: t('ok'), cancelButtonText: t('cancel'), type: 'warning' })
+        .then(async () => {
+          console.log(await MsiApi.setCollectionData('delete', 'cpo', sendData))
+          router.push({ name: 'user' })
+        })
+        .catch((e) => {
+          console.log(e)
+        })
+    }
+    else if (action === 'cancel') {
+      EditCustomerFormVisible.value = false
+      userDataMod.first_name = userData.first_name
+      userDataMod.last_name = userData.last_name
+      userDataMod.email = userData.email
+      userDataMod.phone = userData.phone
+      userDataMod.permission_str = userData.permission_str
+    }
   }
-  else if (action === 'cancel') {
-    EditCustomerFormVisible.value = false
-    userDataMod.first_name = userData.first_name
-    userDataMod.last_name = userData.last_name
-    userDataMod.email = userData.email
-    userDataMod.phone = userData.phone
-    userDataMod.permission_str = userData.permission_str
+  catch {
+    ElMessage.error('An unexpected error occurred.')
   }
 }
 
 onMounted(async () => {
-  let queryData = { 
-    "database": 'CPO', 
-    "collection": 'UserData', 
-    "pipelines": [
-      { 
-        $match: { 
-          "_id": { "ObjectId": user_id }
+  let queryData = null
+  let response = null
+  let localEndTime = null
+  try {
+    queryData = { 
+      "database": 'CPO', 
+      "collection": 'UserData', 
+      "pipelines": [
+        { 
+          $match: { 
+            "_id": { "ObjectId": user_id }
+          },
         },
-      },
-      {
-        $project: { _id: 1, salt: 0, hashed_password_1: 0, hashed_password_2: 0, image: 0, byCompany: 0 } 
-      }
-    ]
-  }
-  let response = await MsiApi.mongoAggregate(queryData)
-  Object.assign(userData, response.data.result[0])
-  let localEndTime =  new Date( (new Date(userData.updated_date).getTime()) + ((MStore.timeZoneOffset ) * -60000))
-  userData.updated_date_str = (moment(localEndTime).format("YYYY-MM-DD HH:mm:ss"))
-  localEndTime =  new Date( (new Date(userData.created_date).getTime()) + ((MStore.timeZoneOffset ) * -60000))
-  userData.created_date_str =  (moment(localEndTime).format("YYYY-MM-DD HH:mm:ss"))
-  queryData = { 
-    "database": 'CPO', 
-    "collection": 'PaymentHistory', 
-    "pipelines": [
-      {
-        $match: {
-          $expr: {
-            $and: [
-              {
-                $gte: [
-                  '$created_date',
-                  { $dateFromString: { dateString: select_time.value[0]  } },
-                ],
-              },
-              {
-                $lte: [
-                  '$created_date',
-                  { $dateFromString: { dateString: select_time.value[1]  } },
-                ],
-              },
-            ]
-          }
+        {
+          $project: { _id: 1, salt: 0, hashed_password_1: 0, hashed_password_2: 0, image: 0, byCompany: 0 } 
         }
-      },
-      {
-        $project: { sessionId: 0, locationId: 0, location: 0, invoice: 0, detail: 0, byCompany: 0 } 
+      ]
+    }
+    response = await MsiApi.mongoAggregate(queryData)
+    Object.assign(userData, response.data.result[0])
+    localEndTime =  new Date( (new Date(userData.updated_date).getTime()) + ((MStore.timeZoneOffset ) * -60000))
+    userData.updated_date_str = (moment(localEndTime).format("YYYY-MM-DD HH:mm:ss"))
+    localEndTime =  new Date( (new Date(userData.created_date).getTime()) + ((MStore.timeZoneOffset ) * -60000))
+    userData.created_date_str =  (moment(localEndTime).format("YYYY-MM-DD HH:mm:ss"))
+    userData.paylist = userData.binding_cards?.paylist
+    userData.paylistArrObj = []
+    userData.evse_list_id = ''
+    userData.evse_list_id_detail = ''
+    if (userData.evse_list[0]?.evseId) {
+      userData.evse_list_id += userData.evse_list[0]?.evseId 
+    }
+    if (userData?.evse_list?.length > 1) {
+      userData.evse_list_id += ' / ...'
+      for (let i = 0; i < userData.evse_list.length; i++) {
+        userData.evse_list_id_detail += userData.evse_list?.[i]?.evseId 
+        if (i !== userData.evse_list.length-1)
+          userData.evse_list_id_detail += ' /<br> '
       }
-    ]
-  }
-  response = await MsiApi.mongoAggregate(queryData)
-  let PaymentDataAll = response.data.result
-  userData.paylist = userData.binding_cards?.paylist
-  userData.paylistArrObj = []
-  userData.evse_list_id = ''
-  userData.evse_list_id_detail = ''
-  if (userData.evse_list[0]?.evseId) {
-    userData.evse_list_id += userData.evse_list[0]?.evseId 
-  }
-  if (userData?.evse_list?.length > 1) {
-    userData.evse_list_id += ' / ...'
-    for (let i = 0; i < userData.evse_list.length; i++) {
-      userData.evse_list_id_detail += userData.evse_list?.[i]?.evseId 
-      if (i !== userData.evse_list.length-1)
-        userData.evse_list_id_detail += ' /<br> '
+    }
+    await GetPermission()
+  
+    for (let i = 0; i < user_type.length; i++) {
+      if (user_type[i]._id === userData.permission.user) {
+        userData.permission_str = user_type[i].name
+      }
+    }
+    for (let i = 0; i < userData?.paylist?.length; i++) {
+      userData.paylistArrObj.push(JSON.parse(userData?.paylist?.[i].detail))
+      userData.paylistArrObj[i].card_enable = userData?.paylist?.[i].enable
+      userData.paylistArrObj[i].card_num = userData.paylistArrObj[i].card6No + '******' +
+      userData.paylistArrObj[i].card4No
     }
   }
-  await GetPermission()
+  catch {
+    ElMessage.error('An unexpected error occurred.')
+  }
 
-  for (let i = 0; i < user_type.length; i++) {
-    if (user_type[i]._id === userData.permission.user) {
-      userData.permission_str = user_type[i].name
+  try {
+    queryData = { 
+      "database": 'CPO', 
+      "collection": 'PaymentHistory', 
+      "pipelines": [
+        {
+          $match: {
+            $expr: {
+              $and: [
+                {
+                  $gte: [
+                    '$created_date',
+                    { $dateFromString: { dateString: select_time.value[0]  } },
+                  ],
+                },
+                {
+                  $lte: [
+                    '$created_date',
+                    { $dateFromString: { dateString: select_time.value[1]  } },
+                  ],
+                },
+              ]
+            }
+          }
+        },
+        {
+          $project: { sessionId: 0, locationId: 0, location: 0, invoice: 0, detail: 0, byCompany: 0 } 
+        }
+      ]
     }
-  }
+    response = await MsiApi.mongoAggregate(queryData)
+    let PaymentDataAll = response.data.result
+    
+    for (let i = 0; i < userData?.payment_history?.length; i++) {
+      for (let j = 0; j < PaymentDataAll.length; j++) {
+        if (userData.payment_history[i] === PaymentDataAll[j]._id) {
+          paymentData.push(PaymentDataAll[j])
+        }
+      }
+    }
 
-  for (let i = 0; i < userData?.paylist?.length; i++) {
-    userData.paylistArrObj.push(JSON.parse(userData?.paylist?.[i].detail))
-    userData.paylistArrObj[i].card_enable = userData?.paylist?.[i].enable
-    userData.paylistArrObj[i].card_num = userData.paylistArrObj[i].card6No + '******' +
-    userData.paylistArrObj[i].card4No
-  }
-
-  for (let i = 0; i < userData?.payment_history?.length; i++) {
-    for (let j = 0; j < PaymentDataAll.length; j++) {
-      if (userData.payment_history[i] === PaymentDataAll[j]._id) {
-        paymentData.push(PaymentDataAll[j])
+    let cost_str = 0
+    let charge_time_sec = 0
+    let charge_kwh = 0
+    paymentData.amount_str = paymentData.length
+    for (let i = 0; i < paymentData.length; i++) {
+      localEndTime =  new Date( (new Date(paymentData[i].created_date).getTime()) + ((MStore.timeZoneOffset ) * -60000))
+      paymentData[i].created_date_str = (moment(localEndTime).format("YYYY-MM-DD HH:mm:ss"))
+      cost_str += paymentData[i].price
+      paymentData[i].price_str = paymentData[i].price.toLocaleString()
+      for (let j = 0; j < paymentData[i].operator_types.length; j++) {
+        if (paymentData[i].operator_types[j].type === 'charge') {
+          charge_time_sec += paymentData[i].operator_types[j].time
+          charge_kwh += paymentData[i].operator_types[j].kwh
+          let time = moment.duration(paymentData[i].operator_types[j].time, 'seconds')
+          paymentData[i].charge_time_str = String(time.days()*24 + time.hours()).padStart(2, 0) + ':' + String(time.minutes()).padStart(2, 0) + ':' + String(time.seconds()).padStart(2, 0)
+          paymentData[i].charge_price_str = paymentData[i].operator_types[j].price.toLocaleString()
+          paymentData[i].charge_kwh_str = paymentData[i].operator_types[j].kwh
+          paymentData[i].charge_currency_str = paymentData[i].operator_types[j]?.currency
+        }
+        else if (paymentData[i].operator_types[j].type === 'parking') {
+          let time = moment.duration(paymentData[i].operator_types[j].time, 'seconds')
+          paymentData[i].parking_time_str = String(time.days()*24 + time.hours()).padStart(2, 0) + ':' + String(time.minutes()).padStart(2, 0) + ':' + String(time.seconds()).padStart(2, 0)
+          paymentData[i].parking_price_str = paymentData[i].operator_types[j].price.toLocaleString()
+          paymentData[i].parking_car_number_str = paymentData[i].operator_types[j].car_num
+          paymentData[i].parking_currency_str = paymentData[i].operator_types[j]?.currency
+        }
+      }
+      switch (paymentData[i].paymethod.method) {
+        case 'CREDIT':
+          paymentData[i].paymethod_str = t('credit_card')
+          break
+        case 'GOOGLEPAY':
+          paymentData[i].paymethod_str = t('google_pay')
+          break
+        case 'SAMSUNGPAY':
+          paymentData[i].paymethod_str = t('samsung_pay')
+          break
+        case 'RFID':
+          paymentData[i].paymethod_str = t('rfid')
+          break
+        case 'FREE':
+          paymentData[i].paymethod_str = t('free')
+          break
+        default:
+          paymentData[i].paymethod_str = paymentData[i]?.paymethod?.method
+          break
+      }
+      switch (paymentData[i].currency) {
+        case 'TWD':
+          paymentData[i].currency = t('twd')
+          break
+        case 'USD':
+          paymentData[i].currency = t('usd')
+          break
+        case 'JPY':
+          paymentData[i].currency = t('jpy')
+          break
+        case 'EUR':
+          paymentData[i].currency = t('eur')
+          break
+        default:
+          break
       }
     }
+    paymentData.cost_str = cost_str
+    paymentData.charge_kwh = charge_kwh
+    paymentData.charge_hr = moment( {h:moment.duration(charge_time_sec, 'second').hours()}).format('HH')
+    paymentData.charge_min = moment( {m:moment.duration(charge_time_sec, 'second').minutes()}).format('mm')
+    paymentData.charge_sec = moment( {s:moment.duration(charge_time_sec, 'second').hours()}).format('ss')
   }
-  let cost_str = 0
-  let charge_time_sec = 0
-  let charge_kwh = 0
-  paymentData.amount_str = paymentData.length
-  for (let i = 0; i < paymentData.length; i++) {
-    localEndTime =  new Date( (new Date(paymentData[i].created_date).getTime()) + ((MStore.timeZoneOffset ) * -60000))
-    paymentData[i].created_date_str = (moment(localEndTime).format("YYYY-MM-DD HH:mm:ss"))
-    cost_str += paymentData[i].price
-    paymentData[i].price_str = paymentData[i].price.toLocaleString()
-    for (let j = 0; j < paymentData[i].operator_types.length; j++) {
-      if (paymentData[i].operator_types[j].type === 'charge') {
-        charge_time_sec += paymentData[i].operator_types[j].time
-        charge_kwh += paymentData[i].operator_types[j].kwh
-        let time = moment.duration(paymentData[i].operator_types[j].time, 'seconds')
-        paymentData[i].charge_time_str = moment({ h: time.hours(), m: time.minutes(), s: time.seconds(), }).format('HH:mm:ss')
-        paymentData[i].charge_price_str = paymentData[i].operator_types[j].price.toLocaleString()
-        paymentData[i].charge_kwh_str = paymentData[i].operator_types[j].kwh
-        paymentData[i].charge_currency_str = paymentData[i].operator_types[j]?.currency
-      }
-      else if (paymentData[i].operator_types[j].type === 'parking') {
-        let time = moment.duration(paymentData[i].operator_types[j].time, 'seconds')
-        paymentData[i].parking_time_str = moment({ h: time.hours(), m: time.minutes(), s: time.seconds(), }).format('HH:mm:ss')
-        paymentData[i].parking_price_str = paymentData[i].operator_types[j].price.toLocaleString()
-        paymentData[i].parking_car_number_str = paymentData[i].operator_types[j].car_num
-        paymentData[i].parking_currency_str = paymentData[i].operator_types[j]?.currency
-      }
-    }
-    switch (paymentData[i].paymethod.method) {
-      case 'CREDIT':
-        paymentData[i].paymethod_str = t('credit_card')
-        break
-      case 'GOOGLEPAY':
-        paymentData[i].paymethod_str = t('google_pay')
-        break
-      case 'SAMSUNGPAY':
-        paymentData[i].paymethod_str = t('samsung_pay')
-        break
-      case 'RFID':
-        paymentData[i].paymethod_str = t('rfid')
-        break
-      case 'FREE':
-        paymentData[i].paymethod_str = t('free')
-        break
-      default:
-        paymentData[i].paymethod_str = paymentData[i]?.paymethod?.method
-        break
-    }
-    switch (paymentData[i].currency) {
-      case 'TWD':
-        paymentData[i].currency = t('twd')
-        break
-      case 'USD':
-        paymentData[i].currency = t('usd')
-        break
-      case 'JPY':
-        paymentData[i].currency = t('jpy')
-        break
-      case 'EUR':
-        paymentData[i].currency = t('eur')
-        break
-      default:
-        break
-    }
+  catch {
+    ElMessage.error('An unexpected error occurred.')
   }
-  paymentData.cost_str = cost_str
-  paymentData.charge_kwh = charge_kwh
-  paymentData.charge_hr = moment( {h:moment.duration(charge_time_sec, 'second').hours()}).format('HH')
-  paymentData.charge_min = moment( {m:moment.duration(charge_time_sec, 'second').minutes()}).format('mm')
-  paymentData.charge_sec = moment( {s:moment.duration(charge_time_sec, 'second').hours()}).format('ss')
 
   setTimeout(isLoading_skeleton.value = false , 3000)
 })

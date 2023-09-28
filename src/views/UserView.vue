@@ -47,25 +47,30 @@ const sortFunc = (obj1, obj2, column) => {
 }
 
 const GetPermission = async () => {
-  let queryData = { 
-    "database":"CPO", 
-    "collection":"UserPermission", 
-    pipelines: [
-      {
-        $match: {
-          name: {
-            $nin: ['AdminUser', 'EngineerUser', 'CustomerServiceUser', 'DeveloperUser']
+  try {
+    let queryData = { 
+      "database":"CPO", 
+      "collection":"UserPermission", 
+      pipelines: [
+        {
+          $match: {
+            name: {
+              $nin: ['AdminUser', 'EngineerUser', 'CustomerServiceUser', 'DeveloperUser']
+            }
           }
+        },
+        { 
+          $project: { _id: 1, name: 1} 
         }
-      },
-      { 
-        $project: { _id: 1, name: 1} 
-      }
-    ]
+      ]
+    }
+    let response = await MsiApi.mongoAggregate(queryData)
+    user_type.length = 0
+    Object.assign(user_type, response.data.result)
   }
-  let response = await MsiApi.mongoAggregate(queryData)
-  user_type.length = 0
-  Object.assign(user_type, response.data.result)
+  catch {
+    ElMessage.error('An unexpected error occurred.')
+  }
 }
 
 const detail_info = (detail) => {
@@ -76,116 +81,127 @@ const detail_info = (detail) => {
 const search = async () => {
   let queryData = null
 
-  queryData = {
-    database: 'CPO', 
-    collection: 'CompanyInformation', 
-    pipelines: [
-      { $match: { name: {$eq: MStore.permission.company.name} } },
-      { 
-        $project: { _id: 1, name: 1 } 
-      }
-    ]
-  }
-  let res = await MsiApi.mongoAggregate(queryData)
-
-  if (input.value === '') {
-    queryData = { 
+  try {
+    queryData = {
       database: 'CPO', 
-      collection: 'UserData', 
+      collection: 'CompanyInformation', 
       pipelines: [
-        { $match: { byCompany:  { "ObjectId" : res.data.result[0]._id} } },
-        { $project: { _id: 1, first_name: 1, last_name: 1, email: 1, evse_list: 1, payment_history:1, updated_date: 1, byCompany: 1, } }
+        { $match: { name: {$eq: MStore.permission.company.name} } },
+        { 
+          $project: { _id: 1, name: 1 } 
+        }
       ]
     }
-  }
-  else {
-    let hour = (Math.floor(Math.abs(MStore.timeZoneOffset) / 60)).toString().padStart(2, '0')
-    let min = (Math.abs(MStore.timeZoneOffset) % 60).toString().padStart(2, '0')
-    let timezone = MStore.timeZoneOffset > 0? '-' + hour + min : '+' + hour + min
-
-    queryData = { 
-      database: 'CPO', 
-      collection: 'UserData', 
-      pipelines: [
-        {
-          $addFields: {
-            "updated_date_str": { 
-              $dateToString: {
-                format: '%Y-%m-%d %H:%M:%S',
-                date: {
-                  $dateFromString: {
-                    dateString: { $toString: '$updated_date'}
-                  }
-                },
-                timezone: timezone
+    let res = await MsiApi.mongoAggregate(queryData)
+  
+    if (input.value === '') {
+      queryData = { 
+        database: 'CPO', 
+        collection: 'UserData', 
+        pipelines: [
+          { $match: { byCompany:  { "ObjectId" : res.data.result[0]._id} } },
+          { $project: { _id: 1, first_name: 1, last_name: 1, email: 1, evse_list: 1, payment_history:1, updated_date: 1, byCompany: 1, } }
+        ]
+      }
+    }
+    else {
+      let hour = (Math.floor(Math.abs(MStore.timeZoneOffset) / 60)).toString().padStart(2, '0')
+      let min = (Math.abs(MStore.timeZoneOffset) % 60).toString().padStart(2, '0')
+      let timezone = MStore.timeZoneOffset > 0? '-' + hour + min : '+' + hour + min
+  
+      queryData = { 
+        database: 'CPO', 
+        collection: 'UserData', 
+        pipelines: [
+          {
+            $addFields: {
+              "updated_date_str": { 
+                $dateToString: {
+                  format: '%Y-%m-%d %H:%M:%S',
+                  date: {
+                    $dateFromString: {
+                      dateString: { $toString: '$updated_date'}
+                    }
+                  },
+                  timezone: timezone
+                }
               }
             }
-          }
-        },
-        {
-          $match : {
-            $and: [
-              { byCompany:  { "ObjectId" : res.data.result[0]._id} },
-              {
-                $or: [
-                  {
-                    first_name: {
-                      $regex: input.value,
-                      $options: "i",
+          },
+          {
+            $match : {
+              $and: [
+                { byCompany:  { "ObjectId" : res.data.result[0]._id} },
+                {
+                  $or: [
+                    {
+                      first_name: {
+                        $regex: input.value,
+                        $options: "i",
+                      },
                     },
-                  },
-                  {
-                    last_name: {
-                      $regex: input.value,
-                      $options: "i",
+                    {
+                      last_name: {
+                        $regex: input.value,
+                        $options: "i",
+                      },
                     },
-                  },
-                  {
-                    email: {
-                      $regex: input.value,
-                      $options: "i",
+                    {
+                      email: {
+                        $regex: input.value,
+                        $options: "i",
+                      },
                     },
-                  },
-                  {
-                    updated_date_str: {
-                      $regex: input.value,
-                      $options: "i",
-                    },
-                  }
-                ]
-              }
-            ]
-          }
-        },
-        { $project: { _id: 1, first_name: 1, last_name: 1, email: 1, evse_list: 1, payment_history:1, updated_date: 1, byCompany: 1, } }
-      ]
+                    {
+                      updated_date_str: {
+                        $regex: input.value,
+                        $options: "i",
+                      },
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          { $project: { _id: 1, first_name: 1, last_name: 1, email: 1, evse_list: 1, payment_history:1, updated_date: 1, byCompany: 1, } }
+        ]
+      }
     }
+    await MongoAggregate(queryData)
   }
-  await MongoAggregate(queryData)
+  catch {
+    ElMessage.error('An unexpected error occurred.')
+  }
 }
 
 const MongoAggregate = async (queryData) => {
   isLoading.value = true
-  let response = await MsiApi.mongoAggregate(queryData)
-  UserData.length = 0
-  Object.assign(UserData, response.data.result)
-  for (let i = 0; i < UserData.length; i++) {
-    let localEndTime =  new Date( (new Date(UserData[i].updated_date).getTime()) + ((MStore.timeZoneOffset ) * -60000))
-    UserData[i].updated_date_str = (moment(localEndTime).format("YYYY-MM-DD HH:mm:ss"))
-    UserData[i].payment_length = UserData[i]?.payment_history?.length
-    UserData[i].evse_list_str = ''
-    UserData[i].evse_list_str_detail = ''
-    if (UserData[i]?.evse_list[0]?.evseId) {
-      UserData[i].evse_list_str += UserData[i]?.evse_list[0]?.evseId 
-    }
-    if (UserData[i]?.evse_list?.length > 1) {
-      UserData[i].evse_list_str += ' / ...'
-      for (let j = 0; j < UserData[i]?.evse_list?.length; j++) {
-        UserData[i].evse_list_str_detail += UserData[i]?.evse_list[j]?.evseId 
-        if (j !== UserData[i]?.evse_list?.length-1)
-          UserData[i].evse_list_str_detail += ' / '
+  let response = null
+  try {
+    response = await MsiApi.mongoAggregate(queryData)
+    UserData.length = 0
+    Object.assign(UserData, response.data.result)
+    for (let i = 0; i < UserData.length; i++) {
+      let localEndTime =  new Date( (new Date(UserData[i].updated_date).getTime()) + ((MStore.timeZoneOffset ) * -60000))
+      UserData[i].updated_date_str = (moment(localEndTime).format("YYYY-MM-DD HH:mm:ss"))
+      UserData[i].payment_length = UserData[i]?.payment_history?.length
+      UserData[i].evse_list_str = ''
+      UserData[i].evse_list_str_detail = ''
+      if (UserData[i]?.evse_list[0]?.evseId) {
+        UserData[i].evse_list_str += UserData[i]?.evse_list[0]?.evseId 
+      }
+      if (UserData[i]?.evse_list?.length > 1) {
+        UserData[i].evse_list_str += ' / ...'
+        for (let j = 0; j < UserData[i]?.evse_list?.length; j++) {
+          UserData[i].evse_list_str_detail += UserData[i]?.evse_list[j]?.evseId 
+          if (j !== UserData[i]?.evse_list?.length-1)
+            UserData[i].evse_list_str_detail += ' / '
+        }
       }
     }
+  }
+  catch {
+    ElMessage.error('An unexpected error occurred.')
   }
   isLoading.value = false
   return response
@@ -197,72 +213,92 @@ const addUser = async () => {
 }
 
 const addUserDialog = async (action) => {
-  if (action === 'confirm') {
-    add_user_ref.value.validate(valid => {
-      if (valid) {
-        let sendData = {'role': 'member', 'first_name' : newUser.first_name, 'last_name' : newUser.last_name,
-        'email' : newUser.email, 'password': newUser.password} 
-
-        dialogFormVisible.value = false
-        ElMessageBox.confirm(t('do_you_want_to_create'),t('warning'), {confirmButtonText: t('ok'), cancelButtonText: t('cancel'), type: 'warning'})
-        .then(async () => {
-          isLoading.value = true
-          let res = await MsiApi.register_member(sendData)
-          if (res.status === 200) {
-            ElMessage.error(t('email_already_exists'))
-            dialogFormVisible.value = true
-          }
-          else if (res.status === 201) {
-            let queryData = { 
-              database: 'CPO', 
-              collection: 'UserData', 
-              pipelines: [
-                { 
-                  $project: { _id: 1, first_name: 1, last_name: 1, email: 1, evse_list: 1, payment_history:1, updated_date: 1, } 
-                }
-              ]
+  try {
+    if (action === 'confirm') {
+      add_user_ref.value.validate(valid => {
+        if (valid) {
+          dialogFormVisible.value = false
+          ElMessageBox.confirm(t('do_you_want_to_create'),t('warning'), {confirmButtonText: t('ok'), cancelButtonText: t('cancel'), type: 'warning'})
+          .then(async () => {
+            isLoading.value = true
+            let res = null
+            // Tony S ++ ======================================================= Prod api not ready ... 
+            console.log(import.meta.env.VITE_NAME)
+            if (import.meta.env.VITE_NAME === 'prod') {
+              let sendData = {'first_name' : newUser.first_name, 'last_name' : newUser.last_name,
+                'email' : newUser.email, 'password': newUser.password} 
+              res = await MsiApi.register_member_v0(sendData)
             }
-            await MongoAggregate(queryData)
-          }
-          else { 
-            ElMessage.error(res.data.message)
-            dialogFormVisible.value = true
-          }
-          isLoading.value = false
-        })
-      }
-      else {
-        return false
-      }
-    })
-
+            else {
+              let sendData = {'role': 'member', 'first_name' : newUser.first_name, 'last_name' : newUser.last_name,
+                'email' : newUser.email, 'password': newUser.password} 
+              res = await MsiApi.register_member(sendData)
+            }
+            // Tony E ++ =======================================================
+            if (res.status === 200) {
+              ElMessage.error(t('email_already_exists'))
+              dialogFormVisible.value = true
+            }
+            else if (res.status === 201) {
+              let queryData = { 
+                database: 'CPO', 
+                collection: 'UserData', 
+                pipelines: [
+                  { 
+                    $project: { _id: 1, first_name: 1, last_name: 1, email: 1, evse_list: 1, payment_history:1, updated_date: 1, } 
+                  }
+                ]
+              }
+              await MongoAggregate(queryData)
+            }
+            else { 
+              ElMessage.error(res.data.message)
+              dialogFormVisible.value = true
+            }
+            isLoading.value = false
+          })
+        }
+        else {
+          return false
+        }
+      })
+  
+    }
+    else if (action === 'cancel') {
+      dialogFormVisible.value = false
+    }
   }
-  else if (action === 'cancel') {
-    dialogFormVisible.value = false
+  catch {
+    ElMessage.error('An unexpected error occurred.')
   }
 }
 
 onMounted( async() => {
-  let queryData = {
-    database: 'CPO', 
-    collection: 'CompanyInformation', 
-    pipelines: [
-      { $match: { name: {$eq: MStore.permission.company.name} } },
-      { $project: { _id: 1, name: 1 } }
-    ]
+  try {
+    let queryData = {
+      database: 'CPO', 
+      collection: 'CompanyInformation', 
+      pipelines: [
+        { $match: { name: {$eq: MStore.permission.company.name} } },
+        { $project: { _id: 1, name: 1 } }
+      ]
+    }
+    let res = await MsiApi.mongoAggregate(queryData)
+    
+    queryData = { 
+      database: 'CPO', 
+      collection: 'UserData', 
+      pipelines: [
+        { $match: { byCompany:  { "ObjectId" : res.data.result[0]._id} } },
+        { $project: { _id: 1, first_name: 1, last_name: 1, email: 1, evse_list: 1, payment_history:1, updated_date: 1, byCompany: 1, } }
+      ]
+    }
+    await MongoAggregate(queryData)
+    GetPermission()
   }
-  let res = await MsiApi.mongoAggregate(queryData)
-  
-  queryData = { 
-    database: 'CPO', 
-    collection: 'UserData', 
-    pipelines: [
-      { $match: { byCompany:  { "ObjectId" : res.data.result[0]._id} } },
-      { $project: { _id: 1, first_name: 1, last_name: 1, email: 1, evse_list: 1, payment_history:1, updated_date: 1, byCompany: 1, } }
-    ]
+  catch {
+    ElMessage.error('An unexpected error occurred.')
   }
-  await MongoAggregate(queryData)
-  GetPermission()
 })
 </script>
 
