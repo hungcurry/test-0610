@@ -10,7 +10,6 @@ import { useI18n } from "vue-i18n"
 const { t } = useI18n()
 const MStore = useMStore()
 const company = MStore?.permission?.company?.name
-const user = MStore?.permission?.user?.name
 const router = useRouter()
 const MsiApi = ApiFunc()
 const ref_payment_chart = ref()
@@ -811,9 +810,10 @@ onMounted(async () => {
             <div class="evse-title flex items-center pb-16px md:pb-20px">
               <font-awesome-icon class="w-24px h-24px" icon="fa-solid fa-coins" />
               <p class="text-blue-1200 text-22px ml-8px">{{t('income')}}</p>
-              <el-button v-if="user === 'AdminUser' || user === undefined" class="ellipsis" @click="goto_payment">
-                <font-awesome-icon icon="fa-solid fa-ellipsis"
-              /></el-button>
+              <el-button 
+                v-if="MStore.rule_permission.Dashboard.payment === 'O' || MStore.permission.isCompany" class="ellipsis" @click="goto_payment">
+                <font-awesome-icon icon="fa-solid fa-ellipsis"/>
+              </el-button>
             </div>
             <div class="card-body flex-center h-full text-40px md:text-60px">
               <div class="income">

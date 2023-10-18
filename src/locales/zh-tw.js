@@ -142,7 +142,7 @@ export default
     table:                                                  '表格',
     schedule:                                               '日程表',
     now_version:                                            'Released Version',
-    admin_user:                                             '管理使用者',
+    admin_user:                                             '管理 使用者',
     reset_password:                                         '重置密碼',
     rfid_user:                                              'RFID使用者',
     rfid_num:                                               'RFID序號',
@@ -162,6 +162,25 @@ export default
     edit_rfid:                                              '編輯RFID卡',
     number:                                                 '卡號',
     gerernal_info:                                          '一般資訊',
+    developer_user:                                         '研發 使用者',
+    fae_user:                                               'FAE 使用者',
+    viewer_user:                                            '檢視者 使用者',
+    customer_service_user:                                  '客服 使用者',
+    engineer_user:                                          '工程師 使用者',
+    evse_management:                                        '充電樁管理',
+    account_management:                                     '帳戶管理',
+    log_monitor:                                            '紀錄監控',
+    top_up:                                                 '儲值',
+    add_evse:                                               '新增充電樁',
+    add_user:                                               '新增使用者',
+    clear:                                                  '清除',
+    card_details:                                           '信用卡詳細資料',
+    transaction:                                            '交易',
+    add_company:                                            '新增公司',
+    add_admin:                                              '新增管理者',
+    add_sw_release:                                         '新增軟體版本',
+    add_fw_release:                                         '新增韌體版本',
+    release:                                                '發布',
 //--------------------------------------------------------------
 // header                       
 //--------------------------------------------------------------
@@ -178,24 +197,25 @@ export default
 // Sidebar                      
 //--------------------------------------------------------------
     dashboard:                                              '總覽',
-    evse_management:                                        '充電樁管理',
     by_station:                                             '依照充電站',
     by_evse:                                                '依照充電樁',
-    account_management:                                     '帳戶管理',
     company_cpo:                                            '公司 / 營運商',
     m_cloud_administrator:                                  'm-Cloud管理者',
-    log_monitor:                                            '紀錄監控',
     evse_log:                                               '充電樁紀錄',
     error_log:                                              '錯誤紀錄',
     softwart_info:                                          '軟體資訊',
     charging_profile:                                       '充電設定檔',
     app_member:                                             'App會員',
+    advanced_setting:                                       '進階設定',
     // rfid_user:                                           'RFID使用者',
     // rate_plan:                                           '費率方案',
     // program:                                             '訂閱方案',
     // payment:                                             '付款',
     // parking:                                             '停車',
     // program:                                             '訂閱方案',
+    // evse_management:                                     '充電樁管理',
+    // account_management:                                  '帳戶管理',
+    // log_monitor:                                         '紀錄監控',
 //--------------------------------------------------------------
 // Login Page                       
 //--------------------------------------------------------------
@@ -410,7 +430,6 @@ export default
 //--------------------------------------------------------------
 // EVSE Page                    
 //--------------------------------------------------------------
-    add_evse:                                               '新增充電樁',
     paired:                                                 '已配對',
     // active_minute:                                       '啟用時間 (分鐘)',
     // deactivate_minute:                                   '截止時間 (分鐘)',
@@ -438,6 +457,7 @@ export default
     // unpaired:                                            '未配對',
     // current_version:                                     '目前版本',
     // confirm:                                             '確認',
+    // add_evse:                                            '新增充電樁',
 //--------------------------------------------------------------
 // EVSE Detail Page                 
 //--------------------------------------------------------------
@@ -491,8 +511,10 @@ export default
     // schedule:                                            '日程表',
 //--------------------------------------------------------------
 // EVSE Edit Page           
-//--------------------------------------------------------------    
+//--------------------------------------------------------------
     length_should_be_1_to_4:                                '長度必須是1到4個字元',
+    // active_minute:                                       '啟用時間 (分鐘)',
+    // deactivate_minute:                                   '截止時間 (分鐘)',
     // edit_evse:                                           '編輯充電樁',
     // add_evse:                                            '新增充電樁',
     // name:                                                '名稱',
@@ -616,7 +638,7 @@ export default
 //--------------------------------------------------------------
 // User Page            
 //--------------------------------------------------------------
-    add_user:                                               '新增使用者',
+    // add_user:                                            '新增使用者',
     // used_times:                                          '使用次數',
     // email_already_exists:                                '電子信箱已經存在',
     // search:                                              '搜尋',
@@ -636,21 +658,14 @@ export default
 //--------------------------------------------------------------
     binding_card:                                           '綁定信用卡',
     device:                                                 '使用配備',
-    card_details:                                           '信用卡詳細資料',
     expire_date_YY_MM:                                      '到期日期(月/年)',
     device_details:                                         '使用配備詳細資料',
     platform:                                               '使用平台',
     os_version:                                             '系統版本',
     app_version:                                            'App版本',
-    clear:                                                  '清除',
     add:                                                    '新增',
     cash:                                                   '加值費用',
     anonymous_user:                                         '匿名使用者',
-    customer_service_user:                                  '客服使用者',
-    developer_user:                                         '研發使用者',
-    engineer_user:                                          '工程師使用者',
-    viewer_user:                                            'Viwer User',
-    fae_user:                                               'FAE User',
     member_user:                                            '會員使用者',
     Chinese:                                                '中文',
     card_number_already_exists:                             '卡號已經存在',
@@ -721,11 +736,17 @@ export default
     // number:                                              '卡號',
     // enable:                                              '開啟',
     // disable:                                             '關閉',
+    // developer_user:                                      '研發 使用者',
+    // fae_user:                                            'FAE 使用者',
+    // viewer_user:                                         '檢視者 使用者',
+    // customer_service_user:                               '客服 使用者',
+    // engineer_user:                                       '工程師 使用者',
+    // clear:                                               '清除',
+    // card_details:                                        '信用卡詳細資料',
 //--------------------------------------------------------------
 // Company Page         
 //--------------------------------------------------------------
     subscribe:                                              '訂閱方案',
-    add_company:                                            '新增公司',
     add_company_info:                                       '新增公司資料 ',
     edit_company_info:                                      '編輯公司資料',
     invoice_hash_iv:                                        'Invoice Hash IV',
@@ -755,10 +776,10 @@ export default
     // tax_id:                                              '統一編號',
     // the_item_is_required:                                '這個項目必填',
     // active:                                              '啟用',
+    // add_company:                                         '新增公司',
 //--------------------------------------------------------------
 // Admin Page           
 //--------------------------------------------------------------    
-    add_admin:                                              '新增管理者',
     edit_admin:                                             '編輯管理者',
     email_not_found:                                        '找不到 Email',
     // engineer_user:                                       '工程師使用者',
@@ -782,6 +803,7 @@ export default
     // the_item_is_required:                                '這個項目必填',
     // email_already_exists:                                '電子信箱已經存在',
     // select:                                              '選擇',
+    // add_admin:                                           '新增管理者',
 //--------------------------------------------------------------
 // EVSE Log Page            
 //--------------------------------------------------------------
@@ -839,10 +861,7 @@ export default
     edit_sw_release_note:                                   '編輯軟體版本資訊',
     edit_fw_release_note:                                   '編輯韌體版本資訊',
     ota_sw_version:                                         '線上更新軟體版本',
-    add_sw_release:                                         '新增軟體版本',
-    release:                                                '發布',
     ota_fw_version:                                         '線上更新韌體版本',
-    add_fw_release:                                         '新增韌體版本',
     file_path:                                              '檔案路徑',
     update_time:                                            '更新時間',
     download_file:                                          '下載檔案',
@@ -851,6 +870,9 @@ export default
     // cancel:                                              '取消',
     // confirm:                                             '確認',
     // the_item_is_required:                                '這個項目必填',
+    // add_sw_release:                                      '新增軟體版本',
+    // add_fw_release:                                      '新增韌體版本',
+    // release:                                             '發布',
 //--------------------------------------------------------------
 // Program Page
 //--------------------------------------------------------------
@@ -969,10 +991,8 @@ export default
 //--------------------------------------------------------------
 // Rfid User Detail Page
 //--------------------------------------------------------------
-    transaction:                                            '交易',
     total_rfid:                                             'RFID總數',
     balance:                                                '結餘',
-    top_up:                                                 '儲值',
     refund:                                                 '退款',
     check:                                                  '確認',
     are_you_sure_to_top_up:                                 '你確定要充值',
@@ -1031,5 +1051,80 @@ export default
     // edit_rfid:                                           '編輯RFID卡',
     // number:                                              '卡號',
     // amount:                                              '金額',
+    // top_up:                                              '儲值',
+    // transaction:                                         '交易',
+//--------------------------------------------------------------
+// Premission Page
+//--------------------------------------------------------------
+    company:                                                '公司',
+    user_type:                                              '使用者類型',
+    base_management:                                        '基礎管理',
+    Dashboard:                                              '總覽',
+    Payment:                                                '付款',
+    Station:                                                '充電站',
+    StationDetail:                                          '充電站詳細資料',
+    StationEdit:                                            '充電站編輯',
+    EVSE:                                                   '充電樁',
+    EVSEDetail:                                             '充電樁詳細資料',
+    EVSEEdit:                                               '充電樁編輯',
+    RatePlan:                                               '費率方案',
+    RatePlanDetail:                                         '費率方案詳細資料',
+    User:                                                   '使用者',
+    UserDetail:                                             '使用者詳細資料',
+    RfidUser:                                               'RFID使用者',
+    RfidUserDetail:                                         'RFID使用者詳細資料',
+    Company:                                                '公司',
+    Administrator:                                          '管理者',
+    Permission:                                             '權限',
+    EVSELog:                                                '充電樁紀錄',
+    ErrorLog:                                               '錯誤紀錄',
+    SoftwareInfo:                                           '軟體資訊',
+    Parking:                                                '停車',
+    AdminInfo:                                              '管理者資訊',
+    Program:                                                '訂閱方案',
+    ChargingProfile:                                        '充電設定檔',
+    check_all:                                              '全選',
+    page:                                                   '頁面',
+    reset:                                                  '重置',
+    update:                                                 '更新',
+    copy:                                                   '複製',
+    user_detail:                                            '使用者詳細資料',
+    user_edit:                                              '使用者編輯',
+    device_detail:                                          '使用配備詳細資料',
+    delete_rfid:                                            '刪除RFID',
+    detail:                                                 '詳細資料',
+    add_profile:                                            '增加設定檔',
+    please_select_user_type:                                '請選擇使用者類型',
+    there_are_still_fields_not_filled_in:                   '有欄位未填寫',
+    successfully_modified_permissions:                      '修改權限成功',
+    // admin_user:                                          '管理 使用者',
+    // developer_user:                                      '研發 使用者',
+    // fae_user:                                            'FAE 使用者',
+    // viewer_user:                                         '檢視者 使用者',
+    // customer_service_user:                               '客服 使用者',
+    // engineer_user:                                       '工程師 使用者',
+    // permission:                                          '權限',
+    // evse_management:                                     '充電樁管理',
+    // account_management:                                  '帳戶管理',
+    // log_monitor:                                         '紀錄監控',
+    // top_up:                                              '儲值',
+    // add_evse:                                            '新增充電樁,
+    // add_user:                                            '新增使用者',
+    // clear:                                               '清除',
+    // card_details:                                        '信用卡詳細資料',
+    // transaction:                                         '交易',
+    // add_company:                                         '新增公司',
+    // add_admin:                                           '新增管理者',
+    // add_sw_release:                                      '新增軟體版本',
+    // add_fw_release:                                      '新增韌體版本',
+    // release:                                             '發布',
+    // add_station:                                         '新增充電站',
+    // save:                                                '儲存',
+    // delete:                                              '刪除',
+    // edit:                                                '編輯',
+    // add_rate_plan:                                       '新增費率方案',
+    // add_rfid:                                            '新增RFID卡',
+    // edit_rfid:                                           '編輯RFID卡',
+    // add_program:                                         '新增編輯訂閱方案',
 //--------------------------------------------------------------
 }

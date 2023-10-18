@@ -746,7 +746,9 @@ onMounted(async () => {
                       <font-awesome-icon class="icon w-24px h-24px mr-8px" icon="fa-regular fa-user"/>
                       <span class="line-height-24px">{{ t('gerernal_info') }}</span>
                     </div>
-                    <el-button link type="primary" @click="editUser()">
+                    <el-button 
+                      v-if="MStore.rule_permission.UserDetail.userEdit === 'O' || MStore.permission.isCompany"
+                      link type="primary" @click="editUser()">
                       <font-awesome-icon class="text-gray-300 w-32px h-32px" icon="fa-regular fa-pen-to-square" />
                     </el-button>
                   </div>
@@ -791,12 +793,16 @@ onMounted(async () => {
                     <div v-if="isLoading_skeleton === false" class="mt-0px lg:mt-16px lg:w-50%">
                       <div class="md:flex mb-8px">
                         <span class="info-item min-w-110px">{{ t('binding_card') }}</span>
-                        <el-button round class="button w-full" @click="binding_card_detail">{{ t('card_details') }}</el-button>
+                        <el-button 
+                        v-if="MStore.rule_permission.UserDetail.cardDetails === 'O' || MStore.permission.isCompany"
+                        round class="button w-full" @click="binding_card_detail">{{ t('card_details') }}</el-button>
                       </div>
     
                       <div class="md:flex mb-8px">
                         <span class="info-item min-w-110px">{{ t('device') }}</span>
-                        <el-button round class="button w-full" @click="device_detail">{{ t('device_details') }}</el-button>
+                        <el-button 
+                        v-if="MStore.rule_permission.UserDetail.deviceDetail === 'O' || MStore.permission.isCompany"
+                        round class="button w-full" @click="device_detail">{{ t('device_details') }}</el-button>
                       </div>
                     </div>
                   </div>
@@ -824,7 +830,7 @@ onMounted(async () => {
                         </el-button>
                       </el-tooltip>
                       <el-button 
-                        v-if="company === 'MSI'" 
+                        v-if="company === 'MSI' && (MStore.rule_permission.UserDetail.clear === 'O' || MStore.permission.isCompany)" 
                         round
                         class="button md:ml-auto w-full"
                         @click="clearEvseList"
@@ -876,6 +882,7 @@ onMounted(async () => {
                     <span class="line-height-24px">{{ t('rfid') }}</span>
                   </div>
                   <el-button 
+                    v-if="MStore.rule_permission.UserDetail.addRFID === 'O' || MStore.permission.isCompany"
                     class="button h-32px w-full md:w-150px" 
                     round
                     @click="editRfid"
@@ -894,10 +901,14 @@ onMounted(async () => {
                       <div class="flex justify-between">
                         <span class="text-16px pt-16px pb-16px pl-16px pr-16px">{{ item.rfid }}</span>
                         <div class="pt-5px pr-16px">
-                          <el-button link type="primary" size="large" @click="confirmRfid('delete', index)" >
+                          <el-button 
+                          v-if="MStore.rule_permission.UserDetail.deleteRFID === 'O' || MStore.permission.isCompany"
+                          link type="primary" size="large" @click="confirmRfid('delete', index)" >
                             <img class="text-blue-1100 w-24px h-24px" src="@/assets/img/tariff_delete1.png" alt="">
                           </el-button>
-                          <el-button link type="primary" size="large" @click="card_detail(item, index)">
+                          <el-button 
+                          v-if="MStore.rule_permission.UserDetail.detailRFID === 'O' || MStore.permission.isCompany"
+                          link type="primary" size="large" @click="card_detail(item, index)">
                             <font-awesome-icon class="text-blue-1100 w-24px h-24px" icon="fa-regular fa-pen-to-square" />
                           </el-button>
                         </div>
@@ -915,7 +926,9 @@ onMounted(async () => {
             </div>
           </el-tab-pane>
 
-          <el-tab-pane :label="t('payment')" name="second">
+          <el-tab-pane 
+          v-if="MStore.rule_permission.UserDetail.payment === 'O' || MStore.permission.isCompany"
+          :label="t('payment')" name="second">
             <div class="flex justify-between flex-wrap lg:flex-nowrap pt-24px pb-32px">
               <div class="date-picker w-full blue-1100">
                 <el-date-picker 
@@ -1196,8 +1209,11 @@ onMounted(async () => {
         </div>
         <template #footer>
           <span class="dialog-footer flex flex-center">
-            <el-button round class="w-48% bg-btn-100 text-white max-w-140px" @click="confirmRfid('cancel', undefined)">{{ t('cancel') }}</el-button>
-            <el-button round class="w-48% bg-btn-200 text-white max-w-140px" @click="confirmRfid('confirm', undefined)">{{ t('confirm') }}</el-button>
+            <el-button 
+            round class="w-48% bg-btn-100 text-white max-w-140px" @click="confirmRfid('cancel', undefined)">{{ t('cancel') }}</el-button>
+            <el-button 
+            v-if="MStore.rule_permission.UserDetail.confirmRFID === 'O' || MStore.permission.isCompany"
+            round class="w-48% bg-btn-200 text-white max-w-140px" @click="confirmRfid('confirm', undefined)">{{ t('confirm') }}</el-button>
           </span>
         </template>
       </el-dialog>

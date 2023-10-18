@@ -6,6 +6,8 @@ import msi from '@/assets/msi_style'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { ElMessageBox,ElMessage } from 'element-plus'
 import { useI18n } from 'vue-i18n'
+import { useMStore } from "../stores/m_cloud"
+const MStore = useMStore()
 const { t } = useI18n()
 const router = useRouter()
 const MsiApi = ApiFunc()
@@ -124,7 +126,9 @@ onMounted( async() => {
   <div class="tariff">
     <div class="container lg">
       <div class="flex flex-justify-end flex-wrap lg:flex-nowrap pt-40px pb-32px">
-        <el-button class="btn-secondary box-shadow" @click="editTariff"> {{t('add_rate_plan')}} </el-button>
+        <el-button 
+          v-if="MStore.rule_permission.RatePlan.addRatePlan === 'O' || MStore.permission.isCompany"  
+          class="btn-secondary box-shadow" @click="editTariff"> {{t('add_rate_plan')}} </el-button>
       </div>
 
       <div class="overflow-x-auto">
@@ -183,13 +187,18 @@ onMounted( async() => {
               min-width="200"
             >
               <template #default="scope">
-                <el-button link type="primary" size="large" @click="deleteTariff (scope.row)" >
+                <el-button 
+                  v-if="MStore.rule_permission.RatePlan.delete === 'O' || MStore.permission.isCompany"  
+                  link type="primary" size="large" @click="deleteTariff (scope.row)" >
                   <img src="@/assets/img/tariff_delete1.png" alt="">
                 </el-button>
-                <el-button link type="primary" size="large" @click="copyTariff(scope.row)">
+                <el-button 
+                  v-if="MStore.rule_permission.RatePlan.copy === 'O' || MStore.permission.isCompany"  
+                  link type="primary" size="large" @click="copyTariff(scope.row)">
                   <img src="@/assets/img/tariff_copy1.png" alt="">
                 </el-button>
-                <el-button link type="primary" size="large" @click="editTariff(scope.row)">
+                <el-button 
+                  link type="primary" size="large" @click="editTariff(scope.row)">
                   <font-awesome-icon icon="fa-regular fa-pen-to-square" />
                 </el-button>
               </template>

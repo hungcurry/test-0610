@@ -1,8 +1,9 @@
 <script setup>
+import axios from 'axios'
 import { ref, reactive, onMounted} from 'vue'
 import { useRoute, useRouter} from 'vue-router'
 import ApiFunc from '@/composables/ApiFunc'
-import {  ElMessageBox } from 'element-plus'
+import {  ElMessageBox,ElMessage } from 'element-plus'
 import msi from '@/assets/msi_style'
 import { useMStore } from "../stores/m_cloud"
 import moment from "moment"
@@ -26,6 +27,46 @@ const hmiInfoData = reactive([])
 const locationData = reactive([])
 const tariffData = reactive([])
 const tariff_elements = reactive([])
+const config_dialog_visible = ref(false)
+
+const cp_config_core = {
+AllowOfflineTxForUnknownId: undefined,
+AuthorizationCacheEnabled: undefined,
+AuthorizeRemoteTxRequests: undefined,
+BlinkRepeat: undefined,
+ClockAlignedDataInterval: undefined,
+ConnectionTimeOut: undefined,
+ConnectorPhaseRotation: undefined,
+ConnectorPhaseRotationMaxLength: undefined,
+GetConfigurationMaxKeys: undefined,
+HeartbeatInterval: undefined,
+LightIntensity: undefined,
+LocalAuthorizeOffline: undefined,
+LocalPreAuthorize: undefined,
+MaxEnergyOnInvalidId: undefined,
+MeterValuesAlignedData: undefined,
+MeterValuesAlignedDataMaxLength: undefined,
+MeterValuesSampledData: undefined,
+MeterValuesSampledDataMaxLength: undefined,
+MeterValueSampleInterval: undefined,
+MinimumStatusDuration: undefined,
+NumberOfConnectors: undefined,
+ResetRetries: undefined,
+StopTransactionOnEVSideDisconnect: undefined,
+StopTransactionOnInvalidId: undefined,
+StopTxnAlignedData: undefined,
+StopTxnAlignedDataMaxLength: undefined,
+StopTxnSampledData: undefined,
+StopTxnSampledDataMaxLength: undefined,
+SupportedFeatureProfiles: undefined,
+SupportedFeatureProfilesMaxLength: undefined,
+TransactionMessageAttempts: undefined,
+TransactionMessageRetryInterval: undefined,
+UnlockConnectorOnEVSideDisconnect: undefined,
+WebSocketPingInterval: undefined,
+}
+const cp_config = reactive (cp_config_core)
+
 
 const deleteEvse = () => {
   ElMessageBox.confirm(t('do_you_want_to_delete'),'Warning', {confirmButtonText: 'OK', cancelButtonText: 'Cancel', type: 'warning'})
@@ -57,17 +98,148 @@ const edit = () => {
   router.push({ name: 'evseEdit', query: {station_id:locationData.id, evse_id:evseId} })
 }
 
+let interval = undefined
+let retry = 3
+
+const check_uploaded  = async () => {
+  let queryData = { database: 'CPO', collection: 'ChargePointInfo', pipelines: [{ $match: {evse_id:evseData.evse_id},},{ $project: { _id: 0 } }]}
+  let response = await MsiApi.mongoAggregate(queryData)
+  console.log(response)
+  if (response.data.result?.[0]?.ocpp_info?.[0]?.statusNotification?.diagnosticsStatus === "Uploaded") {
+    console.log(111)
+    axios({method: 'get', url: 'google10/msi-hmi-logs/cs_logs.zip', responseType: 'blob'})
+    .then(response => {
+      clearInterval(interval)
+      const blob = new Blob([response.data], { type: 'application/zip' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'cs_logs.zip'
+      a.style.display = 'none'
+      document.body.appendChild(a)
+      a.click();
+      window.URL.revokeObjectURL(url)
+      clearInterval(interval)
+    })
+    .catch(error => {
+      ElMessage.error('Error downloading ZIP file:', error);
+      clearInterval(interval)
+    })
+  }
+  else {
+    retry--
+    if (retry === 0) {
+      clearInterval(interval) 
+      ElMessage.error('download fail')
+    }
+  }
+}
+
+
+const getDiagnostics = async () => {
+
+
+
+  ElMessageBox.confirm(t('do_you_want_to_get_diagnostics'),'Warning', {confirmButtonText: 'OK', cancelButtonText: 'Cancel', type: 'warning'})
+  .then(async () => {
+    
+    let sendData = {
+      evse_id: evseData.evse_id,
+      location: "https://storage.googleapis.com/msi-hmi-logs/",
+    }
+    let response = await MsiApi.get_diagnostics(sendData)
+    console.log(response)
+    if (response.status === 200) {
+      interval = setInterval(check_uploaded, 10000) 
+    }
+    else {
+      ElMessage.error(response.data.message)
+    }
+
+  })
+}
+
+const getConfiguration = async () => {
+  ElMessageBox.confirm(t('do_you_want_to_get_configuration'),'Warning', {confirmButtonText: 'OK', cancelButtonText: 'Cancel', type: 'warning'})
+  .then(async () => {
+    let sendData = {
+      evse_id: evseData.evse_id,
+    }
+    const response = await MsiApi.get_configuration(sendData)
+    console.log(response)
+    if (response.status === 200) {
+      console.log(11)
+      cp_config = response.data.configurationKey
+      console.log(cp_config)
+    }
+    else 
+      ElMessage.error(response.data.message)
+  })
+  
+}
+
+const clearChargingProfile = async () => {
+  ElMessageBox.confirm(t('do_you_want_to_clear_charging_profile'),'Warning', {confirmButtonText: 'OK', cancelButtonText: 'Cancel', type: 'warning'})
+  .then(async () => {
+    let sendData = {
+      evse_id: evseData.evse_id,
+    }
+    console.log(await MsiApi.clear_charging_profile(sendData))
+  })
+}
+
+
+const getCompositeSchedule = async () => {
+  ElMessageBox.confirm(t('do_you_want_to_get_composite_schedule'),'Warning', {confirmButtonText: 'OK', cancelButtonText: 'Cancel', type: 'warning'})
+  .then(async () => {
+    let sendData = {
+      evse_id: evseData.evse_id,
+      duration: 100,
+    }
+    console.log(await MsiApi.get_composite_schedule(sendData))
+  })
+}
+
+
 const changeAvailability = async () => {
-  let change_type = "Inoperative"
-  if (evseData.status === 'INOPERATIVE') {
+  ElMessageBox.confirm(t('do_you_want_to_change_availability'),'Warning', {confirmButtonText: 'OK', cancelButtonText: 'Cancel', type: 'warning'})
+  .then(async () => {
+    let change_type = "Inoperative"
+    if (evseData.status === 'INOPERATIVE') {
     change_type = 'Operative'
   }
-  let sendData = {
-    evse_id: evseData.evse_id,
-    connectorId: "0",
-    type: change_type
-  }
-  console.log(await MsiApi.change_availability(sendData))
+    let sendData = {
+      evse_id: evseData.evse_id,
+      connectorId: "1",
+      type: change_type
+    }
+    console.log(await MsiApi.change_availability(sendData))
+  })
+}
+
+const changeConfiguration = async () => {
+  config_dialog_visible.value = true
+}
+
+
+const downloadZIP = async () =>{
+
+  axios({ method: 'get', url: 'google10/msi-hmi-logs/cs_logs.zip', responseType: 'blob'})
+  .then(response => {
+    const blob = new Blob([response.data], { type: 'application/zip' });
+    const url = window.URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'cs_logs.zip'
+    a.style.display = 'none'
+
+    document.body.appendChild(a)
+    a.click()
+    window.URL.revokeObjectURL(url)
+  })
+  .catch(error => {
+    console.error('Error downloading ZIP file:', error)
+  })
 }
 
 // FullCalendar ---------------------------------------------------------------
@@ -519,9 +691,24 @@ onMounted( async () => {
               <p class="location-name text-right mb-20px">{{ locationData.name }}</p>
               <p class="location-addr text-right mb-20px">{{ locationData.country + ' ' + locationData.city + locationData.address + '/' + locationData.city1 + locationData.address1}}</p>
               <div class="flex justify-end">
-                <!-- <el-button type="primary" class="btn-secondary box-shadow delete" @click="download"> Download </el-button> -->
-                <!-- <el-button type="primary" class="btn-secondary box-shadow delete" @click="changeAvailability"> {{t('change_availability')}} </el-button> -->
-                <el-button type="primary" class="btn-secondary box-shadow delete" @click="deleteEvse"> {{t('delete')}} </el-button>
+                  <el-button v-if="MStore.rule_permission.EVSEDetail.dataTransfer === 'O' || MStore.permission.isCompany"
+                  type="primary" class="btn-secondary box-shadow delete" @click="dataTransfer"> {{t('data_transfer')}} </el-button>
+                  <el-button v-if="MStore.rule_permission.EVSEDetail.getChargingProfile === 'O' || MStore.permission.isCompany"
+                  type="primary" class="btn-secondary box-shadow delete" @click="setChargingProfile"> {{t('set_charging_profile')}} </el-button>
+                  <el-button v-if="MStore.rule_permission.EVSEDetail.changeConfiguration === 'O' || MStore.permission.isCompany"
+                  type="primary" class="btn-secondary box-shadow delete" @click="changeConfiguration"> {{t('change_configuration')}} </el-button>
+                  <el-button v-if="MStore.rule_permission.EVSEDetail.compositeSchedule === 'O' || MStore.permission.isCompany"
+                  type="primary" class="btn-secondary box-shadow delete" @click="getCompositeSchedule"> {{t('get_composite_schedule')}} </el-button>
+                  <el-button v-if="MStore.rule_permission.EVSEDetail.clearChargingProfile === 'O' || MStore.permission.isCompany"
+                  type="primary" class="btn-secondary box-shadow delete" @click="clearChargingProfile"> {{t('clear_charging_profile')}} </el-button>
+                  <el-button v-if="MStore.rule_permission.EVSEDetail.getDiagnostics === 'O' || MStore.permission.isCompany"
+                  type="primary" class="btn-secondary box-shadow delete" @click="getDiagnostics"> {{t('get_diagnostics')}} </el-button>
+                  <el-button v-if="MStore.rule_permission.EVSEDetail.changeConfiguration === 'O' || MStore.permission.isCompany"
+                  type="primary" class="btn-secondary box-shadow delete" @click="getConfiguration"> {{t('get_configuration')}} </el-button>
+                  <el-button v-if="MStore.rule_permission.EVSEDetail.changeAvailablility === 'O' || MStore.permission.isCompany"
+                  type="primary" class="btn-secondary box-shadow delete" @click="changeAvailability"> {{t('change_availability')}} </el-button>
+                  <el-button v-if="MStore.rule_permission.EVSEDetail.delete === 'O' || MStore.permission.isCompany"
+                  type="primary" class="btn-secondary box-shadow delete" @click="deleteEvse"> {{t('delete')}} </el-button>
                 <el-button type="primary" class="btn-secondary box-shadow edit" @click="edit"> {{t('edit')}} </el-button>
               </div>
             </div>
@@ -733,6 +920,50 @@ onMounted( async () => {
         </el-row >
       </div>
     </div>
+    <el-dialog
+      append-to-body
+      v-model="config_dialog_visible"
+      class="max-w-600px"
+      width="90%"
+    >
+      <template #header="{ titleId, titleClass }">
+        <div class="py-2rem relative bg-blue-100">
+          <h4
+            :id="titleId"
+            :class="titleClass"
+            class="m-0 text-center text-blue-1200 font-400 text-20px lg:text-24px line-height-26px"
+          >
+            {{ dialog_title }}
+          </h4>
+        </div>
+      </template>
+      <div class="dialog-context">
+        <el-form class="pr-10px" label-position="left" label-width="110px" :rules="program_rules" :model="ProgramMod" ref="program_ref" :scroll-to-error=true>
+          <el-form-item :label="t('name')" prop="name">
+            <el-input v-model="cp_config.name" />
+          </el-form-item>
+          <el-form-item :label="t('station')" prop="location">
+            <el-input v-model="ProgramMod.location" placeholder="0" oninput="value=value.replace(/[^\d]/g,'')" />
+          </el-form-item>
+        </el-form>
+      </div>
+      <template #footer>
+        <span class="dialog-footer flex flex-center">
+          <el-button
+            round
+            class="w-48% bg-btn-100 text-white max-w-140px"
+            @click="cancelDialog"
+            >{{ t('cancel') }}</el-button
+          >
+          <el-button
+            round
+            class="w-48% bg-btn-200 text-white max-w-140px"
+            @click="confirmDialog"
+            >{{ t('confirm') }}</el-button
+          >
+        </span>
+      </template>
+    </el-dialog>
   </div>
 </template>
 

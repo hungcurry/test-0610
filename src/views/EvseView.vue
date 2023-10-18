@@ -33,23 +33,6 @@ const status_filter_item = [
   { text: t('error'), value: 'ERROR' },
 ]
 
-const change_availability = async () => {
-  updataEvseId.length = 0
-  for (let i = 0; i < multipleSelection.value.length; i++) {
-    updataEvseId.push(multipleSelection.value[i].evse_id)
-  }
-  console.log(updataEvseId)
-  let sendData = {
-
-    evse_id: "NTUT-LEO-0101",
-    connectorId: "0",
-    type: "Operative"
-  }
-  // sendData.evse_ids = "NTUT-LEO-0101"
-  console.log(sendData)
-  console.log(await MsiApi.change_availability(sendData))
-}
-
 const updateSW = async () => {
   sw_version_visable.value = true
   let queryData = {
@@ -154,15 +137,6 @@ const sortFunc = (obj1, obj2, column) => {
   }
 }
 onMounted(async () => {
-
-  let queryData1 = {
-    database: 'CPO',
-    collection: 'RFIDCashLogs',
-    query: { },
-  }
-  let response1 = await MsiApi.mongoQuery(queryData1)
-  console.log(response1)
-
   isLoading.value = true
   if (route.query.page === 'unpaired') {
     activeName.value = '2'
@@ -269,42 +243,37 @@ onMounted(async () => {
     <div class="container lg pb-40px">
       <div class="pt-40px pb-20px overflow-x-auto">
         <div class="flex lg:justify-end pr-10px">
-          <!-- <el-button
-            v-if="editMode === true"
-            class="btn-secondary shrink-0 update-button px-30px box-shadow"
-            @click="change_availability"
-          >
-          {{ t('change_availability') }}
-          </el-button> -->
           <el-button
-            v-if="editMode === true"
+            v-if="editMode === true && (MStore.rule_permission.EVSE.update === 'O' || MStore.permission.isCompany)" 
             class="btn-secondary shrink-0 update-button px-30px box-shadow"
             @click="updateSW"
           >
           {{ t('update_sw') }}
           </el-button>
           <el-button
-            v-if="editMode === true"
+            v-if="editMode === true && (MStore.rule_permission.EVSE.reset === 'O' || MStore.permission.isCompany)"
             class="btn-secondary shrink-0 soft-reset-button px-30px box-shadow"
             @click="evseReset('soft')"
           >
           {{ t('soft_reset') }}
           </el-button>
           <el-button
-            v-if="editMode === true"
+            v-if="editMode === true && (MStore.rule_permission.EVSE.reset === 'O' || MStore.permission.isCompany)"
             class="btn-secondary shrink-0 hard-reset-button px-30px box-shadow"
             @click="evseReset('hard')"
           >
           {{ t('hard_reset') }}
           </el-button>
           <el-button
+            v-if="editMode === false && (MStore.rule_permission.EVSE.addEVSE === 'O' || MStore.permission.isCompany)"
             class="btn-secondary shrink-0 add-charger px-30px box-shadow"
             @click="add_charger"
-            v-if="editMode === false"
           >
           {{ t('add_evse') }}</el-button
           >
-          <el-button class="btn-secondary shrink-0 edit px-30px box-shadow" @click="edit">
+          <el-button 
+            v-if="MStore.rule_permission.EVSE.action === 'O' || MStore.permission.isCompany"
+            class="btn-secondary shrink-0 edit px-30px box-shadow" @click="edit">
             {{ t(edit_button_str) }}</el-button
           >
         </div>

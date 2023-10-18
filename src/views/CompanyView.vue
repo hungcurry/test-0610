@@ -431,7 +431,9 @@ onMounted( async() => {
             <el-button :icon="Search" @click="search" />
           </template>
         </el-input>
-        <el-button class="btn-secondary box-shadow" @click="AddCompany"> {{ t('add_company') }} </el-button>
+        <el-button 
+          v-if="MStore.rule_permission.Company.addCompany === 'O' || MStore.permission.isCompany"
+          class="btn-secondary box-shadow" @click="AddCompany"> {{ t('add_company') }} </el-button>
       </div>
 
       <div class="overflow-x-auto">
@@ -518,7 +520,9 @@ onMounted( async() => {
               min-width="150"
             >
               <template #default="scope">
-                <el-button class="btn-more" @click="detail_info(scope.row)"> <font-awesome-icon icon="fa-solid fa-ellipsis" /> </el-button>
+                <el-button 
+                  v-if="MStore.rule_permission.Company.detail === 'O' || MStore.permission.isCompany"
+                  class="btn-more" @click="detail_info(scope.row)"> <font-awesome-icon icon="fa-solid fa-ellipsis" /> </el-button>
               </template>
             </el-table-column>
           </el-table>

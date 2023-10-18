@@ -22,7 +22,6 @@ const multipleSelection = ref([])
 const fwVersion = ref('')
 const update_file = ref('')
 const swVersion = ref('')
-
 const updateConfirm = async () => {
   let sendData = { "evse_ids": updataEvseId, "location": update_file.value, "retrieveDate": "2022-10-27 12:12:12"}
   if (update_file.value === '')
@@ -309,11 +308,15 @@ onMounted( async () => {
 
     <div class="container lg pb-40px bg-blue-100 flex-grow">
       <div class="flex lg:justify-end pt-24px pb-24px overflow-x-auto">
-        <el-button v-if="editMode === true" class="btn-secondary shrink-0 update-button px-30px box-shadow" @click="updateSW"> {{ t('update_sw') }} </el-button>
-        <!-- <el-button v-if="editMode === true" class="btn-secondary shrink-0 update-button px-30px box-shadow" @click="updateFW " disabled> Update FW </el-button> -->
-        <el-button v-if="editMode === true" class="btn-secondary shrink-0 soft-reset-button px-30px box-shadow" @click="evseReset('soft')"> {{ t('soft_reset') }} </el-button>
-        <el-button v-if="editMode === true" class="btn-secondary shrink-0 hard-reset-button px-30px box-shadow" @click="evseReset('hard')"> {{ t('hard_reset') }} </el-button>
+        <el-button v-if="editMode === true && (MStore.rule_permission.StationDetail.update === 'O' || MStore.permission.isCompany)" 
+        class="btn-secondary shrink-0 update-button px-30px box-shadow" @click="updateSW"> {{ t('update_sw') }} </el-button>
+        <el-button v-if="editMode === true && (MStore.rule_permission.StationDetail.reset === 'O' || MStore.permission.isCompany)" 
+        class="btn-secondary shrink-0 soft-reset-button px-30px box-shadow" @click="evseReset('soft')"> {{ t('soft_reset') }} </el-button>
+        <el-button v-if="editMode === true && (MStore.rule_permission.StationDetail.reset === 'O' || MStore.permission.isCompany)"
+        class="btn-secondary shrink-0 hard-reset-button px-30px box-shadow" @click="evseReset('hard')"> {{ t('hard_reset') }} </el-button>
+        <div v-if="MStore.rule_permission.StationDetail.action === 'O' || MStore.permission.isCompany"  > 
           <el-button class="btn-secondary shrink-0  px-30px box-shadow" @click="edit_charger" > {{ t(edit_button_str) }}</el-button>
+        </div>
       </div>
       
       <el-table 

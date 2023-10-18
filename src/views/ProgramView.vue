@@ -6,6 +6,9 @@ import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useI18n } from "vue-i18n"
 
+import { useMStore } from '@/stores/m_cloud'
+const MStore = useMStore()
+
 const { t } = useI18n()
 const MsiApi = ApiFunc()
 const ProgramData = reactive([])
@@ -180,7 +183,9 @@ onMounted(async () => {
   <div class="program">
     <div class="container lg">
       <div class="flex justify-end flex-wrap lg:flex-nowrap pt-40px pb-32px">
-        <el-button class="btn-secondary shrink-0 box-shadow" @click="add_program">
+        <el-button 
+          v-if="MStore.rule_permission.Program.addProgram === 'O' || MStore.permission.isCompany"  
+          class="btn-secondary shrink-0 box-shadow" @click="add_program">
           {{t('add_program')}}</el-button
         >
       </div>
@@ -262,14 +267,16 @@ onMounted(async () => {
           <el-table-column prop="" label="" align="center" min-width="100">
             <template #default="scope">
               <el-button
-                v-if="scope.row.name === 'MSI-Free'"
+                v-if="scope.row.name === 'MSI-Free' && (MStore.rule_permission.Program.detail === 'O' || MStore.permission.isCompany)"
                 disabled
                 class="btn-more"
                 @click="detail_info(scope)"
               >
                 <font-awesome-icon icon="fa-solid fa-ellipsis" />
               </el-button>
-              <el-button class="btn-more" v-else @click="detail_info(scope)">
+              <el-button 
+                v-else-if="MStore.rule_permission.Program.detail === 'O' || MStore.permission.isCompany" @click="detail_info(scope)"
+                class="btn-more" >
                 <font-awesome-icon icon="fa-solid fa-ellipsis" />
               </el-button>
             </template>

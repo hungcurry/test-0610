@@ -1,6 +1,6 @@
 <script setup>
 // import test from '@/composables/test1'
-import CommonFunc from '@/composables/CommonFunc1'
+import CommonFunc from '@/composables/CommonFunc'
 import ApiFunc from '@/composables/ApiFunc'
 import Calendar from '@/components/icons/IconCalendar.vue'
 import { ref, reactive, onMounted } from 'vue'

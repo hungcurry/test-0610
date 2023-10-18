@@ -14,8 +14,9 @@ import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { storeToRefs } from 'pinia'
 import { useGoogleStore } from '@/stores/googleMap'
 import { useI18n } from 'vue-i18n'
+import { useMStore } from '@/stores/m_cloud'
+const MStore = useMStore()
 const { t } = useI18n()
-
 const MsiApi = ApiFunc()
 const route = useRoute()
 const router = useRouter()
@@ -271,6 +272,7 @@ onMounted(async () => {
         {{ display_mode }}</el-button
       >
       <el-button
+        v-if="MStore.rule_permission.Station.addStation === 'O' || MStore.permission.isCompany"  
         class="btn-secondary box-shadow"
         :class="addStationStated"
         @click="add_station"

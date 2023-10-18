@@ -30,6 +30,7 @@ import PermissionView from '@/views/PermissionView.vue'
 import RfidUserView from '@/views/RfidUserView.vue'
 import RfidUserDetailView from '@/views/RfidUserDetailView.vue'
 import { ElMessage } from 'element-plus'
+import { m_cloud_permission } from '@/composables/permission'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -205,7 +206,18 @@ router.beforeEach(async to => {
         else {
           MStore.permission.isMSI = false
         }
+        let queryData  = { "database": "CPO", "collection": "CompanyInformation", "pipelines": [ 
+          { $match:  { "name": { "$eq": MStore.permission.company.name } } }, { "$project": { "_id": 0} }
+        ]}
+          let res1 = await MsiApi.mongoAggregate(queryData)
         if (res.data.email) {
+          const user_permission = MStore?.permission?.user?.name
+          if (res1?.data?.result?.[0]?.config?.m_cloud?.permissions?.[user_permission]){
+            MStore.rule_permission = res1.data.result[0].config.m_cloud.permissions[user_permission]
+          }
+          else {
+            MStore.rule_permission = m_cloud_permission[MStore?.permission?.user?.name]
+          }
           MStore.permission.isCompany = false
           MStore.user_data.email = res.data.email
           MStore.user_data.first_name = res.data.first_name
@@ -213,6 +225,9 @@ router.beforeEach(async to => {
         }
         else {
           MStore.permission.isCompany = true
+          MStore.user_data.email = ''
+          MStore.user_data.first_name = ''
+          MStore.user_data.last_name = ''
         }
       } 
       else { 

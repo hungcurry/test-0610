@@ -6,6 +6,8 @@ import { ElMessageBox, ElMessage } from 'element-plus'
 import { v4 as uuidv4 } from 'uuid'
 import CommpnFunc from '@/composables/CommonFunc'
 import { useI18n } from "vue-i18n"
+import { useMStore } from '../stores/m_cloud'
+const MStore = useMStore()
 const { t } = useI18n()
 const MsiFunc = CommpnFunc()
 const MsiApi = ApiFunc()
@@ -427,9 +429,9 @@ onMounted(async () => {
       </div>
 
       <div class="flex flex-justify-center pb-40px">
-        <el-button class="btn-secondary bg-btn-100 md:mr-44px" v-if="station_id" @click="deleteStation"> {{t('delete') }} </el-button>
+        <el-button class="btn-secondary bg-btn-100 md:mr-44px" v-if="station_id && (MStore.rule_permission.StationEdit.delete === 'O' || MStore.permission.isCompany)" @click="deleteStation"> {{t('delete') }} </el-button>
         <el-button class="btn-secondary bg-btn-100 md:mr-44px" @click="backStation"> {{ t('cancel') }}  </el-button>
-        <el-button class="btn-secondary" @click="saveStation(ruleFormRef)"> {{ t('save') }}  </el-button>
+        <el-button class="btn-secondary" v-if="MStore.rule_permission.StationEdit.edit === 'O' || MStore.permission.isCompany"   @click="saveStation(ruleFormRef)"> {{ t('save') }}  </el-button>
       </div>
     </div>
   </div>

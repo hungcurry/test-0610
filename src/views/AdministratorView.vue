@@ -342,7 +342,9 @@ onMounted(async () => {
   <div class="customer">
     <div class="container lg">
       <div class="flex flex-justify-end flex-wrap lg:flex-nowrap pt-40px pb-32px">
-        <el-button class="btn-secondary box-shadow" @click="addAdminUser"> {{ t('add_admin') }} </el-button>
+        <el-button 
+          v-if="MStore.rule_permission.Administrator.addAdmin === 'O' || MStore.permission.isCompany"
+          class="btn-secondary box-shadow" @click="addAdminUser"> {{ t('add_admin') }} </el-button>
       </div>
 
       <div class="overflow-x-auto">
@@ -419,7 +421,9 @@ onMounted(async () => {
               min-width="150"
             >
               <template #default="scope">
-                <el-button class="btn-more" @click="detail_info(scope)"> <font-awesome-icon icon="fa-solid fa-ellipsis" /> </el-button>
+                <el-button 
+                  v-if="MStore.rule_permission.Administrator.detailAdmin === 'O' || MStore.permission.isCompany"
+                  class="btn-more" @click="detail_info(scope)"> <font-awesome-icon icon="fa-solid fa-ellipsis" /> </el-button>
               </template>
             </el-table-column>
           </el-table>

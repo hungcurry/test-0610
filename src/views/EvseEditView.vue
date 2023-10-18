@@ -14,6 +14,9 @@ import timeGridPlugin from '@fullcalendar/timegrid'
 import interactionPlugin from '@fullcalendar/interaction'
 import tippy from 'tippy.js'
 import "tippy.js/dist/tippy.css"
+
+import { useMStore } from "../stores/m_cloud"
+const MStore = useMStore()
 const { t } = useI18n()
 const MsiFunc = CommpnFunc()
 const route = useRoute()
@@ -822,7 +825,9 @@ onMounted(async () => {
         <el-button class="btn-secondary bg-btn-100 md:mr-44px" @click="CancelEvseEdit">
           {{ t('cancel') }}
         </el-button>
-        <el-button class="btn-secondary" @click="SaveEvseEdit(ruleFormRef)"> 
+        <el-button 
+          v-if="MStore.rule_permission.EVSEEdit.save === 'O' || MStore.permission.isCompany"  
+          class="btn-secondary" @click="SaveEvseEdit(ruleFormRef)"> 
           {{ t('save') }}
         </el-button>
       </div>

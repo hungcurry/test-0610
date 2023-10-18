@@ -162,8 +162,27 @@ export default
     edit_rfid:                                              'Edit RFID',
     number:                                                 'Number',
     gerernal_info:                                          'Gerernal Info',
+    developer_user:                                         'Developer User',
+    fae_user:                                               'FAE User',
+    viewer_user:                                            'Viewer User',
+    customer_service_user:                                  'Customer Service User',
+    engineer_user:                                          'Engineer User',
+    evse_management:                                        'EVSE Management',
+    account_management:                                     'Account Management',
+    log_monitor:                                            'Log Monitor',
+    top_up:                                                 'Top up',
+    add_evse:                                               'Add EVSE',
+    add_user:                                               'Add User',
+    clear:                                                  'Clear',
+    card_details:                                           'Card Details',
+    transaction:                                            'Transaction',
+    add_company:                                            'Add Company',
+    add_admin:                                              'Add Admin',
+    add_sw_release:                                         'Add SW Release',
+    add_fw_release:                                         'Add FW Release',
+    release:                                                'Release',
 //--------------------------------------------------------------
-// header                       
+// header
 //--------------------------------------------------------------
     log_out:                                                'Log Out',
     m_cloud_info:                                           'm-Cloud Info',
@@ -178,24 +197,25 @@ export default
 // Sidebar                      
 //--------------------------------------------------------------
     dashboard:                                              'Dashboard',
-    evse_management:                                        'EVSE Management',
     by_station:                                             'By Station',
     by_evse:                                                'By EVSE',
-    account_management:                                     'Account Management',
     company_cpo:                                            'Company / CPO',
     m_cloud_administrator:                                  'm-Cloud Administrator',
-    log_monitor:                                            'Log Monitor',
     evse_log:                                               'EVSE Log',
     error_log:                                              'Error Log',
     softwart_info:                                          'Software Info',
     charging_profile:                                       'Charging Profile',
     app_member:                                             'App Member',
+    advanced_setting:                                       'Advanced Setting',
     // rfid_user:                                           'RFID User',
     // rate_plan:                                           'Rate Plan',
     // program:                                             'Program',
     // payment:                                             'Payment',
     // parking:                                             'Parking',
     // program:                                             'Program',
+    // evse_management:                                     'EVSE Management',
+    // account_management:                                  'Account Management',
+    // log_monitor:                                         'Log Monitor',
 //--------------------------------------------------------------
 // Login Page                       
 //--------------------------------------------------------------
@@ -244,7 +264,7 @@ export default
     times:                                                  'Times',
     ev_life:                                                'EV Life',
     qr_pay:                                                 'QR-Pay',
-    // rfid_user:                                              'RFID User',
+    // rfid_user:                                           'RFID User',
     // hr:                                                  'hr',
     // min:                                                 'min',
     // hotel:                                               'Hotel',
@@ -410,8 +430,9 @@ export default
 //--------------------------------------------------------------
 // EVSE Page                    
 //--------------------------------------------------------------
-    add_evse:                                               'Add EVSE',
     paired:                                                 'Paired',
+    // active_minute:                                       'Active Minute',
+    // deactivate_minute:                                   'Deactivate Minute',
     // available:                                           'Available',
     // charging:                                            'Charging',
     // offline:                                             'Offline',
@@ -434,8 +455,9 @@ export default
     // latest_sw:                                           'Latest SW',
     // updated_time:                                        'Updated Time',
     // unpaired:                                            'Unpaired',
-    // current_version:                                     'Current Version :          ',
+    // current_version:                                     'Current Version :',
     // confirm:                                             'Confirm',
+    // add_evse:                                            'Add EVSE',
 //--------------------------------------------------------------
 // EVSE Detail Page                 
 //--------------------------------------------------------------
@@ -489,10 +511,10 @@ export default
     // schedule:                                            'Schedule',
 //--------------------------------------------------------------
 // EVSE Edit Page           
-//--------------------------------------------------------------    
+//--------------------------------------------------------------
     length_should_be_1_to_4:                                'Length should be 1 to 4',
-    // active_minute:                                        'Active (Minute)',
-    // deactivate_minute:                                    'Deactivate (Minute)',
+    // active_minute:                                       'Active (Minute)',
+    // deactivate_minute:                                   'Deactivate (Minute)',
     // edit_evse:                                           'Edit EVSE',
     // add_evse:                                            'Add EVSE',
     // name:                                                'Name',
@@ -613,10 +635,10 @@ export default
     // start_time:                                          'Start Time',
     // end_time:                                            'End Time',
     // day_of_week:                                         'Day Of Week',
-    //--------------------------------------------------------------
+//--------------------------------------------------------------
 // User Page            
 //--------------------------------------------------------------
-    add_user:                                               'Add User',
+    // add_user:                                            'Add User',
     // used_times:                                          'Used Times',
     // email_already_exists:                                'E-mail already exists',
     // search:                                              'Search',
@@ -636,27 +658,20 @@ export default
 //--------------------------------------------------------------
     binding_card:                                           'Binding Card',
     device:                                                 'Device',
-    card_details:                                           'Card Details',
     expire_date_YY_MM:                                      'Expire Date(YY/MM)',
     device_details:                                         'Device Details',
     platform:                                               'Platform',
     os_version:                                             'OS Version',
     app_version:                                            'App Version',
-    clear:                                                  'Clear',
     add:                                                    'Add',
     cash:                                                   'Cash',
     anonymous_user:                                         'Anonymous User',
-    customer_service_user:                                  'Customer Service User',
-    developer_user:                                         'Developer User',
-    engineer_user:                                          'Engineer User',
-    viewer_user:                                            'Viewer User',
-    fae_user:                                               'FAE User',
     member_user:                                            'Member User',
     Chinese:                                                'Chinese',
     card_number_already_exists:                             'Card number already exists',
     card_number_is_duplicated_with_user:                    'Card number is duplicated with user "{user_name}"',
     // admin_user:                                          'Admin User',
-    // general:                                              'General',
+    // general:                                             'General',
     // card_no:                                             'Card No.',
     // language:                                            'Language',
     // total_used_power:                                    'Total Used Power',
@@ -721,11 +736,17 @@ export default
     // number:                                              'Number',
     // enable:                                              'Enable',
     // disable:                                             'Disable',
+    // developer_user:                                      'Developer User',
+    // fae_user:                                            'FAE User',
+    // viewer_user:                                         'Viewer User',
+    // customer_service_user:                               'Customer Service User',
+    // engineer_user:                                       'Engineer User',
+    // clear:                                               'Clear',
+    // card_details:                                        'Card Details',
 //--------------------------------------------------------------
 // Company Page         
 //--------------------------------------------------------------
     subscribe:                                              'Subscribe',
-    add_company:                                            'Add Company',
     add_company_info:                                       'Add Company Info',
     edit_company_info:                                      'Edit Company Info',
     invoice_hash_iv:                                        'Invoice Hash IV',
@@ -755,10 +776,10 @@ export default
     // tax_id:                                              'Tax ID',
     // the_item_is_required:                                'The item is required',
     // active:                                              'Active',
+    // add_company:                                         'Add Company',
 //--------------------------------------------------------------
 // Admin Page           
 //--------------------------------------------------------------    
-    add_admin:                                              'Add Admin',
     edit_admin:                                             'Edit Admin',
     email_not_found:                                        'Email not found',
     // engineer_user:                                       'Engineer User',
@@ -782,6 +803,7 @@ export default
     // the_item_is_required:                                'The item is required',
     // email_already_exists:                                'E-mail already exists',
     // select:                                              'Select',
+    // add_admin:                                           'Add Admin',
 //--------------------------------------------------------------
 // EVSE Log Page            
 //--------------------------------------------------------------
@@ -839,10 +861,7 @@ export default
     edit_sw_release_note:                                   'Edit SW Release Note',
     edit_fw_release_note:                                   'Edit FW Release Note',
     ota_sw_version:                                         'OTA SW Version',
-    add_sw_release:                                         'Add SW Release',
-    release:                                                'Release',
     ota_fw_version:                                         'OTA FW Version',
-    add_fw_release:                                         'Add FW Release',
     file_path:                                              'File Path',
     update_time:                                            'Update Time',
     download_file:                                          'Download File',
@@ -851,6 +870,9 @@ export default
     // cancel:                                              'Cancel',
     // confirm:                                             'Confirm',
     // the_item_is_required:                                'The item is required',
+    // add_sw_release:                                      'Add SW Release',
+    // add_fw_release:                                      'Add FW Release',
+    // release:                                             'Release',
 //--------------------------------------------------------------
 // Program Page
 //--------------------------------------------------------------
@@ -969,10 +991,8 @@ export default
 //--------------------------------------------------------------
 // Rfid User Detail Page
 //--------------------------------------------------------------
-    transaction:                                            'Transaction',
     total_rfid:                                             'Total RFID',
     balance:                                                'Balance',
-    top_up:                                                 'Top up',
     refund:                                                 'Refund',
     check:                                                  'Check',
     are_you_sure_to_top_up:                                 'Are you sure to top up',
@@ -1031,5 +1051,80 @@ export default
     // edit_rfid:                                           'Edit RFID',
     // number:                                              'Number',
     // amount:                                              'Amount',
+    // top_up:                                              'Top up',
+    // transaction:                                         'Transaction',
+//--------------------------------------------------------------
+// Premission Page
+//--------------------------------------------------------------
+    company:                                                'Company',
+    user_type:                                              'UserType',
+    base_management:                                        'BASE Management',
+    Dashboard:                                              'Dashboard',
+    Payment:                                                'Payment',
+    Station:                                                'Station',
+    StationDetail:                                          'Station Detail',
+    StationEdit:                                            'Station Edit',
+    EVSE:                                                   'EVSE',
+    EVSEDetail:                                             'EVSE Detail',
+    EVSEEdit:                                               'EVSE Edit',
+    RatePlan:                                               'Rate Plan',
+    RatePlanDetail:                                         'Rate Plan Detail',
+    User:                                                   'User',
+    UserDetail:                                             'UserDetail',
+    RfidUser:                                               'RFIDUser',
+    RfidUserDetail:                                         'RFIDUserDetail',
+    Company:                                                'Company',
+    Administrator:                                          'Administrator',
+    Permission:                                             'Permission',
+    EVSELog:                                                'EVSELog',
+    ErrorLog:                                               'ErrorLog',
+    SoftwareInfo:                                           'SoftwareInfo',
+    Parking:                                                'Parking',
+    AdminInfo:                                              'AdminInfo',
+    Program:                                                'Program',
+    ChargingProfile:                                        'ChargingProfile',
+    check_all:                                              'Check All',
+    page:                                                   'Page',
+    reset:                                                  'Reset',
+    update:                                                 'Update',
+    copy:                                                   'Copy',
+    user_detail:                                            'User Detail',
+    user_edit:                                              'User Edit',
+    device_detail:                                          'Device Detail',
+    delete_rfid:                                            'Delete RFID',
+    detail:                                                 'Detail',
+    add_profile:                                            'Add Profile',
+    please_select_user_type:                                'Please select User Type',
+    there_are_still_fields_not_filled_in:                   'There are still fields not filled in',
+    successfully_modified_permissions:                      'Successfully modified permissions',
+    // admin_user:                                          'Admin User',
+    // developer_user:                                      'Developer User',
+    // fae_user:                                            'FAE User',
+    // viewer_user:                                         'Viewer User',
+    // customer_service_user:                               'Customer Service User',
+    // engineer_user:                                       'Engineer User',
+    // permission:                                          'Permission',
+    // evse_management:                                     'EVSE Management',
+    // account_management:                                  'Account Management',
+    // log_monitor:                                         'Log Monitor',
+    // top_up:                                              'Top up',
+    // add_evse:                                            'Add EVSE',
+    // add_user:                                            'Add User',
+    // clear:                                               'Clear',
+    // card_details:                                        'Card Details',
+    // transaction:                                         'Transaction',
+    // add_company:                                         'Add Company',
+    // add_admin:                                           'Add Admin',
+    // add_sw_release:                                      'Add SW Release',
+    // add_fw_release:                                      'Add FW Release',
+    // release:                                             'Release',
+    // add_station:                                         'Add Station',
+    // save:                                                'Save',
+    // delete:                                              'Delete',
+    // edit:                                                'Edit',
+    // add_rate_plan:                                       'Add Rate Plan',
+    // add_rfid:                                            'Add RFID',
+    // edit_rfid:                                           'Edit RFID',
+    // add_program:                                         'Add Program',
 //--------------------------------------------------------------
 }

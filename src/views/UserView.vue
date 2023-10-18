@@ -311,7 +311,9 @@ onMounted( async() => {
             <el-button :icon="Search" @click="search" />
           </template>
         </el-input>
-        <el-button class="btn-secondary box-shadow" @click="addUser"> {{ t('add_user') }} </el-button>
+        <el-button 
+        v-if="MStore.rule_permission.User.addUser === 'O' || MStore.permission.isCompany"
+        class="btn-secondary box-shadow" @click="addUser"> {{ t('add_user') }} </el-button>
       </div>
       <div class="overflow-x-auto">
         <div class="customer-list pb-40px">
