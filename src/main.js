@@ -12,7 +12,6 @@ import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 import {
   faUser as solidUser,
-  faBell,
   faGear,
   faArrowRight,
   faLocationDot,
@@ -21,6 +20,7 @@ import {
   faCoins,
   faChartLine,
   faDeleteLeft,
+  faAnglesRight,
 } from '@fortawesome/free-solid-svg-icons'
 import {
   faPenToSquare,
@@ -28,7 +28,8 @@ import {
   faUser,
   faCalendarCheck,
   faCreditCard,
-  faFile
+  faFileLines,
+  faIdCard,
 } from '@fortawesome/free-regular-svg-icons'
 
 const app = createApp(App)
@@ -47,7 +48,6 @@ for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
 
 library.add(
   faUser,
-  faBell,
   faGear,
   faPenToSquare,
   faArrowRight,
@@ -61,5 +61,7 @@ library.add(
   faCreditCard,
   faChartLine,
   faDeleteLeft,
-  faFile
+  faFileLines,
+  faAnglesRight,
+  faIdCard,
 )

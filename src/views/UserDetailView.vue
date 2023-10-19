@@ -101,6 +101,9 @@ const download = () => {
 }
 const select_date = async () => {
   try {
+    if (select_time.value === null) {
+      return
+    }
     let queryData = { "database": "CPO", "collection": "PaymentHistory", 
       "pipelines": [ 
         {

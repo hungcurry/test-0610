@@ -322,6 +322,10 @@ const GetPermission = async () => {
 }
 
 const addAdminUser = async () => {
+  if (UserData.length >= MStore.program.admin_user && MStore.permission.isMSI === false) {
+    ElMessage.error(t('please_confirm_your_subscription_plan'))
+    return
+  }
   AddAdminData.first_name = ''
   AddAdminData.last_name = ''
   AddAdminData.email = ''

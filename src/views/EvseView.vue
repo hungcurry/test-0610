@@ -114,6 +114,10 @@ const detail_info = async (detail) => {
   })
 }
 const add_charger = () => {
+  if (EvseData.length >= MStore.program.evse && MStore.permission.isMSI === false) {
+    ElMessage.error(t('please_confirm_your_subscription_plan'))
+    return
+  }
   router.push({ name: 'evseEdit' })
 }
 const edit = () => {

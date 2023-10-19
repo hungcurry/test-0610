@@ -177,10 +177,15 @@ export default
     card_details:                                           '信用卡詳細資料',
     transaction:                                            '交易',
     add_company:                                            '新增公司',
+    please_confirm_your_subscription_plan:                  '請確認訂閱方案',
+    evse:                                                   '充電樁',    
     add_admin:                                              '新增管理者',
     add_sw_release:                                         '新增軟體版本',
     add_fw_release:                                         '新增韌體版本',
     release:                                                '發布',
+    
+    edit_admin:                                             '編輯管理者',
+    user_agreement:                                         '使用者合約',
 //--------------------------------------------------------------
 // header                       
 //--------------------------------------------------------------
@@ -345,6 +350,7 @@ export default
     // charging:                                            '充電',
     // offline:                                             '離線',
     // error:                                               '錯誤',
+    // please_confirm_your_subscription_plan:               '請確認訂閱方案',
 //--------------------------------------------------------------
 // Station Detail Page                  
 //--------------------------------------------------------------
@@ -458,6 +464,7 @@ export default
     // current_version:                                     '目前版本',
     // confirm:                                             '確認',
     // add_evse:                                            '新增充電樁',
+    // please_confirm_your_subscription_plan:               '請確認訂閱方案',
 //--------------------------------------------------------------
 // EVSE Detail Page                 
 //--------------------------------------------------------------
@@ -574,9 +581,11 @@ export default
     // ok:                                                  'OK',
     // warning:                                             '警告!',
     // cancel :                                             '取消',
+    // please_confirm_your_subscription_plan:               '請確認訂閱方案',
 //--------------------------------------------------------------
 // Rate Plan Detail Page            
 //--------------------------------------------------------------
+    add_rate:                                               '新增費率',
     edit_rate:                                              '編輯費率',
     rate_profile_details:                                   '費率方案詳細資料',
     add_language:                                           '新增語系',
@@ -653,6 +662,7 @@ export default
     // the_item_is_required:                                '這個項目必填',
     // warning:                                             '警告!',
     // ok:                                                  'OK',
+    // please_confirm_your_subscription_plan:               '請確認訂閱方案',
 //--------------------------------------------------------------
 // User Detail Page         
 //--------------------------------------------------------------
@@ -780,8 +790,9 @@ export default
 //--------------------------------------------------------------
 // Admin Page           
 //--------------------------------------------------------------    
-    edit_admin:                                             '編輯管理者',
     email_not_found:                                        '找不到 Email',
+    // add_admin:                                           '新增管理者',
+    // edit_admin:                                          '編輯管理者',
     // engineer_user:                                       '工程師使用者',
     // admin_user:                                          '管理使用者',
     // first_name:                                          '名字',
@@ -804,6 +815,7 @@ export default
     // email_already_exists:                                '電子信箱已經存在',
     // select:                                              '選擇',
     // add_admin:                                           '新增管理者',
+    // please_confirm_your_subscription_plan:               '請確認訂閱方案',
 //--------------------------------------------------------------
 // EVSE Log Page            
 //--------------------------------------------------------------
@@ -883,8 +895,8 @@ export default
     do_you_want_to_create_program:                          '你想要建立訂閱方案嗎?',
     create_success:                                         '建立成功',
     edit_program:                                           '編輯訂閱方案',
-    evse:                                                   '充電樁',
     administrator:                                          '管理者',
+    // evse:                                                '充電樁',
     // warning:                                             '警告!',
     // ok:                                                  'OK',
     // cancel:                                              '取消',
@@ -914,50 +926,55 @@ export default
 //--------------------------------------------------------------
 // Admin Info Page
 //--------------------------------------------------------------
-    please_select_program:                                  '請選擇訂閱方案',
     please_binding_credit_card:                             '請綁定信用卡',
     msi_not_support_binding_card:                           'MSI沒有支援綁定卡',
-    add_card:                                               '新增卡片',
-    delete_card:                                            '刪除卡片',
-    expire_date_mm_yy:                                      '到期日期(月/年)',
-    evse_quantity:                                          '充電樁數量',
-    select_program:                                         '選擇訂閱方案',
-    check_program:                                          '確認訂閱方案',
     effective_immediately:                                  '馬上生效',
     effective_date_will_start_in_a_month:                   '生效日將於一個月後開始',
-    program_name:                                           '方案名稱',
-    title:                                                  '標題',
-    card_list:                                              '卡片列表',
-    eula:                                                   '使用者授權合約',
-    next_program:                                           '下期訂閱方案',
-    unable_to_select_a_plan_beyond_the_current_configuration: 
-                                                            '無法選擇超出目前配置的方案',
-    when_selecting_a_plan_with_a_lower_price_than_the_current_one_you_can_only_choose_effective_date_will_start_in_a_month: 
-                                                            '當選擇的方案價格低於目前使用方案時，只能選擇"生效日期將在一個月後開始"',
-    // admin_user:                                          '管理使用者',
-    // user:                                                '使用者',
-    // admin_info:                                          '管理者資訊',
+    change:                                                 '更換',
+    price_per_month:                                        '每月 {price}',
+    the_following_amount_are_available_for_use_until_date_currency_is_currency:
+                                                            '以下數量可用至 {date}。 幣別為 {currency}',
+    per_month:                                              '每月',
+    change_program:                                         '更換方案',
+    confirm_program:                                        '確認方案',
+    start_at:                                               '起始於',
+    currently_used:                                         '正在使用',
+    select_program:                                         '選擇訂閱方案',
+    admin:                                                  '管理者',
+    add_card:                                               '新增卡片',
+    delete_card:                                            '刪除卡片',
+    card:                                                   '卡片',
+    expiration_date:                                        '到期日期',
+    please_select_another_option_to_fit_your_current_needs: '請選擇另一個選項以滿足您目前的需求。',
+    at_least_one_admin_user_is_required:                    '至少需有一名管理使用者。',
+    subscribe_success:                                      '訂閱成功',
     // first_name:                                          '名字',
     // last_name:                                           '姓氏',
     // e_mail:                                              '電子信箱',
-    // credit_card:                                         '信用卡',
-    // add_program:                                         '新增編輯訂閱方案',
-    // card_no:                                             '信用卡號',
-    // binding_date:                                        '綁定日期',
-    // name:                                                '名稱',
     // station:                                             '充電站',
     // rate_plan:                                           '方案名稱',
     // currency:                                            '幣別',
-    // price:                                               '價格',
     // connector:                                           '充電槍',
-    // user:                                                '使用者',
     // cancel:                                              '取消',
-    // confirm:                                             '確認',
     // address:                                             '地址',
     // phone:                                               '電話',
     // tax_id:                                              '統一編號',
-    // program:                                             '訂閱方案',
     // the_item_is_required:                                '這個項目必填',
+    // program:                                             '訂閱方案',
+    // station:                                             '充電站',
+    // evse:                                                '充電樁',
+    // rate_plan:                                           '費率方案',
+    // admin_user:                                          '管理使用者',
+    // user:                                                '使用者',
+    // currency:                                            '幣別',
+    // confirm:                                             '確認',
+    // add_admin:                                           '新增管理者',
+    // edit_admin:                                          '編輯管理者',
+    // enable:                                              '開啟',
+    // disable:                                             '關閉',
+    // payment_method:                                      '付款方式',
+    // user_agreement:                                      '使用者合約',
+    // name:                                                '名稱',
 //--------------------------------------------------------------
 // Reset Password                       
 //--------------------------------------------------------------

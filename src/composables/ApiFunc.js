@@ -2,7 +2,7 @@ import VueCookies from 'vue-cookies'
 import axios from 'axios'
 
 let AuthToken = null
-let api1 = 'api10/api3'
+let api1 = 'api10/api'
 axios.defaults.timeout = 15000
 if (import.meta.env.VITE_API !== undefined) {
   api1 = import.meta.env.VITE_API
@@ -129,7 +129,7 @@ export default function () {
 
   const delete_account = async (params) => {
     AuthToken = VueCookies.get('AuthToken')
-    const response = await delJsonData(api1 + '/account?id=' + params.id, '', AuthToken)
+    const response = await delJsonData(api1 + '/account?role=' + params.role + '&id=' + params.id, '', AuthToken)
     return response
   }
 

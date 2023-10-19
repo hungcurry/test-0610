@@ -162,6 +162,8 @@ export default
     edit_rfid:                                              'Edit RFID',
     number:                                                 'Number',
     gerernal_info:                                          'Gerernal Info',
+    please_confirm_your_subscription_plan:                  'Please confirm your subscription plan.',
+    evse:                                                   'EVSE',
     developer_user:                                         'Developer User',
     fae_user:                                               'FAE User',
     viewer_user:                                            'Viewer User',
@@ -181,6 +183,8 @@ export default
     add_sw_release:                                         'Add SW Release',
     add_fw_release:                                         'Add FW Release',
     release:                                                'Release',
+    edit_admin:                                             'Edit Admin',
+    user_agreement:                                         'User Agreement',
 //--------------------------------------------------------------
 // header
 //--------------------------------------------------------------
@@ -227,7 +231,6 @@ export default
     agree:                                                  'Agree',
     i_fully_understand_the_contents_of_the_terms_and_conditions_and_agree_to_them:        
                                                             'I fully understand the contents of the Terms and Conditions and agree to them.',
-    user_agreement:                                         'User Agreement',
     forgot_password:                                        'Forgot Password',
     we_will_send_an_email_to_you:                           'We will send an email to you.',
     the_link_in_the_email_will_expire_in_30_minutes:        'The link in the email will expire in 30 minutes.',
@@ -239,6 +242,7 @@ export default
     error_please_check_the_email_you_entered:               'Error! Please check the email you entered',
     // version:                                             'Version',
     // cancel:                                              'Cancel',
+    // user_agreement:                                      'User Agreement',
 //--------------------------------------------------------------
 // Dashboard Page           
 //--------------------------------------------------------------
@@ -345,6 +349,7 @@ export default
     // charging:                                            'Charging',
     // offline:                                             'Offline',
     // error:                                               'Error',
+    // please_confirm_your_subscription_plan:               'Please confirm your subscription plan.',
 //--------------------------------------------------------------
 // Station Detail Page                  
 //--------------------------------------------------------------
@@ -458,6 +463,7 @@ export default
     // current_version:                                     'Current Version :',
     // confirm:                                             'Confirm',
     // add_evse:                                            'Add EVSE',
+    // please_confirm_your_subscription_plan:               'Please confirm your subscription plan.',
 //--------------------------------------------------------------
 // EVSE Detail Page                 
 //--------------------------------------------------------------
@@ -574,9 +580,11 @@ export default
     // ok:                                                  'OK',
     // warning:                                             'Warning !',
     // cancel :                                             'Cancel',
+    // please_confirm_your_subscription_plan:               'Please confirm your subscription plan.',
 //--------------------------------------------------------------
 // Rate Plan Detail Page            
 //--------------------------------------------------------------
+    add_rate:                                               'Add Rate',
     edit_rate:                                              'Edit Rate',
     rate_profile_details:                                   'Rate Profile Details',
     add_language:                                           'Add Language',
@@ -653,6 +661,7 @@ export default
     // the_item_is_required:                                'The item is required',
     // warning:                                             'Warning !',
     // ok:                                                  'OK',
+    // please_confirm_your_subscription_plan:               'Please confirm your subscription plan.',
 //--------------------------------------------------------------
 // User Detail Page         
 //--------------------------------------------------------------
@@ -780,8 +789,9 @@ export default
 //--------------------------------------------------------------
 // Admin Page           
 //--------------------------------------------------------------    
-    edit_admin:                                             'Edit Admin',
     email_not_found:                                        'Email not found',
+    // add_admin:                                           'Add Admin',
+    // edit_admin:                                          'Edit Admin',
     // engineer_user:                                       'Engineer User',
     // admin_user:                                          'Admin User',
     // first_name:                                          'First Name',
@@ -803,7 +813,7 @@ export default
     // the_item_is_required:                                'The item is required',
     // email_already_exists:                                'E-mail already exists',
     // select:                                              'Select',
-    // add_admin:                                           'Add Admin',
+    // please_confirm_your_subscription_plan:               'Please confirm your subscription plan.',
 //--------------------------------------------------------------
 // EVSE Log Page            
 //--------------------------------------------------------------
@@ -883,8 +893,8 @@ export default
     do_you_want_to_create_program:                          'Do you want to create program?',
     create_success:                                         'Create Success',
     edit_program:                                           'Edit Program',
-    evse:                                                   'EVSE',
     cpo_account:                                            'CPO Account',
+    // evse:                                                'EVSE',
     // warning:                                             'Warning !',
     // ok:                                                  'OK',
     // cancel:                                              'Cancel',
@@ -914,50 +924,53 @@ export default
 //--------------------------------------------------------------
 // Admin Info Page
 //--------------------------------------------------------------
-    please_select_program:                                  'Please select program.',
     please_binding_credit_card:                             'Please binding credit card.',
     msi_not_support_binding_card:                           'MSI Not Support Binding Card',
-    add_card:                                               'Add Card',
-    delete_card:                                            'Delete Card',
-    expire_date_mm_yy:                                      'Expire Date(MM/YY)',
-    evse_quantity:                                          'EVSE Quantity',
-    select_program:                                         'Select Program',
-    check_program:                                          'Check Program',
     effective_immediately:                                  'Effective immediately',
     effective_date_will_start_in_a_month:                   'Effective date will start in a month',
-    program_name:                                           'Program Name',
-    title:                                                  'Title',
-    card_list:                                              'Card List',
-    eula:                                                   'EULA',
-    next_program:                                           'Next Program',
-    unable_to_select_a_plan_beyond_the_current_configuration: 
-                                                            'Unable to select a plan beyond the current configuration',
-    when_selecting_a_plan_with_a_lower_price_than_the_current_one_you_can_only_choose_effective_date_will_start_in_a_month: 
-                                                            'When selecting a plan with a lower price than the current one, you can only choose "Effective date will start in a month"',
-    // admin_user:                                          'Admin User',
-    // user:                                                'User',
-    // admin_info:                                          'Admin Info',
+    change:                                                 'Change',
+    price_per_month:                                        '{price} per month',
+    the_following_amount_are_available_for_use_until_date_currency_is_currency:
+                                                            'The following amount are available for use until {date}. Currency is {currency}',
+    per_month:                                              'per month',
+    change_program:                                         'Change Program',
+    confirm_program:                                        'Confirm Program',
+    start_at:                                               'Start at',
+    currently_used:                                         'Currently used',
+    select_program:                                         'Select Program',
+    admin:                                                  'Admin',
+    add_card:                                               'Add Card',
+    delete_card:                                            'Delete Card',
+    card:                                                   'Card',
+    expiration_date:                                        'Expiration Date',
+    please_select_another_option_to_fit_your_current_needs: 'Please select another option to fit your current needs.',
+    at_least_one_admin_user_is_required:                    'At least one admin user is required.',
+    subscribe_success:                                      'Subscribe Success',
     // first_name:                                          'First Name',
     // last_name:                                           'Last Name',
     // e_mail:                                              'E-mail',
-    // credit_card:                                         'Credit Card',
-    // add_program:                                         'Add Program',
-    // card_no:                                             'Card No.',
-    // binding_date:                                        'Binding Date',
-    // name:                                                'Name',
-    // station:                                             'Station',
-    // rate_plan:                                           'Rate Plan',
     // currency:                                            'Currency',
-    // price:                                               'Price',
     // connector:                                           'Connector',
-    // user:                                                'User',
     // cancel:                                              'Cancel',
-    // confirm:                                             'Confirm',
     // address:                                             'Address',
     // phone:                                               'Phone',
     // tax_id:                                              'Tax ID',
-    // program:                                             'Program',
     // the_item_is_required:                                'The item is required',
+    // program:                                             'Program',
+    // station:                                             'Station',
+    // evse:                                                'EVSE',
+    // rate_plan:                                           'Rate Plan',
+    // admin_user:                                          'Admin User',
+    // user:                                                'User',
+    // currency:                                            'Currency',
+    // confirm:                                             'Confirm',
+    // add_admin:                                           'Add Admin',
+    // edit_admin:                                          'Edit Admin',
+    // enable:                                              'Enable',
+    // disable:                                             'Disable',
+    // payment_method:                                      'Payment method',
+    // user_agreement:                                      'User Agreement',
+    // name:                                                'Name',
 //--------------------------------------------------------------
 // Reset Password                       
 //--------------------------------------------------------------
@@ -988,6 +1001,7 @@ export default
     // used_times:                                          'Used Times',
     // updated_date:                                        'Updated Date',
     // add_user:                                            'Add User',
+    // please_confirm_your_subscription_plan:               'Please confirm your subscription plan.',
 //--------------------------------------------------------------
 // Rfid User Detail Page
 //--------------------------------------------------------------

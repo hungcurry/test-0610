@@ -185,6 +185,7 @@ router.beforeEach(async to => {
       i18n.global.locale.value = 'zh_tw'
     else 
       i18n.global.locale.value = 'en_us'
+    localStorage.setItem("lang", i18n.global.locale.value)
   }
   if (to.meta.title) document.title = to.meta.title
   else document.title = "m-Cloud"
@@ -224,10 +225,35 @@ router.beforeEach(async to => {
           MStore.user_data.last_name = res.data.last_name
         }
         else {
+          MStore.rule_permission = m_cloud_permission["AdminUser"]
           MStore.permission.isCompany = true
           MStore.user_data.email = ''
           MStore.user_data.first_name = ''
           MStore.user_data.last_name = ''
+        }
+        queryData = {
+          database: 'CPO',
+          collection: 'LimitPlan',
+          pipelines: [
+            { $match: { _id: { $eq: {ObjectId : res.data.permission.company.upgrade_manager.subscribe.due_plan} } } },
+            { $project: { aaa: 0 } },
+          ],
+        }
+        res = await MsiApi.mongoAggregate(queryData)
+        if (res.status === 200) {
+          MStore.program.name = res.data.result[0].name
+          MStore.program.price = res.data.result[0].price
+          MStore.program.location = res.data.result[0].location
+          MStore.program.evse = res.data.result[0].evse
+          MStore.program.tariff = res.data.result[0].tariff
+          MStore.program.user = res.data.result[0].user
+          MStore.program.admin_user = res.data.result[0].admin_user
+          MStore.program.connector = res.data.result[0].connector
+          MStore.program.currency = res.data.result[0].currency
+        }
+        else { 
+          ElMessage.error('Error')
+          return '/login'  
         }
       } 
       else { 

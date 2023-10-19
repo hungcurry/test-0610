@@ -74,7 +74,7 @@ const changeCompanyInfo = () => {
 const getPermissionRule = () => {
   
   const select_cpo = cpo_name.find(item => item._id === cpoValue.value)
-  let test 
+  let test = undefined
   if (select_cpo?.config?.m_cloud?.permissions?.[userValue.value])
   {
     test = select_cpo?.config?.m_cloud?.permissions?.[userValue.value]
@@ -107,9 +107,9 @@ const handlerSaveForm = async () => {
       const allItemDisable = {}
       const outputObj = {}
       for (const key in allItem) {
-        allItemDisable[key] = {};
+        allItemDisable[key] = {}
         allItem[key].forEach(value => {
-          allItemDisable[key][value] = 'X';
+          allItemDisable[key][value] = 'X'
         })
       }
       for(const key in checkedItem) {
@@ -129,7 +129,7 @@ const handlerSaveForm = async () => {
         }
       }
 
-      const result = cpo_name.find(item => item._id === cpoValue.value);
+      const result = cpo_name.find(item => item._id === cpoValue.value)
       if (result.config === undefined)
         result.config = {}
       if (result.config.m_cloud === undefined)

@@ -208,6 +208,10 @@ const MongoAggregate = async (queryData) => {
 }
 
 const addUser = async () => {
+  if (UserData.length >= MStore.program.user && MStore.permission.isMSI === false) {
+    ElMessage.error(t('please_confirm_your_subscription_plan'))
+    return
+  }
     dialogFormVisible.value = true
     newUser.first_name = newUser.last_name = newUser.email = ''
 }

@@ -14,9 +14,10 @@ import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { storeToRefs } from 'pinia'
 import { useGoogleStore } from '@/stores/googleMap'
 import { useI18n } from 'vue-i18n'
-import { useMStore } from '@/stores/m_cloud'
-const MStore = useMStore()
+import { useMStore } from "@/stores/m_cloud"
+import { ElMessage } from 'element-plus'
 const { t } = useI18n()
+const MStore = useMStore()
 const MsiApi = ApiFunc()
 const route = useRoute()
 const router = useRouter()
@@ -83,6 +84,10 @@ const publish_filter = (value, rowData) => {
   return rowData.publish === value
 }
 const add_station = () => {
+  if (LocationData.length >= MStore.program.location && MStore.permission.isMSI === false) {
+    ElMessage.error(t('please_confirm_your_subscription_plan'))
+    return
+  }
   router.push({ name: 'stationEdit', query: {} })
 }
 const changeMode = async () => {

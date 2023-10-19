@@ -690,8 +690,8 @@ onMounted( async () => {
             <div class="text-right">
               <p class="location-name text-right mb-20px">{{ locationData.name }}</p>
               <p class="location-addr text-right mb-20px">{{ locationData.country + ' ' + locationData.city + locationData.address + '/' + locationData.city1 + locationData.address1}}</p>
-              <div class="flex justify-end">
-                  <el-button v-if="MStore.rule_permission.EVSEDetail.dataTransfer === 'O' || MStore.permission.isCompany"
+              <div class="flex justify-end" >
+                  <!-- <el-button v-if="MStore.rule_permission.EVSEDetail.dataTransfer === 'O' || MStore.permission.isCompany"
                   type="primary" class="btn-secondary box-shadow delete" @click="dataTransfer"> {{t('data_transfer')}} </el-button>
                   <el-button v-if="MStore.rule_permission.EVSEDetail.getChargingProfile === 'O' || MStore.permission.isCompany"
                   type="primary" class="btn-secondary box-shadow delete" @click="setChargingProfile"> {{t('set_charging_profile')}} </el-button>
@@ -706,7 +706,7 @@ onMounted( async () => {
                   <el-button v-if="MStore.rule_permission.EVSEDetail.changeConfiguration === 'O' || MStore.permission.isCompany"
                   type="primary" class="btn-secondary box-shadow delete" @click="getConfiguration"> {{t('get_configuration')}} </el-button>
                   <el-button v-if="MStore.rule_permission.EVSEDetail.changeAvailablility === 'O' || MStore.permission.isCompany"
-                  type="primary" class="btn-secondary box-shadow delete" @click="changeAvailability"> {{t('change_availability')}} </el-button>
+                  type="primary" class="btn-secondary box-shadow delete" @click="changeAvailability"> {{t('change_availability')}} </el-button> -->
                   <el-button v-if="MStore.rule_permission.EVSEDetail.delete === 'O' || MStore.permission.isCompany"
                   type="primary" class="btn-secondary box-shadow delete" @click="deleteEvse"> {{t('delete')}} </el-button>
                 <el-button type="primary" class="btn-secondary box-shadow edit" @click="edit"> {{t('edit')}} </el-button>

@@ -333,7 +333,7 @@ const handleEventCreate = (selectInfo) => {
   }
   add_tariff_visible.value = true
   element_action.value = 'add'
-  add_tariff_title.value = t('add_rate_plan')
+  add_tariff_title.value = t('add_rate')
   new_element.value.price_type = ''
   new_element.value.vat = 5
   new_element.value.price_price = 0
@@ -583,7 +583,7 @@ const new_element = ref({day_of_week:[]})
 const element_action = ref('')
 const route = useRoute()
 const activeName = ref('one')
-const add_tariff_title = ref(t('add_rate_plan'))
+const add_tariff_title = ref(t('add_rate'))
 const add_tariff_visible = ref(false)
 const modifyIndex = ref(0)
 const used_evse = reactive([])
@@ -724,7 +724,7 @@ const save_tariff = async (formEl) => {
 const ShowAddElementDialog = () => {
   add_tariff_visible.value = true
   element_action.value = 'add'
-  add_tariff_title.value = t('add_rate_plan')
+  add_tariff_title.value = t('add_rate')
   new_element.value.price_type = ''
   new_element.value.vat = 5
   new_element.value.price_price = 0
@@ -1061,7 +1061,7 @@ onMounted(async () => {
         <p class="text-36px"> {{ t('rate_profile_details') }}</p>
         <el-button 
           v-if="MStore.rule_permission.RatePlanDetail.addRatePlan === 'O' || MStore.permission.isCompany"  
-          class="btn-secondary box-shadow mt-4 md:mt-0 md:ml-30px box-shadow" @click="ShowAddElementDialog"> {{ t('add_rate_plan') }} </el-button>
+          class="btn-secondary box-shadow mt-4 md:mt-0 md:ml-30px box-shadow" @click="ShowAddElementDialog"> {{ t('add_rate') }} </el-button>
       </div>
 
       <div class="tabs flex-grow">

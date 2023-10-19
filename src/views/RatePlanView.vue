@@ -7,8 +7,8 @@ import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { ElMessageBox,ElMessage } from 'element-plus'
 import { useI18n } from 'vue-i18n'
 import { useMStore } from "../stores/m_cloud"
-const MStore = useMStore()
 const { t } = useI18n()
+const MStore = useMStore()
 const router = useRouter()
 const MsiApi = ApiFunc()
 const TariffData = reactive([])
@@ -75,10 +75,18 @@ const deleteTariff = async (row) => {
 }
 
 const editTariff = (row) => {
+  if (TariffData.length >= MStore.program.tariff && row._id === undefined && MStore.permission.isMSI === false) {
+    ElMessage.error(t('please_confirm_your_subscription_plan'))
+    return
+  }
   router.push({ name: 'ratePlanDetail', query:{id:row._id} })
 }
 
 const copyTariff = (scope) => {
+  if (TariffData.length >= MStore.program.tariff && MStore.permission.isMSI === false) {
+    ElMessage.error(t('please_confirm_your_subscription_plan'))
+    return
+  }
   ElMessageBox.confirm(t('do_you_want_to_duplicate'), t('warning'), {confirmButtonText: t('ok'), cancelButtonText: t('cancel'), type: 'warning'})
   .then(async () => {
     delete scope._id

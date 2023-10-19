@@ -83,6 +83,10 @@ const search = async() => {
   total_amount.value = total_amount.value.toLocaleString()
 }
 const addRfidUser = () => {
+  if (RfidUserData.length >= MStore.program.user && MStore.permission.isMSI === false) {
+    ElMessage.error(t('please_confirm_your_subscription_plan'))
+    return
+  }
   dialogFormVisible.value = true
   newUser.id = ''
   newUser.name = ''

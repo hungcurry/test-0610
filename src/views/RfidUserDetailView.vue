@@ -78,6 +78,7 @@ const filters = [
   { text: t('refund'), value: 'Refund'},
   { text: t('charging'), value: 'Charging' },
   { text: t('parking'), value: 'Parking' },
+  { text: t('charging') + '+' + t('parking'), value: 'Charging+Parking' },
 ]
 
 const tableSort = async(column) => {
@@ -210,7 +211,7 @@ const editUserDialog = (action) => {
       else {
         ElMessageBox.confirm(t('do_you_want_to_delete'), t('warning'), { confirmButtonText: t('ok'), cancelButtonText: t('cancel'), type: 'warning' })
           .then(async () => {
-            const params = { id: general._id }
+            const params = { role:'rfid', id: general._id }
             let res = await MsiApi.delete_account(params)
             if (res.data.status === 'Accepted') {
               router.push({ name: 'rfidUser' })
@@ -309,6 +310,7 @@ const updateRfidCash = (type) => {
           isDeleteBtn.value = false
           rfids.forEach((item) => {
             if (rfidData.rfid.toUpperCase() === item.rfid) {
+              rfidData.cash = item.cash
               rfidData.cash_str = item.cash_str
             }
             if (item.cash !== 0) {
@@ -511,8 +513,8 @@ const getTransactionData = async(filters) => {
     let params = {user: 'rfid', id: user_id, start_date: startTime, end_date: endTime}
     let response = await MsiApi.get_transaction(params)
     paymentData.length = 0
-    response.data.data.logs.forEach((item) => {
-      if (filters === null || filters?.tag.length === 0 || filters?.tag.some(i => item?.type.includes(i))) {
+    response.data?.data?.logs?.forEach((item) => {
+      if (filters === null || filters?.tag.length === 0 || filters?.tag.includes(item?.type)) {   // filters?.tag.some(i => item?.type.includes(i))
         let localTime = new Date(new Date(item.created_date).getTime() + MStore.timeZoneOffset * -60000)
         item.created_date_str = moment(localTime).format('YYYY-MM-DD HH:mm:ss')
         item.balance_int = parseFloat(String(item.balance).replace(/,/g, ''))

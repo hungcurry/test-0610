@@ -92,7 +92,7 @@ const downloadRFID = () => {
     'Name',
     'RFID Num',
     'Amount',
-    'Create Time',
+    'Created Time',
   ]
   const filterVal = [
     'type_str',
