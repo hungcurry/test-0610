@@ -23,9 +23,25 @@ const EditCustomerFormVisible = ref(false)
 const EditRfidFormVisible = ref(false)
 const BindingCardDialogVisible = ref(false)
 const DeviceDialogVisible = ref(false)
+const notificationDialogVisible = ref(false)
 const userData = reactive([])
 const userDataMod = reactive([])
 const userData_ref = ref()
+const SendNotification = async (action) => {
+  if (action === 'cancel') {
+    NotificationData.title = NotificationData.body = NotificationData.route = ''
+    notificationDialogVisible.value = false
+  }
+  else if (action === 'confirm') {
+    let sendData = { users:[userData.email], title:NotificationData.title, body:NotificationData.body, data: {route:NotificationData.route}}
+    console.log(sendData)
+    let response = await MsiApi.sendNotification (sendData)
+    console.log(response)
+    NotificationData.title = NotificationData.body = NotificationData.route = ''
+    notificationDialogVisible.value = false
+  }
+
+}
 const userData_rules = reactive({
   first_name: [
     { required: true, message: t('the_item_is_required'), trigger: 'blur' },
@@ -41,6 +57,7 @@ const paymentData = reactive([])
 const activeName = ref('first')
 const user_type = reactive([])
 const rfidData = reactive({ rfid: '', cash: 0, enable: true, nickname: '' })
+const NotificationData = reactive({ title: '', data: '', route: ''})
 const rfid_title = ref(t('add_rfid'))
 const rfidData_ref = ref()
 const rfidData_rules = reactive({
@@ -276,6 +293,10 @@ const binding_card_detail = () => {
 }
 const device_detail = () => {
   DeviceDialogVisible.value = true
+}
+
+const notification = () => {
+  notificationDialogVisible.value = true
 }
 
 const card_detail = (data, index) => {
@@ -807,6 +828,12 @@ onMounted(async () => {
                         v-if="MStore.rule_permission.UserDetail.deviceDetail === 'O' || MStore.permission.isCompany"
                         round class="button w-full" @click="device_detail">{{ t('device_details') }}</el-button>
                       </div>
+                      <div class="md:flex mb-8px">
+                        <span class="info-item min-w-110px">{{ t('') }}</span>
+                        <el-button 
+                        v-if="MStore.rule_permission.UserDetail.deviceDetail === 'O' || MStore.permission.isCompany"
+                        round class="button w-full" @click="notification">{{ t('send_notification') }}</el-button>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -1281,6 +1308,48 @@ onMounted(async () => {
             <el-table-column property="app_version" :label="t('app_version')" width="140" />
           </el-table>
         </div>
+      </el-dialog>
+
+
+      <el-dialog 
+        v-model="notificationDialogVisible" 
+        class="max-w-700px"
+        width="90%"
+        draggable
+      >
+        <template #header="{ titleId, titleClass }">
+          <div class="py-2rem relative bg-blue-100">
+            <h4
+              :id="titleId"
+              :class="titleClass"
+              class="m-0 text-center text-blue-1200 font-400 text-24px line-height-26px"
+            >
+              {{ t('notification') }}
+            </h4>
+          </div>
+        </template>
+        <div class="dialog-context pb-24px">
+          <el-form-item :label="t('title')">
+              <el-input v-model="NotificationData.title" style="width: 300px"  />
+          </el-form-item>
+          <el-form-item :label="t('body')">
+              <el-input v-model="NotificationData.body" style="width: 300px"  />
+          </el-form-item>
+
+          <el-form-item :label="t('route')">
+              <el-input v-model="NotificationData.route" style="width: 300px"  />
+          </el-form-item>
+        </div>
+        <template #footer>
+            <span class="dialog-footer flex flex-center">
+              <el-button round class="w-48% bg-btn-100 text-white max-w-140px" @click.stop="SendNotification('cancel')">
+                {{ t('cancel') }}
+              </el-button>
+              <el-button round class="w-48% bg-btn-200 text-white max-w-140px" @click.stop="SendNotification('confirm')">
+                {{ t('send') }}
+              </el-button>
+            </span>
+          </template>
       </el-dialog>
 
     </div>

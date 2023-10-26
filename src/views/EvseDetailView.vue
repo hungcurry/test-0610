@@ -1,6 +1,6 @@
 <script setup>
 import axios from 'axios'
-import { ref, reactive, onMounted} from 'vue'
+import { ref, reactive, onMounted, onUnmounted} from 'vue'
 import { useRoute, useRouter} from 'vue-router'
 import ApiFunc from '@/composables/ApiFunc'
 import {  ElMessageBox,ElMessage } from 'element-plus'
@@ -23,6 +23,7 @@ const MsiApi = ApiFunc()
 const evseData = reactive([])
 const connectorData = reactive([])
 const chargePointInfoData = reactive([])
+const chargingValue = reactive({wh:0, V:0, A:0,systemTemp:0, start_date_time:0})
 const hmiInfoData = reactive([])
 const locationData = reactive([])
 const tariffData = reactive([])
@@ -99,6 +100,7 @@ const edit = () => {
 }
 
 let interval = undefined
+let interval1 = undefined
 let retry = 3
 
 const check_uploaded  = async () => {
@@ -106,7 +108,6 @@ const check_uploaded  = async () => {
   let response = await MsiApi.mongoAggregate(queryData)
   console.log(response)
   if (response.data.result?.[0]?.ocpp_info?.[0]?.statusNotification?.diagnosticsStatus === "Uploaded") {
-    console.log(111)
     axios({method: 'get', url: 'google10/msi-hmi-logs/cs_logs.zip', responseType: 'blob'})
     .then(response => {
       clearInterval(interval)
@@ -120,6 +121,7 @@ const check_uploaded  = async () => {
       a.click();
       window.URL.revokeObjectURL(url)
       clearInterval(interval)
+      ElMessage.success('download sucess')
     })
     .catch(error => {
       ElMessage.error('Error downloading ZIP file:', error);
@@ -138,8 +140,6 @@ const check_uploaded  = async () => {
 
 const getDiagnostics = async () => {
 
-
-
   ElMessageBox.confirm(t('do_you_want_to_get_diagnostics'),'Warning', {confirmButtonText: 'OK', cancelButtonText: 'Cancel', type: 'warning'})
   .then(async () => {
     
@@ -150,7 +150,7 @@ const getDiagnostics = async () => {
     let response = await MsiApi.get_diagnostics(sendData)
     console.log(response)
     if (response.status === 200) {
-      interval = setInterval(check_uploaded, 10000) 
+      interval = setInterval(check_uploaded, 5000) 
     }
     else {
       ElMessage.error(response.data.message)
@@ -222,24 +222,50 @@ const changeConfiguration = async () => {
 }
 
 
-const downloadZIP = async () =>{
+const getRealTimeEvseInfo = async () => {
+  let queryData = { "database":"OCPI", "collection":"EVSE", "query": { "uid": {"UUID":evseId}}}
+  let response = await MsiApi.mongoQuery(queryData)
+  let localStartTime 
+  Object.assign(evseData, response.data.all[0]) 
+  let localEndTime =  new Date( (new Date(evseData.last_updated).getTime()) + ((MStore.timeZoneOffset ) * -60000))
+  evseData.last_updated_str = (moment(localEndTime).format("YYYY-MM-DD HH:mm:ss"))
+  switch (evseData.status) {
+    case 'AVAILABLE':
+      evseData.status_str = t('available')
+    break
+    case 'CHARGING':
+      evseData.status_str = t('charging')
+      queryData = { "database": 'CPO', "collection": 'ChargePointInfo', 
+      "pipelines": [{ $match: { "evse_id": evseData.evse_id } },  
+      { $project: { ocpp_info: 1, sessions:1} }]
+    }
+      response = await MsiApi.mongoAggregate(queryData)
+      chargingValue.wh = response.data.result[0].ocpp_info[0].meterValues.wh
+      chargingValue.A = response.data.result[0].ocpp_info[0].meterValues.A
+      chargingValue.V = response.data.result[0].ocpp_info[0].meterValues.V
+      chargingValue.systemTemp = response.data.result[0].ocpp_info[0].meterValues.systemTemp
 
-  axios({ method: 'get', url: 'google10/msi-hmi-logs/cs_logs.zip', responseType: 'blob'})
-  .then(response => {
-    const blob = new Blob([response.data], { type: 'application/zip' });
-    const url = window.URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = 'cs_logs.zip'
-    a.style.display = 'none'
-
-    document.body.appendChild(a)
-    a.click()
-    window.URL.revokeObjectURL(url)
-  })
-  .catch(error => {
-    console.error('Error downloading ZIP file:', error)
-  })
+      queryData = { "database": 'OCPI', "collection": 'Session', 
+      "pipelines": [
+      { $match:  { "_id": {"ObjectId": response.data.result[0].sessions[0] } }},  
+      { $project: { start_date_time: 1} }]
+    }
+      response = await MsiApi.mongoAggregate(queryData)      
+      localStartTime = new Date( (new Date(response.data.result[0].start_date_time).getTime()) + ((MStore.timeZoneOffset ) * -60000))
+      chargingValue.start_date_time = (moment(localStartTime).format("YYYY-MM-DD HH:mm:ss"))
+    break
+    case 'UNKNOWN':
+      evseData.status_str = t('offline')
+    break
+    case 'OUTOFORDER':
+      evseData.status_str = t('error')
+    break
+    case 'INOPERATIVE':
+      evseData.status_str = t('INOPERATIVE')
+    break
+    default:
+      evseData.status_str = t('others')
+  }
 }
 
 // FullCalendar ---------------------------------------------------------------
@@ -532,33 +558,15 @@ const parkingCalendarOptions = reactive({
 })
 
 onMounted( async () => {
-  let queryData = { "database":"OCPI", "collection":"EVSE", "query": { "uid": {"UUID":evseId}}}
-  let response = await MsiApi.mongoQuery(queryData)
-  Object.assign(evseData, response.data.all[0]) 
-
-  let localEndTime =  new Date( (new Date(evseData.last_updated).getTime()) + ((MStore.timeZoneOffset ) * -60000))
-  evseData.last_updated_str = (moment(localEndTime).format("YYYY-MM-DD HH:mm:ss"))
-  switch (evseData.status) {
-    case 'AVAILABLE':
-      evseData.status_str = t('available')
-    break
-    case 'CHARGING':
-      evseData.status_str = t('charging')
-    break
-    case 'UNKNOWN':
-      evseData.status_str = t('offline')
-    break
-    case 'OUTOFORDER':
-      evseData.status_str = t('error')
-    break
-    case 'INOPERATIVE':
-      evseData.status_str = t('INOPERATIVE')
-    break
-    default:
-      evseData.status_str = t('others')
-  }
+  interval1 = setInterval(getRealTimeEvseInfo, 10000) 
+  await getRealTimeEvseInfo()
+  let queryData
+  let response
+  let localEndTime
+  console.log(evseData)
   queryData = { "database":"OCPI", "collection":"Connector", "query": { "_id": { "ObjectId" : evseData?.connectors?.[0]?._id}}}
   response = await MsiApi.mongoQuery(queryData)
+  console.log(response)
   Object.assign(connectorData, response.data.all[0])
   if (connectorData.standard === 'IEC_62196_T1') 
     connectorData.type_str = 'Type 1 (J1772)'
@@ -569,7 +577,6 @@ onMounted( async () => {
   
   localEndTime =  new Date( (new Date(connectorData.last_updated).getTime()) + ((MStore.timeZoneOffset ) * -60000))
   connectorData.last_updated_str = (moment(localEndTime).format("YYYY-MM-DD HH:mm:ss"))
-
   queryData = { "database":"CPO", "collection":"ChargePointInfo", "query": { "evse": { "ObjectId" : evseData?._id}}}
   response = await MsiApi.mongoQuery(queryData)
   Object.assign(chargePointInfoData, response.data.all[0])
@@ -610,7 +617,6 @@ onMounted( async () => {
     locationData.city = city_parts[0]
     locationData.city1 = city_parts[1]
   }
-
   queryData = { "database":"OCPI", "collection":"Tariff", "query": { "id": { "UUID" : connectorData.tariff_ids[0]}}}
   response = await MsiApi.mongoQuery(queryData)
   Object.assign(tariffData, response.data.all[0])
@@ -669,6 +675,13 @@ onMounted( async () => {
   })
   fillFullCalendar()
 })
+
+
+onUnmounted(() => {
+  clearInterval(interval) 
+  clearInterval(interval1) 
+})
+
 </script>
 
 <template>
@@ -680,10 +693,14 @@ onMounted( async () => {
             <div class="h-full">
               <p class="evse-id pb-20px" > {{evseData.evse_id}}</p>
               <p class="status pb-20px available" v-if="evseData.status === 'AVAILABLE'"> {{ "●" + evseData.status_str }}</p>
-              <p class="status pb-20px charging" v-else-if="evseData.status === 'CHARGING'"> {{ "●" + evseData.status_str }}</p>
+              <p class="status pb-20px charging" v-else-if="evseData.status === 'CHARGING'"> {{ "●" + evseData.status_str }} </p>
               <p class="status pb-20px offline" v-else-if="evseData.status === 'UNKNOWN'"> {{ "●" + evseData.status_str }}</p>
               <p class="status pb-20px error" v-else-if="evseData.status === 'ERROR' || evseData.status === 'OUTOFORDER' || evseData.status === 'INOPERATIVE'"> {{ "●" + evseData.status_str }}</p>
-              
+              <div v-if="evseData.status === 'CHARGING'" >
+                <p class="status pb-12px ">{{ "Start Time :" + chargingValue.start_date_time }}</p>
+                <p class="status pb-12px ">{{ "Wh:" + chargingValue.wh  + " / V :" + chargingValue.V + " / A :" +chargingValue.A + " / Temperature :" +chargingValue.systemTemp}}</p>
+              </div>
+
             </div>
           </el-col>
           <el-col class="el-col" :xs="24" :md="10">
@@ -691,25 +708,30 @@ onMounted( async () => {
               <p class="location-name text-right mb-20px">{{ locationData.name }}</p>
               <p class="location-addr text-right mb-20px">{{ locationData.country + ' ' + locationData.city + locationData.address + '/' + locationData.city1 + locationData.address1}}</p>
               <div class="flex justify-end" >
-                  <!-- <el-button v-if="MStore.rule_permission.EVSEDetail.dataTransfer === 'O' || MStore.permission.isCompany"
-                  type="primary" class="btn-secondary box-shadow delete" @click="dataTransfer"> {{t('data_transfer')}} </el-button>
-                  <el-button v-if="MStore.rule_permission.EVSEDetail.getChargingProfile === 'O' || MStore.permission.isCompany"
-                  type="primary" class="btn-secondary box-shadow delete" @click="setChargingProfile"> {{t('set_charging_profile')}} </el-button>
-                  <el-button v-if="MStore.rule_permission.EVSEDetail.changeConfiguration === 'O' || MStore.permission.isCompany"
-                  type="primary" class="btn-secondary box-shadow delete" @click="changeConfiguration"> {{t('change_configuration')}} </el-button>
-                  <el-button v-if="MStore.rule_permission.EVSEDetail.compositeSchedule === 'O' || MStore.permission.isCompany"
-                  type="primary" class="btn-secondary box-shadow delete" @click="getCompositeSchedule"> {{t('get_composite_schedule')}} </el-button>
-                  <el-button v-if="MStore.rule_permission.EVSEDetail.clearChargingProfile === 'O' || MStore.permission.isCompany"
-                  type="primary" class="btn-secondary box-shadow delete" @click="clearChargingProfile"> {{t('clear_charging_profile')}} </el-button>
-                  <el-button v-if="MStore.rule_permission.EVSEDetail.getDiagnostics === 'O' || MStore.permission.isCompany"
-                  type="primary" class="btn-secondary box-shadow delete" @click="getDiagnostics"> {{t('get_diagnostics')}} </el-button>
-                  <el-button v-if="MStore.rule_permission.EVSEDetail.changeConfiguration === 'O' || MStore.permission.isCompany"
-                  type="primary" class="btn-secondary box-shadow delete" @click="getConfiguration"> {{t('get_configuration')}} </el-button>
-                  <el-button v-if="MStore.rule_permission.EVSEDetail.changeAvailablility === 'O' || MStore.permission.isCompany"
-                  type="primary" class="btn-secondary box-shadow delete" @click="changeAvailability"> {{t('change_availability')}} </el-button> -->
+                <el-button v-if="MStore.rule_permission.EVSEDetail.changeAvailablility === 'O' || MStore.permission.isCompany"
+                  type="primary" class="btn-secondary box-shadow delete" @click="changeAvailability"> {{t('change_availability')}} </el-button>
                   <el-button v-if="MStore.rule_permission.EVSEDetail.delete === 'O' || MStore.permission.isCompany"
                   type="primary" class="btn-secondary box-shadow delete" @click="deleteEvse"> {{t('delete')}} </el-button>
-                <el-button type="primary" class="btn-secondary box-shadow edit" @click="edit"> {{t('edit')}} </el-button>
+                  <el-button type="primary" class="btn-secondary box-shadow edit" @click="edit"> {{t('edit')}} </el-button>
+              </div>
+              <br>
+              <div class="flex justify-end">
+                <!-- <el-button v-if="MStore.rule_permission.EVSEDetail.dataTransfer === 'O' || MStore.permission.isCompany" disabled
+                  type="primary" class="btn-secondary box-shadow delete" @click="dataTransfer"> {{t('data_transfer')}} </el-button> -->
+                <!-- <el-button v-if="MStore.rule_permission.EVSEDetail.changeConfiguration === 'O' || MStore.permission.isCompany" disabled
+                  type="primary" class="btn-secondary box-shadow delete" @click="changeConfiguration"> {{t('change_configuration')}} </el-button> -->
+                <el-button v-if="MStore.rule_permission.EVSEDetail.getDiagnostics === 'O' || MStore.permission.isCompany"
+                  type="primary" class="btn-secondary box-shadow delete" @click="getDiagnostics"> {{t('get_diagnostics')}} </el-button>
+                <!-- <el-button v-if="MStore.rule_permission.EVSEDetail.getDiagnostics === 'O' || MStore.permission.isCompany" disabled
+                  type="primary" class="btn-secondary box-shadow delete" @click="getDiagnostics"> {{t('charging_profile')}} </el-button> -->
+
+
+                  <!-- <el-button v-if="MStore.rule_permission.EVSEDetail.compositeSchedule === 'O' || MStore.permission.isCompany"
+                  type="primary" class="btn-secondary box-shadow delete" @click="getCompositeSchedule"> {{t('get_composite_schedule')}} </el-button>
+                  <el-button v-if="MStore.rule_permission.EVSEDetail.clearChargingProfile === 'O' || MStore.permission.isCompany"
+                  type="primary" class="btn-secondary box-shadow delete" @click="clearChargingProfile"> {{t('clear_charging_profile')}} </el-button> -->
+                                    <!-- <el-button v-if="MStore.rule_permission.EVSEDetail.getChargingProfile === 'O' || MStore.permission.isCompany"
+                  type="primary" class="btn-secondary box-shadow delete" @click="setChargingProfile"> {{t('set_charging_profile')}} </el-button> -->
               </div>
             </div>
           </el-col>

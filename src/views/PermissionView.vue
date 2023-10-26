@@ -4,7 +4,7 @@ import { ref, reactive, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ElMessageBox } from 'element-plus'
 import { ElMessage } from 'element-plus'
-import { m_cloud_permission } from '@/composables/permission'
+import { m_cloud_permission,   } from '@/composables/permission'
 
 const { t } = useI18n()
 const MsiApi = ApiFunc()
@@ -36,7 +36,7 @@ const userType = ref([
 ])
 const changeItem = ref(false)
 const cpo_name = reactive([])
-const activeNames = ref([0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22])
+const activeNames = ref([])
 const ruleFormRef = ref()
 
 const cpoValue = ref('')
@@ -51,7 +51,6 @@ const isIndeterminate = ref({})
 
 const handleCheckeditems = (str, ary) => {
   changeItem.value = true
-  console.log(str, ary)
   const checkedCount = ary.length
   checkAll.value[str] = checkedCount === allItem[str].length
   const isHasChecked = checkedCount > 0
@@ -59,9 +58,30 @@ const handleCheckeditems = (str, ary) => {
   isIndeterminate.value[str] = isHasChecked && isNotAllChecked
 }
 
+const oldType = ref('')
+const expand = ref(true)
+
+const expand_close = () => {
+  if (expand.value) {
+    expand.value = false
+    activeNames.value = []
+  }
+
+  else {
+    expand.value = true
+    activeNames.value = []
+    if (m_cloud_permission?.[userValue.value]) {             
+      if ( Object.keys(m_cloud_permission[userValue.value]).length)
+      {   
+        for (let i = 0; i < Object.keys(m_cloud_permission[userValue.value]).length; i++)
+        activeNames.value.push(i)
+      }
+    }
+  }
+}
+
 const handleCheckAll = (str, val) => {
   changeItem.value = true
-  console.log(str, val)
   checkedItem[str] = val ? allItem[str] : []
   isIndeterminate.value[str] = false
 }
@@ -69,34 +89,117 @@ const handleCheckAll = (str, val) => {
 const changeCompanyInfo = () => {
   displayItem.value = false
   userValue.value = undefined
+  changeItem.value = false
 }
 
-const getPermissionRule = () => {
-  
-  const select_cpo = cpo_name.find(item => item._id === cpoValue.value)
-  let test = undefined
-  if (select_cpo?.config?.m_cloud?.permissions?.[userValue.value])
-  {
-    test = select_cpo?.config?.m_cloud?.permissions?.[userValue.value]
-    Object.assign(allPage.value, select_cpo?.config?.m_cloud?.permissions?.[userValue.value])  
+const getPermissionRule = async (selType) => {
+  if (changeItem.value) {
+    await ElMessageBox.confirm(t('do_you_want_to_discard_the_changes'), t('warning'))
+    .then(async () => {
+      changeItem.value = false
+      allPage.value.length = 0
+      activeNames.value = []
+      for (let i = 0; i < Object.keys(m_cloud_permission[userValue.value]).length; i++)
+        activeNames.value.push(i)
+
+      const select_cpo = cpo_name.find(item => item._id === cpoValue.value)
+      if (select_cpo === undefined) {
+        ElMessage({ message: t('pelase_select_company'), type: 'error',})
+        return
+      }
+      let current = {}
+
+      if (select_cpo?.config?.m_cloud?.permissions?.[userValue.value]) {
+        let all_item = {}
+        all_item =  JSON.parse(JSON.stringify(m_cloud_permission[userValue.value]))
+        current = {}
+        current =  JSON.parse(JSON.stringify(select_cpo?.config?.m_cloud?.permissions?.[userValue.value]))
+        for (let page in current) {
+          for (let item in current[page]) {
+            if (current[page][item] === 'O') {
+              all_item[page][item] = 'O'  
+            }
+          }
+        }
+        current = {}
+        current =  JSON.parse(JSON.stringify(all_item))
+        Object.assign(allPage.value, all_item)  
+      }
+      else {
+        current = {}
+        current = JSON.parse(JSON.stringify(m_cloud_permission[userValue.value]))
+        Object.assign(allPage.value, m_cloud_permission[userValue.value])  
+      }
+      for (let key in allPage.value) {
+        allItem[key] = Object.keys(allPage.value[key])
+        checkedItem[key] = Object.keys(allPage.value[key]).filter((subKey) => allPage.value[key][subKey] === 'O')
+        const checkedCount = checkedItem[key].length
+        const isHasChecked = checkedCount > 0
+        const isNotAllChecked = checkedCount < allItem[key].length
+        if (checkedCount) {
+          checkAll.value[key] = checkedCount === checkedItem[key].length 
+        }
+        isIndeterminate.value[key] = isHasChecked && isNotAllChecked
+      }
+      allPage.value = Object.keys(current)
+      displayItem.value = true
+      oldType.value = selType
+    })
+    .catch(() => {
+      userValue.value = oldType.value
+      return
+    })
   }
   else {
-    test = m_cloud_permission[userValue.value]
-    Object.assign(allPage.value, m_cloud_permission[userValue.value])  
+    allPage.value.length = 0
+      activeNames.value = []
+      for (let i = 0; i < Object.keys(m_cloud_permission[userValue.value]).length; i++)
+        activeNames.value.push(i)
+
+      const select_cpo = cpo_name.find(item => item._id === cpoValue.value)
+      if (select_cpo === undefined) {
+        ElMessage({ message: t('pelase_select_company'), type: 'error',})
+        return
+      }
+      let current = {}
+
+      if (select_cpo?.config?.m_cloud?.permissions?.[userValue.value]) {
+        let all_item = {}
+        all_item =  JSON.parse(JSON.stringify(m_cloud_permission[userValue.value]))
+        current = {}
+        current =  JSON.parse(JSON.stringify(select_cpo?.config?.m_cloud?.permissions?.[userValue.value]))
+        for (let page in current) {
+          for (let item in current[page]) {
+            if (current[page][item] === 'O') {
+              all_item[page][item] = 'O'  
+            }
+          }
+        }
+        current = {}
+        current =  JSON.parse(JSON.stringify(all_item))
+        Object.assign(allPage.value, all_item)  
+      }
+      else {
+        current = {}
+        current = JSON.parse(JSON.stringify(m_cloud_permission[userValue.value]))
+        Object.assign(allPage.value, m_cloud_permission[userValue.value])  
+      }
+      for (let key in allPage.value) {
+        allItem[key] = Object.keys(allPage.value[key])
+        checkedItem[key] = Object.keys(allPage.value[key]).filter((subKey) => allPage.value[key][subKey] === 'O')
+        const checkedCount = checkedItem[key].length
+        const isHasChecked = checkedCount > 0
+        const isNotAllChecked = checkedCount < allItem[key].length
+        if (checkedCount) {
+          checkAll.value[key] = checkedCount === checkedItem[key].length 
+        }
+        isIndeterminate.value[key] = isHasChecked && isNotAllChecked
+      }
+      allPage.value = Object.keys(current)
+      displayItem.value = true
+      oldType.value = a
   }
-  for (let key in allPage.value) {
-    allItem[key] = Object.keys(allPage.value[key])
-    checkedItem[key] = Object.keys(allPage.value[key]).filter((subKey) => allPage.value[key][subKey] === 'O')
-    const checkedCount = checkedItem[key].length
-    const isHasChecked = checkedCount > 0
-    const isNotAllChecked = checkedCount < allItem[key].length
-    if (checkedCount) {
-      checkAll.value[key] = checkedCount === checkedItem[key].length 
-    }
-    isIndeterminate.value[key] = isHasChecked && isNotAllChecked
-  }
-  allPage.value = Object.keys(test)
-  displayItem.value = true
+  
 }
 
 const handlerSaveForm = async () => {
@@ -128,7 +231,6 @@ const handlerSaveForm = async () => {
           c[key] = { ...allItemDisable[key] }
         }
       }
-
       const result = cpo_name.find(item => item._id === cpoValue.value)
       if (result.config === undefined)
         result.config = {}
@@ -136,13 +238,11 @@ const handlerSaveForm = async () => {
         result.config.m_cloud = {}
       if (result.config.m_cloud.permissions === undefined)
         result.config.m_cloud.permissions = {}
-
       result.config.m_cloud.permissions[userValue.value] = c
       let sendData = {  class : 'CompanyInformation', pk: cpoValue.value, config: result.config}
-      console.log(sendData)
       let res = await MsiApi.setCollectionData('patch', 'cpo', sendData)
-      console.log(res)
-      console.log(222, sendData)          
+
+      changeItem.value = false
     })    
   }
   else {
@@ -170,7 +270,6 @@ onMounted( async() => {
       <div class="flex justify-start flex-wrap lg:flex-nowrap pt-40px pb-32px">
         <p class="title text-30px">{{ t('permission') }}</p>
       </div>
-
       <el-form class="mr-auto" label-width="100px" label-position="left" status-icon>
         <el-form-item class="block md:flex mb-24px items-center" :label="t('company')">
           <el-select class="el-select w-full lg:w-30%" v-model="cpoValue" :placeholder="t('select')" size="large" @change="changeCompanyInfo">
@@ -185,6 +284,13 @@ onMounted( async() => {
         </el-form-item>
       </el-form>
 
+      <el-button v-if="expand" @click="expand_close" class="btn-icon arrow"
+            ><font-awesome-icon icon="fa-solid fa-arrow-down"
+      /></el-button>
+      <el-button v-else @click="expand_close" class="btn-icon arrow"
+            ><font-awesome-icon icon="fa-solid fa-arrow-right"
+      /></el-button>
+      
       <div v-if="displayItem" class="BASE collapseGroup mb-20px mb-50px">
         <el-collapse v-model="activeNames" >
           <div v-for=" (item, index) in allPage" :key="item" :label="item">

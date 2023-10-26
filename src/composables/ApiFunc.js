@@ -289,7 +289,11 @@ export default function () {
     return response
   }
   
-
+  const sendNotification = async (json) => {
+    AuthToken = VueCookies.get('AuthToken')
+    const response = await postJsonData(api1 + '/cpo/notify/fcm', json ,  AuthToken)
+    return response
+  }
   return {
       setCollectionData, getToken, checkToken, mongoQuery, mongoAggregate,
       register_member_v0, register_member, get_account_info, get_account_detail, edit_account, delete_account,
@@ -297,6 +301,6 @@ export default function () {
       bind_card, search_bind_card, unregister_bind_card, auth_payment, subscribe_plan, member_modify,
       forgotPW, add_rfid_data, edit_rfid_data, delete_rfid_data, set_rfid_cash, 
       clear_charging_profile, get_composite_schedule,
-      get_transaction, change_availability, get_diagnostics, get_configuration
+      get_transaction, change_availability, get_diagnostics, get_configuration, sendNotification
   }
 }

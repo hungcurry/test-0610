@@ -474,6 +474,15 @@ export default
     hmi_board_sn:                                           'HMI Board SN',
     hmi_board_sw_version:                                   'HMI Board SW Version',
     rate:                                                   'Rate',
+
+    change_availability:                                    'Change Availability',
+    get_diagnostics:                                        'Get Diagnostics',
+    clear_charging_profile:                                 'Clear Charging Profile',
+    change_configuration:                                   'Change Configuration',
+    set_charging_profile:                                   'Set Charging Profile',
+    data_transfer:                                          'Data Transfer',
+    get_composite_schedule:                                 'Get Composite Schedule',
+
     // active_minute:                                       'Active (Minute)',
     // deactivate_minute:                                   'Deactivate (Minute)',
     // charging_by_energy:                                  'Charging By Energy',
@@ -662,6 +671,7 @@ export default
     // warning:                                             'Warning !',
     // ok:                                                  'OK',
     // please_confirm_your_subscription_plan:               'Please confirm your subscription plan.',
+    send_notification:                                      'Send Notification',
 //--------------------------------------------------------------
 // User Detail Page         
 //--------------------------------------------------------------
@@ -1111,6 +1121,7 @@ export default
     please_select_user_type:                                'Please select User Type',
     there_are_still_fields_not_filled_in:                   'There are still fields not filled in',
     successfully_modified_permissions:                      'Successfully modified permissions',
+    do_you_want_to_discard_the_changes:                     'Do you want to discard the changes?'
     // admin_user:                                          'Admin User',
     // developer_user:                                      'Developer User',
     // fae_user:                                            'FAE User',

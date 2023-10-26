@@ -475,6 +475,15 @@ export default
     hmi_board_sn:                                           'HMI板序號',
     hmi_board_sw_version:                                   'HMI板軟體版本',
     rate:                                                   '費率',
+
+    change_availability:                                    'Change Availability',
+    get_diagnostics:                                        'Get Diagnostics',
+    clear_charging_profile:                                 'Clear Charging Profile',
+    change_configuration:                                   'Change Configuration',
+    set_charging_profile:                                   'Set Charging Profile',
+    data_transfer:                                          'Data Transfer',
+    get_composite_schedule:                                 'Get Composite Schedule',
+
     // active_minute:                                       '啟用時間 (分鐘)',
     // deactivate_minute:                                   '截止時間 (分鐘)',
     // charging_by_energy:                                  '依電費計價',
@@ -663,6 +672,7 @@ export default
     // warning:                                             '警告!',
     // ok:                                                  'OK',
     // please_confirm_your_subscription_plan:               '請確認訂閱方案',
+    send_notification:                                      '寄送通知',
 //--------------------------------------------------------------
 // User Detail Page         
 //--------------------------------------------------------------
@@ -1114,6 +1124,7 @@ export default
     please_select_user_type:                                '請選擇使用者類型',
     there_are_still_fields_not_filled_in:                   '有欄位未填寫',
     successfully_modified_permissions:                      '修改權限成功',
+    do_you_want_to_discard_the_changes:                     '你要取消變更嗎'
     // admin_user:                                          '管理 使用者',
     // developer_user:                                      '研發 使用者',
     // fae_user:                                            'FAE 使用者',

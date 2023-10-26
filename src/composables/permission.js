@@ -20,10 +20,11 @@ let m_cloud_permission =  {
         EVSELog: { page:'O',},
         ErrorLog: { page:'O',},
         SoftwareInfo: { page:'O', addSwRelease:'O', addFwRelease:'O', detail:'O', release:'O'},
-        Parking: { page:'O',},
+        Parking: { page:'X',},
         AdminInfo: { page:'O',},
         Program: { page:'O', addProgram:'O', detail:'O',},
-        ChargingProfile: { page:'O', addProfile:'O', detail:'O',},
+        ChargingProfile: { page:'O', addProfile:'O', detail:'X',},
+        Permission: {page:'O', save:'O', cancel:'O'},
     },
 
     DeveloperUser : {
@@ -46,10 +47,11 @@ let m_cloud_permission =  {
         EVSELog: { page:'O',},
         ErrorLog: { page:'O',},
         SoftwareInfo: { page:'O', addSwRelease:'O', addFwRelease:'O', detail:'O', release:'O'},
-        Parking: { page:'O',},
+        Parking: { page:'X',},
         AdminInfo: { page:'O',},
         Program: { page:'O', addProgram:'O', detail:'O',},
         ChargingProfile: { page:'O', addProfile:'O', detail:'O',},
+        Permission: {page:'O', save:'O', cancel:'O'},
     },
 
     ViewerUser : {
@@ -72,10 +74,11 @@ let m_cloud_permission =  {
         EVSELog: { page:'O',},
         ErrorLog: { page:'O',},
         SoftwareInfo: { page:'O', addSwRelease:'X', addFwRelease:'X', detail:'O', release:'X'},
-        Parking: { page:'O',},
+        Parking: { page:'X',},
         AdminInfo: { page:'O',},
         Program: { page:'O', addProgram:'X', detail:'O',},
         ChargingProfile: { page:'O', addProfile:'X', detail:'O',},
+        Permission: {page:'O', save:'X', cancel:'O'},
     },
 
     FAEUser : {
@@ -98,10 +101,11 @@ let m_cloud_permission =  {
         EVSELog: { page:'O',},
         ErrorLog: { page:'O',},
         SoftwareInfo: { page:'O', addSwRelease:'X', addFwRelease:'X', detail:'O', release:'X'},
-        Parking: { page:'O',},
+        Parking: { page:'X',},
         AdminInfo: { page:'O',},
         Program: { page:'O', addProgram:'X', detail:'O',},
         ChargingProfile: { page:'O', addProfile:'O', detail:'O',},
+        Permission: {page:'X', save:'X', cancel:'X'},
     },
 
     CustomerServiceUser : {
@@ -124,10 +128,11 @@ let m_cloud_permission =  {
         EVSELog: { page:'O',},
         ErrorLog: { page:'O',},
         SoftwareInfo: { page:'O', addSwRelease:'X', addFwRelease:'X', detail:'O', release:'X'},
-        Parking: { page:'O',},
+        Parking: { page:'X',},
         AdminInfo: { page:'X',},
         Program: { page:'O', addProgram:'X', detail:'O',},
         ChargingProfile: { page:'O', addProfile:'X', detail:'O',},
+        Permission: {page:'X', save:'X', cancel:'X'},
     },
 
     EngineerUser : {
@@ -154,6 +159,7 @@ let m_cloud_permission =  {
         AdminInfo: { page:'X',},
         Program: { page:'X', addProgram:'X', detail:'X',},
         ChargingProfile: { page:'X', addProfile:'X', detail:'X'},
+        Permission: {page:'X', save:'X', cancel:'X'},
     },
 
 }

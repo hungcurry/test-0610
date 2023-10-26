@@ -57,7 +57,7 @@ if ( MStore.user_data.first_name === 'Steven') {
       <el-menu-item v-if="MStore.rule_permission.Station.page === 'O' || MStore.permission.isCompany" class="collapse" index="station">{{t('by_station')}}</el-menu-item>
       <el-menu-item v-if="MStore.rule_permission.EVSE.page === 'O' || MStore.permission.isCompany" class="collapse" index="evse">{{t('by_evse')}}</el-menu-item>
       <el-menu-item v-if="MStore.rule_permission.RatePlan.page === 'O' || MStore.permission.isCompany" class="collapse" index="rate-plan">{{t('rate_plan')}}</el-menu-item>
-      <el-menu-item v-if="dev_member" class="collapse" index="charging-profile">{{t('charging_profile')}}</el-menu-item>
+      <el-menu-item v-if="MStore.rule_permission.ChargingProfile.page === 'O'" class="collapse" index="charging-profile">{{t('charging_profile')}}</el-menu-item>
     </el-sub-menu>
    
     <el-sub-menu index="evse-log" v-if="MStore.rule_permission.EVSELog.page === 'O' || MStore.rule_permission.ErrorLog.page === 'O' || MStore.permission.isCompany">
@@ -67,7 +67,7 @@ if ( MStore.user_data.first_name === 'Steven') {
       </template>
       <el-menu-item v-if="MStore.rule_permission.EVSELog.page === 'O' || MStore.permission.isCompany" class="collapse" index="evse-log">{{t('evse_log')}}</el-menu-item>
       <el-menu-item v-if="MStore.rule_permission.ErrorLog.page === 'O' || MStore.permission.isCompany" class="collapse" index="error-log">{{t('error_log')}}</el-menu-item>
-      <el-menu-item v-if="MStore.permission.isMSI && (MStore.rule_permission.Parking.page === 'O' || MStore.permission.isCompany)" class="collapse" index="parking">{{t('parking')}}</el-menu-item>
+      <el-menu-item v-if="MStore.rule_permission.Parking.page === 'O' || MStore.permission.isCompany" class="collapse" index="parking">{{t('parking')}}</el-menu-item>
     </el-sub-menu>
 
     <el-sub-menu index="advanced-setting" v-if="MStore.permission.isMSI">
@@ -80,7 +80,7 @@ if ( MStore.user_data.first_name === 'Steven') {
       <el-menu-item v-if="MStore.rule_permission.Administrator.page === 'O' || MStore.permission.isCompany" class="collapse" index="administrator">{{t('m_cloud_administrator')}}</el-menu-item>
       <el-menu-item v-if="MStore.rule_permission.SoftwareInfo.page === 'O' || MStore.permission.isCompany" class="collapse" index="software-info">{{t('softwart_info')}}</el-menu-item>
       <el-menu-item v-if="MStore.rule_permission.Program.page === 'O' || MStore.permission.isCompany" class="collapse" index="program">{{t('program')}}</el-menu-item>
-      <el-menu-item v-if="dev_member" class="collapse" index="permission">{{t('permission')}}</el-menu-item>
+      <el-menu-item v-if="MStore.permission.isMSI && MStore.rule_permission.Permission.page === 'O'" class="collapse" index="permission">{{t('permission')}}</el-menu-item>
       <!-- <el-menu-item v-if="dev_member" class="collapse" index="test">test</el-menu-item> -->
     </el-sub-menu>
     
