@@ -57,6 +57,7 @@ onMounted(async () => {
     <div>
       <div id="main" style="width: 600px; height: 400px;" ref="location_map"></div>
     </div>
+    <a href="/volume_doc/new_file.csv" download="sample.txt">Test download delete list</a>
   </div>
 </template>
 

@@ -22,6 +22,17 @@ const company_title = ref(t('add_company_info'))
 const company = MStore?.permission?.company?.name
 const company_ref = ref()
 
+const validAgreedFee = (rule, value, callback) => {
+  if (value?.length === 0 || value?.length === undefined) {
+    callback(new Error(t('the_item_is_required')))
+  }
+  else if (value < 3) {
+    callback(new Error(t('the_agreed_fee_must_be_greater_than_3')))
+  }
+  else {
+    callback()
+  }
+}
 const validTaxid = (rule, value, callback) => {
   const regex = /^[0-9a-zA-Z-]+$/
   if (regex.test(value) && value?.length === 8) {
@@ -44,6 +55,9 @@ const company_rules = reactive({
   ],
   tax_id: [
     { required: true, trigger: 'blur', validator: validTaxid },
+  ],
+  upgrade_manager_agreed_fee: [
+    { required: true, trigger: 'blur', validator: validAgreedFee },
   ],
 })
   
@@ -263,6 +277,7 @@ const editCompany = async (action) => {
           companyData.payment.hashIV = companyData.payment_hashIV
           companyData.payment.hashKey = companyData.payment_hashKey
           companyData.payment.merchantId = companyData.payment_merchantId
+          companyData.upgrade_manager.session_fee = [{type: 'AgreeFee', price: companyData.upgrade_manager_agreed_fee}]
           companyData.upgrade_manager.enable = companyData.upgrade_manager_enable
           let sendData = {  class : 'CompanyInformation', name: companyData.name,
                             country:companyData.country, party_id:companyData.party_id,
@@ -314,6 +329,17 @@ const editCompany = async (action) => {
             companyData.payment.hashKey = companyData.payment_hashKey
             companyData.payment.merchantId = companyData.payment_merchantId
             companyData.upgrade_manager.enable = companyData.upgrade_manager_enable
+            if (companyData.upgrade_manager.session_fee) {
+              for (let i=0; i<companyData.upgrade_manager.session_fee.length; i++) {
+                if (companyData.upgrade_manager.session_fee[i].type === 'AgreeFee') {
+                  companyData.upgrade_manager.session_fee[i].price = companyData.upgrade_manager_agreed_fee
+                  break
+                }
+              }
+            }
+            else {
+              companyData.upgrade_manager.session_fee = [{type: 'AgreeFee', price: companyData.upgrade_manager_agreed_fee}]
+            }
             let sendData = {  class : 'CompanyInformation', pk: companyData._id,name: companyData.name, 
                               country:companyData.country, party_id:companyData.party_id,
                               city:companyData.city, detail:companyData.detail, 
@@ -403,7 +429,14 @@ const MongoAggregate = async (queryData) => {
         UserData[i].subscribe_str = ProgramData[j].name
         break
       }
+    for (let j = 0; j < UserData[i]?.upgrade_manager.session_fee?.length; j++) {
+      if (UserData[i]?.upgrade_manager.session_fee[j].type === 'AgreeFee') {
+        UserData[i].upgrade_manager_agreed_fee = UserData[i]?.upgrade_manager.session_fee[j].price
+        break
+      }
+    }
   }
+  console.log(UserData)
   isLoading.value = false
   return response
 }
@@ -580,16 +613,22 @@ onMounted( async() => {
                 <el-input v-model="companyData.remark" />
               </el-form-item> -->
 
+              <el-form-item class="mb-24px" :label="t('agreed_fee')" prop="upgrade_manager_agreed_fee">
+                <el-input v-model="companyData.upgrade_manager_agreed_fee" @input="validAgreedFee">
+                  <template #suffix><span class="h-30px">%</span></template>
+                </el-input>
+              </el-form-item>
+
               <el-form-item class="mb-24px" :label="t('invoice_hash_iv')">
-                <el-input v-model="companyData.invoice_hashIV" />
+                <el-input v-model="companyData.invoice_hashIV" disabled />
               </el-form-item>
 
               <el-form-item class="mb-24px" :label="t('invoice_hash_key')">
-                <el-input v-model="companyData.invoice_hashKey" />
+                <el-input v-model="companyData.invoice_hashKey" disabled />
               </el-form-item>
 
               <el-form-item class="mb-24px" :label="t('invoice_merchant_id')">
-                <el-input v-model="companyData.invoice_merchantId" />
+                <el-input v-model="companyData.invoice_merchantId" disabled />
               </el-form-item>
 
               <!-- <el-form-item class="mb-24px" label="Invoice Owner">
@@ -597,15 +636,15 @@ onMounted( async() => {
               </el-form-item> -->
 
               <el-form-item class="mb-24px" :label="t('payment_hash_iv')">
-                <el-input v-model="companyData.payment_hashIV" />
+                <el-input v-model="companyData.payment_hashIV" disabled />
               </el-form-item>
 
               <el-form-item class="mb-24px" :label="t('payment_hash_key')">
-                <el-input v-model="companyData.payment_hashKey" />
+                <el-input v-model="companyData.payment_hashKey" disabled />
               </el-form-item>
 
               <el-form-item class="mb-24px" :label="t('payment_merchant_id')">
-                <el-input v-model="companyData.payment_merchantId" />
+                <el-input v-model="companyData.payment_merchantId" disabled />
               </el-form-item>
 
               <!-- <el-form-item class="mb-24px" label="Payment Owner">

@@ -81,7 +81,7 @@ if ( MStore.user_data.first_name === 'Steven') {
       <el-menu-item v-if="MStore.rule_permission.SoftwareInfo.page === 'O' || MStore.permission.isCompany" class="collapse" index="software-info">{{t('softwart_info')}}</el-menu-item>
       <el-menu-item v-if="MStore.rule_permission.Program.page === 'O' || MStore.permission.isCompany" class="collapse" index="program">{{t('program')}}</el-menu-item>
       <el-menu-item v-if="MStore.permission.isMSI && MStore.rule_permission.Permission.page === 'O'" class="collapse" index="permission">{{t('permission')}}</el-menu-item>
-      <!-- <el-menu-item v-if="dev_member" class="collapse" index="test">test</el-menu-item> -->
+      <el-menu-item v-if="dev_member" class="collapse" index="test">test</el-menu-item>
     </el-sub-menu>
     
   </el-menu>

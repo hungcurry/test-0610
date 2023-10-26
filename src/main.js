@@ -22,6 +22,7 @@ import {
   faChartLine,
   faDeleteLeft,
   faAnglesRight,
+  faPlus,
 } from '@fortawesome/free-solid-svg-icons'
 import {
   faPenToSquare,
@@ -31,6 +32,7 @@ import {
   faCreditCard,
   faFileLines,
   faIdCard,
+  faFile,
 } from '@fortawesome/free-regular-svg-icons'
 
 const app = createApp(App)
@@ -66,4 +68,6 @@ library.add(
   faFileLines,
   faAnglesRight,
   faIdCard,
+  faPlus,
+  faFile
 )

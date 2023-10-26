@@ -26,6 +26,7 @@ import ParkingView from '@/views/ParkingView.vue'
 import AdminInfoView from '@/views/AdminInfoView.vue'
 import ProgramView from '@/views/ProgramView.vue'
 import ChargeProfileView from '@/views/ChargeProfileView.vue'
+import ChargeProfileDetailView from '@/views/ChargeProfileDetailView.vue'
 import PermissionView from '@/views/PermissionView.vue'
 import RfidUserView from '@/views/RfidUserView.vue'
 import RfidUserDetailView from '@/views/RfidUserDetailView.vue'
@@ -151,6 +152,11 @@ const router = createRouter({
           name: 'chargingProfile',
           component: ChargeProfileView
         },   
+        {
+          path: 'charging-profile-detail',
+          name: 'chargingProfileDetail',
+          component: ChargeProfileDetailView
+        },
         {
           path: 'permission',
           name: 'Permission',

@@ -2,7 +2,7 @@ import VueCookies from 'vue-cookies'
 import axios from 'axios'
 
 let AuthToken = null
-let api1 = 'api10/api'
+let api1 = 'api10/api2'
 axios.defaults.timeout = 15000
 if (import.meta.env.VITE_API !== undefined) {
   api1 = import.meta.env.VITE_API
@@ -288,6 +288,18 @@ export default function () {
     console.log(response)
     return response
   }
+  const set_charging_profile = async(json) => {
+    AuthToken = VueCookies.get('AuthToken')
+    const response = await getJsonData(api1 + '/cp/ocpp/v16/set_charging_profile' +'?evse_id=' + json.evse_id + '&connectorId=1' + '&csChargingProfiles=' + json.csChargingProfiles,  AuthToken)
+    return response
+  }
+  
+  const add_merchant = async (json) => {
+    AuthToken = VueCookies.get('AuthToken')
+    const response = await getJsonData(api1 + '/payment/newebpay/company/addMerchant' +'?merchantId=' + json.merchantId, AuthToken)
+    console.log(response)
+    return response
+  }
   
   const sendNotification = async (json) => {
     AuthToken = VueCookies.get('AuthToken')
@@ -300,7 +312,8 @@ export default function () {
       resetPW, reset_evse, updateFw, getTimeZone, getCoordinates, getAddress,
       bind_card, search_bind_card, unregister_bind_card, auth_payment, subscribe_plan, member_modify,
       forgotPW, add_rfid_data, edit_rfid_data, delete_rfid_data, set_rfid_cash, 
-      clear_charging_profile, get_composite_schedule,
-      get_transaction, change_availability, get_diagnostics, get_configuration, sendNotification
+      clear_charging_profile, get_composite_schedule, set_charging_profile,
+      get_transaction, change_availability, get_diagnostics, get_configuration, sendNotification,
+      add_merchant, 
   }
 }
