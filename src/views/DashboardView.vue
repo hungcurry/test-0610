@@ -4,6 +4,7 @@ import ApiFunc from '@/composables/ApiFunc'
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useMStore } from '@/stores/m_cloud'
+import Calendar from '@/components/icons/IconCalendar.vue'
 import moment from "moment"
 import { useI18n } from "vue-i18n"
 
@@ -25,9 +26,23 @@ const member = ref(0)
 const business = ref(0)
 const totalkwh = ref(0)
 const station_count = ref(0)
+const dropdownRef = ref()
+const customize_start_time = ref()
+const customize_end_time = ref()
+let isKeepDatePicker = undefined
 let isFetchingTotalUsedPower = false
 let isFetchingTotalUsedTime = false
 let isFetchingTotalUsedTimes = false
+
+let now = new Date()
+const selectTime = ref([
+  new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0),
+  new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59),
+])
+const defaultTime = [
+  new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0),
+  new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59),
+]
 
 const charger_time = reactive({ hr: 0, min: 0, sec: 0 })
 const parking_time = reactive({ hr: 0, min: 0, sec: 0 })
@@ -188,20 +203,54 @@ const power_times_option = reactive({
 const goto_payment = () => {
   router.push({ name: 'payment' })
 }
+const handleVisible = () => {
+  if (isKeepDatePicker === true) {
+    dropdownRef.value.handleOpen()
+  }
+  else if (isKeepDatePicker === false) {
+    dropdownRef.value.handleClose()
+    isKeepDatePicker = undefined
+  }
+}
+const handleDatePicker = (event) => {
+  if (event === 'focus') {
+    dropdownRef.value.handleOpen()
+    isKeepDatePicker = true
+  }
+  else if (event === 'blur') {
+    dropdownRef.value.handleClose()
+    isKeepDatePicker = false
+  }
+}
+const select_date = async () => {
+  isKeepDatePicker = false
+  date_select('customize')
+}
 const date_select = async (select_time) => {
-  const now = new Date()
-  let select_time1 = null
-  if (select_time === 'all') select_time1 = new Date(1970, 1, 1)
-  else if (select_time === 'today')
-    select_time1 = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-  else if (select_time === 'week')
-    select_time1 = new Date(
-      now.getFullYear(),
-      now.getMonth(),
-      now.getDate() - now.getDay()
-    )
-  else if (select_time === 'month')
-    select_time1 = new Date(now.getFullYear(), now.getMonth())
+  let select_time1 = []
+  now = new Date()
+  if (select_time === 'all') {
+    select_time1[0] = new Date(1970, 1, 1)
+    select_time1[1] = now
+  }
+  else if (select_time === 'today') {
+    select_time1[0] = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+    select_time1[1] = now
+  }
+  else if (select_time === 'week') {
+    select_time1[0] = new Date(now.getFullYear(), now.getMonth(), now.getDate() - now.getDay())
+    select_time1[1] = now
+  }
+  else if (select_time === 'month') {
+    select_time1[0] = new Date(now.getFullYear(), now.getMonth())
+    select_time1[1] = now
+  }
+  else if (select_time === 'customize') {
+    select_time1[0] = new Date(selectTime.value[0].getTime())
+    select_time1[1] = new Date(selectTime.value[1].getTime())
+  }
+  customize_start_time.value =  moment(select_time1[0]).format('YYYY-MM-DD HH:mm:ss')
+  customize_end_time.value =  moment(select_time1[1]).format('YYYY-MM-DD HH:mm:ss')
   queryTotalUsedTime(select_time1)
   queryTotalUsedTimes(select_time1)
   queryTotalUsedPower(select_time1)
@@ -211,7 +260,11 @@ const queryTotalUsedPower = async (select_time1) => {
   if (!isFetchingTotalUsedPower) {
     isFetchingTotalUsedPower = true
     totalkwh.value = '-'
-    if (select_time1 === undefined) select_time1 = new Date(1970, 1, 1)
+    if (select_time1 === undefined) {
+      select_time1 = []
+      select_time1[0] = new Date(1970, 1, 1)
+      select_time1[1] = now
+    }
     let queryData = {
       database: 'CPO',
       collection: 'PaymentHistory',
@@ -222,9 +275,15 @@ const queryTotalUsedPower = async (select_time1) => {
               $and: [
                 {
                   $gte: [
-                  '$created_date',
-                  { $dateFromString: { dateString: select_time1 } },
-                ],
+                    '$created_date',
+                    { $dateFromString: { dateString: select_time1[0] } },
+                  ],
+                },
+                {
+                  $lte: [
+                    "$created_date",
+                    { $dateFromString: { dateString: select_time1[1] } },
+                  ],
                 },
               ],
             },
@@ -254,7 +313,11 @@ const queryTotalUsedTime = async (select_time1) => {
     parking_time.min = parking_time.hr = charger_time.min = charger_time.hr = '-'
     parking_time.sec = charger_time.sec = 0
     isFetchingTotalUsedTime = true 
-    if (select_time1 === undefined) select_time1 = new Date(1970, 1, 1)
+    if (select_time1 === undefined) {
+      select_time1 = []
+      select_time1[0] = new Date(1970, 1, 1)
+      select_time1[1] = now
+    }
     let queryData = {
       database: 'CPO',
       collection: 'PaymentHistory',
@@ -266,7 +329,13 @@ const queryTotalUsedTime = async (select_time1) => {
                 {
                   $gte: [
                     '$created_date',
-                    { $dateFromString: { dateString: select_time1 } },
+                    { $dateFromString: { dateString: select_time1[0] } },
+                  ],
+                },
+                {
+                  $lte: [
+                    "$created_date",
+                    { $dateFromString: { dateString: select_time1[1] } },
                   ],
                 },
               ],
@@ -303,7 +372,11 @@ const queryTotalUsedTimes = async (select_time1) => {
     isFetchingTotalUsedTimes = true
     rfid.value = visitor.value = income.value = ev_life.value = '-'
 
-    if (select_time1 === undefined) select_time1 = new Date(1970, 1, 1)
+    if (select_time1 === undefined) {
+      select_time1 = []
+      select_time1[0] = new Date(1970, 1, 1)
+      select_time1[1] = now
+    }
     let queryData = {
       database: 'CPO',
       collection: 'PaymentHistory',
@@ -315,7 +388,13 @@ const queryTotalUsedTimes = async (select_time1) => {
                 {
                   $gte: [
                     '$created_date',
-                    { $dateFromString: { dateString: select_time1 } },
+                    { $dateFromString: { dateString: select_time1[0] } },
+                  ],
+                },
+                {
+                  $lte: [
+                    "$created_date",
+                    { $dateFromString: { dateString: select_time1[1] } },
                   ],
                 },
               ],
@@ -652,6 +731,8 @@ onMounted(async () => {
   queryCustomers()
   queryLast7dayUsed()
   queryStationType()
+  customize_start_time.value =  moment(new Date(1970, 1, 1)).format('YYYY-MM-DD HH:mm:ss')
+  customize_end_time.value =  moment(now).format('YYYY-MM-DD HH:mm:ss')
 })
 </script>
 
@@ -754,10 +835,39 @@ onMounted(async () => {
               class="btn-primary"
               @click="date_select('month')"
             >
-            {{t('this_month')}}</el-button
-            >
+            {{t('this_month')}}
+            </el-button>
+            <el-dropdown ref="dropdownRef" trigger="click" @visible-change="handleVisible">
+              <el-button
+                type="primary"
+                round
+                class="btn-primary ml-12px"
+              >
+              {{t('duration_dashboard')}}
+              </el-button>
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-date-picker
+                    v-model="selectTime"
+                    class="mx-16px rounded-full"
+                    type="datetimerange"
+                    range-separator="-"
+                    :prefix-icon="Calendar"
+                    :start-placeholder="t('start_date')"
+                    :end-placeholder="t('end_date')"
+                    :default-time="defaultTime"
+                    @blur="handleDatePicker('blur')"
+                    @focus="handleDatePicker('focus')"
+                    @change="select_date()"
+                  />
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
           </div>
         </div>
+      </div>
+      <div class="date-selected text-right mr-12px">
+        {{ customize_start_time }} - {{ customize_end_time }}
       </div>
       <div class="card-container scrollbar lg:px-20px overflow-x-auto">
         <div class="card grid grid-cols-4 grid-rows-3 gap-24px pb-24px">
@@ -1009,6 +1119,18 @@ onMounted(async () => {
   @media (min-width: 992px) {
     // height: calc(100vh - 50rem);
     height: calc(100vh - 47rem);
+  }
+}
+
+:deep(.el-range-editor) {
+  box-shadow: 0 0 0 1px var(--blue-1200) inset !important;
+}
+:deep(.el-date-editor) {
+  .el-range-input {
+    color: white;
+  }
+  .el-range-separator {
+    color: white;
   }
 }
 </style>

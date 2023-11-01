@@ -282,6 +282,7 @@ export default
     times:                                                  '次數',
     ev_life:                                                'EV Life',
     qr_pay:                                                 'QR-Pay',
+    duration_dashboard:                                     '自訂',
     // rfid_user:                                           'RFID使用者',
     // hr:                                                  '小時',
     // min:                                                 '分鐘',
@@ -307,6 +308,8 @@ export default
     // google_pay:                                          'Google Pay',
     // samsung_pay:                                         'Samsung Pay',
     // all:                                                 '全部',
+    // start_date:                                          '開始日期',
+    // end_date:                                            '結束時間',
 //--------------------------------------------------------------
 // Payment Page                 
 //--------------------------------------------------------------

@@ -282,6 +282,7 @@ export default
     times:                                                  'Times',
     ev_life:                                                'EV Life',
     qr_pay:                                                 'QR-Pay',
+    duration_dashboard:                                     'Duration',
     // rfid_user:                                           'RFID User',
     // hr:                                                  'hr',
     // min:                                                 'min',
@@ -307,6 +308,8 @@ export default
     // google_pay:                                          'Google Pay',
     // samsung_pay:                                         'Samsung Pay',
     // all:                                                 'All',
+    // start_date:                                          'Start Date',
+    // end_date:                                            'End Date',
 //--------------------------------------------------------------
 // Payment Page                 
 //--------------------------------------------------------------
