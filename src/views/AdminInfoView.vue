@@ -95,7 +95,6 @@ const AdminData_rules = reactive({
 const neweb_title = ref(t('create_neweb_pay_account'))
 const neweb_id = ref()
 const neweb_create_failed = ref(false)
-const newebData = reactive({})
 
 const fill_program_chartData = () => {
   program_chartData.forEach((item) => {
@@ -480,7 +479,6 @@ const openNewebDialog = () => {
 const closeNewebDialog = () => {
   neweb_create_failed.value = false
   newebDialogVisible.value = false
-  neweb_id.value = ''
 }
 const confirmNewebPay = async(action) => {
   if (action === 'create') {
@@ -527,14 +525,19 @@ const getCompanyData = async() => {
       collection: 'CompanyInformation',
       pipelines: [
         { $match: { name: { $eq: companyData.name } } },
-        { $project: { _id: 1, upgrade_manager: 1 } }
+        { $project: { _id: 1, payment: 1, upgrade_manager: 1 } }
       ],
     }
     response = await MsiApi.mongoAggregate(queryData)
     companyId = response.data.result[0]._id
     companyData.upgrade_manager = response.data.result[0].upgrade_manager
-    // Tony : check CompanyInformation.payment.platform_info to get newebData.Merchant_ID / newebData.Merchant_Status
-    // ...
+    companyData.Merchant_ID = response.data.result[0].payment?.merchantId
+    if (response.data.result[0].payment?.hashKey) {
+      companyData.Merchant_Status = t('in_operation')
+    }
+    else if (response.data.result[0].payment?.merchantId) {
+      companyData.Merchant_Status = t('reviewing')
+    }
   }
   catch {
     ElMessage.error({message: 'An unexpected error occurred.', grouping:true})
@@ -1003,17 +1006,16 @@ onMounted(async () => {
                 <font-awesome-icon icon="fa-solid fa-coins" class="w-20px h-20px mr-5px text-blue-1200" />
                 <p class="text-1.8rem text-blue-1200 font-bold">{{ t('neweb_pay') }}</p>
               </div>
-              <el-button round class="button" @click="openNewebDialog" v-if="newebData.Merchant_ID === undefined" >{{ t('create') }}</el-button>
+              <el-button round class="button" @click="openNewebDialog" v-if="!companyData.Merchant_ID" >{{ t('create') }}</el-button>
             </div>
             <div class="flex flex-items-center flex-wrap px-2.5rem mb-20px">
               <div class="w-50% min-w-350px flex mb-5px">
                 <p class="w-150px text-blue-1200">{{ t('merchant_id') }}</p>
-                <p class="text-blue-1200">{{ newebData.Merchant_ID }}</p>
+                <p class="text-blue-1200">{{ companyData.Merchant_ID }}</p>
               </div>
               <div class="w-50% min-w-350px flex mb-5px">
                 <p class="w-150px text-blue-1200">{{ t('merchant_status') }}</p>
-                <p v-if="newebData.Merchant_Status" class="text-blue-1200">{{ newebData.Merchant_Status }}</p>
-                <p v-else-if="newebData.Merchant_ID" class="text-blue-1200">{{ t('reviewing') }}</p>
+                <p class="text-blue-1200">{{ companyData.Merchant_Status }}</p>
               </div>
             </div>
           </div>
@@ -1351,7 +1353,10 @@ onMounted(async () => {
       <div class="dialog-context">
         <div class="w-300px m-auto" v-if="neweb_create_failed === false">
           <p class="text-gray-400 mb-10px">{{ t('please_enter_merchant_id') }}</p>
-          <div class="flex flex-items-center text-gray-400"><span class="mr-10px">MSI</span><el-input v-model="neweb_id" placeholder="" /></div>
+          <div class="flex flex-items-center text-gray-400">
+            <span class="mr-10px">MSI</span>
+            <el-input v-model="neweb_id" placeholder="" :formatter="(value) => `${value}`.replace(/[^\d]/g, '')" />
+          </div>
           <p class="text-red font-bold my-20px">* {{ t('the_format_should_be_number_with_limit_to_12_characters') }}</p>
         </div>
         <div class="w-300px m-auto flex-col" v-else-if="neweb_create_failed === true">
@@ -1362,7 +1367,7 @@ onMounted(async () => {
       <template #footer>
         <span class="dialog-footer flex flex-center" v-if="neweb_create_failed === false">
           <el-button round class="w-48% bg-btn-100 text-white max-w-140px" @click.stop="confirmNewebPay('cancel')">{{ t('cancel') }}</el-button>
-          <el-button round class="w-48% bg-btn-100 text-white max-w-140px" @click.stop="confirmNewebPay('create')" disabled>{{ t('create') }}</el-button>
+          <el-button round class="w-48% bg-btn-100 text-white max-w-140px" @click.stop="confirmNewebPay('create')">{{ t('create') }}</el-button>
         </span>
         <span class="dialog-footer flex flex-center" v-else-if="neweb_create_failed === true">
           <el-button round class="w-48% bg-btn-100 text-white max-w-140px" @click.stop="confirmNewebPay('back')">{{ t('ok') }}</el-button>

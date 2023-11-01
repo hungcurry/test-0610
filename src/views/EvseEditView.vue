@@ -7,6 +7,7 @@ import { v4 as uuidv4 } from 'uuid'
 import CommpnFunc from '@/composables/CommonFunc'
 import msi from '@/assets/msi_style'
 import { useI18n } from 'vue-i18n'
+import moment from "moment"
 
 import FullCalendar from '@fullcalendar/vue3'
 import dayGridPlugin from '@fullcalendar/daygrid'
@@ -28,6 +29,7 @@ const stationName = ref('')
 const ruleFormRef  = ref()
 let station_evses = []
 const evse_edit_title = ref(t('add_evse'))
+const activeName = ref('one')
 
 const connector_obj = reactive({
   class: 'Connector',
@@ -81,6 +83,7 @@ const SaveEvseEdit = async (formEl) => {
   if (check_format_success === false) {
     return 
   }
+  console.log(EVSEChargingProfileData) // Tony: The data need to save to DB.
 
   if (evse_id === undefined) {
     if (evse_obj.select_profile !== '') connector_obj.tariff_ids.push(evse_obj.select_profile)
@@ -441,6 +444,155 @@ const parkingCalendarOptions = reactive({
   eventMouseEnter: handleEventMouseEnter,
 })
 
+// ChargingProfile ---------------------------------------------------------------
+// Tony - TBD: save charging profile
+const ChargingProfileData = reactive([])
+const EVSEChargingProfileData = reactive([])
+const selectChargingProfileData = reactive({})
+const select_charging_schedule = reactive({})
+const select_charging_schedule_period = reactive([])
+const charging_profile_options = reactive([])
+const chargingProfilePurpose = [
+  { value: 'ChargePointMaxProfile', label: t('charge_point_max_profile')},
+  { value: 'TxDefaultProfile', label: t('tx_default_profile')},
+  { value: 'TxProfile', label: t('tx_profile')},
+]
+const changeChargingProfileTab = (index) => {
+  charging_profile_options.length = 0
+  charging_profile_options.push({_id: undefined, name: t('none')})
+  for (let i=0; i<ChargingProfileData.length; i++) {
+    if (ChargingProfileData[i].charging_profile_purpose === chargingProfilePurpose[index].value) {
+      charging_profile_options.push(ChargingProfileData[i])
+    }
+  }
+  for (let i=0; i<EVSEChargingProfileData.length; i++) {
+    if (EVSEChargingProfileData[i].charging_profile_purpose === chargingProfilePurpose[index].value) {
+      evse_obj.select_charging_profile = EVSEChargingProfileData[i]._id
+      Object.assign(selectChargingProfileData, EVSEChargingProfileData[i])
+      Object.assign(select_charging_schedule, EVSEChargingProfileData[i].charging_schedule)
+      Object.assign(select_charging_schedule_period, EVSEChargingProfileData[i].charging_schedule.charging_schedule_period)
+      return
+    }
+  }
+  
+  evse_obj.select_charging_profile = ''
+  for (let key in selectChargingProfileData) {
+    selectChargingProfileData[key] = undefined
+  }
+  for (let key in select_charging_schedule) {
+    select_charging_schedule[key] = undefined
+  }
+  select_charging_schedule_period.length = 0
+}
+const selectChargingProfile = (select_id) => {
+  for (let key in selectChargingProfileData) {
+    selectChargingProfileData[key] = undefined
+  }
+  for (let key in select_charging_schedule) {
+    select_charging_schedule[key] = undefined
+  }
+  select_charging_schedule_period.length = 0
+  for (let i=0; i<ChargingProfileData.length; i++) {
+    if (ChargingProfileData[i]._id === select_id) {
+      Object.assign(selectChargingProfileData, ChargingProfileData[i])
+      Object.assign(select_charging_schedule, ChargingProfileData[i].charging_schedule)
+      Object.assign(select_charging_schedule_period, ChargingProfileData[i].charging_schedule.charging_schedule_period)
+
+      for (let j=0; j<EVSEChargingProfileData.length; j++) {
+        if (EVSEChargingProfileData[j].charging_profile_purpose === ChargingProfileData[i].charging_profile_purpose) {
+          EVSEChargingProfileData[j] = ChargingProfileData[i]
+          break
+        }
+        else if (j === EVSEChargingProfileData.length-1) {
+          EVSEChargingProfileData.push(ChargingProfileData[i])
+        }
+      }
+    }
+  }
+}
+const getCharging_profile = async() => {
+  let queryData = null
+  let response = null
+  let sample_id = [{_id: '6541f4a9037ef078b00aba67'}, {_id: '6541f530037ef078b00aba6a'}]  // Tony: id of thecharging Profile which binding with EVSE
+
+  // get ChargingProfileData
+  queryData = {
+    database: 'CPO',
+    collection: 'ChargingProfile',
+    pipelines: [{ $project: { aaa: 0} }],
+  }
+  response = await MsiApi.mongoAggregate(queryData)
+  ChargingProfileData.length = 0
+  Object.assign(ChargingProfileData, response.data.result)
+  ChargingProfileData.forEach((item) => {
+    let localEndTime = null
+    if (item.valid_from) {
+      localEndTime =  new Date( (new Date(item.valid_from).getTime()) + ((MStore.timeZoneOffset ) * -60000))
+      item.valid_from_str = (moment(localEndTime).format("YYYY-MM-DD HH:mm:ss"))
+    }
+    if (item.valid_to) {
+      localEndTime =  new Date( (new Date(item.valid_to).getTime()) + ((MStore.timeZoneOffset ) * -60000))
+      item.valid_to_str = (moment(localEndTime).format("YYYY-MM-DD HH:mm:ss"))
+    }
+    if (item.charging_schedule.start_schedule) {
+      localEndTime =  new Date( (new Date(item.charging_schedule.start_schedule).getTime()) + ((MStore.timeZoneOffset ) * -60000))
+      item.charging_schedule.start_schedule_str = (moment(localEndTime).format("YYYY-MM-DD HH:mm:ss"))
+    }
+    switch (item.charging_profile_purpose) {
+      case 'ChargePointMaxProfile':
+        item.charging_profile_purpose_str = t('charge_point_max_profile')
+        break;
+      case 'TxDefaultProfile':
+        item.charging_profile_purpose_str = t('tx_default_profile')
+        break;
+      case 'TxProfile':
+        item.charging_profile_purpose_str = t('tx_profile')
+        break;
+      default:
+        item.charging_profile_purpose_str = item.charging_profile_purpose
+        break;
+    }
+    switch (item.charging_profile_kind) {
+      case 'Absolute':
+        item.charging_profile_kind_str = t('absolute')
+        break;
+      case 'Recurring':
+        item.charging_profile_kind_str = t('recurring')
+        break;
+      case 'Relative':
+        item.charging_profile_kind_str = t('relative')
+        break;
+      default:
+        item.charging_profile_kind_str = item.charging_profile_kind
+        break;
+    }
+    switch (item.recurrency_kind) {
+      case 'Daily':
+        item.recurrency_kind_str = t('daily')
+        break;
+      case 'Weekly':
+        item.recurrency_kind_str = t('weekly')
+        break;
+      default:
+        item.recurrency_kind_str = item.recurrency_kind
+        break;
+    }
+    item.name = item.custom?.name
+
+    // get EVSEChargingProfileData
+    sample_id.forEach((item2) => {  // Tony
+      if (item._id === item2._id) {
+        EVSEChargingProfileData.push(item)
+        if (item.charging_profile_purpose === chargingProfilePurpose[0].value) {
+          evse_obj.select_charging_profile = item._id
+        }
+      }
+    })
+  })
+
+  changeChargingProfileTab(0)
+}
+
 onMounted(async () => {
   let queryData,
     response = undefined
@@ -576,6 +728,7 @@ onMounted(async () => {
       .map((hex) => parseInt(hex, 16))[7]
   }
   fillFullCalendar()
+  getCharging_profile()
 })
 </script>
 
@@ -667,20 +820,21 @@ onMounted(async () => {
             </div>
           </el-col>
           <el-col :xs="24" :md="18">
-            <div class="evse-edit-right h-full">
-              <div class="title flex items-center mb-20px">
-                <img
-                  class="w-24px h-24px filter-black"
-                  src="@/assets/img/charger_tariff.png"
-                  alt=""
-                />
-                <h4 class="m-0 ml-8px text-20px text-black-100">{{ t('rate_plan') }}</h4>
-              </div>
+            <el-tabs v-model="activeName" class="">
+              <el-tab-pane name="one">
+                <template #label>
+                  <div class="title flex items-center mb-20px">
+                    <img
+                      class="w-24px h-24px filter-black"
+                      src="@/assets/img/charger_tariff.png"
+                      alt=""
+                    />
+                    <h4 class="m-0 ml-8px text-20px text-black-100">{{ t('rate_plan') }}</h4>
+                  </div>
+                </template>
 
-              <!-- <div class="rounded-lg bg-gray-100 p-20px mb-24px"> -->
-              <div class="rounded-lg bg-gray-100 p-20px">
-                <!-- <div class="mb-20px"> -->
-                <div class="mb-20px flex justify-between">
+                <div class="rounded-lg bg-gray-100 p-20px">
+                  <div class="mb-20px flex justify-between">
                     <el-form-item class="block mb-4px" :label= "t('plan_name')" prop="select_profile">
                       <el-select
                         class="el-select w-full"
@@ -705,118 +859,240 @@ onMounted(async () => {
                       :inactive-text="t('table')"
                       class="self-end"
                     />
-                </div>
+                  </div>
 
-                <div class="lg:flex mb-24px bg-white px-14px py-20px rounded-2xl">
-                  <div class="tariff-left lg:w-30% mb-20px lg:mb-0">
-                    <div class="container-data h-full md:px-32px">
-                      <!-- <div class="info-item">
-                        <p class="info-title">
-                          <span class="font-700 text-blue-900">Type : </span>
-                          <span class="ml-18px">AD_HOC_PAYMENT</span>
-                        </p>
-                      </div> -->
-                      <div class="info-item">
-                        <p class="info-title">
-                          <span class="font-700 text-blue-900">{{ t('currency') + ':' }}  </span>
-                          <span class="ml-18px">{{ selectTariffObj.currency }}</span>
-                        </p>
-                      </div>
-                      <!-- <div class="info-item">
-                        <p class="info-title">
-                          <span class="font-700 text-blue-900">Rate Alt Url : </span>
-                          <span class="ml-18px">NONE</span>
-                        </p>
-                      </div> -->
-                    </div>
-                  </div>
-                  <div class="tariff-right lg:w-70%">
-                    <div class="container-data h-full md:px-32px">
-                      <div class="">
-                        <p class="info-title font-700 text-blue-900 mb-7px">
-                          {{ t('rate_description') + ':' }}
-                        </p>
-                        <p class="info-value">{{selectTariffObj.description}}</p>
+                  <div class="lg:flex mb-24px bg-white px-14px py-20px rounded-2xl">
+                    <div class="tariff-left lg:w-30% mb-20px lg:mb-0">
+                      <div class="container-data h-full md:px-32px">
+                        <!-- <div class="info-item">
+                          <p class="info-title">
+                            <span class="font-700 text-blue-900">Type : </span>
+                            <span class="ml-18px">AD_HOC_PAYMENT</span>
+                          </p>
+                        </div> -->
+                        <div class="info-item">
+                          <p class="info-title">
+                            <span class="font-700 text-blue-900">{{ t('currency') + ':' }}  </span>
+                            <span class="ml-18px">{{ selectTariffObj.currency }}</span>
+                          </p>
+                        </div>
+                        <!-- <div class="info-item">
+                          <p class="info-title">
+                            <span class="font-700 text-blue-900">Rate Alt Url : </span>
+                            <span class="ml-18px">NONE</span>
+                          </p>
+                        </div> -->
                       </div>
                     </div>
+                    <div class="tariff-right lg:w-70%">
+                      <div class="container-data h-full md:px-32px">
+                        <div class="">
+                          <p class="info-title font-700 text-blue-900 mb-7px">
+                            {{ t('rate_description') + ':' }}
+                          </p>
+                          <p class="info-value">{{selectTariffObj.description}}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="px-14px bg-white" v-if="displaySwitch === false">
+                    <el-table
+                      :data="selectTariffObj.elements"
+                      style="width: 100%; height: 300px"
+                      stripe
+                      :cell-style="msi.tb_cell"
+                      :header-cell-style="msi.tb_header_cell"
+                      size="large"
+                    >
+                      <el-table-column
+                        prop="price_components[0].type_str"
+                        :label="t('type')"
+                        min-width="120"
+                        align="center"
+                      />
+                      <el-table-column
+                        prop="price_components[0].price"
+                        :label="t('price_excl_vat')"
+                        min-width="120"
+                        align="center"
+                      />
+                      <el-table-column
+                        prop="price_components[0].price_incl"
+                        :label="t('price_incl_vat')"
+                        min-width="120"
+                        align="center"
+                      />
+                      <el-table-column
+                        prop="price_components[0].vat"
+                        :label="t('vat')"
+                        min-width="80"
+                        align="center"
+                      />
+                      <el-table-column
+                        prop="price_components[0].step_size_str"
+                        :label="t('unit')"
+                        min-width="80"
+                        align="center"
+                      />
+                      <el-table-column
+                        prop="restrictions.start_time"
+                        :label="t('start_time')"
+                        min-width="120"
+                        align="center"
+                      />
+                      <el-table-column
+                        prop="restrictions.end_time"
+                        :label="t('end_time')"
+                        min-width="120"
+                        align="center"
+                      />
+                  <el-table-column prop="restrictions_min_duration_str" :label="t('active_minute')" min-width="120" align="center"/>
+                  <el-table-column prop="restrictions_max_duration_str" :label="t('deactivate_minute')" min-width="120" align="center"/>
+                  
+                      <el-table-column
+                        prop="restrictions.day_of_week_str"
+                        :label="t('day_of_week')"
+                        min-width="200"
+                        align="center"
+                      />
+                    </el-table>
+                  </div>
+                  <div class="px-14px py-20px bg-white mb-24px rounded-2xl" v-if="displaySwitch === true">
+                    <p class="pt-10px font-700 text-blue-900">{{ t('charging') }}</p>
+                    <div class="overflow-x-auto">
+                      <FullCalendar ref="chargingCalendarRef" :options="chargingCalendarOptions" class="mt-5px mb-5px min-w-800px" />
+                    </div>
+                  </div>
+                  <div class="px-14px py-20px bg-white rounded-2xl" v-if="displaySwitch === true">
+                    <p class="pt-10px font-700 text-blue-900">{{ t('parking') }}</p>
+                    <div class="overflow-x-auto">
+                      <FullCalendar ref="parkingCalendarRef" :options="parkingCalendarOptions" class="mt-5px mb-5px min-w-800px" />
+                    </div>
                   </div>
                 </div>
-                <div class="px-14px bg-white" v-if="displaySwitch === false">
-                  <el-table
-                    :data="selectTariffObj.elements"
-                    style="width: 100%; height: 300px"
-                    stripe
-                    :cell-style="msi.tb_cell"
-                    :header-cell-style="msi.tb_header_cell"
-                    size="large"
-                  >
-                    <el-table-column
-                      prop="price_components[0].type_str"
-                      :label="t('type')"
-                      min-width="120"
-                      align="center"
-                    />
-                    <el-table-column
-                      prop="price_components[0].price"
-                      :label="t('price_excl_vat')"
-                      min-width="120"
-                      align="center"
-                    />
-                    <el-table-column
-                      prop="price_components[0].price_incl"
-                      :label="t('price_incl_vat')"
-                      min-width="120"
-                      align="center"
-                    />
-                    <el-table-column
-                      prop="price_components[0].vat"
-                      :label="t('vat')"
-                      min-width="80"
-                      align="center"
-                    />
-                    <el-table-column
-                      prop="price_components[0].step_size_str"
-                      :label="t('unit')"
-                      min-width="80"
-                      align="center"
-                    />
-                    <el-table-column
-                      prop="restrictions.start_time"
-                      :label="t('start_time')"
-                      min-width="120"
-                      align="center"
-                    />
-                    <el-table-column
-                      prop="restrictions.end_time"
-                      :label="t('end_time')"
-                      min-width="120"
-                      align="center"
-                    />
-                <el-table-column prop="restrictions_min_duration_str" :label="t('active_minute')" min-width="120" align="center"/>
-                <el-table-column prop="restrictions_max_duration_str" :label="t('deactivate_minute')" min-width="120" align="center"/>
-                
-                    <el-table-column
-                      prop="restrictions.day_of_week_str"
-                      :label="t('day_of_week')"
-                      min-width="200"
-                      align="center"
-                    />
-                  </el-table>
-                </div>
-                <div class="px-14px py-20px bg-white mb-24px rounded-2xl" v-if="displaySwitch === true">
-                  <p class="pt-10px font-700 text-blue-900">{{ t('charging') }}</p>
-                  <div class="overflow-x-auto">
-                    <FullCalendar ref="chargingCalendarRef" :options="chargingCalendarOptions" class="mt-5px mb-5px min-w-800px" />
+              </el-tab-pane>
+
+              <!-- <el-tab-pane name="two">
+                <template #label>
+                  <div class="title flex items-center mb-20px">
+                    <font-awesome-icon icon="fa-regular fa-file-lines" class="w-20px h-20px text-black-100" />
+                    <h4 class="m-0 ml-8px text-20px text-black-100">{{ t('charging_profile') }}</h4>
                   </div>
-                </div>
-                <div class="px-14px py-20px bg-white rounded-2xl" v-if="displaySwitch === true">
-                  <p class="pt-10px font-700 text-blue-900">{{ t('parking') }}</p>
-                  <div class="overflow-x-auto">
-                    <FullCalendar ref="parkingCalendarRef" :options="parkingCalendarOptions" class="mt-5px mb-5px min-w-800px" />
+                </template>
+
+                <div class="rounded-lg bg-gray-100 p-20px">
+                  <el-menu mode="horizontal overflow-x-auto" default-active="1" @select="changeChargingProfileTab">
+                    <el-menu-item v-for="(item, index) in chargingProfilePurpose" :index="index"><span>{{ item.label }}</span></el-menu-item>
+                  </el-menu>
+
+                  <div>
+                    <div class="mb-20px flex justify-between">
+                      <el-form-item class="block mb-4px" :label= "t('profile_name')" prop="select_charging_profile">
+                        <el-select
+                          class="el-select w-full"
+                          v-model="evse_obj.select_charging_profile"
+                          placeholder="Select"
+                          size="large"
+                          @change="selectChargingProfile"
+                        >
+                          <el-option
+                            v-for="item in charging_profile_options"
+                            :key="item.value"
+                            :label="item.name"
+                            :value="item._id"
+                          />
+                        </el-select>
+                      </el-form-item>
+                    </div>
+  
+                    <div class="lg:flex overflow-x-auto">
+                      <div class="mb-24px bg-white px-14px py-20px rounded-2xl lg:w-25% min-w-250px">
+                        <p class="font-bold pb-20px">{{ t('general') }}</p>
+                        <div class="info-item">
+                          <p class="info-title">
+                            <span class="font-700 text-blue-900">{{ t('stack_level') + ':' }}  </span>
+                            <span class="ml-18px">{{ selectChargingProfileData.stack_level }}</span>
+                          </p>
+                        </div>
+                        <div class="info-item">
+                          <p class="info-title">
+                            <span class="font-700 text-blue-900">{{ t('purpose') + ':' }}  </span>
+                            <span class="ml-18px">{{ selectChargingProfileData.charging_profile_purpose_str }}</span>
+                          </p>
+                        </div>
+                        <div class="info-item">
+                          <p class="info-title">
+                            <span class="font-700 text-blue-900">{{ t('kind') + ':' }}  </span>
+                            <span class="ml-18px">{{ selectChargingProfileData.charging_profile_kind_str }}</span>
+                          </p>
+                        </div>
+                        <div class="info-item">
+                          <p class="info-title">
+                            <span class="font-700 text-blue-900">{{ t('recurrency') + ':' }}  </span>
+                            <span class="ml-18px">{{ selectChargingProfileData.recurrency_kind_str }}</span>
+                          </p>
+                        </div>
+                        <div class="info-item">
+                          <p class="info-title">
+                            <span class="font-700 text-blue-900">{{ t('valid_from') + ':' }}  </span>
+                            <span class="ml-18px">{{ selectChargingProfileData.valid_from_str }}</span>
+                          </p>
+                        </div>
+                        <div class="info-item">
+                          <p class="info-title">
+                            <span class="font-700 text-blue-900">{{ t('valid_to') + ':' }}  </span>
+                            <span class="ml-18px">{{ selectChargingProfileData.valid_to_str }}</span>
+                          </p>
+                        </div>
+                      </div>
+                      <div class="mb-24px bg-white px-14px py-20px rounded-2xl lg:w-25% min-w-200px lg:mx-24px">
+                        <p class="font-bold pb-20px">{{ t('charging_schedule') }}</p>
+                        <div class="info-item">
+                          <p class="info-title">
+                            <span class="font-700 text-blue-900">{{ t('duration') + ':' }}  </span>
+                            <span class="ml-18px">{{ select_charging_schedule.duration }}</span>
+                            <span class="ml-10px" v-if="select_charging_schedule.duration">s</span>
+                          </p>
+                        </div>
+                        <div class="info-item">
+                          <p class="info-title">
+                            <span class="font-700 text-blue-900">{{ t('start_schedule') + ':' }}  </span>
+                            <span class="ml-18px">{{ select_charging_schedule.start_schedule_str }}</span>
+                          </p>
+                        </div>
+                        <div class="info-item">
+                          <p class="info-title">
+                            <span class="font-700 text-blue-900">{{ t('scheduling_unit') + ':' }}  </span>
+                            <span class="ml-18px">{{ select_charging_schedule.charging_rate_unit }}</span>
+                          </p>
+                        </div>
+                        <div class="info-item">
+                          <p class="info-title">
+                            <span class="font-700 text-blue-900">{{ t('min_charging_rate') + ':' }}  </span>
+                            <span class="ml-18px">{{ select_charging_schedule.min_charging_rate }}</span>
+                            <span class="ml-10px" v-if="select_charging_schedule.min_charging_rate">{{ select_charging_schedule.charging_rate_unit }}</span>
+                          </p>
+                        </div>
+                      </div>
+                      <div class="mb-24px bg-white px-14px py-20px rounded-2xl lg:w-50% min-w-400px">
+                        <p class="font-bold pb-20px">{{ t('charging_schedule_period') }}</p>
+                        <el-table :data="select_charging_schedule_period">
+                          <el-table-column prop="start_period" :label="t('start_period')+'(s)'" align="center" min-width="100" />
+                          <el-table-column prop="limit" :label="t('limit')" align="center" min-width="100" >
+                            <template #header>
+                              <span v-if="select_charging_schedule.charging_rate_unit">{{ t('limit') }} ({{ select_charging_schedule.charging_rate_unit }})</span>
+                              <span v-else>{{ t('limit') }}</span>
+                            </template>
+                          </el-table-column>
+                          <el-table-column prop="number_phases" :label="t('number_phases')" align="center" />
+                        </el-table>
+                      </div>
+                    </div>
                   </div>
+
                 </div>
-              </div>
-            </div>
+              </el-tab-pane> -->
+            </el-tabs>
           </el-col>
         </el-row>
       </div>
@@ -885,7 +1161,6 @@ onMounted(async () => {
 
 // for table border
 :deep(.fc-scrollgrid) {
-  // ����������ت�l��
   border: 0px;
   th {
     border: 0px;
@@ -896,23 +1171,18 @@ onMounted(async () => {
   td {
     border: 0px;
   }
-  // �ɶ��b���u + body��u
   .fc-timegrid-slot-lane {
     border: 1px solid var(--gray-200);
   }
-  // body���u
   .fc-timegrid-col {
     border: 1px solid var(--gray-200);
   }
-  // ������D�U�ؽu
   .fc-day {
     border-bottom: 1px solid var(--gray-200);
-    // body�U�ؽu
     .fc-timegrid-col-frame {
       border-bottom: 1px solid var(--gray-200);
     }
   }
-  // body�̥k�����u
   .fc-timegrid-slots {
     border-right: 1px solid var(--gray-200);
   }
@@ -926,5 +1196,25 @@ onMounted(async () => {
   height: 20px;
   line-height: 20px;
   border-radius: 5px;
+}
+:deep(.el-menu) {
+  background-color: unset;
+  border-bottom: 2px solid var(--gray-300);
+  margin-bottom: 12px;
+  .el-sub-menu {
+    background-color: unset !important;
+  }
+  .el-menu-item:hover {
+    background-color: var(--gray-200) !important;
+    border-left: 0rem solid !important;
+  }
+  .el-menu-item.is-active {
+    font-weight: 700;
+    background-color: unset !important;
+  }
+  .el-menu-item span {
+    font-size: 1.6rem !important;
+    font-weight: bold;
+  }
 }
 </style>

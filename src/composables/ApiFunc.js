@@ -2,7 +2,7 @@ import VueCookies from 'vue-cookies'
 import axios from 'axios'
 
 let AuthToken = null
-let api1 = 'api10/api2'
+let api1 = 'api10/api3'
 axios.defaults.timeout = 15000
 if (import.meta.env.VITE_API !== undefined) {
   api1 = import.meta.env.VITE_API
@@ -283,14 +283,13 @@ export default function () {
 
   const get_composite_schedule = async (json) => {
     AuthToken = VueCookies.get('AuthToken')
-    console.log(json)
     const response = await getJsonData(api1 + '/cp/ocpp/v16/get_composite_schedule' +'?evse_id=' + json.evse_id + '&connectorId=1' + '&duration=' + json.duration  ,  AuthToken)
-    console.log(response)
     return response
   }
+
   const set_charging_profile = async(json) => {
     AuthToken = VueCookies.get('AuthToken')
-    const response = await getJsonData(api1 + '/cp/ocpp/v16/set_charging_profile' +'?evse_id=' + json.evse_id + '&connectorId=1' + '&csChargingProfiles=' + json.csChargingProfiles,  AuthToken)
+    const response = await postJsonData(api1 + '/cp/ocpp/v16/set_charging_profile', json,  AuthToken)
     return response
   }
   
@@ -306,6 +305,18 @@ export default function () {
     const response = await postJsonData(api1 + '/cpo/notify/fcm', json ,  AuthToken)
     return response
   }
+
+  const get_edoc = async(json) => {
+    AuthToken = VueCookies.get('AuthToken')
+    const response = await getJsonData(api1 + '/edoc?name=' + json.filename, AuthToken)
+    return response
+  }
+
+  const patch_edoc = async() => {
+    AuthToken = VueCookies.get('AuthToken')
+    const response = await patchJsonData(api1 + '/edoc', '', AuthToken)
+    return response
+  }
   return {
       setCollectionData, getToken, checkToken, mongoQuery, mongoAggregate,
       register_member_v0, register_member, get_account_info, get_account_detail, edit_account, delete_account,
@@ -314,6 +325,6 @@ export default function () {
       forgotPW, add_rfid_data, edit_rfid_data, delete_rfid_data, set_rfid_cash, 
       clear_charging_profile, get_composite_schedule, set_charging_profile,
       get_transaction, change_availability, get_diagnostics, get_configuration, sendNotification,
-      add_merchant, 
+      add_merchant, get_edoc, patch_edoc,
   }
 }

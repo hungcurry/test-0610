@@ -29,6 +29,7 @@ const locationData = reactive([])
 const tariffData = reactive([])
 const tariff_elements = reactive([])
 const config_dialog_visible = ref(false)
+const activeName = ref('one')
 
 const cp_config_core = {
 AllowOfflineTxForUnknownId: undefined,
@@ -67,7 +68,21 @@ UnlockConnectorOnEVSideDisconnect: undefined,
 WebSocketPingInterval: undefined,
 }
 const cp_config = reactive (cp_config_core)
+const dialog_title = ref('')
+const chargingProfile_dialog_visible = ref(false)
+const chargingProfile_dialog_step = ref('one')
+const chargingProfile_dialog_type = ref('')
+const chargingProfile_dialog_data = reactive({})
 
+const get_composite_schedule_formRef  = ref()
+const get_composite_schedule_rules = reactive({
+  durationInput: [{ required: true, message: t('this_item_is_required'), trigger: 'blur' },],
+})
+const set_charging_profile_formRef  = ref()
+const set_charging_profile_rules = reactive({
+  send_charge_profile_purpose: [{ required: true, message: t('this_item_is_required'), trigger: 'change' },],
+  send_charge_profile: [{ required: true, message: t('this_item_is_required'), trigger: 'change' },],
+})
 
 const deleteEvse = () => {
   ElMessageBox.confirm(t('do_you_want_to_delete'),'Warning', {confirmButtonText: 'OK', cancelButtonText: 'Cancel', type: 'warning'})
@@ -97,6 +112,58 @@ const deleteEvse = () => {
 }
 const edit = () => {
   router.push({ name: 'evseEdit', query: {station_id:locationData.id, evse_id:evseId} })
+}
+
+const openChargingProfileDialog = (value) => {
+  chargingProfile_dialog_visible.value = true
+  chargingProfile_dialog_type.value = value
+  chargingProfile_dialog_step.value = 'one'
+  if (value === 'get') {
+    dialog_title.value = t('get_composite_schedule')
+    chargingProfile_dialog_data.durationInput = undefined
+    chargingProfile_dialog_data.get_charge_rate_unit = undefined
+    get_composite_schedule_formRef.value?.resetFields()
+  }
+  else if (value === 'set') {
+    dialog_title.value = t('set_charging_profile')
+    chargingProfile_dialog_data.send_charge_profile_purpose = undefined
+    chargingProfile_dialog_data.send_charge_profile = undefined
+    set_charging_profile_formRef.value?.resetFields()
+  }
+  else if (value === 'clear') {
+    dialog_title.value = t('clear_charging_profile')
+    chargingProfile_dialog_data.clear_charge_profile_purpose = undefined
+    chargingProfile_dialog_data.clear_stack_level = undefined
+  }
+}
+const confirmChargingProfileDialog = async(value) => {
+  if (value === 'get') {
+    await get_composite_schedule_formRef.value.validate((valid) => {
+      if (valid === true) {
+        chargingProfile_dialog_step.value = 'two'
+        getCompositeSchedule()
+      }
+    })
+  }
+  else if (value === 'set') {
+    await set_charging_profile_formRef.value.validate((valid) => {
+      if (valid === true) {
+        setChargeProfile()
+      }
+    })
+  }
+  else if (value === 'clear') {
+    clearChargingProfile()
+  }
+}
+const filterChargeProfilePurpose = (value) => {
+  chargingProfile_dialog_data.send_charge_profile = undefined
+  chargingProfile_dialog_data.filter_charge_profile_options = []
+  AllChargingProfileData.forEach((item) => {
+    if (item.charging_profile_purpose === value) {
+      chargingProfile_dialog_data.filter_charge_profile_options.push(item)
+    }
+  })
 }
 
 let interval = undefined
@@ -179,24 +246,75 @@ const getConfiguration = async () => {
 }
 
 const clearChargingProfile = async () => {
-  ElMessageBox.confirm(t('do_you_want_to_clear_charging_profile'),'Warning', {confirmButtonText: 'OK', cancelButtonText: 'Cancel', type: 'warning'})
+  chargingProfile_dialog_visible.value = false
+  ElMessageBox.confirm(t('do_you_want_to_clear_charging_profile'), t('warning'), {confirmButtonText: 'OK', cancelButtonText: 'Cancel', type: 'warning'})
   .then(async () => {
+    if (!chargingProfile_dialog_data.clear_stack_level) {
+      chargingProfile_dialog_data.clear_stack_level = undefined
+    }
     let sendData = {
       evse_id: evseData.evse_id,
+      chargingProfilePurpose: chargingProfile_dialog_data.clear_charge_profile_purpose,
+      stackLevel: chargingProfile_dialog_data.clear_stack_level,
     }
-    console.log(await MsiApi.clear_charging_profile(sendData))
+    let res = await MsiApi.clear_charging_profile(sendData)
+    console.log(res)
+    if (res.status === 200) {
+      ElMessage.success('Success')
+    }
+    else {
+      ElMessage.error(res.data.status)
+    }
   })
 }
 
+const setChargeProfile = async() => {
+  let send_charge_profile_obj = undefined
+  for (let i=0; i<AllChargingProfileData.length; i++) {
+    if (AllChargingProfileData[i]._id === chargingProfile_dialog_data.send_charge_profile) {
+      send_charge_profile_obj = AllChargingProfileData[i]
+    }
+  }
 
-const getCompositeSchedule = async () => {
-  ElMessageBox.confirm(t('do_you_want_to_get_composite_schedule'),'Warning', {confirmButtonText: 'OK', cancelButtonText: 'Cancel', type: 'warning'})
+  chargingProfile_dialog_visible.value = false
+  ElMessageBox.confirm(t('do_you_want_to_set_charging_profile'), t('warning'), {confirmButtonText: 'OK', cancelButtonText: 'Cancel', type: 'warning'})
   .then(async () => {
     let sendData = {
       evse_id: evseData.evse_id,
-      duration: 100,
+      connectorId: 1,
+      csChargingProfiles: send_charge_profile_obj,
     }
-    console.log(await MsiApi.get_composite_schedule(sendData))
+    let res = await MsiApi.set_charging_profile(sendData)
+    if (res.status === 200) {
+      console.log(res)
+      ElMessage.success('Success')
+    }
+    else {
+      ElMessage.error(res.data.status)
+    }
+  })
+}
+
+const getCompositeSchedule = async () => {
+  chargingProfile_dialog_visible.value = false
+  ElMessageBox.confirm(t('do_you_want_to_get_composite_schedule'), t('warning'), {confirmButtonText: 'OK', cancelButtonText: 'Cancel', type: 'warning'})
+  .then(async () => {
+    let sendData = {
+      evse_id: evseData.evse_id,
+      duration: chargingProfile_dialog_data.durationInput,
+      chargingRateUnit: chargingProfile_dialog_data.get_charge_rate_unit
+    }
+    let res = await MsiApi.get_composite_schedule(sendData)
+    if (res.status === 200) {
+      chargingProfile_dialog_visible.value = true
+      Object.assign(chargingProfile_dialog_data, res.data.message)
+      let localEndTime = new Date(chargingProfile_dialog_data?.charging_schedule?.start_schedule).getTime()
+      chargingProfile_dialog_data.start_schedule_str = (moment(localEndTime).format("YYYY-MM-DD HH:mm:ss")) 
+      console.log(chargingProfile_dialog_data)
+    }
+    else {
+      ElMessage.error(res.data.status)
+    }
   })
 }
 
@@ -557,6 +675,114 @@ const parkingCalendarOptions = reactive({
   eventMouseEnter: handleEventMouseEnter,
 })
 
+// ChargingProfile ---------------------------------------------------------------
+const AllChargingProfileData = reactive([])
+const EVSEChargingProfileData = reactive([])
+const charging_profile = reactive({})
+const charging_schedule = reactive({})
+const charging_schedule_period = reactive([])
+const chargingProfilePurpose = [
+  { value: 'ChargePointMaxProfile', label: t('charge_point_max_profile')},
+  { value: 'TxDefaultProfile', label: t('tx_default_profile')},
+  { value: 'TxProfile', label: t('tx_profile')},
+]
+const chargingRateUnit = [
+  { value: 'W', label: 'W'},
+  { value: 'A', label: 'A'},
+]
+const changeDisplayProfile = (index) => {
+  for (let i=0; i<EVSEChargingProfileData.length; i++) {
+    if (EVSEChargingProfileData[i].charging_profile_purpose === chargingProfilePurpose[index].value) {
+      Object.assign(charging_profile, EVSEChargingProfileData[i])
+      Object.assign(charging_schedule, EVSEChargingProfileData[i].charging_schedule)
+      Object.assign(charging_schedule_period, EVSEChargingProfileData[i].charging_schedule.charging_schedule_period)
+      console.log(charging_profile)
+      return
+    }
+  }
+  for (let key in charging_profile) {
+    charging_profile[key] = undefined
+  }
+  for (let key in charging_schedule) {
+    charging_schedule[key] = undefined
+  }
+  charging_schedule_period.length = 0
+}
+const getCharging_profile = async() => {
+  let queryData = null
+  let response = null
+  queryData = {
+    database: 'CPO',
+    collection: 'ChargingProfile',
+    pipelines: [{ $project: { aaa: 0} }],
+  }
+  response = await MsiApi.mongoAggregate(queryData)
+  Object.assign(AllChargingProfileData, response.data.result)
+
+  let sample_id = [{_id: '6541f4a9037ef078b00aba67'}, {_id: '6541f530037ef078b00aba6a'}]  // Tony
+  AllChargingProfileData.forEach((item) => {
+    for (let i=0; i<sample_id.length; i++) {
+      item.name = item.custom?.name
+      if (item._id === sample_id[i]._id) {
+        let localEndTime = null
+        if (item.valid_from) {
+          localEndTime =  new Date( (new Date(item.valid_from).getTime()) + ((MStore.timeZoneOffset ) * -60000))
+          item.valid_from_str = (moment(localEndTime).format("YYYY-MM-DD HH:mm:ss"))
+        }
+        if (item.valid_to) {
+          localEndTime =  new Date( (new Date(item.valid_to).getTime()) + ((MStore.timeZoneOffset ) * -60000))
+          item.valid_to_str = (moment(localEndTime).format("YYYY-MM-DD HH:mm:ss"))
+        }
+        if (item.charging_schedule.start_schedule) {
+          localEndTime =  new Date( (new Date(item.charging_schedule.start_schedule).getTime()) + ((MStore.timeZoneOffset ) * -60000))
+          item.charging_schedule.start_schedule_str = (moment(localEndTime).format("YYYY-MM-DD HH:mm:ss"))
+        }
+        switch (item.charging_profile_purpose) {
+          case 'ChargePointMaxProfile':
+            item.charging_profile_purpose_str = t('charge_point_max_profile')
+            break;
+          case 'TxDefaultProfile':
+            item.charging_profile_purpose_str = t('tx_default_profile')
+            break;
+          case 'TxProfile':
+            item.charging_profile_purpose_str = t('tx_profile')
+            break;
+          default:
+            item.charging_profile_purpose_str = item.charging_profile_purpose
+            break;
+        }
+        switch (item.charging_profile_kind) {
+          case 'Absolute':
+            item.charging_profile_kind_str = t('absolute')
+            break;
+          case 'Recurring':
+            item.charging_profile_kind_str = t('recurring')
+            break;
+          case 'Relative':
+            item.charging_profile_kind_str = t('relative')
+            break;
+          default:
+            item.charging_profile_kind_str = item.charging_profile_kind
+            break;
+        }
+        switch (item.recurrency_kind) {
+          case 'Daily':
+            item.recurrency_kind_str = t('daily')
+            break;
+          case 'Weekly':
+            item.recurrency_kind_str = t('weekly')
+            break;
+          default:
+            item.recurrency_kind_str = item.recurrency_kind
+            break;
+        }
+        EVSEChargingProfileData.push(item)
+      }
+    }
+  })
+  changeDisplayProfile(0)
+}
+
 onMounted( async () => {
   interval1 = setInterval(getRealTimeEvseInfo, 10000) 
   await getRealTimeEvseInfo()
@@ -674,6 +900,7 @@ onMounted( async () => {
     }
   })
   fillFullCalendar()
+  getCharging_profile()
 })
 
 
@@ -722,16 +949,17 @@ onUnmounted(() => {
                   type="primary" class="btn-secondary box-shadow delete" @click="changeConfiguration"> {{t('change_configuration')}} </el-button> -->
                 <el-button v-if="MStore.rule_permission.EVSEDetail.getDiagnostics === 'O' || MStore.permission.isCompany"
                   type="primary" class="btn-secondary box-shadow delete" @click="getDiagnostics"> {{t('get_diagnostics')}} </el-button>
-                <!-- <el-button v-if="MStore.rule_permission.EVSEDetail.getDiagnostics === 'O' || MStore.permission.isCompany" disabled
-                  type="primary" class="btn-secondary box-shadow delete" @click="getDiagnostics"> {{t('charging_profile')}} </el-button> -->
-
-
-                  <!-- <el-button v-if="MStore.rule_permission.EVSEDetail.compositeSchedule === 'O' || MStore.permission.isCompany"
-                  type="primary" class="btn-secondary box-shadow delete" @click="getCompositeSchedule"> {{t('get_composite_schedule')}} </el-button>
-                  <el-button v-if="MStore.rule_permission.EVSEDetail.clearChargingProfile === 'O' || MStore.permission.isCompany"
-                  type="primary" class="btn-secondary box-shadow delete" @click="clearChargingProfile"> {{t('clear_charging_profile')}} </el-button> -->
-                                    <!-- <el-button v-if="MStore.rule_permission.EVSEDetail.getChargingProfile === 'O' || MStore.permission.isCompany"
-                  type="primary" class="btn-secondary box-shadow delete" @click="setChargingProfile"> {{t('set_charging_profile')}} </el-button> -->
+                <!-- <el-dropdown class="ml-12px">
+                  <el-button v-if="MStore.rule_permission.EVSEDetail.chargingProfile === 'O' || MStore.permission.isCompany" 
+                    type="primary" class="btn-secondary box-shadow delete"> {{t('charging_profile')}} </el-button>
+                  <template #dropdown>
+                    <el-dropdown-menu>
+                      <el-dropdown-item v-if="MStore.rule_permission.EVSEDetail.compositeSchedule === 'O' || MStore.permission.isCompany" @click="openChargingProfileDialog('get')">{{t('get_composite_schedule')}}</el-dropdown-item>
+                      <el-dropdown-item v-if="MStore.rule_permission.EVSEDetail.setChargingProfile === 'O' || MStore.permission.isCompany" @click="openChargingProfileDialog('set')">{{t('set_charging_profile')}}</el-dropdown-item>
+                      <el-dropdown-item v-if="MStore.rule_permission.EVSEDetail.clearChargingProfile === 'O' || MStore.permission.isCompany" @click="openChargingProfileDialog('clear')">{{t('clear_charging_profile')}}</el-dropdown-item>
+                    </el-dropdown-menu>
+                  </template>  
+                </el-dropdown> -->
               </div>
             </div>
           </el-col>
@@ -870,73 +1098,165 @@ onUnmounted(() => {
         <el-row class="tariff-container rounded-2xl"  :gutter="30">
           <el-col class="el-col" :xs="24" :md="24">
             <div class=" h-full rounded-2xl p-16px bg-white">
-              <div class="title w-full flex items-center mb-20px">
-                <img class="w-24px h-24px filter-black" src="@/assets/img/charger_tariff.png" alt="">
-                <h4 class="m-0 ml-8px text-20px text-black-100">{{ t('rate') }}</h4>
-              </div>
-              <div class="lg:flex mb-20px bg-blue-100 p-20px md:px-0 rounded-2xl">
-                <div class="tariff-left lg:w-30% mb-20px lg:mb-0">
-                  <div class="container-data h-full md:px-32px">
-                    <div class="info-item">
-                      <p class="info-title">
-                        <span class="font-700 text-blue-900">{{ t('plan_name') + ':' }}  </span>
-                        <span class="ml-18px">{{ tariffData.name }} </span>
-                      </p>
+              <el-tabs v-model="activeName" class="">
+                <el-tab-pane name="one">
+                  <template #label>
+                    <div class="title flex w-full items-center mb-20px">
+                      <img class="w-24px h-24px filter-black" src="@/assets/img/charger_tariff.png" alt="">
+                      <h4 class="m-0 ml-8px text-20px text-black-100">{{ t('rate') }}</h4>
                     </div>
-                    <!-- <div class="info-item">
-                      <p class="info-title">
-                        <span class="font-700 text-blue-900">Rate Alt Url : </span>
-                        <span class="ml-18px">{{ tariffData.tariff_alt_url }}</span>
-                      </p>
-                    </div> -->
+                  </template>
+                  <div class="lg:flex mb-20px bg-blue-100 p-20px md:px-0 rounded-2xl">
+                    <div class="tariff-left lg:w-30% mb-20px lg:mb-0">
+                      <div class="container-data h-full md:px-32px">
+                        <div class="info-item">
+                          <p class="info-title">
+                            <span class="font-700 text-blue-900">{{ t('plan_name') + ':' }}  </span>
+                            <span class="ml-18px">{{ tariffData.name }} </span>
+                          </p>
+                        </div>
+                        <!-- <div class="info-item">
+                          <p class="info-title">
+                            <span class="font-700 text-blue-900">Rate Alt Url : </span>
+                            <span class="ml-18px">{{ tariffData.tariff_alt_url }}</span>
+                          </p>
+                        </div> -->
+                      </div>
+                    </div>
+                    <div class="tariff-right lg:w-70%">
+                      <!-- <div class="container-data h-full md:px-32px"> -->
+                      <div class="container-data h-full md:px-32px flex justify-between">
+                        <div class="">
+                          <p class="info-title font-700 text-blue-900 mb-7px"> {{ t('rate_description') + ':' }}  </p>
+                          <p class="info-value">{{ tariffData.description}}</p>
+                        </div>
+    
+                        <el-switch
+                          v-model="displaySwitch"
+                          size="large"
+                          :active-text="t('schedule')"
+                          :inactive-text="t('table')"
+                          class="flex-items-start"
+                        />
+                      </div>
+                    </div>
                   </div>
-                </div>
-                <div class="tariff-right lg:w-70%">
-                  <!-- <div class="container-data h-full md:px-32px"> -->
-                  <div class="container-data h-full md:px-32px flex justify-between">
-                    <div class="">
-                      <p class="info-title font-700 text-blue-900 mb-7px"> {{ t('rate_description') + ':' }}  </p>
-                      <p class="info-value">{{ tariffData.description}}</p>
+                  <el-table v-if="displaySwitch === false" :data="tariff_elements" style="width: 100%; height:300px" stripe 
+                    :cell-style=msi.tb_cell :header-cell-style=msi.tb_header_cell size="large">
+                    <el-table-column prop="price_components[0].type_str" :label="t('type')" min-width="130" align="center"/>
+                    <el-table-column prop="price_components[0].price" :label="t('price_excl_vat')" min-width="120" align="center"/>
+                    <el-table-column prop="price_components[0].price_incl" :label="t('price_incl_vat')" min-width="120" align="center"/>
+                    <el-table-column prop="price_components[0].vat" :label="t('vat')" min-width="80" align="center"/>
+                    <el-table-column prop="step_size_str" :label="t('unit')" min-width="80" align="center"/>
+                    <el-table-column prop="restrictions.start_time" :label="t('start_time')" min-width="120" align="center"/>
+                    <el-table-column prop="restrictions.end_time" :label="t('end_time')" min-width="120" align="center"/>
+                    <el-table-column prop="restrictions_min_duration_str" :label="t('active_minute')" min-width="120" align="center"/>
+                    <el-table-column prop="restrictions_max_duration_str" :label="t('deactivate_minute')" min-width="120" align="center"/>
+                    <el-table-column prop="restrictions.day_of_week_str" :label="t('day_of_week')" min-width="200" align="center"/>
+                  </el-table>
+                  
+                  <div v-if="displaySwitch === true" class="overflow-x-auto">
+                    <div class="flex-col 2xl:flex-row">
+                      <div class="2xl:mr-10px w-100% min-w-800px 2xl:w-50%">
+                        <p class="font-700 text-blue-900">▶ {{ t('charging') }}</p>
+                        <FullCalendar ref="chargingCalendarRef" :options="chargingCalendarOptions" class="mt-5px mb-5px w-100%" />
+                      </div>
+                      <div class="pt-30px 2xl:pt-0px w-100% min-w-800px 2xl:w-50%">
+                        <p class="font-700 text-blue-900">▶ {{ t('parking') }}</p>
+                        <FullCalendar ref="parkingCalendarRef" :options="parkingCalendarOptions" class="mt-5px mb-5px w-100%" />
+                      </div>
+                    </div>
+                  </div>
+                </el-tab-pane>
+
+                <!-- <el-tab-pane name="two" class="charging-profile">
+                  <template #label>
+                    <div class="title flex w-full items-center mb-20px">
+                      <font-awesome-icon icon="fa-regular fa-file-lines" class="w-20px h-20px text-black-100" />
+                      <h4 class="m-0 ml-8px text-20px text-black-100">{{ t('charging_profile') }}</h4>
+                    </div>
+                  </template>
+
+                  <div class="flex-col lg:flex-row pt-24px overflow-x-auto">
+                    <div class="flex flex-wrap lg:flex-col lg:mr-24px">
+                      <el-button v-for="(item, index) in chargingProfilePurpose" class="button mb-24px mr-12px" @click="changeDisplayProfile(index)">{{ item.label }}</el-button>
                     </div>
 
-                    <el-switch
-                      v-model="displaySwitch"
-                      size="large"
-                      :active-text="t('schedule')"
-                      :inactive-text="t('table')"
-                      class="flex-items-start"
-                    />
-                  </div>
-                </div>
-              </div>
-              <el-table v-if="displaySwitch === false" :data="tariff_elements" style="width: 100%; height:300px" stripe 
-                :cell-style=msi.tb_cell :header-cell-style=msi.tb_header_cell size="large">
-                <el-table-column prop="price_components[0].type_str" :label="t('type')" min-width="130" align="center"/>
-                <el-table-column prop="price_components[0].price" :label="t('price_excl_vat')" min-width="120" align="center"/>
-                <el-table-column prop="price_components[0].price_incl" :label="t('price_incl_vat')" min-width="120" align="center"/>
-                <el-table-column prop="price_components[0].vat" :label="t('vat')" min-width="80" align="center"/>
-                <el-table-column prop="step_size_str" :label="t('unit')" min-width="80" align="center"/>
-                <el-table-column prop="restrictions.start_time" :label="t('start_time')" min-width="120" align="center"/>
-                <el-table-column prop="restrictions.end_time" :label="t('end_time')" min-width="120" align="center"/>
-                <el-table-column prop="restrictions_min_duration_str" :label="t('active_minute')" min-width="120" align="center"/>
-                <el-table-column prop="restrictions_max_duration_str" :label="t('deactivate_minute')" min-width="120" align="center"/>
-                <el-table-column prop="restrictions.day_of_week_str" :label="t('day_of_week')" min-width="200" align="center"/>
-              </el-table>
-              
-              <div v-if="displaySwitch === true" class="overflow-x-auto">
-                <div class="flex-col 2xl:flex-row">
-                  <div class="2xl:mr-10px w-100% min-w-800px 2xl:w-50%">
-                    <p class="font-700 text-blue-900">▶ {{ t('charging') }}</p>
-                    <FullCalendar ref="chargingCalendarRef" :options="chargingCalendarOptions" class="mt-5px mb-5px w-100%" />
-                  </div>
-                  <div class="pt-30px 2xl:pt-0px w-100% min-w-800px 2xl:w-50%">
-                    <p class="font-700 text-blue-900">▶ {{ t('parking') }}</p>
-                    <FullCalendar ref="parkingCalendarRef" :options="parkingCalendarOptions" class="mt-5px mb-5px w-100%" />
-                  </div>
-                </div>
-                
-              </div>
+                    <div class="v-line w-3px"></div>
 
+                    <div class="min-w-420px lg:w-25% md:px-32px">
+                      <p class="font-bold text-20px pb-20px">{{ t('general') }}</p>
+                      <div class="info-item">
+                        <p class="info-title w-50%"> {{ t('name') + ':' }}</p>
+                        <p class="info-value w-50% ml-24px">{{ charging_profile.name }}</p>
+                      </div>
+                      <div class="info-item">
+                        <p class="info-title w-50%"> {{ t('stack_level') + ':' }}</p>
+                        <p class="info-value w-50% ml-24px">{{ charging_profile.stack_level }}</p>
+                      </div>
+                      <div class="info-item">
+                        <p class="info-title w-50%"> {{ t('purpose') + ':' }}</p>
+                        <p class="info-value w-50% ml-24px">{{ charging_profile.charging_profile_purpose_str }}</p>
+                      </div>
+                      <div class="info-item">
+                        <p class="info-title w-50%"> {{ t('kind') + ':' }}</p>
+                        <p class="info-value w-50% ml-24px">{{ charging_profile.charging_profile_kind_str }}</p>
+                      </div>
+                      <div class="info-item">
+                        <p class="info-title w-50%"> {{ t('recurrency') + ':' }}</p>
+                        <p class="info-value w-50% ml-24px">{{ charging_profile.recurrency_kind_str }}</p>
+                      </div>
+                      <div class="info-item">
+                        <p class="info-title w-50%"> {{ t('valid_from') + ':' }}</p>
+                        <p class="info-value w-50% ml-24px">{{ charging_profile.valid_from_str }}</p>
+                      </div>
+                      <div class="info-item">
+                        <p class="info-title w-50%"> {{ t('valid_to') + ':' }}</p>
+                        <p class="info-value w-50% ml-24px">{{ charging_profile.valid_to_str }}</p>
+                      </div>
+                    </div>
+
+                    <div class="v-line"></div>
+
+                    <div class="min-w-420px lg:w-25% md:px-32px">
+                      <p class="font-bold text-20px pb-20px pt-30px lg:pt-0px">{{ t('charging_schedule') }}</p>
+                      <div class="info-item">
+                        <p class="info-title w-50%"> {{ t('duration') + ':' }}</p>
+                        <p class="info-value w-50% ml-24px">{{ charging_schedule.duration }} <span v-if="charging_schedule.duration">s</span></p>
+                      </div>
+                      <div class="info-item">
+                        <p class="info-title w-50%"> {{ t('start_schedule') + ':' }}</p>
+                        <p class="info-value w-50% ml-24px">{{ charging_schedule.start_schedule_str }}</p>
+                      </div>
+                      <div class="info-item">
+                        <p class="info-title w-50%"> {{ t('scheduling_unit') + ':' }}</p>
+                        <p class="info-value w-50% ml-24px">{{ charging_schedule.charging_rate_unit }}</p>
+                      </div>
+                      <div class="info-item">
+                        <p class="info-title w-50%"> {{ t('min_charging_rate') + ':' }}</p>
+                        <p class="info-value w-50% ml-24px">{{ charging_schedule.min_charging_rate }} <span v-if="charging_schedule.min_charging_rate"> {{ charging_schedule.charging_rate_unit }}</span></p>
+                      </div>
+                    </div>
+
+                    <div class="v-line"></div>
+
+                    <div class="min-w-400px lg:w-25% md:px-32px">
+                      <p class="font-bold text-20px pb-20px pt-30px lg:pt-0px">{{ t('charging_schedule_period') }}</p>
+                      <el-table :data="charging_schedule_period">
+                        <el-table-column prop="start_period" :label="t('start_period')+'(s)'" align="center" min-width="100" />
+                        <el-table-column prop="limit" :label="t('limit')" align="center" min-width="100" >
+                          <template #header>
+                            <span v-if="charging_schedule.charging_rate_unit">{{ t('limit') }} ({{ charging_schedule.charging_rate_unit }})</span>
+                            <span v-else>{{ t('limit') }}</span>
+                          </template>
+                        </el-table-column>
+                        <el-table-column prop="number_phases" :label="t('number_phases')" align="center" />
+                      </el-table>
+                    </div>
+
+                  </div>
+                </el-tab-pane> -->
+              </el-tabs>
             </div>
           </el-col>
         </el-row >
@@ -984,6 +1304,99 @@ onUnmounted(() => {
             >{{ t('confirm') }}</el-button
           >
         </span>
+      </template>
+    </el-dialog>
+
+    <el-dialog
+      append-to-body
+      v-model="chargingProfile_dialog_visible"
+      class="max-w-600px"
+      width="90%"
+    >
+      <template #header="{ titleId, titleClass }">
+        <div class="py-2rem relative bg-blue-100">
+          <h4
+            :id="titleId"
+            :class="titleClass"
+            class="m-0 text-center text-blue-1200 font-400 text-20px lg:text-24px line-height-26px"
+          >
+            {{ dialog_title }}
+          </h4>
+        </div>
+      </template>
+      <div class="dialog-context pb-20px">
+        <div v-if="chargingProfile_dialog_step === 'one'">
+          <div v-if="chargingProfile_dialog_type === 'get'" class="">
+            <el-form class="w-full" :rules="get_composite_schedule_rules" :model="chargingProfile_dialog_data" ref="get_composite_schedule_formRef" label-position="left">
+              <el-form-item class="m-auto w-360px mb-24px" :label= "t('duration')" prop="durationInput" label-width="140px" >
+                <el-input v-model.number="chargingProfile_dialog_data.durationInput" class="w-200px" >
+                  <template #suffix> <span class="h-30px">s</span></template>
+                </el-input>
+              </el-form-item>
+              <el-form-item class="m-auto w-360px mb-24px" :label= "t('scheduling_unit')" prop="get_charge_rate_unit" label-width="140px" >
+                <el-select v-model="chargingProfile_dialog_data.get_charge_rate_unit" class="w-200px" placeholder="Select" size="large" @change="filterChargeProfilePurpose">
+                  <el-option v-for="item in chargingRateUnit" :label="item.name" :value="item.value" />
+                </el-select>
+              </el-form-item>
+            </el-form>
+          </div>
+          <div v-if="chargingProfile_dialog_type === 'set'">
+            <el-form class="w-full" :rules="set_charging_profile_rules" :model="chargingProfile_dialog_data" ref="set_charging_profile_formRef" label-position="left">
+              <el-form-item class="m-auto w-360px mb-24px" :label= "t('profile_purpose')" prop="send_charge_profile_purpose" label-width="140px" >
+                <el-select v-model="chargingProfile_dialog_data.send_charge_profile_purpose" class="w-200px" placeholder="Select" size="large" @change="filterChargeProfilePurpose">
+                  <el-option v-for="item in chargingProfilePurpose" :label="item.name" :value="item.value" />
+                </el-select>
+              </el-form-item>
+              <el-form-item class="m-auto w-360px mb-24px" :label= "t('profile_name')" prop="send_charge_profile" label-width="140px" >
+                <el-select v-model="chargingProfile_dialog_data.send_charge_profile" class="w-200px" placeholder="Select" size="large">
+                  <el-option v-for="item in chargingProfile_dialog_data.filter_charge_profile_options" :key="item._id" :label="item.name" :value="item._id" />
+                </el-select>
+              </el-form-item>
+            </el-form>
+          </div>
+          <div v-if="chargingProfile_dialog_type === 'clear'">
+            <div class="w-360px m-auto flex flex-items-center py-10px flex-justify-between">
+              <p class="text-16px w-140px">{{ t('profile_purpose') }}</p>
+              <el-select v-model="chargingProfile_dialog_data.clear_charge_profile_purpose" class="w-200px" placeholder="Select" size="large">
+                <el-option v-for="item in chargingProfilePurpose" :label="item.name" :value="item.value" />
+              </el-select>
+            </div>
+            <div class="w-360px m-auto flex flex-items-center py-10px flex-justify-between">
+              <p class="text-16px w-140px">{{ t('profile_stack_level') }}</p>
+              <el-input v-model="chargingProfile_dialog_data.clear_stack_level" class="ml-10px w-200px" />
+            </div>
+          </div>
+        </div>
+
+        <div v-if="chargingProfile_dialog_step === 'two'">
+          <div v-if="chargingProfile_dialog_type === 'get'">
+            <div class="flex  text-18px pb-8px">
+              <p class="w-160px">{{ t('start_schedule') }} : </p>
+              <p>{{ chargingProfile_dialog_data?.start_schedule_str }}</p>
+            </div>
+            <div class="flex  text-18px pb-8px">
+              <p class="w-160px">{{ t('duration') }} : </p>
+              <p>{{ chargingProfile_dialog_data?.charging_schedule?.duration }}</p>
+            </div>
+            <div class="flex text-18px pb-20px">
+              <p class="w-160px">{{ t('scheduling_unit') }} : </p>
+              <p>{{ chargingProfile_dialog_data?.charging_schedule?.charging_rate_unit }}</p>
+            </div>
+            <el-table :data="chargingProfile_dialog_data?.charging_schedule?.charging_schedule_period" 
+              style="width: 100%" stripe :cell-style=msi.tb_cell :header-cell-style=msi.tb_header_cell size="large">
+              <el-table-column prop="limit" :label="t('limit')" min-width="130" align="center"/>
+              <el-table-column prop="start_period" :label="t('start_period')" min-width="130" align="center"/>
+              <el-table-column prop="number_phases" :label="t('number_phases')" min-width="130" align="center"/>
+            </el-table>
+          </div>
+        </div>
+      </div>
+      <template #footer>
+        <div v-if="chargingProfile_dialog_step === 'one'">
+          <div class="flex flex-justify-center">
+            <el-button round class="w-48% bg-btn-100 text-white max-w-140px" @click="confirmChargingProfileDialog(chargingProfile_dialog_type)">{{ t('confirm') }}</el-button>
+          </div>
+        </div>
       </template>
     </el-dialog>
   </div>
@@ -1125,5 +1538,33 @@ onUnmounted(() => {
   height: 20px;
   line-height: 20px;
   border-radius: 5px;
+}
+
+.charging-profile {
+  .el-button + .el-button {
+    margin-left: 0;
+  }
+  .button {
+    padding: 0.8rem 2rem;
+    font-size: 1.8rem;
+    color: var(--secondary);
+    border-color: var(--secondary);
+    border-radius: 2rem;
+    @media (min-width: 768px) {
+      width: 22rem;
+    }
+  }
+  .v-line {
+    width: 0;
+    height: 0;
+    padding: 0;
+    background-color: unset;
+    @media (min-width: 992px) {
+      height: inherit;
+      margin: 1.5rem;
+      padding: 1.5px;
+      background-color: var(--gray-200);
+    }
+  }
 }
 </style>
