@@ -23,7 +23,7 @@ const company = MStore?.permission?.company?.name
 const company_ref = ref()
 
 const validAgreedFee = (rule, value, callback) => {
-  if (value?.length === 0 || value?.length === undefined) {
+  if (value === undefined || value === '') {
     callback(new Error(t('the_item_is_required')))
   }
   else if (value < 3) {
@@ -134,7 +134,7 @@ const search = async () => {
       collection: 'CompanyInformation', 
       pipelines: [
         {
-          $addFields: { "upgrade_manager.subscribe.due_plan_str": { $toString: "$upgrade_manager.subscribe.due_plan" } }
+          $addFields: { "due_plan_str": { $toString: "$upgrade_manager.subscribe.due_plan" } }
         },
         {
           $addFields: {
@@ -197,7 +197,7 @@ const search = async () => {
                 },
               },
               {
-                "upgrade_manager.subscribe.due_plan_str": { $in: plan_id}
+                "due_plan_str": { $in: plan_id}
               }
             ]
           }

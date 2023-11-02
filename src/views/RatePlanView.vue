@@ -68,6 +68,8 @@ const deleteTariff = async (row) => {
       for (let i = 0; i < TariffData.length; i++) {
         TariffData[i].name = TariffData[i].custom?.name
         TariffData[i].description = TariffData[i].custom?.description
+        TariffData[i].min_price_str = TariffData[i]?.min_price?.incl_vat
+        TariffData[i].max_price_str = TariffData[i]?.max_price?.incl_vat
       }
       isLoading.value = false
     })

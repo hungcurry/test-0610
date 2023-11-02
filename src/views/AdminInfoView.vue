@@ -598,15 +598,16 @@ const getUsedCount = async() => {
       queryData = {
         database: 'CPO',
         collection: 'UserData',
-        pipelines: [{ $count: 'Count' }],
+        pipelines: [
+        { $match: { $and: [{first_name: {$ne: 'DELETE'}}, {last_name: {$ne: 'DELETE'}}, {byCompany: {ObjectId:companyId}},] } },
+        { $count: 'Count' }],
       }
     }
     else {
       queryData = {
         database: 'CPO',
         collection: 'RFIDUserData',
-        // pipelines: [{ $count: 'Count' }],
-        pipelines: [      // Tony : for 初步去識別化 ...
+        pipelines: [
           { $match: { $and: [{tag_id: {$ne: 'DELETE'}}, {name: {$ne: 'DELETE'}}, {byCompany: {ObjectId:companyId}}] } },
           { $count: 'Count' }
         ],
@@ -626,6 +627,7 @@ const getUsedCount = async() => {
       database: 'CPO',
       collection: 'AdminUserData',
       pipelines: [
+        { $match: { $and: [{first_name: {$ne: 'DELETE'}}, {last_name: {$ne: 'DELETE'}}, {byCompany: {ObjectId:companyId} },] } },
         { $count: 'adminCount' }
       ]
     }
@@ -700,7 +702,12 @@ const getAdminData = async() => {
       database: 'CPO',
       collection: 'AdminUserData',
       pipelines: [
-        { $match: { "byCompany": { "$eq": { "ObjectId" : companyId} } } }, 
+        { $match: { $and: [
+          { "first_name": {$ne: 'DELETE'} },
+          { "last_name": {$ne: 'DELETE'} },
+          { "byCompany": {$eq: { "ObjectId" : companyId} } },
+        ]}
+        },
         { $project: { _id: 1, salt: 0, hashed_password_1: 0, hashed_password_2: 0, config: 0 } },
       ]
     }

@@ -344,7 +344,7 @@ const checkRfidCard = async() => {
     }
     
     for (let i=0; i<userData.rfids.length; i++) {
-      if (rfidData.rfid === userData.rfids[i].rfid.toUpperCase() && rfidData.index !== i) {
+      if (rfidData.rfid.toUpperCase() === userData.rfids[i].rfid.toUpperCase() && rfidData.index !== i) {
         ElMessage({ type: 'error', message: t('card_number_already_exists') })
         return false
       }
@@ -386,7 +386,7 @@ const confirmRfid = async (confirm, index) => {
             }
           }
           else {
-            userData.rfids[modify_card_index.value].rfid = rfidData.rfid
+            userData.rfids[modify_card_index.value].rfid = rfidData.rfid.toUpperCase()
             userData.rfids[modify_card_index.value].cash = rfidData.cash
             userData.rfids[modify_card_index.value].enable = rfidData.enable
             userData.rfids[modify_card_index.value].nickname = rfidData.nickname
