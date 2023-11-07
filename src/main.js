@@ -23,6 +23,7 @@ import {
   faDeleteLeft,
   faAnglesRight,
   faPlus,
+  faQuestion
 } from '@fortawesome/free-solid-svg-icons'
 import {
   faPenToSquare,
@@ -69,5 +70,7 @@ library.add(
   faAnglesRight,
   faIdCard,
   faPlus,
-  faFile
+  faFile,
+  faQuestion
+
 )

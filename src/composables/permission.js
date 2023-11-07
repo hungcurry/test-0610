@@ -23,7 +23,7 @@ let m_cloud_permission =  {
         Parking: { page:'X',},
         AdminInfo: { page:'O',},
         Program: { page:'O', addProgram:'O', detail:'O',},
-        ChargingProfile: { page:'O', addProfile:'O', detail:'X',},
+        ChargingProfile: { page:'O', addProfile:'O', detail:'O',},
         Permission: {page:'O', save:'O', cancel:'O'},
     },
 

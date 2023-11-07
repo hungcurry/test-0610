@@ -317,6 +317,26 @@ export default function () {
     const response = await patchJsonData(api1 + '/edoc', '', AuthToken)
     return response
   }
+
+  const getTaiwanExchangeRate = async () => {
+    const response = await getJsonData('/rate/xrt/flcsv/0/day')
+    const rows = response.data.trim().split('\n')
+    const headerRow = rows[0].split(',')
+    const cashIndex = headerRow.indexOf('現金')
+    const currenciesToExtract = ['USD', 'CNY', 'JPY', 'EUR']
+    const cashPrices = {}
+    
+    currenciesToExtract.forEach(currency => {
+      const currencyRow = rows.find(row => row.includes(currency))
+      if (currencyRow) {
+        const currencyValues = currencyRow.split(',')
+        const cashPrice = currencyValues[cashIndex]
+        cashPrices[currency] = cashPrice
+      }
+    })
+    return cashPrices
+  }
+
   return {
       setCollectionData, getToken, checkToken, mongoQuery, mongoAggregate,
       register_member_v0, register_member, get_account_info, get_account_detail, edit_account, delete_account,
@@ -325,6 +345,6 @@ export default function () {
       forgotPW, add_rfid_data, edit_rfid_data, delete_rfid_data, set_rfid_cash, 
       clear_charging_profile, get_composite_schedule, set_charging_profile,
       get_transaction, change_availability, get_diagnostics, get_configuration, sendNotification,
-      add_merchant, get_edoc, patch_edoc,
+      add_merchant, get_edoc, patch_edoc, getTaiwanExchangeRate,
   }
 }

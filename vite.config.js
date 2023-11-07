@@ -54,11 +54,16 @@ export default ({ mode }) => {
           rewrite: (path) => path.replace(/^\/google10/, ''),
           secure: false,
         },
-        
         '/googleStorage': {
           target: "https://storage.cloud.google.com",
           changeOrigin: true,
           rewrite: (path) => path.replace(/^\/googleStorage/, ''),
+          secure: false,
+        },
+        '/rate' : {
+          target: "https://rate.bot.com.tw",
+          changeOrigin: true,
+          rewrite: (path) => path.replace(/^\/rate/, ''),
           secure: false,
         },
       },

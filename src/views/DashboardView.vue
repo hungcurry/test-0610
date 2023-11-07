@@ -34,6 +34,17 @@ let isFetchingTotalUsedPower = false
 let isFetchingTotalUsedTime = false
 let isFetchingTotalUsedTimes = false
 
+const selectCurrency = ref('')
+const totalTWD = ref(0)
+const CurrencyItem = [
+  { value: 'TWD', label: 'TWD'},
+  { value: 'USD', label: 'USD'},
+  { value: 'CNY', label: 'CNY'},
+  { value: 'JPY', label: 'JPY'},
+  { value: 'EUR', label: 'EUR'},
+]
+const rate = reactive({})
+
 let now = new Date()
 const selectTime = ref([
   new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0),
@@ -423,13 +434,20 @@ const queryTotalUsedTimes = async (select_time1) => {
               { $count: 'GOOGLEPAY' },
             ],
             totalCount: [{ $group: { _id: null, totalCount: { $sum: 1 } } }],
-            income: [{ $group: { _id: null, income: { $sum: '$price' } } }],
+            income: [ { $match: { currency: { $in: [ "TWD", "USD", "CNY", "JPY", "EUR"] }}},
+                      { $group: { _id: "$currency", total: { $sum: "$price" } } } 
+                    ],
           },
         },
       ],
     }
-    
     let response = await MsiApi.mongoAggregate(queryData)
+    let temp  =  await MsiApi.getTaiwanExchangeRate()
+    rate.CNY = temp.CNY
+    rate.EUR = temp.EUR
+    rate.JPY = temp.JPY
+    rate.USD = temp.USD
+
     rfid.value = visitor.value = ev_life.value = income.value = 0
     if (typeof response.data.result[0].RFID[0]?.RFID === 'number')
       rfid.value = response.data.result[0].RFID[0]?.RFID
@@ -437,8 +455,39 @@ const queryTotalUsedTimes = async (select_time1) => {
       visitor.value = response.data.result[0].guestEmail[0]?.guestEmail
     if (typeof response.data.result[0].totalCount[0]?.totalCount === 'number')
       ev_life.value = response.data.result[0].totalCount[0]?.totalCount - rfid.value - visitor.value
-    if (typeof response.data.result[0].income[0]?.income === 'number')
-      income.value = response.data.result[0].income[0]?.income.toLocaleString()
+    if (response.data.result[0].income.length > 0) {
+      console.log(444, response.data.result[0].income.length)
+      totalTWD.value = 0
+      console.log(response.data.result[0].income.length)
+      for (let i = 0; i < response.data.result[0].income.length; i++){
+        if (response.data.result[0].income[i]._id === 'USD') {
+          totalTWD.value += response.data.result[0].income[i].total * rate.USD
+        }
+        if (response.data.result[0].income[i]._id === 'CNY') {
+          totalTWD.value += response.data.result[0].income[i].total * rate.CNY
+        }
+        if (response.data.result[0].income[i]._id === 'TWD') {
+          totalTWD.value +=  response.data.result[0].income[i].total * 1
+        }
+        if (response.data.result[0].income[i]._id === 'EUR') {
+          totalTWD.value += response.data.result[0].income[i].total * rate.EUR
+        }
+        if (response.data.result[0].income[i]._id === 'JPY') {
+          totalTWD.value += response.data.result[0].income[i].total * rate.JPY
+        }
+        queryData = {
+          database: 'CPO',
+          collection: 'CompanyInformation',
+          pipelines: [{$project: { country: 1} },  ],
+        }
+        let response1 = await MsiApi.mongoAggregate(queryData)
+        if (response1.data.result[0].country === "China")
+          selectCurrency.value = 'CNY'
+        else
+          selectCurrency.value = 'TWD'
+          currencyExchange()
+      }
+    }
     
     let payment_method_obj = {
       credit: 0,
@@ -467,6 +516,21 @@ const queryTotalUsedTimes = async (select_time1) => {
     payment_method_option && payment_chart.setOption(payment_method_option)
     isFetchingTotalUsedTimes = false
   }
+}
+
+const currencyExchange = () => {
+  let totalIncome = 0
+  if (selectCurrency.value === 'USD')
+    totalIncome = (totalTWD.value / rate.USD)
+  if (selectCurrency.value === 'CNY')
+    totalIncome = (totalTWD.value / rate.CNY)    
+  if (selectCurrency.value === 'EUR')
+    totalIncome = (totalTWD.value / rate.EUR)
+  if (selectCurrency.value === 'JPY')
+    totalIncome = (totalTWD.value / rate.JPY)
+  if (selectCurrency.value === 'TWD')
+    totalIncome = (totalTWD.value)
+  income.value = parseFloat(totalIncome.toFixed(2)).toLocaleString()
 }
 
 const queryEvseStatus = async () => {
@@ -516,7 +580,6 @@ const queryCustomers = async () => {
   let response = await MsiApi.mongoAggregate(queryData)
   if(response?.data?.result?.[0]?.memberCount)
     member.value = response?.data?.result?.[0]?.memberCount
-
   queryData = {
     database: 'CPO',
     collection: 'CompanyInformation',
@@ -920,16 +983,34 @@ onMounted(async () => {
             <div class="evse-title flex items-center pb-16px md:pb-20px">
               <font-awesome-icon class="w-24px h-24px" icon="fa-solid fa-coins" />
               <p class="text-blue-1200 text-22px ml-8px">{{t('income')}}</p>
-              <el-button 
-                v-if="MStore.rule_permission.Dashboard.payment === 'O' || MStore.permission.isCompany" class="ellipsis" @click="goto_payment">
-                <font-awesome-icon icon="fa-solid fa-ellipsis"/>
-              </el-button>
+              <el-select
+              class="el-select ml-8 w-100px"
+              v-model="selectCurrency"
+              @change="currencyExchange()"
+                  placeholder="Select"
+                  >
+                  <el-option
+                    v-for="item in CurrencyItem"
+                    :key="item.value"
+                    :label="item.label"
+                    :value="item.value"
+                  />
+                </el-select>
+                <el-button 
+                  v-if="MStore.rule_permission.Dashboard.payment === 'O' || MStore.permission.isCompany" class="ellipsis ml-8" @click="goto_payment">
+                  <font-awesome-icon icon="fa-solid fa-ellipsis"/>
+                </el-button>
+                <el-tooltip content="Convert based on the current buying exchange rates from Taiwan Bank." placement="top">
+                  <el-button round>
+                    <font-awesome-icon icon="fa-solid fa-question"
+          /></el-button>
+                </el-tooltip>
             </div>
             <div class="card-body flex-center h-full text-40px md:text-60px">
               <div class="income">
                 <span class="text-24px mr-8px">$</span>
                 {{ income }}
-                <span class="text-24px mr-8px">{{t('twd')}}</span>
+                <span class="text-24px mr-8px">{{(selectCurrency)}}</span>
               </div>
             </div>
           </div>
