@@ -36,6 +36,47 @@ const AdminData_rules = reactive({
     { required: true, message: t('the_item_is_required'), trigger: 'change' },
   ],
 })
+const deletionData = reactive([])
+
+const downloadList = async(action, index) => {
+  if (action === 'get') {
+    let sendData = {filename: ''}
+    let res = await MsiApi.get_edoc(sendData)
+    deletionData.length = 0
+    if (res.data.data?.length !== 0 && res.data.data?.length !== undefined) {
+      res.data.data?.forEach((item) => {
+        deletionData.push({
+          filename: item, 
+          downloadname: item.split('.')[0], 
+          filename_str: item.replace(/-/g, '~').replace(/_/g, '-').split('.')[0],
+        })
+      })
+    }
+    else {
+      deletionData.push({
+        filename_str: '',
+      })
+    }
+    window.dispatchEvent(new Event('resize'))
+  }
+  else if (action === 'download') {
+    if (deletionData[index].filename_str === '') return
+    let sendData = {filename: deletionData[index].downloadname}
+    let res = await MsiApi.get_edoc(sendData)
+    if (res.status === 200) {
+      var fileURL = window.URL.createObjectURL(new Blob([res.data]))
+      var fileLink = document.createElement('a')
+      
+      fileLink.href = fileURL
+      fileLink.setAttribute('download', deletionData[index].filename)
+      document.body.appendChild(fileLink)
+      fileLink.click()
+    }
+    else {
+      ElMessage.error('download fail')
+    }
+  }
+}
 
 const sortFunc = (obj1, obj2, column) => {
   let at = obj1[column]
@@ -228,9 +269,15 @@ const MongoAggregate = async () => {
       router.push({ name: 'login' })
     }
   
-    queryData = { "database": "CPO", "collection": "AdminUserData", "pipelines": [
-                  { $match: { "byCompany": { "$eq": { "ObjectId" : res.data.result[0]._id} } } }, 
-                  { "$project": {  "hashed_password_1": 0,"hashed_password_2": 0,"salt": 0} }
+    queryData = { "database": "CPO", "collection": "AdminUserData", 
+      "pipelines": [
+        { "$match": { "$and": [
+            { "first_name": {$ne: 'DELETE'} },
+            { "last_name": {$ne: 'DELETE'} },
+            { "byCompany": {$eq: { "ObjectId" : res.data.result[0]._id} } },
+          ]}
+        },
+        { "$project": {  "hashed_password_1": 0,"hashed_password_2": 0,"salt": 0} }
     ]}
     res = (await MsiApi.mongoAggregate(queryData))
     UserData.length = 0
@@ -345,7 +392,27 @@ onMounted(async () => {
 <template>
   <div class="customer">
     <div class="container lg">
-      <div class="flex flex-justify-end flex-wrap lg:flex-nowrap pt-40px pb-32px">
+      <div class="flex flex-justify-end flex-items-baseline flex-wrap lg:flex-nowrap pt-40px pb-32px">
+        <el-dropdown class="mr-12px" trigger="click">
+          <el-button
+            v-if="MStore.rule_permission.Administrator.downloadList === 'O' || MStore.permission.isCompany"
+            class="download-btn w-full md:w-auto mt-4 md:mt-0 box-shadow"
+            @click="downloadList('get')"
+          >
+            <span> {{ t('deletion_name_list') }}</span>
+            <img
+              class="w-24px h-24px ml-10px"
+              src="@/assets/img/station_download.png"
+              alt="station_download"
+            />
+          </el-button>
+          <template #dropdown>
+            <el-dropdown-menu>
+              <el-dropdown-item v-for="(item, index) in deletionData" class="w-200px flex-justify-center" @click="downloadList('download', index)">{{ item.filename_str }}</el-dropdown-item>
+            </el-dropdown-menu>
+          </template>
+        </el-dropdown>
+
         <el-button 
           v-if="MStore.rule_permission.Administrator.addAdmin === 'O' || MStore.permission.isCompany"
           class="btn-secondary box-shadow" @click="addAdminUser"> {{ t('add_admin') }} </el-button>
@@ -618,6 +685,14 @@ onMounted(async () => {
 
 <style lang="scss" scoped>
 .customer {
+  .download-btn {
+    height: 4rem;
+    padding: 0.8rem 2rem;
+    font-size: 1.8rem;
+    background-color: var(--secondary);
+    color: var(--white);
+    border-radius: 2rem;
+  }
   .el-form-item {
     display: block;
   }

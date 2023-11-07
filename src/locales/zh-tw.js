@@ -518,6 +518,11 @@ export default
     profile_name:                                           '設定檔名稱',
     profile_stack_level:                                    '設定檔優先層級',
 
+    do_you_want_to_get_configuration:                       'Do you want to get configuration?',
+    do_you_want_to_change_availability:                     'Do you want to change availability?',
+    do_you_want_to_get_diagnostics:                         'Do you want to get diagnostics?',
+    configuration:                                          'Configuration',
+
     // active_minute:                                       '啟用時間 (分鐘)',
     // deactivate_minute:                                   '截止時間 (分鐘)',
     // charging_by_energy:                                  '依電費計價',
@@ -588,6 +593,8 @@ export default
     // number_phases:                                       '相數',
     // confirm:                                             '確認',
     // this_item_is_required:                               '這個項目必填',
+    // ok:                                                  'OK',
+    // cancel:                                              '取消',
 //--------------------------------------------------------------
 // EVSE Edit Page           
 //--------------------------------------------------------------
@@ -866,6 +873,7 @@ export default
     payment_hash_key:                                       'Payment Hash Key',
     payment_merchant_id:                                    'Payment Merchant ID',
     agreed_fee:                                             '交易手續費',
+    session_fee:                                            'Session Fee',
     the_tax_id_must_be_8_characters_in_length:              '統一編號必須有8碼的長度',
     please_check_the_format_of_the_tax_id:                  '請檢查統一編號長度',
     company_already_exists:                                 '公司已經存在',
@@ -889,10 +897,12 @@ export default
     // the_item_is_required:                                '這個項目必填',
     // active:                                              '啟用',
     // add_company:                                         '新增公司',
+    // currency:                                            '幣別',
 //--------------------------------------------------------------
 // Admin Page           
 //--------------------------------------------------------------    
     email_not_found:                                        '找不到 Email',
+    deletion_name_list:                                     '個資刪除清單',
     // add_admin:                                           '新增管理者',
     // edit_admin:                                          '編輯管理者',
     // engineer_user:                                       '工程師使用者',

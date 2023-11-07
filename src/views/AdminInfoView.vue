@@ -96,6 +96,16 @@ const neweb_title = ref(t('create_neweb_pay_account'))
 const neweb_id = ref()
 const neweb_create_failed = ref(false)
 
+const validNewebId = (value) => {
+  const newebId = value.replace(/[^\d]/g, "");
+  if (newebId.length > 12) {
+    return newebId.slice(0, 12)
+  }
+  else {
+    return newebId
+  }
+}
+
 const fill_program_chartData = () => {
   program_chartData.forEach((item) => {
     switch (item.name) {
@@ -1362,7 +1372,8 @@ onMounted(async () => {
           <p class="text-gray-400 mb-10px">{{ t('please_enter_merchant_id') }}</p>
           <div class="flex flex-items-center text-gray-400">
             <span class="mr-10px">MSI</span>
-            <el-input v-model="neweb_id" placeholder="" :formatter="(value) => `${value}`.replace(/[^\d]/g, '')" />
+            <el-input v-model="neweb_id" placeholder="" :formatter="validNewebId" />
+
           </div>
           <p class="text-red font-bold my-20px">* {{ t('the_format_should_be_number_with_limit_to_12_characters') }}</p>
         </div>

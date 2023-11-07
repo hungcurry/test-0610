@@ -518,6 +518,11 @@ export default
     profile_name:                                           'Profile name',
     profile_stack_level:                                    'Profile stack level',
 
+    do_you_want_to_get_configuration:                       'Do you want to get configuration?',
+    do_you_want_to_change_availability:                     'Do you want to change availability?',
+    do_you_want_to_get_diagnostics:                         'Do you want to get diagnostics?',
+    configuration:                                          'Configuration',
+
     // active_minute:                                       'Active (Minute)',
     // deactivate_minute:                                   'Deactivate (Minute)',
     // charging_by_energy:                                  'Charging By Energy',
@@ -588,6 +593,8 @@ export default
     // number_phases:                                       'Number Phases',
     // confirm:                                             'Confirm',
     // this_item_is_required:                               'This item is required',
+    // ok:                                                  'OK',
+    // cancel:                                              'Cancel',
 //--------------------------------------------------------------
 // EVSE Edit Page           
 //--------------------------------------------------------------
@@ -866,6 +873,7 @@ export default
     payment_hash_key:                                       'Payment Hash Key',
     payment_merchant_id:                                    'Payment Merchant ID',
     agreed_fee:                                             'Agreed Fee',
+    session_fee:                                            'Session Fee',
     the_tax_id_must_be_8_characters_in_length:              'The tax ID must be 8 characters in length.',
     please_check_the_format_of_the_tax_id:                  'Please check the format of the tax id.',
     company_already_exists:                                 'Company already exists',
@@ -889,10 +897,12 @@ export default
     // the_item_is_required:                                'The item is required',
     // active:                                              'Active',
     // add_company:                                         'Add Company',
+    // currency:                                            'Currency',
 //--------------------------------------------------------------
 // Admin Page           
 //--------------------------------------------------------------    
     email_not_found:                                        'Email not found',
+    deletion_name_list:                                     'Deletion Name List',
     // add_admin:                                           'Add Admin',
     // edit_admin:                                          'Edit Admin',
     // engineer_user:                                       'Engineer User',

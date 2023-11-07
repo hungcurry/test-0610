@@ -29,6 +29,7 @@ const station_count = ref(0)
 const dropdownRef = ref()
 const customize_start_time = ref()
 const customize_end_time = ref()
+const created_date = ref(moment((new Date(MStore.permission.company.created_date).getTime()) + ((MStore.timeZoneOffset ) * -60000)).format('YYYY-MM-DD HH:mm:ss'))
 let isKeepDatePicker = undefined
 let isFetchingTotalUsedPower = false
 let isFetchingTotalUsedTime = false
@@ -241,7 +242,7 @@ const date_select = async (select_time) => {
   let select_time1 = []
   now = new Date()
   if (select_time === 'all') {
-    select_time1[0] = new Date(1970, 1, 1)
+    select_time1[0] = new Date(created_date.value)
     select_time1[1] = now
   }
   else if (select_time === 'today') {
@@ -273,7 +274,7 @@ const queryTotalUsedPower = async (select_time1) => {
     totalkwh.value = '-'
     if (select_time1 === undefined) {
       select_time1 = []
-      select_time1[0] = new Date(1970, 1, 1)
+      select_time1[0] = new Date(created_date.value)
       select_time1[1] = now
     }
     let queryData = {
@@ -326,7 +327,7 @@ const queryTotalUsedTime = async (select_time1) => {
     isFetchingTotalUsedTime = true 
     if (select_time1 === undefined) {
       select_time1 = []
-      select_time1[0] = new Date(1970, 1, 1)
+      select_time1[0] = new Date(created_date.value)
       select_time1[1] = now
     }
     let queryData = {
@@ -385,7 +386,7 @@ const queryTotalUsedTimes = async (select_time1) => {
 
     if (select_time1 === undefined) {
       select_time1 = []
-      select_time1[0] = new Date(1970, 1, 1)
+      select_time1[0] = new Date(created_date.value)
       select_time1[1] = now
     }
     let queryData = {
@@ -572,12 +573,35 @@ const queryEvseStatus = async () => {
 }
 
 const queryCustomers = async () => {
-  let queryData = {
-    database: 'CPO',
-    collection: 'UserData',
-    pipelines: [{ $count: 'memberCount' }],
+  let queryData = undefined
+  let response = undefined
+  if (MStore.permission.isMSI === true) {
+    queryData = {
+      database: 'CPO',
+      collection: 'UserData',
+      pipelines: [
+        { $match: { $and: [
+          { first_name: {$ne: 'DELETE'} },
+          { last_name: {$ne: 'DELETE'} },
+        ]}},
+        { $count: 'memberCount' }
+      ],
+    }
   }
-  let response = await MsiApi.mongoAggregate(queryData)
+  else {
+    queryData = {
+      database: 'CPO',
+      collection: 'RFIDUserData',
+      pipelines: [
+      { $match: { $and: [
+        { tag_id: {$ne: 'DELETE'} },
+        { name: {$ne: 'DELETE'} },
+      ]}},
+      { $count: 'memberCount' }
+    ],
+    }
+  }
+  response = await MsiApi.mongoAggregate(queryData)
   if(response?.data?.result?.[0]?.memberCount)
     member.value = response?.data?.result?.[0]?.memberCount
   queryData = {
@@ -794,7 +818,7 @@ onMounted(async () => {
   queryCustomers()
   queryLast7dayUsed()
   queryStationType()
-  customize_start_time.value =  moment(new Date(1970, 1, 1)).format('YYYY-MM-DD HH:mm:ss')
+  customize_start_time.value =  moment(new Date(created_date.value)).format('YYYY-MM-DD HH:mm:ss')
   customize_end_time.value =  moment(now).format('YYYY-MM-DD HH:mm:ss')
 })
 </script>

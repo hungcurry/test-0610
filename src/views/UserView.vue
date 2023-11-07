@@ -99,7 +99,11 @@ const search = async () => {
         database: 'CPO', 
         collection: 'UserData', 
         pipelines: [
-          { $match: { byCompany:  { "ObjectId" : res.data.result[0]._id} } },
+          { $match: { $and: [
+            { first_name: {$ne: 'DELETE'} },
+            { last_name: {$ne: 'DELETE'} },
+            { byCompany: { "ObjectId" : res.data.result[0]._id} }
+          ]}},
           { $project: { _id: 1, first_name: 1, last_name: 1, email: 1, evse_list: 1, payment_history:1, updated_date: 1, byCompany: 1, } }
         ]
       }
@@ -131,6 +135,8 @@ const search = async () => {
           {
             $match : {
               $and: [
+                { first_name: {$ne: 'DELETE'} },
+                { last_name: {$ne: 'DELETE'} },
                 { byCompany:  { "ObjectId" : res.data.result[0]._id} },
                 {
                   $or: [
@@ -248,6 +254,11 @@ const addUserDialog = async (action) => {
                 database: 'CPO', 
                 collection: 'UserData', 
                 pipelines: [
+                  { $match: { $and: [
+                    { first_name: {$ne: 'DELETE'} },
+                    { last_name: {$ne: 'DELETE'} },
+                    { byCompany: { "ObjectId" : res.data.result[0]._id} }
+                  ]}},
                   { 
                     $project: { _id: 1, first_name: 1, last_name: 1, email: 1, evse_list: 1, payment_history:1, updated_date: 1, } 
                   }
@@ -293,7 +304,12 @@ onMounted( async() => {
       database: 'CPO', 
       collection: 'UserData', 
       pipelines: [
-        { $match: { byCompany:  { "ObjectId" : res.data.result[0]._id} } },
+        // { $match: { byCompany:  { "ObjectId" : res.data.result[0]._id} } },
+        { $match: { $and: [
+          { first_name: {$ne: 'DELETE'} },
+          { last_name: {$ne: 'DELETE'} },
+          { byCompany: { "ObjectId" : res.data.result[0]._id} }
+        ]}},
         { $project: { _id: 1, first_name: 1, last_name: 1, email: 1, evse_list: 1, payment_history:1, updated_date: 1, byCompany: 1, } }
       ]
     }

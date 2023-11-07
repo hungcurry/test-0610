@@ -322,7 +322,7 @@ onMounted(async () => {
           <el-form-item :label="t('user')" prop="user">
             <el-input v-model="ProgramMod.user" placeholder="0" oninput="value=value.replace(/[^\d]/g,'')" />
           </el-form-item>
-          <el-form-item :label="t('cpo_account')" prop="name">
+          <el-form-item :label="t('cpo_account')" prop="admin_user">
             <el-input v-model="ProgramMod.admin_user" placeholder="0" oninput="value=value.replace(/[^\d]/g,'')" />
           </el-form-item>
           <el-form-item :label="t('currency')" prop="currency">

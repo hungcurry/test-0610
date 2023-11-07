@@ -21,12 +21,10 @@ const isLoading = ref(false)
 const company_title = ref(t('add_company_info'))
 const company = MStore?.permission?.company?.name
 const company_ref = ref()
+const session_currency_opeion = [{ value: 'TWD', label: 'TWD' }, { value: 'USD', label: 'USD' }, { value: 'JPY', label: 'JPY' }, { value: 'EUR', label: 'EUR' },{ value: 'CNY', label: 'CNY' }]
 
 const validAgreedFee = (rule, value, callback) => {
-  if (value === undefined || value === '') {
-    callback(new Error(t('the_item_is_required')))
-  }
-  else if (value < 3) {
+  if (value < 3 && value !== undefined && value !== '') {
     callback(new Error(t('the_agreed_fee_must_be_greater_than_3')))
   }
   else {
@@ -57,7 +55,7 @@ const company_rules = reactive({
     { required: true, trigger: 'blur', validator: validTaxid },
   ],
   upgrade_manager_agreed_fee: [
-    { required: true, trigger: 'blur', validator: validAgreedFee },
+    { required: false, trigger: 'blur', validator: validAgreedFee },
   ],
 })
   
@@ -277,7 +275,16 @@ const editCompany = async (action) => {
           companyData.payment.hashIV = companyData.payment_hashIV
           companyData.payment.hashKey = companyData.payment_hashKey
           companyData.payment.merchantId = companyData.payment_merchantId
-          companyData.upgrade_manager.session_fee = [{type: 'AgreeFee', price: companyData.upgrade_manager_agreed_fee}]
+          if (companyData.upgrade_manager_agreed_fee) {
+            if (companyData.upgrade_manager.session_fee === undefined)
+              companyData.upgrade_manager.session_fee = []
+            companyData.upgrade_manager.session_fee.push({type: 'AgreeFee', price: companyData.upgrade_manager_agreed_fee})
+          }
+          if (companyData.upgrade_manager_session_fee) {
+            if (companyData.upgrade_manager.session_fee === undefined)
+              companyData.upgrade_manager.session_fee = []
+            companyData.upgrade_manager.session_fee.push({type: 'Session', price: companyData.upgrade_manager_session_fee, currency: companyData.upgrade_manager_session_fee_currency})
+          }
           companyData.upgrade_manager.enable = companyData.upgrade_manager_enable
           let sendData = {  class : 'CompanyInformation', name: companyData.name,
                             country:companyData.country, party_id:companyData.party_id,
@@ -329,16 +336,40 @@ const editCompany = async (action) => {
             companyData.payment.hashKey = companyData.payment_hashKey
             companyData.payment.merchantId = companyData.payment_merchantId
             companyData.upgrade_manager.enable = companyData.upgrade_manager_enable
-            if (companyData.upgrade_manager.session_fee) {
-              for (let i=0; i<companyData.upgrade_manager.session_fee.length; i++) {
-                if (companyData.upgrade_manager.session_fee[i].type === 'AgreeFee') {
-                  companyData.upgrade_manager.session_fee[i].price = companyData.upgrade_manager_agreed_fee
-                  break
+            if (companyData.upgrade_manager_agreed_fee) {
+              if (companyData.upgrade_manager.session_fee === undefined) {
+                companyData.upgrade_manager.session_fee = []
+                companyData.upgrade_manager.session_fee.push({type: 'AgreeFee', price: companyData.upgrade_manager_agreed_fee})
+              }
+              else {
+                for (let i=0; i<companyData.upgrade_manager.session_fee.length; i++) {
+                  if (companyData.upgrade_manager.session_fee[i].type === 'AgreeFee') {
+                    companyData.upgrade_manager.session_fee[i].price = companyData.upgrade_manager_agreed_fee
+                    break
+                  }
+                  else if (i === companyData.upgrade_manager.session_fee.length-1) {
+                    companyData.upgrade_manager.session_fee.push({type: 'AgreeFee', price: companyData.upgrade_manager_agreed_fee})
+                  }
                 }
               }
             }
-            else {
-              companyData.upgrade_manager.session_fee = [{type: 'AgreeFee', price: companyData.upgrade_manager_agreed_fee}]
+            if (companyData.upgrade_manager_session_fee) {
+              if (companyData.upgrade_manager.session_fee === undefined) {
+                companyData.upgrade_manager.session_fee = []
+                companyData.upgrade_manager.session_fee.push({type: 'Session', price: companyData.upgrade_manager_session_fee, currency: companyData.upgrade_manager_session_fee_currency})
+              }
+              else {
+                for (let i=0; i<companyData.upgrade_manager.session_fee.length; i++) {
+                  if (companyData.upgrade_manager.session_fee[i].type === 'Session') {
+                    companyData.upgrade_manager.session_fee[i].price = companyData.upgrade_manager_session_fee
+                    companyData.upgrade_manager.session_fee[i].currency = companyData.upgrade_manager_session_fee_currency
+                    break
+                  }
+                  else if (i === companyData.upgrade_manager.session_fee.length-1) {
+                    companyData.upgrade_manager.session_fee.push({type: 'Session', price: companyData.upgrade_manager_session_fee, currency: companyData.upgrade_manager_session_fee_currency})
+                  }
+                }
+              }
             }
             let sendData = {  class : 'CompanyInformation', pk: companyData._id,name: companyData.name, 
                               country:companyData.country, party_id:companyData.party_id,
@@ -432,7 +463,10 @@ const MongoAggregate = async (queryData) => {
     for (let j = 0; j < UserData[i]?.upgrade_manager.session_fee?.length; j++) {
       if (UserData[i]?.upgrade_manager.session_fee[j].type === 'AgreeFee') {
         UserData[i].upgrade_manager_agreed_fee = UserData[i]?.upgrade_manager.session_fee[j].price
-        break
+      }
+      else if (UserData[i]?.upgrade_manager.session_fee[j].type === 'Session') {
+        UserData[i].upgrade_manager_session_fee = UserData[i]?.upgrade_manager.session_fee[j].price
+        UserData[i].upgrade_manager_session_fee_currency = UserData[i]?.upgrade_manager.session_fee[j].currency
       }
     }
   }
@@ -619,16 +653,27 @@ onMounted( async() => {
                 </el-input>
               </el-form-item>
 
+              <div class="flex">
+                <el-form-item class="mb-24px w-90%" :label="t('session_fee')" prop="upgrade_manager_session_fee">
+                  <el-input v-model="companyData.upgrade_manager_session_fee" />
+                </el-form-item>
+                <el-form-item class="mb-24px" :label="t('currency')" prop="currency">
+                  <el-select v-model="companyData.upgrade_manager_session_fee_currency" placeholder="Select" size="large" class="">
+                    <el-option v-for="item in session_currency_opeion" :key="item.value" :label="item.label" :value="item.value" />
+                  </el-select>
+                </el-form-item>
+              </div>
+
               <el-form-item class="mb-24px" :label="t('invoice_hash_iv')">
-                <el-input v-model="companyData.invoice_hashIV" disabled />
+                <el-input v-model="companyData.invoice_hashIV" />
               </el-form-item>
 
               <el-form-item class="mb-24px" :label="t('invoice_hash_key')">
-                <el-input v-model="companyData.invoice_hashKey" disabled />
+                <el-input v-model="companyData.invoice_hashKey" />
               </el-form-item>
 
               <el-form-item class="mb-24px" :label="t('invoice_merchant_id')">
-                <el-input v-model="companyData.invoice_merchantId" disabled />
+                <el-input v-model="companyData.invoice_merchantId" />
               </el-form-item>
 
               <!-- <el-form-item class="mb-24px" label="Invoice Owner">
@@ -725,6 +770,9 @@ onMounted( async() => {
   :deep(.el-form-item__label) {
     display: block;
     font-size: 1.6rem;
+  }
+  :deep(.el-input) {
+    height: 30px;
   }
 }
   

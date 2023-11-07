@@ -270,7 +270,12 @@ export default function () {
   const get_configuration = async (json) => {
     AuthToken = VueCookies.get('AuthToken')
     const response = await getJsonData(api1 + '/cp/ocpp/v16/get_configuration' +'?evse_id=' + json.evse_id ,  AuthToken)
-    console.log(response)
+    return response
+  }
+
+  const change_configuration = async (json) => {
+    AuthToken = VueCookies.get('AuthToken')
+    const response = await postJsonData(api1 + '/cp/ocpp/v16/change_configuration', json, AuthToken)
     return response
   }
 
@@ -283,7 +288,11 @@ export default function () {
 
   const get_composite_schedule = async (json) => {
     AuthToken = VueCookies.get('AuthToken')
-    const response = await getJsonData(api1 + '/cp/ocpp/v16/get_composite_schedule' +'?evse_id=' + json.evse_id + '&connectorId=1' + '&duration=' + json.duration  ,  AuthToken)
+    let path = '/cp/ocpp/v16/get_composite_schedule' +'?evse_id=' + json.evse_id + '&connectorId=1' + '&duration=' + json.duration
+    if (json.chargingRateUnit) {
+      path += '&chargingRateUnit=' + json.chargingRateUnit
+    }
+    const response = await getJsonData(api1 + path, AuthToken)
     return response
   }
 
@@ -308,13 +317,11 @@ export default function () {
 
   const get_edoc = async(json) => {
     AuthToken = VueCookies.get('AuthToken')
-    const response = await getJsonData(api1 + '/edoc?name=' + json.filename, AuthToken)
-    return response
-  }
-
-  const patch_edoc = async() => {
-    AuthToken = VueCookies.get('AuthToken')
-    const response = await patchJsonData(api1 + '/edoc', '', AuthToken)
+    let response = undefined
+    if (json.filename)
+      response = await getJsonData(api1 + '/edoc?name=' + json.filename, AuthToken)
+    else 
+      response = await getJsonData(api1 + '/edoc', AuthToken)
     return response
   }
 
@@ -344,7 +351,7 @@ export default function () {
       bind_card, search_bind_card, unregister_bind_card, auth_payment, subscribe_plan, member_modify,
       forgotPW, add_rfid_data, edit_rfid_data, delete_rfid_data, set_rfid_cash, 
       clear_charging_profile, get_composite_schedule, set_charging_profile,
-      get_transaction, change_availability, get_diagnostics, get_configuration, sendNotification,
-      add_merchant, get_edoc, patch_edoc, getTaiwanExchangeRate,
+      get_transaction, change_availability, get_diagnostics, get_configuration, change_configuration, sendNotification,
+      add_merchant, get_edoc, getTaiwanExchangeRate,
   }
 }

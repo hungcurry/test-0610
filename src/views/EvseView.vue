@@ -31,6 +31,7 @@ const status_filter_item = [
   { text: t('charging'), value: 'CHARGING' },
   { text: t('offline'), value: 'UNKNOWN' },
   { text: t('error'), value: 'ERROR' },
+  { text: t('inoperative'), value: 'INOPERATIVE' },
 ]
 
 const updateSW = async () => {
@@ -189,6 +190,9 @@ onMounted(async () => {
       break
       case 'OUTOFORDER':
         item.status_str = t('error')
+      break
+      case 'INOPERATIVE':
+        item.status_str = t('inoperative')
       break
       default:
         item.status_str = t('others')
@@ -352,6 +356,12 @@ onMounted(async () => {
                   <p
                     class="error text-center"
                     v-else-if="scope.row.status === 'OUTOFORDER'"
+                  >
+                    {{ '●' + scope.row.status_str }}
+                  </p>
+                  <p
+                    class="error text-center"
+                    v-else-if="scope.row.status === 'INOPERATIVE'"
                   >
                     {{ '●' + scope.row.status_str }}
                   </p>

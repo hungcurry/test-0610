@@ -28,7 +28,6 @@ const hmiInfoData = reactive([])
 const locationData = reactive([])
 const tariffData = reactive([])
 const tariff_elements = reactive([])
-const config_dialog_visible = ref(false)
 const activeName = ref('one')
 
 const cp_config_core = {
@@ -67,12 +66,15 @@ TransactionMessageRetryInterval: undefined,
 UnlockConnectorOnEVSideDisconnect: undefined,
 WebSocketPingInterval: undefined,
 }
-const cp_config = reactive (cp_config_core)
+const cp_config = reactive([])
+const cp_config_backup = reactive([])
 const dialog_title = ref('')
 const chargingProfile_dialog_visible = ref(false)
+const configuration_dialog_visible = ref(false)
 const chargingProfile_dialog_step = ref('one')
 const chargingProfile_dialog_type = ref('')
 const chargingProfile_dialog_data = reactive({})
+let change_configuration_data = reactive([])
 
 const get_composite_schedule_formRef  = ref()
 const get_composite_schedule_rules = reactive({
@@ -85,7 +87,7 @@ const set_charging_profile_rules = reactive({
 })
 
 const deleteEvse = () => {
-  ElMessageBox.confirm(t('do_you_want_to_delete'),'Warning', {confirmButtonText: 'OK', cancelButtonText: 'Cancel', type: 'warning'})
+  ElMessageBox.confirm(t('do_you_want_to_delete'), t('warning'), {confirmButtonText: t('ok'), cancelButtonText: t('cancel'), type: 'warning'})
   .then(async () => {
     let sendData = { 'class' : 'EVSE', 'id' : evseId }
     console.log(await MsiApi.setCollectionData('delete', 'ocpi', sendData))
@@ -166,6 +168,44 @@ const filterChargeProfilePurpose = (value) => {
   })
 }
 
+const openConfigurationDialog = async() => {
+  change_configuration_data = []
+  dialog_title.value = t('configuration')
+  await getConfiguration()
+}
+const editConfiguration = (value, index) => {
+  cp_config[index].modify = true
+  for (let i=0; i<change_configuration_data.length; i++) {
+    if (change_configuration_data[i].key === cp_config[index].key) {
+      if (cp_config_backup[index].value === cp_config[index].value) {
+        change_configuration_data.splice(i, 1);
+        cp_config[index].modify = false
+      }
+      else {
+        change_configuration_data[i].value = cp_config[index].value.toString()
+      }
+      return
+    }
+  }
+  change_configuration_data.push({key:cp_config[index].key, readonly:cp_config[index].readonly, value:value.toString()})
+}
+const confirmConfigurationDialog = async () => {
+  for (let i=0; i<change_configuration_data.length; i++) {
+    let sendData = {
+      evse_id: evseData.evse_id,
+      key: change_configuration_data[i].key,
+      value: change_configuration_data[i].value
+    }
+    const response = await MsiApi.change_configuration(sendData)
+    if (response.status !== 200 || response.data.message === 'Rejected') {
+      ElMessage.error(`faile in ${change_configuration_data[i].key}`)
+      return
+    }
+  }
+  configuration_dialog_visible.value = false
+  ElMessage.success('Success')
+}
+
 let interval = undefined
 let interval1 = undefined
 let retry = 3
@@ -207,7 +247,7 @@ const check_uploaded  = async () => {
 
 const getDiagnostics = async () => {
 
-  ElMessageBox.confirm(t('do_you_want_to_get_diagnostics'),'Warning', {confirmButtonText: 'OK', cancelButtonText: 'Cancel', type: 'warning'})
+  ElMessageBox.confirm(t('do_you_want_to_get_diagnostics'), t('warning'), {confirmButtonText: t('ok'), cancelButtonText: t('cancel'), type: 'warning'})
   .then(async () => {
     
     let sendData = {
@@ -227,17 +267,26 @@ const getDiagnostics = async () => {
 }
 
 const getConfiguration = async () => {
-  ElMessageBox.confirm(t('do_you_want_to_get_configuration'),'Warning', {confirmButtonText: 'OK', cancelButtonText: 'Cancel', type: 'warning'})
+  ElMessageBox.confirm(t('do_you_want_to_get_configuration'), t('warning'), {confirmButtonText: t('ok'), cancelButtonText: t('cancel'), type: 'warning'})
   .then(async () => {
     let sendData = {
       evse_id: evseData.evse_id,
     }
     const response = await MsiApi.get_configuration(sendData)
-    console.log(response)
     if (response.status === 200) {
-      console.log(11)
-      cp_config = response.data.configurationKey
-      console.log(cp_config)
+      cp_config.length = 0
+      Object.assign(cp_config, response.data.configurationKey)
+      configuration_dialog_visible.value = true
+      cp_config.forEach((item) => {
+        if (item.value.toString() === 'false') {
+          item.value = false
+        }
+        else if (item.value.toString() === 'true') {
+          item.value = true
+        }
+      })
+      cp_config_backup.length = 0
+      Object.assign(cp_config_backup, cp_config)
     }
     else 
       ElMessage.error(response.data.message)
@@ -247,7 +296,7 @@ const getConfiguration = async () => {
 
 const clearChargingProfile = async () => {
   chargingProfile_dialog_visible.value = false
-  ElMessageBox.confirm(t('do_you_want_to_clear_charging_profile'), t('warning'), {confirmButtonText: 'OK', cancelButtonText: 'Cancel', type: 'warning'})
+  ElMessageBox.confirm(t('do_you_want_to_clear_charging_profile'), t('warning'), {confirmButtonText: t('ok'), cancelButtonText: t('cancel'), type: 'warning'})
   .then(async () => {
     if (!chargingProfile_dialog_data.clear_stack_level) {
       chargingProfile_dialog_data.clear_stack_level = undefined
@@ -277,7 +326,7 @@ const setChargeProfile = async() => {
   }
 
   chargingProfile_dialog_visible.value = false
-  ElMessageBox.confirm(t('do_you_want_to_set_charging_profile'), t('warning'), {confirmButtonText: 'OK', cancelButtonText: 'Cancel', type: 'warning'})
+  ElMessageBox.confirm(t('do_you_want_to_set_charging_profile'), t('warning'), {confirmButtonText: t('ok'), cancelButtonText: t('cancel'), type: 'warning'})
   .then(async () => {
     let sendData = {
       evse_id: evseData.evse_id,
@@ -297,7 +346,7 @@ const setChargeProfile = async() => {
 
 const getCompositeSchedule = async () => {
   chargingProfile_dialog_visible.value = false
-  ElMessageBox.confirm(t('do_you_want_to_get_composite_schedule'), t('warning'), {confirmButtonText: 'OK', cancelButtonText: 'Cancel', type: 'warning'})
+  ElMessageBox.confirm(t('do_you_want_to_get_composite_schedule'), t('warning'), {confirmButtonText: t('ok'), cancelButtonText: t('cancel'), type: 'warning'})
   .then(async () => {
     let sendData = {
       evse_id: evseData.evse_id,
@@ -320,7 +369,7 @@ const getCompositeSchedule = async () => {
 
 
 const changeAvailability = async () => {
-  ElMessageBox.confirm(t('do_you_want_to_change_availability'),'Warning', {confirmButtonText: 'OK', cancelButtonText: 'Cancel', type: 'warning'})
+  ElMessageBox.confirm(t('do_you_want_to_change_availability'), t('warning'), {confirmButtonText: t('ok'), cancelButtonText: t('cancel'), type: 'warning'})
   .then(async () => {
     let change_type = "Inoperative"
     if (evseData.status === 'INOPERATIVE') {
@@ -334,11 +383,6 @@ const changeAvailability = async () => {
     console.log(await MsiApi.change_availability(sendData))
   })
 }
-
-const changeConfiguration = async () => {
-  config_dialog_visible.value = true
-}
-
 
 const getRealTimeEvseInfo = async () => {
   let queryData = { "database":"OCPI", "collection":"EVSE", "query": { "uid": {"UUID":evseId}}}
@@ -397,7 +441,6 @@ const parking_bgColor = '#94eadb'
 const fillFullCalendar = () => {
   tariffObj.length = 0
   Object.assign(tariffObj, tariffData.elements)
-  console.log(tariffObj)
 
   chargingCalendarOptions.events = []
   parkingCalendarOptions.events = []
@@ -696,7 +739,6 @@ const changeDisplayProfile = (index) => {
       Object.assign(charging_profile, EVSEChargingProfileData[i])
       Object.assign(charging_schedule, EVSEChargingProfileData[i].charging_schedule)
       Object.assign(charging_schedule_period, EVSEChargingProfileData[i].charging_schedule.charging_schedule_period)
-      console.log(charging_profile)
       return
     }
   }
@@ -789,10 +831,8 @@ onMounted( async () => {
   let queryData
   let response
   let localEndTime
-  console.log(evseData)
   queryData = { "database":"OCPI", "collection":"Connector", "query": { "_id": { "ObjectId" : evseData?.connectors?.[0]?._id}}}
   response = await MsiApi.mongoQuery(queryData)
-  console.log(response)
   Object.assign(connectorData, response.data.all[0])
   if (connectorData.standard === 'IEC_62196_T1') 
     connectorData.type_str = 'Type 1 (J1772)'
@@ -945,11 +985,12 @@ onUnmounted(() => {
               <div class="flex justify-end">
                 <!-- <el-button v-if="MStore.rule_permission.EVSEDetail.dataTransfer === 'O' || MStore.permission.isCompany" disabled
                   type="primary" class="btn-secondary box-shadow delete" @click="dataTransfer"> {{t('data_transfer')}} </el-button> -->
-                <!-- <el-button v-if="MStore.rule_permission.EVSEDetail.changeConfiguration === 'O' || MStore.permission.isCompany" disabled
-                  type="primary" class="btn-secondary box-shadow delete" @click="changeConfiguration"> {{t('change_configuration')}} </el-button> -->
                 <el-button v-if="MStore.rule_permission.EVSEDetail.getDiagnostics === 'O' || MStore.permission.isCompany"
                   type="primary" class="btn-secondary box-shadow delete" @click="getDiagnostics"> {{t('get_diagnostics')}} </el-button>
-                <!-- <el-dropdown class="ml-12px">
+                <el-button v-if="MStore.rule_permission.EVSEDetail.changeConfiguration === 'O' || MStore.permission.isCompany"
+                  type="primary" class="btn-secondary box-shadow delete" @click="openConfigurationDialog"> {{t('configuration')}} </el-button>
+
+                  <!-- <el-dropdown class="ml-12px">
                   <el-button v-if="MStore.rule_permission.EVSEDetail.chargingProfile === 'O' || MStore.permission.isCompany" 
                     type="primary" class="btn-secondary box-shadow delete"> {{t('charging_profile')}} </el-button>
                   <template #dropdown>
@@ -1262,50 +1303,6 @@ onUnmounted(() => {
         </el-row >
       </div>
     </div>
-    <el-dialog
-      append-to-body
-      v-model="config_dialog_visible"
-      class="max-w-600px"
-      width="90%"
-    >
-      <template #header="{ titleId, titleClass }">
-        <div class="py-2rem relative bg-blue-100">
-          <h4
-            :id="titleId"
-            :class="titleClass"
-            class="m-0 text-center text-blue-1200 font-400 text-20px lg:text-24px line-height-26px"
-          >
-            {{ dialog_title }}
-          </h4>
-        </div>
-      </template>
-      <div class="dialog-context">
-        <el-form class="pr-10px" label-position="left" label-width="110px" :rules="program_rules" :model="ProgramMod" ref="program_ref" :scroll-to-error=true>
-          <el-form-item :label="t('name')" prop="name">
-            <el-input v-model="cp_config.name" />
-          </el-form-item>
-          <el-form-item :label="t('station')" prop="location">
-            <el-input v-model="ProgramMod.location" placeholder="0" oninput="value=value.replace(/[^\d]/g,'')" />
-          </el-form-item>
-        </el-form>
-      </div>
-      <template #footer>
-        <span class="dialog-footer flex flex-center">
-          <el-button
-            round
-            class="w-48% bg-btn-100 text-white max-w-140px"
-            @click="cancelDialog"
-            >{{ t('cancel') }}</el-button
-          >
-          <el-button
-            round
-            class="w-48% bg-btn-200 text-white max-w-140px"
-            @click="confirmDialog"
-            >{{ t('confirm') }}</el-button
-          >
-        </span>
-      </template>
-    </el-dialog>
 
     <el-dialog
       append-to-body
@@ -1397,6 +1394,43 @@ onUnmounted(() => {
             <el-button round class="w-48% bg-btn-100 text-white max-w-140px" @click="confirmChargingProfileDialog(chargingProfile_dialog_type)">{{ t('confirm') }}</el-button>
           </div>
         </div>
+      </template>
+    </el-dialog>
+
+    <el-dialog
+      append-to-body
+      v-model="configuration_dialog_visible"
+      class="max-w-600px"
+      width="90%"
+    >
+      <template #header="{ titleId, titleClass }">
+        <div class="py-2rem relative bg-blue-100">
+          <h4
+            :id="titleId"
+            :class="titleClass"
+            class="m-0 text-center text-blue-1200 font-400 text-20px lg:text-24px line-height-26px"
+          >
+            {{ dialog_title }}
+          </h4>
+        </div>
+      </template>
+      <div class="dialog-context pb-20px configuration">
+        <el-form class="max-w-500px m-auto" >
+          <el-form-item v-for="(item, index) in cp_config" class="mb-24px flex">
+            <span slot="label" class="w-290px" :class="{modify_item: item.modify}">{{ item.key }}</span>
+            <el-switch v-if="item.value === false || item.value === true" v-model="item.value" :disabled="item.readonly" @change="value => editConfiguration(value, index)" />
+            <el-input v-else v-model="item.value" :disabled="item.readonly" @change="value => editConfiguration(value, index)" />
+          </el-form-item>
+        </el-form>
+      </div>
+      <template #footer>
+        <span class="dialog-footer flex flex-center">
+          <el-button 
+            v-if="MStore.rule_permission.EVSEDetail.changeConfiguration === 'O' || MStore.permission.isCompany"
+            round class="w-48% bg-btn-100 text-white max-w-140px" @click.stop="confirmConfigurationDialog">
+            {{ t('confirm') }}
+          </el-button>
+        </span>
       </template>
     </el-dialog>
   </div>
@@ -1565,6 +1599,18 @@ onUnmounted(() => {
       padding: 1.5px;
       background-color: var(--gray-200);
     }
+  }
+}
+.configuration {
+  .modify_item {
+    font-weight: bolder;
+    text-decoration: underline;
+  }
+  :deep(.el-form-item__content) {
+    flex-wrap: nowrap;
+  }
+  :deep(.el-input) {
+    width: auto;
   }
 }
 </style>

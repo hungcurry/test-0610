@@ -1102,8 +1102,9 @@ onUnmounted(() => {
               :label="t('top_up')" prop="top_up">
               <div class="flex w-full">
                 <el-input
-                  v-model.number="rfidData.top_up"
+                  v-model="rfidData.top_up"
                   :disabled="rfidData.topUpCheck"
+                  :formatter="(value) => `${value}`.replace(/[^\d.]/g, '')"
                   class="w-full mr-0px"
                 />
                 <el-checkbox-button 
@@ -1125,6 +1126,7 @@ onUnmounted(() => {
                 <el-input 
                   v-model="rfidData.refund" 
                   :disabled="rfidData.refundCheck"
+                  :formatter="(value) => `${value}`.replace(/[^\d.]/g, '')"
                   class="w-full mr-0px" 
                 />
                 <el-checkbox-button class="rfid-checkbox" 
