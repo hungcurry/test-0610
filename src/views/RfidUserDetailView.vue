@@ -300,7 +300,7 @@ const updateRfidCash = (type) => {
         type: 'warning',
       })
       .then(async() => {
-        const json = JSON.stringify({ id: general._id, rfid: {rfid: rfidData.rfid.toUpperCase(), cash: cash} })
+        const json = JSON.stringify({ id: general._id, rfid: {rfid: rfidData.rfid.toUpperCase(), cash: Number(cash)} })
         let res = await MsiApi.set_rfid_cash(json)
         if (res.data.status === 'Accepted') {
           await getRfidUserData()
