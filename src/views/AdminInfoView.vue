@@ -663,15 +663,26 @@ const getPermission = async() => {
       }
     }
     else {
-      queryData = {
-        database: 'CPO', 
-        collection: 'UserPermission', 
-        pipelines: [
-          { $match: { name: { $nin: ['AnonymousUser', 'MemberUser', ] } } },
-          {  $project: { _id: 1, name: 1 } }
-        ]
+      if (companyData.name === 'MSI') {
+        queryData = {
+          database: 'CPO', 
+          collection: 'UserPermission', 
+          pipelines: [
+            { $match: { name: { $nin: ['AnonymousUser', 'MemberUser', ] } } },
+            {  $project: { _id: 1, name: 1 } }
+          ]
+        }
       }
-      
+      else {
+        queryData = {
+          database: 'CPO', 
+          collection: 'UserPermission', 
+          pipelines: [
+            { $match: { name: { $nin: ['AnonymousUser', 'MemberUser', 'DeveloperUser', 'CustomerServiceUser', 'ViewerUser', 'FAEUser'] } } },
+            {  $project: { _id: 1, name: 1 } }
+          ]
+        }
+      }
     }
     let response = await MsiApi.mongoAggregate(queryData)
     UserPermission.length = 0
@@ -1260,7 +1271,7 @@ onMounted(async () => {
             <el-input v-model="AdminData.phone" />
           </el-form-item>
 
-          <el-form-item class="mb-24px" :label="t('permission')" prop="permission_str" v-if="MStore.permission.isMSI === true">
+          <el-form-item class="mb-24px" :label="t('permission')" prop="permission_str">
             <el-select 
               class="el-select" 
               v-model="AdminData.permission_str" 
