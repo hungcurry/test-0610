@@ -190,27 +190,13 @@ const AddAdmin = async (action, visable) => {
           ElMessageBox.confirm(t('do_you_want_to_create'), t('warning'), { confirmButtonText: t('ok'), cancelButtonText: t('cancel'), type: 'warning' })
             .then(async () => {
               isLoading.value = true
-              let res = null
-              // Tony S ++ ======================================================= Prod api not ready ...
-              if (import.meta.env.VITE_NAME === 'prod') {
-                let sendData = {
-                  first_name: AddAdminData.first_name, last_name: AddAdminData.last_name,
-                  email: AddAdminData.email, phone: AddAdminData.phone, password: "msi32345599",
-                  permission: AddAdminData.permission_id, edit: edit, active: AddAdminData.permission_active ,
-                  company: MStore.permission.company.name, dashboard: true, 
-                }
-                res = await MsiApi.register_member_v0(sendData)
+              let sendData = {
+                role: 'admin',
+                first_name: AddAdminData.first_name, last_name: AddAdminData.last_name,
+                email: AddAdminData.email, phone: AddAdminData.phone, password: "msi32345599",
+                permission: AddAdminData.permission_id, edit: edit, active: AddAdminData.permission_active ,
               }
-              else {
-                let sendData = {
-                  role: 'admin',
-                  first_name: AddAdminData.first_name, last_name: AddAdminData.last_name,
-                  email: AddAdminData.email, phone: AddAdminData.phone, password: "msi32345599",
-                  permission: AddAdminData.permission_id, edit: edit, active: AddAdminData.permission_active ,
-                }
-                res = await MsiApi.register_member(sendData)
-              }
-              // Tony E ++ =======================================================
+              let res = await MsiApi.register_member(sendData)
               if (res.status === 201) {
                 GetPermission()
                 console.log(await MongoAggregate())
@@ -220,13 +206,6 @@ const AddAdmin = async (action, visable) => {
                 isLoading.value = false
                 AddAdminFormVisible.value = true
               }
-              // Tony S ++ ======================================================= Prod api not ready ...
-              else if(res.status === 200 && import.meta.env.VITE_NAME === 'prod') {
-                ElMessage.error(t('email_already_exists'))
-                isLoading.value = false
-                AddAdminFormVisible.value = true
-              }
-              // Tony E ++ =======================================================
               else if (res.data.message === 'Mail not found') {
                 ElMessage.error(t('email_not_found'))
                 isLoading.value = false

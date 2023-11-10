@@ -98,11 +98,6 @@ export default function () {
     return response
   }
 
-  const register_member_v0 = async (json) => {
-    const response = await postJsonData(api1 + '/member/register', json)
-    return response
-  }
-
   const register_member = async (json) => {
     AuthToken = VueCookies.get('AuthToken')
     const response = await postJsonData(api1 + '/account', json, AuthToken)
@@ -346,7 +341,7 @@ export default function () {
 
   return {
       setCollectionData, getToken, checkToken, mongoQuery, mongoAggregate,
-      register_member_v0, register_member, get_account_info, get_account_detail, edit_account, delete_account,
+      register_member, get_account_info, get_account_detail, edit_account, delete_account,
       resetPW, reset_evse, updateFw, getTimeZone, getCoordinates, getAddress,
       bind_card, search_bind_card, unregister_bind_card, auth_payment, subscribe_plan, member_modify,
       forgotPW, add_rfid_data, edit_rfid_data, delete_rfid_data, set_rfid_cash, 
