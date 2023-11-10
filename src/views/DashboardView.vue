@@ -443,11 +443,16 @@ const queryTotalUsedTimes = async (select_time1) => {
       ],
     }
     let response = await MsiApi.mongoAggregate(queryData)
-    let temp  =  await MsiApi.getTaiwanExchangeRate()
-    rate.CNY = temp.CNY
-    rate.EUR = temp.EUR
-    rate.JPY = temp.JPY
-    rate.USD = temp.USD
+    // let temp  =  await MsiApi.getTaiwanExchangeRate()
+    // console.log(temp)
+    // rate.CNY = temp.CNY
+    // rate.EUR = temp.EUR
+    // rate.JPY = temp.JPY
+    // rate.USD = temp.USD
+    rate.CNY = 4.33
+    rate.EUR = 33.69
+    rate.JPY = 0.2045
+    rate.USD = 31.925
 
     rfid.value = visitor.value = ev_life.value = income.value = 0
     if (typeof response.data.result[0].RFID[0]?.RFID === 'number')
@@ -457,9 +462,7 @@ const queryTotalUsedTimes = async (select_time1) => {
     if (typeof response.data.result[0].totalCount[0]?.totalCount === 'number')
       ev_life.value = response.data.result[0].totalCount[0]?.totalCount - rfid.value - visitor.value
     if (response.data.result[0].income.length > 0) {
-      console.log(444, response.data.result[0].income.length)
       totalTWD.value = 0
-      console.log(response.data.result[0].income.length)
       for (let i = 0; i < response.data.result[0].income.length; i++){
         if (response.data.result[0].income[i]._id === 'USD') {
           totalTWD.value += response.data.result[0].income[i].total * rate.USD
