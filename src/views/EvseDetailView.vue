@@ -423,7 +423,7 @@ const getRealTimeEvseInfo = async () => {
       evseData.status_str = t('error')
     break
     case 'INOPERATIVE':
-      evseData.status_str = t('INOPERATIVE')
+      evseData.status_str = t('inoperative')
     break
     default:
       evseData.status_str = t('others')

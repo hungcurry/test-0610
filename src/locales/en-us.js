@@ -1145,6 +1145,8 @@ export default
                                                             'RFID card cannot be removed, Because the EVSE is occupied.',
     user_cannot_be_deteted_because_the_total_amount_is_not_0:
                                                             'User cannot be deleted, Because the total amount is not 0.',
+    user_cannot_be_deteted_because_the_rfid_card_has_not_been_deleted_yet:
+                                                            'User cannot be deleted, Because the RFID card has not been deleted yet.',
     rfid_card_is_non_refundable_as_the_amount_must_be_greater_than_0: 
                                                             'RFID card is non-refundable as the amount must be greater than 0.',
     top_up_successful:                                      'Top-up Successful',
