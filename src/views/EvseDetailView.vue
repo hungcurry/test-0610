@@ -3,6 +3,7 @@ import axios from 'axios'
 import { ref, reactive, onMounted, onUnmounted} from 'vue'
 import { useRoute, useRouter} from 'vue-router'
 import ApiFunc from '@/composables/ApiFunc'
+import CommpnFunc from '@/composables/CommonFunc'
 import {  ElMessageBox,ElMessage } from 'element-plus'
 import msi from '@/assets/msi_style'
 import { useMStore } from "../stores/m_cloud"
@@ -20,6 +21,7 @@ const route = useRoute()
 const evseId = route.query.evse_id
 const router = useRouter()
 const MsiApi = ApiFunc()
+const MsiFunc = CommpnFunc()
 const evseData = reactive([])
 const connectorData = reactive([])
 const chargePointInfoData = reactive([])
@@ -74,6 +76,7 @@ const configuration_dialog_visible = ref(false)
 const chargingProfile_dialog_step = ref('one')
 const chargingProfile_dialog_type = ref('')
 const chargingProfile_dialog_data = reactive({})
+const remote_transaction_title = ref(t('remote_start'))
 let change_configuration_data = reactive([])
 
 const get_composite_schedule_formRef  = ref()
@@ -82,8 +85,31 @@ const get_composite_schedule_rules = reactive({
 })
 const set_charging_profile_formRef  = ref()
 const set_charging_profile_rules = reactive({
-  send_charge_profile_purpose: [{ required: true, message: t('this_item_is_required'), trigger: 'change' },],
-  send_charge_profile: [{ required: true, message: t('this_item_is_required'), trigger: 'change' },],
+  set_charge_profile: [{ required: true, message: t('this_item_is_required'), trigger: 'change' },],
+})
+
+const clear_charging_profile_method = ref('')
+const clear_charging_profile_formRef  = ref()
+const validClearChargingProfile = (rule, value, callback) => {
+  if (clear_charging_profile_method.value === '2') {
+    if (value === undefined) {
+      callback(new Error(t('this_item_is_required')))
+    }
+  }
+  else if (clear_charging_profile_method.value === '3') {
+    if (rule.field === 'clear_charge_profile_purpose' && value === undefined) {
+      callback(new Error(t('this_item_is_required')))
+    }
+    if (rule.field === 'clear_charge_profile_stacklevel' && value === undefined) {
+      callback(new Error(t('this_item_is_required')))
+    }
+  }
+  callback()
+}
+const clear_charging_profile_rules = reactive({
+  clear_charge_profile: [{ required: true, message: t('this_item_is_required'), trigger: 'change', validator: validClearChargingProfile },],
+  clear_charge_profile_purpose: [{ required: true, message: t('this_item_is_required'), trigger: 'change', validator: validClearChargingProfile },],
+  clear_charge_profile_stacklevel: [{ required: true, message: t('this_item_is_required'), trigger: 'blur', validator: validClearChargingProfile },],
 })
 
 const deleteEvse = () => {
@@ -128,14 +154,23 @@ const openChargingProfileDialog = (value) => {
   }
   else if (value === 'set') {
     dialog_title.value = t('set_charging_profile')
-    chargingProfile_dialog_data.send_charge_profile_purpose = undefined
-    chargingProfile_dialog_data.send_charge_profile = undefined
+    chargingProfile_dialog_data.set_charge_profile_purpose = undefined
+    chargingProfile_dialog_data.set_charge_profile = undefined
     set_charging_profile_formRef.value?.resetFields()
+    chargingProfile_dialog_data.filter_charge_profile_options = []
+    AllChargingProfileData.forEach((item) => {
+      chargingProfile_dialog_data.filter_charge_profile_options.push(item)
+    })
   }
   else if (value === 'clear') {
     dialog_title.value = t('clear_charging_profile')
+    chargingProfile_dialog_data.clear_charge_profile = undefined
     chargingProfile_dialog_data.clear_charge_profile_purpose = undefined
-    chargingProfile_dialog_data.clear_stack_level = undefined
+    chargingProfile_dialog_data.clear_charge_profile_stacklevel = undefined
+    chargingProfile_dialog_data.filter_charge_profile_options = []
+    AllChargingProfileData.forEach((item) => {
+      chargingProfile_dialog_data.filter_charge_profile_options.push(item)
+    })
   }
 }
 const confirmChargingProfileDialog = async(value) => {
@@ -155,11 +190,15 @@ const confirmChargingProfileDialog = async(value) => {
     })
   }
   else if (value === 'clear') {
-    clearChargingProfile()
+    await clear_charging_profile_formRef.value.validate((valid) => {
+      if (valid === true) {
+        clearChargingProfile()
+      }
+    })
   }
 }
 const filterChargeProfilePurpose = (value) => {
-  chargingProfile_dialog_data.send_charge_profile = undefined
+  chargingProfile_dialog_data.set_charge_profile = undefined
   chargingProfile_dialog_data.filter_charge_profile_options = []
   AllChargingProfileData.forEach((item) => {
     if (item.charging_profile_purpose === value) {
@@ -298,32 +337,87 @@ const clearChargingProfile = async () => {
   chargingProfile_dialog_visible.value = false
   ElMessageBox.confirm(t('do_you_want_to_clear_charging_profile'), t('warning'), {confirmButtonText: t('ok'), cancelButtonText: t('cancel'), type: 'warning'})
   .then(async () => {
-    if (!chargingProfile_dialog_data.clear_stack_level) {
-      chargingProfile_dialog_data.clear_stack_level = undefined
+    let clear_connectorId = 1
+    if (clear_charging_profile_method.value === '1') {
+      clear_connectorId = undefined
+      chargingProfile_dialog_data.clear_charge_profile = undefined
+      chargingProfile_dialog_data.clear_charge_profile_purpose = undefined
+      chargingProfile_dialog_data.clear_charge_profile_stacklevel = undefined
+    }
+    else if (clear_charging_profile_method.value === '2') {
+      chargingProfile_dialog_data.clear_charge_profile_purpose = undefined
+      chargingProfile_dialog_data.clear_charge_profile_stacklevel = undefined
+    }
+    else if (clear_charging_profile_method.value === '3') {
+      chargingProfile_dialog_data.clear_charge_profile = undefined
     }
     let sendData = {
       evse_id: evseData.evse_id,
-      chargingProfilePurpose: chargingProfile_dialog_data.clear_charge_profile_purpose,
-      stackLevel: chargingProfile_dialog_data.clear_stack_level,
+      id: chargingProfile_dialog_data.clear_charge_profile,
+      connectorId: clear_connectorId,
+      chargingProfilePurpose: chargingProfile_dialog_data.clear_charge_profile_purpose ,
+      stackLevel: chargingProfile_dialog_data.clear_charge_profile_stacklevel,
     }
+    MsiFunc.deleteEmptyKeys(sendData)
     let res = await MsiApi.clear_charging_profile(sendData)
-    console.log(res)
-    if (res.status === 200) {
+    if (res.data.message !== null && res.data.message.status === 'Accepted') {
       ElMessage.success('Success')
     }
     else {
-      ElMessage.error(res.data.status)
+      ElMessage.error(t('error'))
     }
   })
 }
 
 const setChargeProfile = async() => {
-  let send_charge_profile_obj = undefined
-  for (let i=0; i<AllChargingProfileData.length; i++) {
-    if (AllChargingProfileData[i]._id === chargingProfile_dialog_data.send_charge_profile) {
-      send_charge_profile_obj = AllChargingProfileData[i]
-    }
+  let set_charge_profile_obj = {}
+  let queryData = {
+    database: 'CPO', 
+    collection: 'ChargingProfile', 
+    pipelines: [
+      { $match: { _id: { $eq: {"ObjectId": chargingProfile_dialog_data.set_charge_profile}}}},
+      { $project: { aaa: 0} }
+    ]}
+  let response = await MsiApi.mongoAggregate(queryData)
+  Object.assign(set_charge_profile_obj, response.data.result[0])
+  let chargingProfileData = {}
+  if (set_charge_profile_obj.charging_profile_purpose === 'TxProfile') {
+    queryData = {
+      database: 'CPO', 
+      collection: 'ChargePointInfo', 
+      pipelines: [
+        { $match: { evse_id: { $eq: evseData.evse_id}}},
+        { $project: { ocpp_info: 1} }
+      ]}
+    response = await MsiApi.mongoAggregate(queryData)
+    chargingProfileData.transactionId = response.data.result[0].ocpp_info[0].transactionId
   }
+  chargingProfileData.chargingProfileId = set_charge_profile_obj.charging_profile_id
+  chargingProfileData.stackLevel = set_charge_profile_obj.stack_level
+  chargingProfileData.chargingProfilePurpose = set_charge_profile_obj.charging_profile_purpose
+  chargingProfileData.chargingProfileKind = set_charge_profile_obj.charging_profile_kind
+  chargingProfileData.recurrencyKind = set_charge_profile_obj.recurrency_kind
+  if (set_charge_profile_obj.valid_from)
+    chargingProfileData.validFrom = new Date(new Date(set_charge_profile_obj.valid_from).getTime() + ((MStore.timeZoneOffset ) * -60000))
+  if (set_charge_profile_obj.valid_to)
+    chargingProfileData.validTo = new Date(new Date(set_charge_profile_obj.valid_to).getTime() + ((MStore.timeZoneOffset ) * -60000))
+  chargingProfileData.chargingSchedule = {}
+  chargingProfileData.chargingSchedule.duration = set_charge_profile_obj.charging_schedule.duration
+  if (set_charge_profile_obj.charging_schedule.start_schedule)
+    chargingProfileData.chargingSchedule.startSchedule = new Date(new Date(set_charge_profile_obj.charging_schedule.start_schedule).getTime() + ((MStore.timeZoneOffset ) * -60000))
+  chargingProfileData.chargingSchedule.minChargingRate = set_charge_profile_obj.charging_schedule.min_charging_rate
+  chargingProfileData.chargingSchedule.chargingRateUnit = set_charge_profile_obj.charging_schedule.charging_rate_unit
+  chargingProfileData.chargingSchedule.chargingSchedulePeriod = []
+  set_charge_profile_obj.charging_schedule.charging_schedule_period.forEach((item) => {
+    chargingProfileData.chargingSchedule.chargingSchedulePeriod.push({
+      startPeriod: item.start_period,
+      limit: item.limit,
+      numberPhases: item.number_phases,
+    })
+  })
+
+  MsiFunc.deleteEmptyKeys(chargingProfileData)
+  console.log(chargingProfileData)
 
   chargingProfile_dialog_visible.value = false
   ElMessageBox.confirm(t('do_you_want_to_set_charging_profile'), t('warning'), {confirmButtonText: t('ok'), cancelButtonText: t('cancel'), type: 'warning'})
@@ -331,15 +425,14 @@ const setChargeProfile = async() => {
     let sendData = {
       evse_id: evseData.evse_id,
       connectorId: 1,
-      csChargingProfiles: send_charge_profile_obj,
+      csChargingProfiles: chargingProfileData,
     }
     let res = await MsiApi.set_charging_profile(sendData)
-    if (res.status === 200) {
-      console.log(res)
+    if (res.data.message !== null) {
       ElMessage.success('Success')
     }
     else {
-      ElMessage.error(res.data.status)
+      ElMessage.error(t('error'))
     }
   })
 }
@@ -359,7 +452,6 @@ const getCompositeSchedule = async () => {
       Object.assign(chargingProfile_dialog_data, res.data.message)
       let localEndTime = new Date(chargingProfile_dialog_data?.charging_schedule?.start_schedule).getTime()
       chargingProfile_dialog_data.start_schedule_str = (moment(localEndTime).format("YYYY-MM-DD HH:mm:ss")) 
-      console.log(chargingProfile_dialog_data)
     }
     else {
       ElMessage.error(res.data.status)
@@ -384,6 +476,38 @@ const changeAvailability = async () => {
   })
 }
 
+const remoteTransaction = () => {
+  if (remote_transaction_title.value === t('remote_start')) {
+    ElMessageBox.confirm(t('do_you_want_to_remote_start_transaction'), t('warning'), {confirmButtonText: t('ok'), cancelButtonText: t('cancel'), type: 'warning'})
+    .then(async () => {
+      let sendData = {
+        evse_id: evseData.evse_id,
+        connector: 1,
+        idTag: '11223344'
+      }
+      let response = await MsiApi.remote_start_transaction(sendData)
+      console.log(response)
+      if (response.status === 200) {
+        remote_transaction_title.value = t('remote_stop')
+      }
+    })
+  }
+  else if (remote_transaction_title.value === t('remote_stop')) {
+    ElMessageBox.confirm(t('do_you_want_to_remote_stop_transaction'), t('warning'), {confirmButtonText: t('ok'), cancelButtonText: t('cancel'), type: 'warning'})
+    .then(async () => {
+      let sendData = {
+        evse_id: evseData.evse_id,
+        transactionId: 1234,
+      }
+      let response = await MsiApi.remote_stop_transaction(sendData)
+      console.log(response)
+      if (response.status === 200) {
+        remote_transaction_title.value = t('remote_start')
+      }
+    })
+  }
+}
+
 const getRealTimeEvseInfo = async () => {
   let queryData = { "database":"OCPI", "collection":"EVSE", "query": { "uid": {"UUID":evseId}}}
   let response = await MsiApi.mongoQuery(queryData)
@@ -391,11 +515,13 @@ const getRealTimeEvseInfo = async () => {
   Object.assign(evseData, response.data.all[0]) 
   let localEndTime =  new Date( (new Date(evseData.last_updated).getTime()) + ((MStore.timeZoneOffset ) * -60000))
   evseData.last_updated_str = (moment(localEndTime).format("YYYY-MM-DD HH:mm:ss"))
+  remote_transaction_title.value = t('remote_start')
   switch (evseData.status) {
     case 'AVAILABLE':
       evseData.status_str = t('available')
     break
     case 'CHARGING':
+      remote_transaction_title.value = t('remote_stop')
       evseData.status_str = t('charging')
       queryData = { "database": 'CPO', "collection": 'ChargePointInfo', 
       "pipelines": [{ $match: { "evse_id": evseData.evse_id } },  
@@ -985,12 +1111,14 @@ onUnmounted(() => {
               <div class="flex justify-end">
                 <!-- <el-button v-if="MStore.rule_permission.EVSEDetail.dataTransfer === 'O' || MStore.permission.isCompany" disabled
                   type="primary" class="btn-secondary box-shadow delete" @click="dataTransfer"> {{t('data_transfer')}} </el-button> -->
+                <!-- <el-button
+                  type="primary" class="btn-secondary box-shadow delete" @click="remoteTransaction"> {{ remote_transaction_title }} </el-button> -->
                 <el-button v-if="MStore.rule_permission.EVSEDetail.getDiagnostics === 'O' || MStore.permission.isCompany"
                   type="primary" class="btn-secondary box-shadow delete" @click="getDiagnostics"> {{t('get_diagnostics')}} </el-button>
                 <el-button v-if="MStore.rule_permission.EVSEDetail.changeConfiguration === 'O' || MStore.permission.isCompany"
                   type="primary" class="btn-secondary box-shadow delete" @click="openConfigurationDialog"> {{t('configuration')}} </el-button>
 
-                  <!-- <el-dropdown class="ml-12px">
+                  <el-dropdown class="ml-12px">
                   <el-button v-if="MStore.rule_permission.EVSEDetail.chargingProfile === 'O' || MStore.permission.isCompany" 
                     type="primary" class="btn-secondary box-shadow delete"> {{t('charging_profile')}} </el-button>
                   <template #dropdown>
@@ -1000,7 +1128,7 @@ onUnmounted(() => {
                       <el-dropdown-item v-if="MStore.rule_permission.EVSEDetail.clearChargingProfile === 'O' || MStore.permission.isCompany" @click="openChargingProfileDialog('clear')">{{t('clear_charging_profile')}}</el-dropdown-item>
                     </el-dropdown-menu>
                   </template>  
-                </el-dropdown> -->
+                </el-dropdown>
               </div>
             </div>
           </el-col>
@@ -1330,38 +1458,53 @@ onUnmounted(() => {
                   <template #suffix> <span class="h-30px">s</span></template>
                 </el-input>
               </el-form-item>
-              <el-form-item class="m-auto w-360px mb-24px" :label= "t('scheduling_unit')" prop="get_charge_rate_unit" label-width="140px" >
-                <el-select v-model="chargingProfile_dialog_data.get_charge_rate_unit" class="w-200px" placeholder="Select" size="large" @change="filterChargeProfilePurpose">
+              <!-- <el-form-item class="m-auto w-360px mb-24px" :label= "t('scheduling_unit')" prop="get_charge_rate_unit" label-width="140px" >
+                <el-select v-model="chargingProfile_dialog_data.get_charge_rate_unit" class="w-200px" placeholder="Select" size="large">
                   <el-option v-for="item in chargingRateUnit" :label="item.name" :value="item.value" />
                 </el-select>
-              </el-form-item>
+              </el-form-item> -->
             </el-form>
           </div>
           <div v-if="chargingProfile_dialog_type === 'set'">
             <el-form class="w-full" :rules="set_charging_profile_rules" :model="chargingProfile_dialog_data" ref="set_charging_profile_formRef" label-position="left">
-              <el-form-item class="m-auto w-360px mb-24px" :label= "t('profile_purpose')" prop="send_charge_profile_purpose" label-width="140px" >
-                <el-select v-model="chargingProfile_dialog_data.send_charge_profile_purpose" class="w-200px" placeholder="Select" size="large" @change="filterChargeProfilePurpose">
+              <el-form-item class="m-auto w-360px mb-24px" :label= "t('profile_purpose')" prop="set_charge_profile_purpose" label-width="140px" >
+                <el-select v-model="chargingProfile_dialog_data.set_charge_profile_purpose" class="w-200px" placeholder="Select" size="large" @change="filterChargeProfilePurpose">
                   <el-option v-for="item in chargingProfilePurpose" :label="item.name" :value="item.value" />
                 </el-select>
               </el-form-item>
-              <el-form-item class="m-auto w-360px mb-24px" :label= "t('profile_name')" prop="send_charge_profile" label-width="140px" >
-                <el-select v-model="chargingProfile_dialog_data.send_charge_profile" class="w-200px" placeholder="Select" size="large">
+              <el-form-item class="m-auto w-360px mb-24px" :label= "t('profile_name')" prop="set_charge_profile" label-width="140px" >
+                <el-select v-model="chargingProfile_dialog_data.set_charge_profile" class="w-200px" placeholder="Select" size="large">
                   <el-option v-for="item in chargingProfile_dialog_data.filter_charge_profile_options" :key="item._id" :label="item.name" :value="item._id" />
                 </el-select>
               </el-form-item>
             </el-form>
           </div>
-          <div v-if="chargingProfile_dialog_type === 'clear'">
-            <div class="w-360px m-auto flex flex-items-center py-10px flex-justify-between">
-              <p class="text-16px w-140px">{{ t('profile_purpose') }}</p>
-              <el-select v-model="chargingProfile_dialog_data.clear_charge_profile_purpose" class="w-200px" placeholder="Select" size="large">
-                <el-option v-for="item in chargingProfilePurpose" :label="item.name" :value="item.value" />
-              </el-select>
-            </div>
-            <div class="w-360px m-auto flex flex-items-center py-10px flex-justify-between">
-              <p class="text-16px w-140px">{{ t('profile_stack_level') }}</p>
-              <el-input v-model="chargingProfile_dialog_data.clear_stack_level" class="ml-10px w-200px" />
-            </div>
+          <div v-if="chargingProfile_dialog_type === 'clear'" class="h-180px">
+            <el-radio-group v-model="clear_charging_profile_method" class="flex flex-justify-center">
+              <el-radio-button label="1">{{ t('clear_all') }}</el-radio-button>
+              <el-radio-button label="2">{{ t('clear_by_name') }}</el-radio-button>
+              <el-radio-button label="3">{{ t('clear_by_purpose_and_stacklevel') }}</el-radio-button>
+            </el-radio-group>
+            <el-form class="w-full" :rules="clear_charging_profile_rules" :model="chargingProfile_dialog_data" ref="clear_charging_profile_formRef" label-position="left">
+              <div v-if="clear_charging_profile_method === '2'" class="mt-44px">
+                <el-form-item class="m-auto w-360px mb-24px" :label= "t('profile_name')" prop="clear_charge_profile" label-width="140px" >
+                  <el-select v-model="chargingProfile_dialog_data.clear_charge_profile" class="w-200px" placeholder="Select" size="large">
+                    <el-option v-for="item in chargingProfile_dialog_data.filter_charge_profile_options" :key="item._id" :label="item.name" :value="item.charging_profile_id" />
+                  </el-select>
+                </el-form-item>
+              </div>
+              <div v-if="clear_charging_profile_method === '3'" class="mt-44px">
+                <el-form-item class="m-auto w-360px mb-24px" :label= "t('profile_purpose')" prop="clear_charge_profile_purpose" label-width="140px" >
+                  <el-select v-model="chargingProfile_dialog_data.clear_charge_profile_purpose" class="w-200px" placeholder="Select" size="large">
+                    <el-option v-for="item in chargingProfilePurpose" :key="item.value" :label="item.name" :value="item.value" />
+                  </el-select>
+                </el-form-item>
+
+                <el-form-item class="m-auto w-360px mb-24px" :label= "t('profile_stack_level')" prop="clear_charge_profile_stacklevel" label-width="140px" >
+                  <el-input v-model="chargingProfile_dialog_data.clear_charge_profile_stacklevel" class="w-200px" />
+                </el-form-item>
+              </div>
+            </el-form>
           </div>
         </div>
 

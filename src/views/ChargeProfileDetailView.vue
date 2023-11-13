@@ -30,11 +30,11 @@ const recurrencyKind = [
   { value: 'Weekly', label: t('weekly')},
 ]
 const chargingRateUnit = [
-  { value: 'W', label: 'W'},
   { value: 'A', label: 'A'},
+  { value: 'W', label: 'W'},
 ]
 const numberPhases = [
-  { value: '', label: t('none')},
+  { value: '', label: t('default')},
   { value: 1, label: '1'},
   { value: 3, label: '3'},
 ]
@@ -341,6 +341,7 @@ onMounted(async () => {
                   :key="item.value"
                   :label="item.label"
                   :value="item.value"
+                  :disabled="item.value === 'W'"
                 />
               </el-select>
             </el-form-item>
@@ -396,6 +397,7 @@ onMounted(async () => {
                           :key="item.value"
                           :label="item.label"
                           :value="item.value"
+                          :disabled="item.value === 3"
                         />
                       </el-select>
                     </el-form-item>

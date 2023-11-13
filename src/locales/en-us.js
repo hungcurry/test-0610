@@ -517,6 +517,9 @@ export default
     profile_purpose:                                        'Profile purpose',
     profile_name:                                           'Profile name',
     profile_stack_level:                                    'Profile stack level',
+    clear_all:                                              'Clear All',
+    clear_by_name:                                          'Clear by Name',
+    clear_by_purpose_and_stacklevel:                        'Clear by Purpose and StackLevel',
 
     do_you_want_to_get_configuration:                       'Do you want to get configuration?',
     do_you_want_to_change_availability:                     'Do you want to change availability?',
@@ -1301,6 +1304,7 @@ export default
     select_date_and_time:                                   'Select date and time',
     start_date:                                             'Start Date',
     end_date:                                               'End Date',
+    default:                                                'Default'
     // select:                                              'Select',
     // charge_point_max_profile:                            'ChargePointMaxProfile',
     // tx_default_profile:                                  'TxDefaultProfile',
