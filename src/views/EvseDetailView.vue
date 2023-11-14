@@ -73,10 +73,12 @@ const cp_config_backup = reactive([])
 const dialog_title = ref('')
 const chargingProfile_dialog_visible = ref(false)
 const configuration_dialog_visible = ref(false)
+const remote_dialog_visible = ref(false)
 const chargingProfile_dialog_step = ref('one')
 const chargingProfile_dialog_type = ref('')
 const chargingProfile_dialog_data = reactive({})
 const remote_transaction_title = ref(t('remote_start'))
+const remote_transaction_data = reactive({})
 let change_configuration_data = reactive([])
 
 const get_composite_schedule_formRef  = ref()
@@ -110,6 +112,12 @@ const clear_charging_profile_rules = reactive({
   clear_charge_profile: [{ required: true, message: t('this_item_is_required'), trigger: 'change', validator: validClearChargingProfile },],
   clear_charge_profile_purpose: [{ required: true, message: t('this_item_is_required'), trigger: 'change', validator: validClearChargingProfile },],
   clear_charge_profile_stacklevel: [{ required: true, message: t('this_item_is_required'), trigger: 'blur', validator: validClearChargingProfile },],
+})
+
+const remote_transaction_formRef  = ref()
+const remote_transaction_rules = reactive({
+  id: [{ required: true, message: t('this_item_is_required'), trigger: 'blur'},],
+  rfid_num: [{ required: true, message: t('this_item_is_required'), trigger: 'change' },],
 })
 
 const deleteEvse = () => {
@@ -245,6 +253,34 @@ const confirmConfigurationDialog = async () => {
   ElMessage.success('Success')
 }
 
+const remoteTransaction = async() => {
+  if (remote_transaction_title.value === t('remote_start')) {
+    remote_dialog_visible.value = true
+    remote_transaction_data.name = undefined
+    remote_transaction_data.rfid_num = undefined
+    remote_transaction_data.rfid_list = {}
+    remote_transaction_formRef.value?.resetFields()
+  }
+  else if (remote_transaction_title.value === t('remote_stop')) {
+    await confirmRemoteTransaction()
+  }
+}
+const filterRemoteRfid = async() => {
+  let queryData = {
+    database: 'CPO',
+    collection: 'RFIDUserData',
+    pipelines: [
+      { $match: { $and: [{tag_id: {$eq: remote_transaction_data.id}}, {byCompany: {ObjectId:chargePointInfoData.byCompany}}] } },
+      { $project: { _id: 1, rfids: 1 } }
+    ],
+  }
+  let response = await MsiApi.mongoAggregate(queryData)
+  remote_transaction_data.rfid_list = {}
+  remote_transaction_data.rfid_num = undefined
+  if (response.data?.result[0]?.rfids) {
+    Object.assign(remote_transaction_data.rfid_list, response.data?.result[0]?.rfids)
+  }
+}
 let interval = undefined
 let interval1 = undefined
 let retry = 3
@@ -476,34 +512,40 @@ const changeAvailability = async () => {
   })
 }
 
-const remoteTransaction = () => {
+const confirmRemoteTransaction = async() => {
   if (remote_transaction_title.value === t('remote_start')) {
-    ElMessageBox.confirm(t('do_you_want_to_remote_start_transaction'), t('warning'), {confirmButtonText: t('ok'), cancelButtonText: t('cancel'), type: 'warning'})
-    .then(async () => {
-      let sendData = {
-        evse_id: evseData.evse_id,
-        connector: 1,
-        idTag: '11223344'
-      }
-      let response = await MsiApi.remote_start_transaction(sendData)
-      console.log(response)
-      if (response.status === 200) {
-        remote_transaction_title.value = t('remote_stop')
+    await remote_transaction_formRef.value.validate((valid) => {
+      if (valid === true) {
+        remote_dialog_visible.value = false
+        ElMessageBox.confirm(t('do_you_want_to_remote_start_transaction'), t('warning'), {confirmButtonText: t('ok'), cancelButtonText: t('cancel'), type: 'warning'})
+        .then(async () => {
+          let sendData = {
+            evse_id: evseData.evse_id,
+            connector: 1,
+            idTag: remote_transaction_data.rfid_num,
+          }
+          await MsiApi.remote_start_transaction(sendData)
+        })
       }
     })
   }
   else if (remote_transaction_title.value === t('remote_stop')) {
     ElMessageBox.confirm(t('do_you_want_to_remote_stop_transaction'), t('warning'), {confirmButtonText: t('ok'), cancelButtonText: t('cancel'), type: 'warning'})
     .then(async () => {
+      let queryData = {
+        database: 'CPO',
+        collection: 'ChargePointInfo',
+        pipelines: [
+          { $match: { evse_id: {$eq: evseData.evse_id}} },
+          { $project: { _id: 1, ocpp_info: 1 } }
+        ],
+      }
+      let response = await MsiApi.mongoAggregate(queryData)
       let sendData = {
         evse_id: evseData.evse_id,
-        transactionId: 1234,
+        transactionId: response.data.result[0].ocpp_info[0].transactionId,
       }
-      let response = await MsiApi.remote_stop_transaction(sendData)
-      console.log(response)
-      if (response.status === 200) {
-        remote_transaction_title.value = t('remote_start')
-      }
+      await MsiApi.remote_stop_transaction(sendData)
     })
   }
 }
@@ -1111,8 +1153,8 @@ onUnmounted(() => {
               <div class="flex justify-end">
                 <!-- <el-button v-if="MStore.rule_permission.EVSEDetail.dataTransfer === 'O' || MStore.permission.isCompany" disabled
                   type="primary" class="btn-secondary box-shadow delete" @click="dataTransfer"> {{t('data_transfer')}} </el-button> -->
-                <!-- <el-button
-                  type="primary" class="btn-secondary box-shadow delete" @click="remoteTransaction"> {{ remote_transaction_title }} </el-button> -->
+                <el-button v-if="MStore.rule_permission.EVSEDetail.remoteStartTransaction === 'O' || MStore.permission.isCompany"
+                  type="primary" class="btn-secondary box-shadow delete" @click="remoteTransaction"> {{ remote_transaction_title }} </el-button>
                 <el-button v-if="MStore.rule_permission.EVSEDetail.getDiagnostics === 'O' || MStore.permission.isCompany"
                   type="primary" class="btn-secondary box-shadow delete" @click="getDiagnostics"> {{t('get_diagnostics')}} </el-button>
                 <el-button v-if="MStore.rule_permission.EVSEDetail.changeConfiguration === 'O' || MStore.permission.isCompany"
@@ -1571,6 +1613,45 @@ onUnmounted(() => {
           <el-button 
             v-if="MStore.rule_permission.EVSEDetail.changeConfiguration === 'O' || MStore.permission.isCompany"
             round class="w-48% bg-btn-100 text-white max-w-140px" @click.stop="confirmConfigurationDialog">
+            {{ t('confirm') }}
+          </el-button>
+        </span>
+      </template>
+    </el-dialog>
+
+    <el-dialog
+      append-to-body
+      v-model="remote_dialog_visible"
+      class="max-w-600px"
+      width="90%"
+    >
+      <template #header="{ titleId, titleClass }">
+        <div class="py-2rem relative bg-blue-100">
+          <h4
+            :id="titleId"
+            :class="titleClass"
+            class="m-0 text-center text-blue-1200 font-400 text-20px lg:text-24px line-height-26px"
+          >
+            {{ t('remote_start') }}
+          </h4>
+        </div>
+      </template>
+      <div class="dialog-context pb-20px remote-transaction">
+        <el-form class="w-full" :rules="remote_transaction_rules" :model="remote_transaction_data" ref="remote_transaction_formRef" label-position="left" >
+          <el-form-item class="m-auto w-360px mb-24px" :label= "t('id')" prop="id" label-width="100px" >
+            <el-input v-model="remote_transaction_data.id" class="w-240px" @change="filterRemoteRfid" />
+          </el-form-item>
+          <el-form-item class="m-auto w-360px mb-24px" :label= "t('rfid_num')" prop="rfid_num" label-width="100px" >
+            <el-select v-model="remote_transaction_data.rfid_num" class="w-240px" :placeholder="t('select')" size="large">
+              <el-option v-for="item in remote_transaction_data.rfid_list" :label="item.nickname + ' (' + item.rfid + ')'" :value="item.rfid" />
+            </el-select>
+          </el-form-item>
+        </el-form>
+      </div>
+      <template #footer>
+        <span class="dialog-footer flex flex-center">
+          <el-button 
+            round class="w-48% bg-btn-100 text-white max-w-140px" @click.stop="confirmRemoteTransaction">
             {{ t('confirm') }}
           </el-button>
         </span>

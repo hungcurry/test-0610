@@ -526,6 +526,11 @@ export default
     do_you_want_to_get_diagnostics:                         'Do you want to get diagnostics?',
     configuration:                                          'Configuration',
 
+    remote_start:                                           'Remote Start',
+    remote_stop:                                            'Remote Stop',
+    do_you_want_to_remote_start_transaction:                'Do you want to remote start transaction?',
+    do_you_want_to_remote_stop_transaction:                 'Do you want to remote stop transaction?',
+
     // active_minute:                                       '啟用時間 (分鐘)',
     // deactivate_minute:                                   '截止時間 (分鐘)',
     // charging_by_energy:                                  '依電費計價',
@@ -598,6 +603,9 @@ export default
     // this_item_is_required:                               '這個項目必填',
     // ok:                                                  'OK',
     // cancel:                                              '取消',
+    // id:                                                  'ID',
+    // rfid_num:                                            'RFID序號',
+    // select:                                              '選擇',
 //--------------------------------------------------------------
 // EVSE Edit Page           
 //--------------------------------------------------------------
