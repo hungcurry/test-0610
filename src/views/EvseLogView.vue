@@ -12,6 +12,7 @@ const { t } = useI18n()
 const MStore = useMStore()
 const MsiApi = ApiFunc()
 const OcpiSessionDataAll = reactive([])
+const OcpiSessionDataOri = reactive([])
 const now = new Date()
 const isLoading = ref(false)
 
@@ -20,6 +21,8 @@ const cur_page = ref(1)
 const item_count = ref()
 const max_page = ref()
 const tableRef = ref()
+
+const company_filter_item = reactive([])
 
 const filters = [
   { text: t('completed'), value: t('completed') },
@@ -61,6 +64,7 @@ const select_date = async () => {
   let res = await MsiApi.mongoAggregate(queryData)
   OcpiSessionDataAll.length = 0
   Object.assign(OcpiSessionDataAll, res.data.result)
+  Object.assign(OcpiSessionDataOri, res.data.result)
   
   for (let i = 0; i < OcpiSessionDataAll.length; i++) {
     OcpiSessionDataAll[i].price_str = OcpiSessionDataAll[i]?.total_cost?.incl_vat.toLocaleString()
@@ -144,82 +148,23 @@ const tableSort = async(column) => {
   getPageData()
 }
 const tableFilter = async(filters) => {
-  let filter_options = []
-  if (filters.style.length === 0) {
-    filter_options.push('COMPLETED')
-    filter_options.push('INVALID')
-    filter_options.push('ACTIVE')
-    filter_options.push('PENDING')
-  }
-  else {
-    for (let i=0; i<filters.style.length; i++) {
-      if (filters.style[i] === t('completed')) {
-        filter_options.push('COMPLETED')
-      }
-      else if (filters.style[i] === t('invalid')) {
-        filter_options.push('INVALID')
-      }
-      else if (filters.style[i] === t('active')) {
-        filter_options.push('ACTIVE')
-      }
-      else if (filters.style[i] === t('pending')) {
-        filter_options.push('PENDING')
-      }
+  OcpiSessionDataAll.length = 0
+  if(filters.company_filter !== undefined) {
+    if (filters.company_filter.length === 0) {
+      Object.assign(OcpiSessionDataAll, OcpiSessionDataOri)
+    }
+    else {
+      const filteredArray = OcpiSessionDataOri.filter(item => filters.company_filter.includes(item.byCompany))
+      Object.assign(OcpiSessionDataAll, filteredArray)
     }
   }
-  
-  let queryData = { "database":"OCPI", "collection":"Session", "pipelines": [ 
-    {
-      "$match": {
-        "$expr":{
-          "$and" : [
-            {
-              "$gte" : [
-                "$start_date_time", { "$dateFromString": {"dateString": new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0)}}
-              ]
-            },
-            {
-              "$in" : [
-                "$status", filter_options
-              ]
-            }
-          ]
-        },
-      }
-    },
-    { "$lookup": {"from":'Location', "localField": "location_id", "foreignField": "id", "as":"Location"}},
-    { "$lookup": {"from":'EVSE', "localField": "evse_uid", "foreignField": "uid", "as":"EVSE"}},
-    { "$project": { "_id":0, "status": 1,"total_cost": 1, "start_date_time": 1, "kwh": 1, "end_date_time": 1,"Location.name":1, "EVSE.evse_id":1} },
-  ]}
-  let res = await MsiApi.mongoAggregate(queryData) 
-  OcpiSessionDataAll.length = 0
-  Object.assign(OcpiSessionDataAll, res.data.result)
-  for (let i = 0; i < OcpiSessionDataAll.length; i++) {
-    OcpiSessionDataAll[i].price_str = OcpiSessionDataAll[i]?.total_cost?.incl_vat.toLocaleString()
-    OcpiSessionDataAll[i].location_str = OcpiSessionDataAll[i]?.Location?.[0]?.name
-    OcpiSessionDataAll[i].evse_str = OcpiSessionDataAll[i]?.EVSE?.[0]?.evse_id
-
-    let localStartTime =  new Date( (new Date(OcpiSessionDataAll[i].start_date_time).getTime()) + ((MStore.timeZoneOffset ) * -60000))
-    OcpiSessionDataAll[i].start_date_local_time = (moment(localStartTime).format("YYYY-MM-DD HH:mm:ss"))
-
-    let localEndTime =  new Date( (new Date(OcpiSessionDataAll[i].end_date_time).getTime()) + ((MStore.timeZoneOffset ) * -60000))
-    OcpiSessionDataAll[i].end_date_local_time = (moment(localEndTime).format("YYYY-MM-DD HH:mm:ss"))
-
-    switch (OcpiSessionDataAll[i].status) {
-      case 'COMPLETED':
-        OcpiSessionDataAll[i].status = t('completed')
-        break;
-      case 'INVALID':
-        OcpiSessionDataAll[i].status = t('invalid')
-        break;
-      case 'ACTIVE':
-        OcpiSessionDataAll[i].status = t('active')
-        break;
-      case 'PENDING':
-        OcpiSessionDataAll[i].status = t('pending')
-        break;
-      default:
-        break;
+  else {
+    if (filters.style.length === 0) {
+      Object.assign(OcpiSessionDataAll, OcpiSessionDataOri)
+    }
+    else {
+      const filteredArray = OcpiSessionDataOri.filter(item => filters.style.includes(item.status));
+      Object.assign(OcpiSessionDataAll, filteredArray)
     }
   }
   getPageData()
@@ -227,8 +172,22 @@ const tableFilter = async(filters) => {
 }
 
 onMounted( async() => {
+  let queryData = {
+    database: 'CPO',
+    collection: 'CompanyInformation',
+    pipelines: [{ $project: { _id: 1, name: 1 } }],
+  }
+  let response = await MsiApi.mongoAggregate(queryData)
+
+  let company_filter_item1 =  response.data.result.map(item => {
+    return {
+      text: item.name,
+      value: item._id,
+    }
+  })
+  Object.assign(company_filter_item, company_filter_item1)
   
-  let queryData = { "database":"OCPI", "collection":"Session", "pipelines": [ 
+  queryData = { "database":"OCPI", "collection":"Session", "pipelines": [ 
     {
       "$match": {
         "$expr":{ "$and" : [ { "$gte" : [ "$start_date_time", { "$dateFromString": {"dateString": new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0)}}]}]}
@@ -236,12 +195,13 @@ onMounted( async() => {
     },
     { "$lookup": {"from":'Location', "localField": "location_id", "foreignField": "id", "as":"Location"}},
     { "$lookup": {"from":'EVSE', "localField": "evse_uid", "foreignField": "uid", "as":"EVSE"}},
-    { "$project": { "_id":0, "status": 1,"total_cost": 1, "start_date_time": 1, "kwh": 1, "end_date_time": 1,"Location.name":1, "EVSE.evse_id":1} },
+    { "$project": { "_id":0,"byCompany":1, "status": 1,"total_cost": 1, "start_date_time": 1, "kwh": 1, "end_date_time": 1,"Location.name":1, "EVSE.evse_id":1} },
   ]
   }
   isLoading.value = true
   let res = await MsiApi.mongoAggregate(queryData) 
   OcpiSessionDataAll.length = 0
+  Object.assign(OcpiSessionDataOri, res.data.result)
   Object.assign(OcpiSessionDataAll, res.data.result)
   for (let i = 0; i < OcpiSessionDataAll.length; i++) {
     OcpiSessionDataAll[i].price_str = OcpiSessionDataAll[i]?.total_cost?.incl_vat.toLocaleString()
@@ -267,8 +227,12 @@ onMounted( async() => {
       case 'PENDING':
         OcpiSessionDataAll[i].status = t('pending')
         break;
-      default:
-        break;
+    }
+    if (OcpiSessionDataAll[i].byCompany !== undefined) {
+      for (let j = 0; j < company_filter_item.length; j++)
+        if (OcpiSessionDataAll[i].byCompany === company_filter_item[j].value) {
+          OcpiSessionDataAll[i].byCompany_str = company_filter_item[j].text
+        }
     }
   }
   await getPageData()
@@ -367,6 +331,14 @@ onMounted( async() => {
               sortable="custom"
               min-width="200"
             />
+            <el-table-column v-if="MStore.permission.isMSI"
+                prop="byCompany_str"
+                :label="t('company')"
+                :column-key="'company_filter'"
+                align="center"
+                :filters="company_filter_item"
+                min-width="200"
+              />
             <el-table-column
               prop="start_date_local_time"
               :label="t('start_time')"

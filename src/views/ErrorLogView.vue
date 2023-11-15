@@ -16,8 +16,10 @@ const defaultTime = ref([new Date(2000, 1, 1, 0, 0, 0), new Date(2000, 1, 1, 23,
 const isLoading = ref(false)
 const MsiApi = ApiFunc()
 const ocppErrorDataAll = reactive([])
+const ocppErrorDataOri = reactive([])
 
 const ocppErrorData = reactive([])
+const company_filter_item = reactive([])
 const cur_page = ref(1)
 const item_count = ref()
 const max_page = ref()
@@ -72,14 +74,16 @@ const getEVSEOCPPLogs = async() => {
           }
         }
       },
-      { "$project": { "_id": 0, 'created_date': 1, 'evse_id': 1, 'ocpp_errorCode': 1, 'vendorErrorCode': 1, 'ocpp_firmware_status':1} }
+      { "$project": { "_id": 0, 'created_date': 1, 'evse_id': 1, 'ocpp_errorCode': 1, 'vendorErrorCode': 1, 'ocpp_firmware_status':1, "byCompany":1} }
     ]
   }
   isLoading.value = true
   let response = await MsiApi.mongoAggregate(queryData)
   if (response.status === 200) {
     ocppErrorDataAll.splice(0, ocppErrorDataAll.length)
+    ocppErrorDataOri.splice(0, ocppErrorDataOri.length)
     Object.assign(ocppErrorDataAll, response.data.result)
+    Object.assign(ocppErrorDataOri, response.data.result)
   }
   else {
     console.log(response.data)
@@ -91,6 +95,13 @@ const getEVSEOCPPLogs = async() => {
     ocppErrorDataAll[i].created_date_str = (moment(localEndTime).format("YYYY-MM-DD HH:mm:ss"))
     ocppErrorDataAll[i].ocpp_errorCode_str = convertErrorCode(ocppErrorDataAll[i].ocpp_errorCode)
     ocppErrorDataAll[i].syetem_error_code_str = convertErrorCode(ocppErrorDataAll[i].vendorErrorCode)
+
+    if (ocppErrorDataAll[i].byCompany !== undefined) {
+      for (let j = 0; j < company_filter_item.length; j++)
+        if (ocppErrorDataAll[i].byCompany === company_filter_item[j].value) {
+          ocppErrorDataAll[i].byCompany_str = company_filter_item[j].text
+        }
+    }
   }
 
   isLoading.value = false
@@ -143,7 +154,37 @@ const tableSort = async(column) => {
   getPageData()
 }
 
+const tableFilter = async(filters) => {
+  ocppErrorDataAll.length = 0
+  if(filters.company_filter !== undefined) {
+    if (filters.company_filter.length === 0) {
+      Object.assign(ocppErrorDataAll, ocppErrorDataOri)
+    }
+    else {
+      const filteredArray = ocppErrorDataOri.filter(item => filters.company_filter.includes(item.byCompany))
+      Object.assign(ocppErrorDataAll, filteredArray)
+    }
+  }
+  getPageData()
+  tableRef.value.sort('start_date_local_time', 'ascending')
+}
+
 onMounted(async() => {
+  let queryData = {
+    database: 'CPO',
+    collection: 'CompanyInformation',
+    pipelines: [{ $project: { _id: 1, name: 1 } }],
+  }
+  let response = await MsiApi.mongoAggregate(queryData)
+
+  let company_filter_item1 =  response.data.result.map(item => {
+    return {
+      text: item.name,
+      value: item._id,
+    }
+  })
+  Object.assign(company_filter_item, company_filter_item1)
+
   await getEVSEOCPPLogs()
   await getPageData()
 
@@ -200,6 +241,7 @@ onMounted(async() => {
             :header-cell-style="msi.tb_header_cell"
             v-loading.fullscreen.lock="isLoading"
             @sort-change="tableSort"
+            @filter-change="tableFilter"
           >
             <el-table-column
               prop="evse_id"
@@ -229,7 +271,14 @@ onMounted(async() => {
               sortable="custom"
               min-width="200"
             />
-            
+            <el-table-column v-if="MStore.permission.isMSI"
+                prop="byCompany_str"
+                :label="t('company')"
+                :column-key="'company_filter'"
+                align="center"
+                :filters="company_filter_item"
+                min-width="200"
+              />
             <el-table-column
               prop="created_date_str"
               :label="t('created_time')"

@@ -7,6 +7,11 @@ const location_map = ref(null)
 let option;
 
 onMounted(async () => {
+
+  const response = await fetch('port3000/api/users');
+  const data = await response.json();
+  console.log(data);
+
   const myChart = echarts.init(location_map.value)
   fetch('google10/msi-common/pic/pic2.svg')
     .then(response => response.text())

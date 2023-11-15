@@ -66,6 +66,12 @@ export default ({ mode }) => {
           rewrite: (path) => path.replace(/^\/rate/, ''),
           secure: false,
         },
+        '/port3000' : {
+          target: "http://localhost:3000/",
+          changeOrigin: true,
+          rewrite: (path) => path.replace(/^\/port3000/, ''),
+          secure: false,
+        },
       },
       open: true,
       port: 8080,

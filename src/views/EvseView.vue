@@ -26,6 +26,7 @@ const isLoading = ref(false)
 const EvseData = reactive([])
 const EvseConnectData = reactive([])
 const EvseUnConnectData = reactive([])
+const company_filter_item = reactive([])
 const status_filter_item = [
   { text: t('available'), value: 'AVAILABLE' },
   { text: t('charging'), value: 'CHARGING' },
@@ -33,6 +34,10 @@ const status_filter_item = [
   { text: t('error'), value: 'ERROR' },
   { text: t('inoperative'), value: 'INOPERATIVE' },
 ]
+
+const filterCompany = (value, row) => {
+  return row.byCompany === value
+}
 
 const updateSW = async () => {
   sw_version_visable.value = true
@@ -160,6 +165,19 @@ onMounted(async () => {
   swVersion.value = response.data.all[0].version
 
   queryData = {
+    database: 'CPO',
+    collection: 'CompanyInformation',
+    pipelines: [{ $project: { _id: 1, name: 1 } }],
+  }
+  response = await MsiApi.mongoAggregate(queryData)
+
+  let company_filter_item1 =  response.data.result.map(item => {
+    return { text: item.name,value: item._id }
+  })
+  Object.assign(company_filter_item, company_filter_item1)
+  console.log(company_filter_item)
+
+  queryData = {
     database: 'OCPI',
     collection: 'Location',
     pipelines: [{ $project: { _id: 0, evses: 1, name: 1 } }],
@@ -240,6 +258,14 @@ onMounted(async () => {
         if (EvseData[i].hmi === hmiInfoData[j]._id) {
           EvseData[i].hmi_version = hmiInfoData[j].hmi_board_sw_version
           EvseData[i].control_version = hmiInfoData[j].control_board_fw_version
+        }
+    }
+  }
+  for (let i = 0; i < EvseData.length; i++) {
+    if (EvseData[i].byCompany !== undefined) {
+      for (let j = 0; j < company_filter_item.length; j++)
+        if (EvseData[i].byCompany === company_filter_item[j].value) {
+          EvseData[i].byCompany_str = company_filter_item[j].text
         }
     }
   }
@@ -388,7 +414,14 @@ onMounted(async () => {
                   </p>
                 </template>
               </el-table-column>
-
+              <el-table-column v-if="MStore.permission.isMSI"
+                prop="byCompany_str"
+                :label="t('company')"
+                align="center"
+                :filters="company_filter_item"
+                :filter-method="filterCompany"
+                min-width="200"
+              />
               <el-table-column
                 prop="last_updated_str"
                 :label="t('updated_time')"
