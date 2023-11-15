@@ -95,6 +95,7 @@ const getEVSEOCPPLogs = async() => {
     ocppErrorDataAll[i].created_date_str = (moment(localEndTime).format("YYYY-MM-DD HH:mm:ss"))
     ocppErrorDataAll[i].ocpp_errorCode_str = convertErrorCode(ocppErrorDataAll[i].ocpp_errorCode)
     ocppErrorDataAll[i].syetem_error_code_str = convertErrorCode(ocppErrorDataAll[i].vendorErrorCode)
+    ocppErrorDataAll[i].ocpp_firmware_status_str = convertErrorCode(ocppErrorDataAll[i].ocpp_firmware_status)
 
     if (ocppErrorDataAll[i].byCompany !== undefined) {
       for (let j = 0; j < company_filter_item.length; j++)
@@ -109,7 +110,7 @@ const getEVSEOCPPLogs = async() => {
 
 const download = () => {
   const tHeader = ['EVSE ID', 'Error Code', 'System Error Code', 'FW Error Info','Created Time']
-  const filterVal = ['evse_id', 'ocpp_errorCode', 'vendorErrorCode', 'ocpp_firmware_status','created_date_str']
+  const filterVal = ['evse_id', 'ocpp_errorCode_str', 'syetem_error_code_str', 'ocpp_firmware_status_str','created_date_str']
   const data = ocppErrorDataAll.map(v => filterVal.map(j => v[j]))
   export_json_to_excel ({ header: tHeader, data: data, filename: 'OCPP Error' })
 }

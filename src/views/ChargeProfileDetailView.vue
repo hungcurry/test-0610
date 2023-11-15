@@ -131,7 +131,7 @@ const saveChargingProfile = () => {
             number_phases: item.numberPhases
           })
       })
-      console.log(sendData)
+      // console.log(sendData)
       if (!profile_id) {
         ElMessageBox.confirm(t('do_you_want_to_create'),t('warning'), {confirmButtonText: t('ok'), cancelButtonText: t('cancel'), type: 'warning'})
           .then(async () => {
@@ -203,7 +203,7 @@ const getChargingProfileDetail = async() => {
         numberPhases: item.number_phases,
       })
     })
-    if (ChargingProfileData.valid_from !== undefined && ChargingProfileData.valid_to !== undefined) {
+    if (ChargingProfileData.valid_from && ChargingProfileData.valid_to) {
       charging_profile_valid.value = [
         new Date( (new Date(ChargingProfileData.valid_from).getTime()) + ((MStore.timeZoneOffset ) * -60000)),
         new Date( (new Date(ChargingProfileData.valid_to).getTime()) + ((MStore.timeZoneOffset ) * -60000))
@@ -223,7 +223,7 @@ const getChargingProfileDetail = async() => {
 
 onMounted(async () => {
   await getChargingProfileDetail()
-  console.log(ChargingProfileDetail)
+  // console.log(ChargingProfileDetail)
 })
 </script>
 
@@ -245,7 +245,7 @@ onMounted(async () => {
           <div class="charging-profile lg:w-33% min-w-400px">
             <h2>{{ t('general') }}</h2>
             <el-form-item class="block" :label="t('name')" prop="name">
-              <el-input v-model.number="ChargingProfileDetail.name" />
+              <el-input v-model="ChargingProfileDetail.name" />
             </el-form-item>
             <el-form-item class="block" :label="t('stack_level')" prop="stackLevel">
               <el-input v-model.number="ChargingProfileDetail.stackLevel" />
