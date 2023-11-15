@@ -517,6 +517,9 @@ export default
     profile_purpose:                                        '設定檔目的',
     profile_name:                                           '設定檔名稱',
     profile_stack_level:                                    '設定檔優先層級',
+    clear_all:                                              'Clear All',
+    clear_by_name:                                          'Clear by Name',
+    clear_by_purpose_and_stacklevel:                        'Clear by Purpose and StackLevel',
 
     do_you_want_to_get_configuration:                       'Do you want to get configuration?',
     do_you_want_to_change_availability:                     'Do you want to change availability?',
@@ -1147,6 +1150,8 @@ export default
                                                             'RFID卡無法移除，因為充電樁被佔用',
     user_cannot_be_deteted_because_the_total_amount_is_not_0:
                                                             '使用者無法刪除，因為總金額不為 0',
+    user_cannot_be_deteted_because_the_rfid_card_has_not_been_deleted_yet:
+                                                            '使用者無法刪除，因為RFID卡尚未刪除',
     rfid_card_is_non_refundable_as_the_amount_must_be_greater_than_0: 
                                                             'RFID 卡不可退款，因為金額必須大於 0',
     top_up_successful:                                      '儲值成功',
@@ -1301,6 +1306,7 @@ export default
     select_date_and_time:                                   '選擇日期與時間',
     start_date:                                             '開始時間',
     end_date:                                               '結束時間',
+    default:                                                'Default'
     // select:                                              '選擇',
     // charge_point_max_profile:                            'ChargePointMaxProfile',
     // tx_default_profile:                                  'TxDefaultProfile',

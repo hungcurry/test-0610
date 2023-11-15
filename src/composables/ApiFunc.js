@@ -98,11 +98,6 @@ export default function () {
     return response
   }
 
-  const register_member_v0 = async (json) => {
-    const response = await postJsonData(api1 + '/member/register', json)
-    return response
-  }
-
   const register_member = async (json) => {
     AuthToken = VueCookies.get('AuthToken')
     const response = await postJsonData(api1 + '/account', json, AuthToken)
@@ -344,14 +339,26 @@ export default function () {
     return cashPrices
   }
 
+  const remote_start_transaction = async (json) => {
+    AuthToken = VueCookies.get('AuthToken')
+    const response = await postJsonData(api1 + '/cp/ocpp/v16/remote_start_transaction', json, AuthToken)
+    return response
+  }
+
+  const remote_stop_transaction = async (json) => {
+    AuthToken = VueCookies.get('AuthToken')
+    const response = await postJsonData(api1 + '/cp/ocpp/v16/remote_stop_transaction', json, AuthToken)
+    return response
+  }
+
   return {
       setCollectionData, getToken, checkToken, mongoQuery, mongoAggregate,
-      register_member_v0, register_member, get_account_info, get_account_detail, edit_account, delete_account,
+      register_member, get_account_info, get_account_detail, edit_account, delete_account,
       resetPW, reset_evse, updateFw, getTimeZone, getCoordinates, getAddress,
       bind_card, search_bind_card, unregister_bind_card, auth_payment, subscribe_plan, member_modify,
       forgotPW, add_rfid_data, edit_rfid_data, delete_rfid_data, set_rfid_cash, 
       clear_charging_profile, get_composite_schedule, set_charging_profile,
       get_transaction, change_availability, get_diagnostics, get_configuration, change_configuration, sendNotification,
-      add_merchant, get_edoc, getTaiwanExchangeRate,
+      add_merchant, get_edoc, getTaiwanExchangeRate, remote_start_transaction, remote_stop_transaction,
   }
 }

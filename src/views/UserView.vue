@@ -231,20 +231,9 @@ const addUserDialog = async (action) => {
           ElMessageBox.confirm(t('do_you_want_to_create'),t('warning'), {confirmButtonText: t('ok'), cancelButtonText: t('cancel'), type: 'warning'})
           .then(async () => {
             isLoading.value = true
-            let res = null
-            // Tony S ++ ======================================================= Prod api not ready ... 
-            console.log(import.meta.env.VITE_NAME)
-            if (import.meta.env.VITE_NAME === 'prod') {
-              let sendData = {'first_name' : newUser.first_name, 'last_name' : newUser.last_name,
-                'email' : newUser.email, 'password': newUser.password} 
-              res = await MsiApi.register_member_v0(sendData)
-            }
-            else {
-              let sendData = {'role': 'member', 'first_name' : newUser.first_name, 'last_name' : newUser.last_name,
-                'email' : newUser.email, 'password': newUser.password} 
-              res = await MsiApi.register_member(sendData)
-            }
-            // Tony E ++ =======================================================
+            let sendData = {'role': 'member', 'first_name' : newUser.first_name, 'last_name' : newUser.last_name,
+              'email' : newUser.email, 'password': newUser.password} 
+              let res = await MsiApi.register_member(sendData)
             if (res.status === 200) {
               ElMessage.error(t('email_already_exists'))
               dialogFormVisible.value = true
@@ -257,7 +246,6 @@ const addUserDialog = async (action) => {
                   { $match: { $and: [
                     { first_name: {$ne: 'DELETE'} },
                     { last_name: {$ne: 'DELETE'} },
-                    { byCompany: { "ObjectId" : res.data.result[0]._id} }
                   ]}},
                   { 
                     $project: { _id: 1, first_name: 1, last_name: 1, email: 1, evse_list: 1, payment_history:1, updated_date: 1, } 
@@ -290,25 +278,13 @@ const addUserDialog = async (action) => {
 
 onMounted( async() => {
   try {
-    let queryData = {
-      database: 'CPO', 
-      collection: 'CompanyInformation', 
-      pipelines: [
-        { $match: { name: {$eq: MStore.permission.company.name} } },
-        { $project: { _id: 1, name: 1 } }
-      ]
-    }
-    let res = await MsiApi.mongoAggregate(queryData)
-    
-    queryData = { 
+    let queryData = { 
       database: 'CPO', 
       collection: 'UserData', 
       pipelines: [
-        // { $match: { byCompany:  { "ObjectId" : res.data.result[0]._id} } },
         { $match: { $and: [
           { first_name: {$ne: 'DELETE'} },
           { last_name: {$ne: 'DELETE'} },
-          { byCompany: { "ObjectId" : res.data.result[0]._id} }
         ]}},
         { $project: { _id: 1, first_name: 1, last_name: 1, email: 1, evse_list: 1, payment_history:1, updated_date: 1, byCompany: 1, } }
       ]
@@ -331,9 +307,9 @@ onMounted( async() => {
             <el-button :icon="Search" @click="search" />
           </template>
         </el-input>
-        <el-button 
+        <!-- <el-button 
         v-if="MStore.rule_permission.User.addUser === 'O' || MStore.permission.isCompany"
-        class="btn-secondary box-shadow" @click="addUser"> {{ t('add_user') }} </el-button>
+        class="btn-secondary box-shadow" @click="addUser"> {{ t('add_user') }} </el-button> -->
       </div>
       <div class="overflow-x-auto">
         <div class="customer-list pb-40px">
@@ -421,7 +397,7 @@ onMounted( async() => {
             </el-table-column>
           </el-table>
         </div>
-        <el-dialog
+        <!-- <el-dialog
           v-model="dialogFormVisible"
           class="max-w-600px"
           :show-close="true"
@@ -472,7 +448,7 @@ onMounted( async() => {
               </el-button>
             </span>
           </template>
-        </el-dialog>
+        </el-dialog> -->
       </div>
     </div>
   </div>

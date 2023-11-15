@@ -517,6 +517,9 @@ export default
     profile_purpose:                                        'Profile purpose',
     profile_name:                                           'Profile name',
     profile_stack_level:                                    'Profile stack level',
+    clear_all:                                              'Clear All',
+    clear_by_name:                                          'Clear by Name',
+    clear_by_purpose_and_stacklevel:                        'Clear by Purpose and StackLevel',
 
     do_you_want_to_get_configuration:                       'Do you want to get configuration?',
     do_you_want_to_change_availability:                     'Do you want to change availability?',
@@ -1145,6 +1148,8 @@ export default
                                                             'RFID card cannot be removed, Because the EVSE is occupied.',
     user_cannot_be_deteted_because_the_total_amount_is_not_0:
                                                             'User cannot be deleted, Because the total amount is not 0.',
+    user_cannot_be_deteted_because_the_rfid_card_has_not_been_deleted_yet:
+                                                            'User cannot be deleted, Because the RFID card has not been deleted yet.',
     rfid_card_is_non_refundable_as_the_amount_must_be_greater_than_0: 
                                                             'RFID card is non-refundable as the amount must be greater than 0.',
     top_up_successful:                                      'Top-up Successful',
@@ -1299,6 +1304,7 @@ export default
     select_date_and_time:                                   'Select date and time',
     start_date:                                             'Start Date',
     end_date:                                               'End Date',
+    default:                                                'Default'
     // select:                                              'Select',
     // charge_point_max_profile:                            'ChargePointMaxProfile',
     // tx_default_profile:                                  'TxDefaultProfile',

@@ -31,7 +31,6 @@ const paymentData = reactive([])
 const paymentPageData = reactive([])
 const userDataMod = reactive([])
 const EditUserFormVisible = ref(false)
-const isDeleteBtn = ref(false)
 const userData_ref = ref()
 const userData_rules = reactive({
   id: [{ required: true, message: t('the_item_is_required'), trigger: 'blur' }],
@@ -205,8 +204,8 @@ const editUserDialog = (action) => {
     } 
     else if (action === 'delete') {
       EditUserFormVisible.value = false
-      if (isDeleteBtn.value === true) {
-        ElMessage({ type: 'error', message: t('user_cannot_be_deteted_because_the_total_amount_is_not_0') })
+      if (rfids.length !== 0) {
+        ElMessage({ type: 'error', message: t('user_cannot_be_deteted_because_the_rfid_card_has_not_been_deleted_yet') })
       }
       else {
         ElMessageBox.confirm(t('do_you_want_to_delete'), t('warning'), { confirmButtonText: t('ok'), cancelButtonText: t('cancel'), type: 'warning' })
@@ -307,14 +306,10 @@ const updateRfidCash = (type) => {
           await getTransactionData(null)
           getTransaction_PageData()
           TransactionTableRef.value.sort('created_date_str', 'ascending')
-          isDeleteBtn.value = false
           rfids.forEach((item) => {
             if (rfidData.rfid.toUpperCase() === item.rfid) {
               rfidData.cash = item.cash
               rfidData.cash_str = item.cash_str
-            }
-            if (item.cash !== 0) {
-              isDeleteBtn.value = true
             }
           })
           ElMessage({
@@ -567,12 +562,6 @@ const getTransaction_PageData = async() => {
 onMounted(async () => {
   await getRfidUserData()
   await getTransactionData(null)
-
-  rfids.forEach((item) => {
-    if (item.cash !== 0) {
-      isDeleteBtn.value = true
-    }
-  })
 
   getTransaction_PageData()
   TransactionTableRef.value.sort('created_date_str', 'ascending')

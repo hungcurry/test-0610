@@ -602,7 +602,7 @@ const getUsedCount = async() => {
         database: 'CPO',
         collection: 'UserData',
         pipelines: [
-        { $match: { $and: [{first_name: {$ne: 'DELETE'}}, {last_name: {$ne: 'DELETE'}}, {byCompany: {ObjectId:companyId}},] } },
+        { $match: { $and: [{first_name: {$ne: 'DELETE'}}, {last_name: {$ne: 'DELETE'}},] } },
         { $count: 'Count' }],
       }
     }
