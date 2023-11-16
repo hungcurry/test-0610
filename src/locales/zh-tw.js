@@ -889,6 +889,7 @@ export default
     please_check_the_format_of_the_tax_id:                  '請檢查統一編號長度',
     company_already_exists:                                 '公司已經存在',
     the_agreed_fee_must_be_greater_than_3:                  '交易手續費必須大於3%',
+    expired_date_of_program:                                '訂閱到期日',
     // city:                                                '城市',
     // address:                                             '地址',
     // search:                                              '搜尋',

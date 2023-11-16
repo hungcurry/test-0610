@@ -75,7 +75,7 @@ const status_filter = (value, rowData) => {
     (value === 'AVAILABLE' && rowData.evse_available_status > 0) ||
     (value === 'CHARGING' && rowData.evse_charging_status > 0) ||
     (value === 'UNKNOWN' && rowData.evse_unknown_status > 0) ||
-    (value === 'OUTOFORDER' && rowData.evse_outoforder_status > 0)
+    (value === 'ERROR' && rowData.evse_outoforder_status > 0)
   ) {
     return rowData
   }

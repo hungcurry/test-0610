@@ -889,6 +889,7 @@ export default
     please_check_the_format_of_the_tax_id:                  'Please check the format of the tax id.',
     company_already_exists:                                 'Company already exists',
     the_agreed_fee_must_be_greater_than_3:                  'The agreed fee must be greater than 3%',
+    expired_date_of_program:                                'Expired Date of Program',
     // city:                                                'City',
     // address:                                             'Address',
     // search:                                              'Search',

@@ -458,6 +458,8 @@ const MongoAggregate = async (queryData) => {
     for (let j = 0; j < ProgramData.length; j++ )
       if (UserData[i]?.upgrade_manager?.subscribe?.due_plan === ProgramData[j]._id) {
         UserData[i].subscribe_str = ProgramData[j].name
+        let due_date_time =  new Date( (new Date(UserData[i]?.upgrade_manager?.subscribe?.due_date_time).getTime()) + ((MStore.timeZoneOffset ) * -60000))
+        UserData[i].due_date_timer = (moment(due_date_time).format("YYYY-MM-DD HH:mm:ss"))
         break
       }
     for (let j = 0; j < UserData[i]?.upgrade_manager.session_fee?.length; j++) {
@@ -690,6 +692,10 @@ onMounted( async() => {
 
               <el-form-item class="mb-24px" :label="t('payment_merchant_id')">
                 <el-input v-model="companyData.payment_merchantId" disabled />
+              </el-form-item>
+
+              <el-form-item class="mb-24px" :label="t('expired_date_of_program')">
+                <el-input v-model="companyData.due_date_timer" disabled />
               </el-form-item>
 
               <!-- <el-form-item class="mb-24px" label="Payment Owner">
