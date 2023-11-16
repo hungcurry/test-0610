@@ -35,8 +35,15 @@ const select_time = ref([ new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0
 const defaultTime = [new Date(2000, 1, 1, 0, 0, 0), new Date(2000, 1, 1, 23, 59, 59)]
 
 const download = () => {
-  const tHeader = ['Status','Station','EVSE ID', 'kWh', 'Pirce', 'Start Time', 'End Time']
-  const filterVal = ['status','location_str','evse_str', 'kwh', 'price_str', 'start_date_local_time', 'end_date_local_time']
+  
+
+  let tHeader = ['Status','Station','EVSE ID', 'kWh', 'Pirce', 'Start Time', 'End Time']
+  let filterVal = ['status','location_str','evse_str', 'kwh', 'price_str', 'company','start_date_local_time', 'end_date_local_time']
+  if (MStore.permission.isMSI) {
+    tHeader = ['Status','Station','EVSE ID', 'kWh', 'Pirce', 'Start Time', 'End Time']
+    filterVal = ['status','location_str','evse_str', 'kwh', 'price_str','byCompany_str', 'start_date_local_time', 'end_date_local_time']
+  }
+
   const data = OcpiSessionDataAll.map(v => filterVal.map(j => v[j]))
   export_json_to_excel ({ header: tHeader, data: data, filename: 'Charger Log' })
 }

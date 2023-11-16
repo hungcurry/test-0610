@@ -1,0 +1,74 @@
+# Permission  
+
+> - m-cloud Permission：  
+> Admin / Developer / FAE / Viewer / Customer Service / Engineer  
+> Admin / Dev / Engineer : m-connect+  
+  
+ *：Page  /  [ ]：Button  /  O：Show  /  X：Hidden  
+
+| -                        | Admin | Developer | FAE | Viewer | Customer Service | Engineer |  
+| -                        | -     | -         | -   | -      | -                |  -       |  
+| ***Dashboard**           | O     | O         | X   | O      | X                |  X       |  
+|   [Payment]              | O     | O         | X   | O      | O                |  X       |  
+| ***Payment**             | O     | O         | X   | O      | O                |  X       |  
+| **EVSE Management**      | -     | -         | -   | -      | -                |  -       |  
+| ***Station**             | O     | O         | O   | O      | O                |  X       |  
+|   [Add_Station]          | O     | O         | O   | X      | X                |  X       |  
+| ***Station Detail**      | O     | O         | O   | O      | O                |  X       |  
+|   [Reset]                | O     | O         | O   | X      | O                |  X       |  
+|   [Update]               | O     | O         | O   | X      | X                |  X       |  
+| ***Station Edit**        | O     | O         | O   | O      | O                |  X       |  
+|   [Save]                 | O     | O         | O   | X      | X                |  X       |  
+|   [Delete]               | O     | O         | O   | X      | X                |  X       |  
+| ***EVSE**                | O     | O         | O   | O      | O                |  X       |  
+|   [Add_EVSE]             | O     | O         | O   | X      | X                |  X       |  
+|   [Reset]                | O     | O         | O   | X      | O                |  X       |  
+|   [Update]               | O     | O         | O   | X      | X                |  X       |  
+| ***EVSE Detail**         | O     | O         | O   | O      | O                |  X       |  
+|   [Delete]               | O     | O         | X   | X      | X                |  X       |  
+|   [Edit]                 | O     | O         | O   | O      | O                |  X       |  
+| ***EVSE Edit**           | O     | O         | O   | O      | O                |  X       |  
+|   [Save]                 | O     | O         | O   | X      | X                |  X       |  
+| ***Rate Plan**           | O     | O         | O   | O      | O                |  X       |  
+|   [Add_Rate_Plan]        | O     | O         | O   | X      | X                |  X       |  
+|   [Delete]               | O     | O         | O   | X      | X                |  X       |  
+|   [Copy]                 | O     | O         | O   | X      | X                |  X       |  
+|   [Edit]                 | O     | O         | O   | O      | O                |  X       |  
+| ***Rate Plan Detail**    | O     | O         | O   | O      | O                |  X       |  
+|   [Add_Rate_Plan]        | O     | O         | O   | X      | X                |  X       |  
+|   [Save]                 | O     | O         | O   | X      | X                |  X       |  
+| **Account Management**   | -     | -         | -   | -      | -                |  -       |  
+| ***User**                | O     | O         | O   | O      | O                |  X       |  
+|   [Add_User]             | O     | O         | X   | X      | X                |  X       |  
+|   [User_Detail]          | O     | O         | O   | O      | O                |  X       |  
+| ***User Detail**         | O     | O         | O   | O      | O                |  X       |  
+|   [Clear]                | O     | O         | X   | X      | X                |  X       |  
+|   [User_Edit]            | O     | O         | X   | X      | X                |  X       |  
+|   [Card_Details]         | O     | O         | X   | O      | O                |  X       |  
+|   [Device_Detail]        | O     | O         | X   | O      | O                |  X       |  
+|   [Add_RFID]             | O     | O         | O   | X      | X                |  X       |  
+|   [Edit_RFID]            | O     | O         | O   | X      | X                |  X       |  
+|   [Delete_RFID]          | O     | O         | O   | X      | X                |  X       |  
+|   [Payment]              | O     | O         | X   | O      | O                |  X       |  
+| ***Company**             | O     | O         | O   | O      | O                |  X       |  
+|   [Add_Company]          | O     | O         | X   | X      | X                |  X       |  
+|   [Detail]               | O     | O         | X   | X      | X                |  X       |  
+| ***Administrator**       | O     | O         | O   | O      | O                |  X       |  
+|   [Add_Admin]            | O     | O         | X   | X      | X                |  X       |  
+|   [Detail]               | O     | O         | X   | X      | X                |  X       |  
+| **Log Monitor**          | -     | -         | -   | -      | -                |  -       |  
+| ***EVSE Log**            | O     | O         | O   | O      | O                |  X       |  
+| ***Error Log**           | O     | O         | O   | O      | O                |  X       |  
+| ***Software Info**       | O     | O         | O   | O      | O                |  X       |  
+|   [Add_SW_Release]       | O     | O         | X   | X      | X                |  X       |  
+|   [Add_FW_Release]       | O     | O         | X   | X      | X                |  X       |  
+|   [Release]              | O     | O         | X   | X      | X                |  X       |  
+|   [Detail]               | O     | O         | X   | X      | X                |  X       |  
+| ***Parking**             | O     | O         | O   | O      | O                |  X       |  
+| ***Admin Info**          | O     | O         | X   | O      | X                |  X       |  
+| ***Program**             | O     | O         | X   | O      | O                |  X       |  
+|   [Add_Program]          | O     | O         | X   | X      | X                |  X       |  
+|   [Detail]               | O     | O         | X   | X      | X                |  X       |  
+| ***Charging Profile**    | O     | O         | O   | O      | X                |  X       |  
+|   [Add_Profile]          | O     | O         | O   | X      | X                |  X       |  
+|   [Detail]               | O     | O         | O   | X      | X                |  X       |  

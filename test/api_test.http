@@ -1,0 +1,341 @@
+//Use VS Code REST Client Extension
+
+@baseUrl = https://evse.msi.com/api
+@Token = {{login.response.body.token}}
+
+###
+//Register
+POST {{baseUrl}}/member/register
+
+{
+    "first_name": "StevenTest1",
+    "last_name": "StevenTest1",
+    "email": "stevenzzchen@msi.com",
+    "password": "abcd1234"
+}
+
+### Login
+# @name login
+POST {{baseUrl}}/member/login
+
+{
+    "email": "stevenzzchen@msi.com",
+    "password": "msi32345599",
+    "dashboard":"true"
+}
+
+### get guest token
+GET {{baseUrl}}/member/guest/web
+
+### modify
+PATCH {{baseUrl}}/member/modify
+Authorization: {{Token}}
+
+{
+    "first_name": "Steven",
+    "last_name": "Chen",
+    "country": "TW",
+    "language": "Chinese",
+    "phone": "+886912345678"
+}
+
+### resetPW
+PATCH {{baseUrl}}/member/resetpw
+Authorization: {{Token}}
+
+{
+    "password": "abcd1234"
+}
+
+### forgot pw
+POST {{baseUrl}}/member/forgot/pw
+{
+    "email": "stevenzzchen0@gmail.com",
+    "dashobard" : true
+}
+
+### get about
+GET {{baseUrl}}/member/about
+Authorization: {{Token}}
+
+###
+GET {{baseUrl}}/member/verify/62427ea695c8383eb1ab9bf3
+
+###
+POST {{baseUrl}}/member/check/email
+Authorization: {{Token}}
+
+{
+    "email": "stevenzzchen@msi.com"
+}
+
+###
+POST {{baseUrl}}/member/verify/sms
+
+{
+    "phone": "eooBOkwqDnQn+Uy/yrOEEUTfx1EwuK2ynYfveu9cHHt5STl26fLPk6oX4CcM+lWLj2CuaLoaKwFRoUKnAWrfs/9vI3HCdULoeZtHobr0CUS9leBzWV8DF7lqVNumP4nh0m08yzEq9QvW9FVzWUourAuPyU5y5r5pqBd+0ADCPFP+qEMDH4fwiVLdeVl2gc1Z3CPCO6MEfUXFgxlpkZLUPjVWwznPwxBPtlVJveR5eOuFZ9AVOa5uFNZKPy34tbU9W5Awf9AMKI5pZ8fAfRGI5UutdILA/goDlV1CLypV6KtXd5vMItQdhQ+A8OL+4fyI3bvmXKA/d+paVzo5NBDvBw=="
+}
+
+###
+POST {{baseUrl}}/member/check/sms
+
+{
+    "phone": "eooBOkwqDnQn+Uy/yrOEEUTfx1EwuK2ynYfveu9cHHt5STl26fLPk6oX4CcM+lWLj2CuaLoaKwFRoUKnAWrfs/9vI3HCdULoeZtHobr0CUS9leBzWV8DF7lqVNumP4nh0m08yzEq9QvW9FVzWUourAuPyU5y5r5pqBd+0ADCPFP+qEMDH4fwiVLdeVl2gc1Z3CPCO6MEfUXFgxlpkZLUPjVWwznPwxBPtlVJveR5eOuFZ9AVOa5uFNZKPy34tbU9W5Awf9AMKI5pZ8fAfRGI5UutdILA/goDlV1CLypV6KtXd5vMItQdhQ+A8OL+4fyI3bvmXKA/d+paVzo5NBDvBw==",
+    "code": "550655"
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+###
+POST {{baseUrl}}/cp/ocpp/v16/remote_start_charge
+Authorization: {{Token}}
+
+{
+    "evse_id": "TW*MSI*E000201",
+    "connector": "1"
+}
+
+###
+POST {{baseUrl}}/cp/ocpp/v16/remote_stop_charge
+Authorization: {{Token}}
+
+{
+    "evse_id": "TW*MSI*E000201",
+    "connector": "1"
+}
+
+###
+POST {{baseUrl}}/cp/ocpp/v16/reset
+Authorization: {{Token}}
+
+{
+    "evse_id": "TW*MSI*E000201",
+    "charge_type": "soft" // hard
+}
+
+###
+GET {{baseUrl}}/cp?evse_id=TW*MSI*E000201&connector=1
+Authorization: {{Token}}
+
+###
+GET {{baseUrl}}/cp/tariff?evse_id=TW*MSI*E000201
+Authorization: {{Token}}
+
+###
+POST {{baseUrl}}/cp/ocpp/v16/change_availability
+Authorization: {{Token}}
+
+{
+    "evse_id": "TW*MSI*E000201",
+    "connectorId": "0",
+    "type": "Inoperative"
+}
+
+###
+POST {{baseUrl}}/cp/ocpp/v16/data_transfer
+Authorization: {{Token}}
+
+{
+    "evse_id": "TW*MSI*E000101",
+    "vendorId": "MSI",
+    "messageId": "set_ui_lang",
+    "data": "zh_TW"
+}
+
+
+
+###
+GET https://api.plugshare.com/locations/38606
+
+
+
+###
+POST {{baseUrl}}/cpo/query
+Authorization: {{Token}}
+
+{
+    "class": "ChargePointInfo",
+    "query": {
+        "evse": { "ObjectId" : "620c62c12ad1a4cd2062a773"}
+    }
+}
+
+
+###
+GET {{baseUrl}}/ocpi/get?class=Session&startDate=2022-10-01&last_updated=1
+Authorization: {{Token}}
+
+
+
+
+###
+POST {{baseUrl}}/cpo/database/query
+Authorization: {{Token}}
+
+
+{ "database":"OCPI",
+  "collection":"Location",
+    "query": {}
+}
+
+
+
+###
+POST {{baseUrl}}/cpo/database/query
+Authorization: {{Token}}
+
+{
+    "database":"CPO",
+    "collection":"PaymentHistory",
+    "$group": {
+        "_id": null,
+        "count": {
+            "$count": { }
+        }
+    }
+}
+
+# {
+#     "class": "ChargePointInfo",
+#     "query": {
+#         "evse": { "ObjectId" : "620c62c12ad1a4cd2062a773"}
+#     }
+# }
+
+
+
+
+# { "database":"OCPI",
+#   "collection":"Location",
+#   "query": {
+#     "_id": {
+#          "ObjectId" : "63737cccc03943e5ef055229"
+#     }
+#     }
+# }
+
+
+###
+GET {{baseUrl}}/parking/car/list?id=TW*MSI*E000301&car_num=2377
+
+
+###
+GET https://dev-evse.com/api/parking/car/list?id=TW*MSI*E000201&car_num=MSI1577
+
+
+###
+GET https://dev-evse.com/api/payment/paymentHistorys?pk=63a988ed4b0104eb8d685214
+Authorization: {{Token}}
+
+
+###
+POST https://maps.googleapis.com/maps/api/timezone/json
+    ?location=63.7076%2C117.5674
+    &timestamp=1331161200
+    &key=AIzaSyAF9JFbakLQ7229sYN6dvrTPzoZMpVZxe4
+
+###
+GET {{baseUrl}}/cpo/timezone?latitude=25.007697&longitude=121.487414
+Authorization: {{Token}}
+
+
+###
+GET https://maps.googleapis.com/maps/api/geocode/json
+    ?latlng=25.007653, 121.487424
+    &key=AIzaSyAF9JFbakLQ7229sYN6dvrTPzoZMpVZxe4
+
+###
+GET https://maps.googleapis.com/maps/api/geocode/json?address=新北市中和區立德街
+    &key=AIzaSyAF9JFbakLQ7229sYN6dvrTPzoZMpVZxe4
+
+
+###
+GET https://maps.googleapis.com/maps/api/geocode/json?latlng=25.0085112,121.4862459
+    &key=AIzaSyAF9JFbakLQ7229sYN6dvrTPzoZMpVZxe4
+
+
+GET https://maps.googleapis.com/maps/api/geocode/json?latlng=23.48386540,120.45358340
+&key=AIzaSyAF9JFbakLQ7229sYN6dvrTPzoZMpVZxe4
+
+
+
+
+
+POST {{baseUrl}}/cpo/query
+Authorization: {{Token}}
+
+{
+    "class": "ChargePointInfo",
+    "query": {
+        "evse": { "ObjectId" : "620c62c12ad1a4cd2062a773"}
+    }
+}
+
+###
+64525d3c48eeca261f3139b7
+
+
+###
+GET {{baseUrl}}/payment/newebpay/bindingCard
+Authorization: {{Token}}
+
+###
+GET https://data.gcis.nat.gov.tw/od/data/api/9D17AE0D-09B5-4732-A8F4-81ADED04B679?$format=json&$filter=Business_Accounting_NO%20eq%2023638777
+
+
+###
+
+POST {{baseUrl}}/cpo/database/aggregate
+Authorization: {{Token}}
+
+{
+    "database": "OCPI",
+    "collection": "Session",
+    "pipelines": [
+            {
+            "$match": {
+                "$expr": {
+                "$and": [
+                    {
+                    "$gte": [
+                        "$last_updated",
+                        { "$dateFromString": { dateString: "2023-09-08T12:10:40.787" } },
+                    ],
+                    },
+                ],
+                },
+            },
+            },
+            { "$group": { "_id": null, "totalkwh": { "$sum": "$kwh" } } },
+        ],
+}
+
+
+
+
+
+### modify
+POST {{baseUrl}}/cpo/notify/fcm
+Authorization: {{Token}}
+
+{
+"users": ["frankhjchen@msi.com"],
+"title": "m-cloud",
+"body": "Testing",
+"data": {"route": "PaymentCompleted"}
+}
+
+
+
+### modify
+GET {{baseUrl}}/payment/newebpay/company/addMerchant
+Authorization: {{Token}}
+
+{
+"merchantId": 55667788
+}
+
+
+### modify
+GET http://localhost:3000/api/hello
+### modify
+GET http://localhost:3000/api/users

@@ -109,8 +109,12 @@ const getEVSEOCPPLogs = async() => {
 }
 
 const download = () => {
-  const tHeader = ['EVSE ID', 'Error Code', 'System Error Code', 'FW Error Info','Created Time']
-  const filterVal = ['evse_id', 'ocpp_errorCode_str', 'syetem_error_code_str', 'ocpp_firmware_status_str','created_date_str']
+  let tHeader = ['EVSE ID', 'Error Code', 'System Error Code', 'FW Error Info', 'Created Time']
+  let filterVal = ['evse_id', 'ocpp_errorCode_str', 'syetem_error_code_str', 'ocpp_firmware_status_str','created_date_str']
+  if (MStore.permission.isMSI) {
+    tHeader = ['EVSE ID', 'Error Code', 'System Error Code', 'FW Error Info', 'Company','Created Time']
+    filterVal = ['evse_id', 'ocpp_errorCode_str', 'syetem_error_code_str', 'ocpp_firmware_status_str','byCompany_str','created_date_str']
+  }
   const data = ocppErrorDataAll.map(v => filterVal.map(j => v[j]))
   export_json_to_excel ({ header: tHeader, data: data, filename: 'OCPP Error' })
 }
