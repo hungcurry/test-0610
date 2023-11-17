@@ -1147,17 +1147,18 @@ onUnmounted(() => {
                   type="primary" class="btn-secondary box-shadow delete" @click="changeAvailability"> {{t('change_availability')}} </el-button>
                   <el-button v-if="MStore.rule_permission.EVSEDetail.delete === 'O' || MStore.permission.isCompany"
                   type="primary" class="btn-secondary box-shadow delete" @click="deleteEvse"> {{t('delete')}} </el-button>
-                  <el-button type="primary" class="btn-secondary box-shadow edit" @click="edit"> {{t('edit')}} </el-button>
+                  <el-button v-if="MStore.rule_permission.EVSEDetail.edit === 'O' || MStore.permission.isCompany"
+                  type="primary" class="btn-secondary box-shadow edit" @click="edit"> {{t('edit')}} </el-button>
               </div>
               <br>
               <div class="flex justify-end">
                 <!-- <el-button v-if="MStore.rule_permission.EVSEDetail.dataTransfer === 'O' || MStore.permission.isCompany" disabled
                   type="primary" class="btn-secondary box-shadow delete" @click="dataTransfer"> {{t('data_transfer')}} </el-button> -->
-                <el-button v-if="MStore.rule_permission.EVSEDetail.remoteStartTransaction === 'O' || MStore.permission.isCompany"
+                <el-button v-if="MStore.rule_permission.EVSEDetail.remoteTransaction === 'O' || MStore.permission.isCompany"
                   type="primary" class="btn-secondary box-shadow delete" @click="remoteTransaction"> {{ remote_transaction_title }} </el-button>
                 <el-button v-if="MStore.rule_permission.EVSEDetail.getDiagnostics === 'O' || MStore.permission.isCompany"
                   type="primary" class="btn-secondary box-shadow delete" @click="getDiagnostics"> {{t('get_diagnostics')}} </el-button>
-                <el-button v-if="MStore.rule_permission.EVSEDetail.changeConfiguration === 'O' || MStore.permission.isCompany"
+                <el-button v-if="MStore.rule_permission.EVSEDetail.configuration === 'O' || MStore.permission.isCompany"
                   type="primary" class="btn-secondary box-shadow delete" @click="openConfigurationDialog"> {{t('configuration')}} </el-button>
 
                   <el-dropdown class="ml-12px">
@@ -1165,9 +1166,9 @@ onUnmounted(() => {
                     type="primary" class="btn-secondary box-shadow delete"> {{t('charging_profile')}} </el-button>
                   <template #dropdown>
                     <el-dropdown-menu>
-                      <el-dropdown-item v-if="MStore.rule_permission.EVSEDetail.compositeSchedule === 'O' || MStore.permission.isCompany" @click="openChargingProfileDialog('get')">{{t('get_composite_schedule')}}</el-dropdown-item>
-                      <el-dropdown-item v-if="MStore.rule_permission.EVSEDetail.setChargingProfile === 'O' || MStore.permission.isCompany" @click="openChargingProfileDialog('set')">{{t('set_charging_profile')}}</el-dropdown-item>
-                      <el-dropdown-item v-if="MStore.rule_permission.EVSEDetail.clearChargingProfile === 'O' || MStore.permission.isCompany" @click="openChargingProfileDialog('clear')">{{t('clear_charging_profile')}}</el-dropdown-item>
+                      <el-dropdown-item @click="openChargingProfileDialog('get')">{{t('get_composite_schedule')}}</el-dropdown-item>
+                      <el-dropdown-item @click="openChargingProfileDialog('set')">{{t('set_charging_profile')}}</el-dropdown-item>
+                      <el-dropdown-item @click="openChargingProfileDialog('clear')">{{t('clear_charging_profile')}}</el-dropdown-item>
                     </el-dropdown-menu>
                   </template>  
                 </el-dropdown>
@@ -1611,7 +1612,6 @@ onUnmounted(() => {
       <template #footer>
         <span class="dialog-footer flex flex-center">
           <el-button 
-            v-if="MStore.rule_permission.EVSEDetail.changeConfiguration === 'O' || MStore.permission.isCompany"
             round class="w-48% bg-btn-100 text-white max-w-140px" @click.stop="confirmConfigurationDialog">
             {{ t('confirm') }}
           </el-button>

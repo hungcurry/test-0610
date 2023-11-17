@@ -31,6 +31,7 @@
 |   [Change_Availablility]     | O     | O         | O   | O      | O                |  X       |  
 |   [Configuration]            | O     | O         | O   | O      | O                |  X       |  
 |   [Charging_Profile]         | O     | O         | O   | O      | O                |  X       |  
+|   [Remote_Transaction]       | O     | O         | O   | O      | O                |  X       |  
 | ***EVSE Edit**               | O     | O         | O   | O      | O                |  X       |  
 |   [Save]                     | O     | O         | O   | X      | X                |  X       |  
 | ***Rate Plan**               | O     | O         | O   | O      | O                |  X       |  
@@ -43,6 +44,7 @@
 |   [Save]                     | O     | O         | O   | X      | X                |  X       |  
 | ***Charging Profile**        | O     | O         | O   | O      | X                |  X       |  
 |   [Add_Profile]              | O     | O         | O   | X      | X                |  X       |  
+|   [Delete_Profile]           | O     | O         | O   | X      | X                |  X       |  
 |   [Detail]                   | O     | O         | O   | X      | X                |  X       |  
 | ***Charging Profile Detail** | O     | O         | O   | O      | X                |  X       |  
 |   [Save]                     | O     | O         | O   | X      | X                |  X       |  
@@ -68,6 +70,7 @@
 | ***Administrator**           | O     | O         | O   | O      | O                |  X       |  
 |   [Add_Admin]                | O     | O         | X   | X      | X                |  X       |  
 |   [Detail]                   | O     | O         | X   | X      | X                |  X       |  
+|   [Download_List]            | O     | O         | X   | X      | X                |  X       |  
 | ***Software Info**           | O     | O         | O   | O      | O                |  X       |  
 |   [Add_SW_Release]           | O     | O         | X   | X      | X                |  X       |  
 |   [Add_FW_Release]           | O     | O         | X   | X      | X                |  X       |  

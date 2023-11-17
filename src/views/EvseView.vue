@@ -306,7 +306,7 @@ onMounted(async () => {
           {{ t('add_evse') }}</el-button
           >
           <el-button 
-            v-if="MStore.rule_permission.EVSE.action === 'O' || MStore.permission.isCompany"
+            v-if="MStore.rule_permission.EVSE.update === 'O' || MStore.rule_permission.EVSE.reset === 'O' || MStore.permission.isCompany"
             class="btn-secondary shrink-0 edit px-30px box-shadow" @click="edit">
             {{ t(edit_button_str) }}</el-button
           >

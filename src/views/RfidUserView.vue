@@ -174,7 +174,8 @@ onMounted( async() => {
         </el-input>
         <div class="w-full sm:flex justify-between lg:justify-end items-center lg:w-auto">
           <p class="total-amount box-shadow mr-2rem min-w-20rem font-bold text-center mb-12px md:mb-0"> {{ t('total_amount') + ' : $ ' + total_amount  }}</p>
-          <el-button class="btn-secondary box-shadow" @click="addRfidUser"> {{ t('add_user') }} </el-button>
+          <el-button v-if="MStore.rule_permission.RfidUser.addUser === 'O' || MStore.permission.isCompany"
+            class="btn-secondary box-shadow" @click="addRfidUser"> {{ t('add_user') }} </el-button>
         </div>
       </div>
 
@@ -282,7 +283,8 @@ onMounted( async() => {
                 min-width="150"
               >
                 <template #default="scope">
-                  <el-button class="btn-more" @click="detail_info(scope.row)"> <font-awesome-icon icon="fa-solid fa-ellipsis" /> </el-button>
+                  <el-button v-if="MStore.rule_permission.RfidUser.userDetail === 'O' || MStore.permission.isCompany"
+                    class="btn-more" @click="detail_info(scope.row)"> <font-awesome-icon icon="fa-solid fa-ellipsis" /> </el-button>
                 </template>
               </el-table-column>
           </el-table>

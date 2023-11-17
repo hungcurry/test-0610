@@ -151,7 +151,7 @@ onMounted(async () => {
       <el-table-column prop="" label="" align="center" min-width="120" >
         <template #default="scope">
           <el-button 
-            v-if="MStore.rule_permission.ChargingProfile.addProfile === 'O' || MStore.permission.isCompany"
+            v-if="MStore.rule_permission.ChargingProfile.deleteProfile === 'O' || MStore.permission.isCompany"
             link type="primary" size="large" @click="DelChargingProfile(scope.row)" >
             <img src="@/assets/img/tariff_delete1.png" alt="">
           </el-button>

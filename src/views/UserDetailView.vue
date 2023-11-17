@@ -937,7 +937,7 @@ onMounted(async () => {
                             <img class="text-blue-1100 w-24px h-24px" src="@/assets/img/tariff_delete1.png" alt="">
                           </el-button>
                           <el-button 
-                          v-if="MStore.rule_permission.UserDetail.detailRFID === 'O' || MStore.permission.isCompany"
+                          v-if="MStore.rule_permission.UserDetail.editRFID === 'O' || MStore.permission.isCompany"
                           link type="primary" size="large" @click="card_detail(item, index)">
                             <font-awesome-icon class="text-blue-1100 w-24px h-24px" icon="fa-regular fa-pen-to-square" />
                           </el-button>
@@ -1239,11 +1239,8 @@ onMounted(async () => {
         </div>
         <template #footer>
           <span class="dialog-footer flex flex-center">
-            <el-button 
-            round class="w-48% bg-btn-100 text-white max-w-140px" @click="confirmRfid('cancel', undefined)">{{ t('cancel') }}</el-button>
-            <el-button 
-            v-if="MStore.rule_permission.UserDetail.confirmRFID === 'O' || MStore.permission.isCompany"
-            round class="w-48% bg-btn-200 text-white max-w-140px" @click="confirmRfid('confirm', undefined)">{{ t('confirm') }}</el-button>
+            <el-button round class="w-48% bg-btn-100 text-white max-w-140px" @click="confirmRfid('cancel', undefined)">{{ t('cancel') }}</el-button>
+            <el-button round class="w-48% bg-btn-200 text-white max-w-140px" @click="confirmRfid('confirm', undefined)">{{ t('confirm') }}</el-button>
           </span>
         </template>
       </el-dialog>

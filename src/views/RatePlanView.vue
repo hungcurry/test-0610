@@ -208,6 +208,7 @@ onMounted( async() => {
                   <img src="@/assets/img/tariff_copy1.png" alt="">
                 </el-button>
                 <el-button 
+                  v-if="MStore.rule_permission.RatePlan.edit === 'O' || MStore.permission.isCompany"
                   link type="primary" size="large" @click="editTariff(scope.row)">
                   <font-awesome-icon icon="fa-regular fa-pen-to-square" />
                 </el-button>
