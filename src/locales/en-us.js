@@ -326,7 +326,7 @@ export default
 //--------------------------------------------------------------
     transaction_list:                                       'Transaction List',
     top_up_list:                                            'Top-up List',
-    id_email:                                               'ID/Email',
+    // id:                                                  'ID',
     // method:                                              'Method',
     // license_plate:                                       'License Plate',
     // download:                                            'Download',

@@ -1140,8 +1140,13 @@ onUnmounted(() => {
           </el-col>
           <el-col class="el-col" :xs="24" :md="10">
             <div class="text-right">
-              <p class="location-name text-right mb-20px">{{ locationData.name }}</p>
-              <p class="location-addr text-right mb-20px">{{ locationData.country + ' ' + locationData.city + locationData.address + '/' + locationData.city1 + locationData.address1}}</p>
+              <p class="location-name text-right mb-20px"><span>&zwnj;</span>{{ locationData.name }}</p>
+              <p class="location-addr text-right mb-20px">
+                <span>&zwnj;</span>
+                <span>{{ locationData.country + ' ' + locationData.city + locationData.address }}</span>
+                <span v-if="locationData.city || locationData.address">/</span>
+                <span>{{ locationData.city1 + locationData.address1 }}</span>
+              </p>
               <div class="flex justify-end" >
                 <el-button v-if="MStore.rule_permission.EVSEDetail.changeAvailablility === 'O' || MStore.permission.isCompany"
                   type="primary" class="btn-secondary box-shadow delete" @click="changeAvailability"> {{t('change_availability')}} </el-button>
