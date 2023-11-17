@@ -1034,9 +1034,9 @@ onMounted(async () => {
                 </el-tooltip>
             </div>
             <div class="card-body flex-center h-full text-40px md:text-60px">
-              <div class="income">
+              <div class="income scrollbar overflow-x-auto overflow-y-hidden">
                 <span class="text-24px mr-8px">$</span>
-                {{ income }}
+                <span>{{ income }}</span>
                 <span class="text-24px mr-8px">{{(selectCurrency)}}</span>
               </div>
             </div>
@@ -1230,6 +1230,12 @@ onMounted(async () => {
   }
 }
 
+.date-selected {
+  @media (min-width: 2000px) {
+    margin: auto;
+    width: 184rem;
+  }
+}
 :deep(.el-range-editor) {
   box-shadow: 0 0 0 1px var(--blue-1200) inset !important;
 }
