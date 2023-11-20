@@ -6,15 +6,18 @@ import { useI18n } from "vue-i18n"
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { ElMessage } from 'element-plus'
 import { useMStore } from '../stores/m_cloud'
+import { export_json_to_excel } from '@/composables/Export2Excel'
 import ApiFunc from '@/composables/ApiFunc'
 import msi from '@/assets/msi_style'
 import moment from 'moment'
+import Calendar from '@/components/icons/IconCalendar.vue'
 
 const { t } = useI18n()
 const MStore = useMStore()
 const router = useRouter()
 const MsiApi = ApiFunc()
 const dialogFormVisible = ref(false)
+const activeName = ref('first')
 const isLoading = ref(false)
 const total_amount = ref(0)
 const input = ref('')
@@ -30,6 +33,16 @@ const add_rfid_user_rules = reactive({
     { required: true, message: t('the_item_is_required'), trigger: 'blur' },
   ],
 })
+const now = new Date()
+const selectTime = ref([
+  new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0),
+  new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59),
+])
+const defaultTime = [
+  new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0),
+  new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59),
+]
+const transactionData = reactive([])
 
 const sortFunc = (obj1, obj2, column) => {
   let at = obj1[column]
@@ -82,6 +95,77 @@ const search = async() => {
   })
   total_amount.value = total_amount.value.toLocaleString()
 }
+const downloadTransaction = () => {
+  const tHeader = [
+    'ID',
+    'Name',
+    'RFID Num',
+    'Beginning Balance',
+    'Top-up Amount',
+    'Refund Amount',
+    'Transaction Amount',
+    'Balance',
+  ]
+  const filterVal = [
+    'tag_id',
+    'name',
+    'rfid',
+    'origin_str',
+    'topup_str',
+    'refund_str',
+    'price_str',
+    'balance_str',
+  ]
+  const data = transactionData.map((v) => filterVal.map((j) => v[j]))
+  export_json_to_excel({ header: tHeader, data: data, filename: 'RFID User Transaction List' })
+}
+const select_date = async() => {
+  await getTransactionData()
+}
+const goUserDetailTransaction = (detail) => {
+  router.push({ name: 'rfidUserDetail', query:{id:detail._id, start_time:selectTime.value[0], end_time:selectTime.value[1]} })
+}
+const getTransactionData = async() => {
+  if (selectTime.value === null) {
+    return
+  }
+  const startTime = new Date(selectTime.value[0].getTime() - MStore.timeZoneOffset * -60000)
+  const endTime = new Date(selectTime.value[1].getTime() - MStore.timeZoneOffset * -60000)
+  let params = {role:'rfid', start_date: startTime, end_date: endTime}
+  let payments = await MsiApi.get_user_payment(params)
+  let cashs = await MsiApi.get_user_cash(params)
+
+  transactionData.length = 0
+  payments?.data?.data?.forEach(item => {
+    let user_cash = cashs?.data?.data?.find(item2 => item2._id === item._id)
+    let origin = 0
+    let balance = 0
+
+    if (item.datetime && user_cash.datetime) {
+      if (item.datetime > user_cash.datetime) {
+        origin = user_cash.origin
+      }
+      else {
+        origin = item.origin
+      }
+    }
+    else if (item.datetime) {
+      origin = item.origin
+    }
+    else if (user_cash.datetime) {
+      origin = user_cash.origin
+    }
+    balance = origin + user_cash.topup - Math.abs(user_cash.refund) - item.price
+    transactionData.push({
+      _id: item._id, tag_id: item.tag_id, name: item.name, rfid: item.rfid, 
+      price: item.price, topup: user_cash.topup, refund: Math.abs(user_cash.refund), 
+      origin: origin, balance: balance,
+      price_str: item.price.toLocaleString(), topup_str: user_cash.topup.toLocaleString(), refund_str: Math.abs(user_cash.refund).toLocaleString(), 
+      origin_str: origin.toLocaleString(), balance_str: balance.toLocaleString(),
+    })
+  })
+}
+
 const addRfidUser = () => {
   if (RfidUserData.length >= MStore.program.user && MStore.permission.isMSI === false) {
     ElMessage.error(t('please_confirm_your_subscription_plan'))
@@ -128,7 +212,7 @@ const addRfidUserDialog = (action) => {
             'phone': newUser.phone,
           }
           let res = await MsiApi.register_member(sendData)
-          if (res.data.status === 'Accepted') {
+          if (res.data.message === 'Accepted') {
             dialogFormVisible.value = false
             await getUserData()
           }
@@ -159,6 +243,7 @@ const addRfidUserDialog = (action) => {
 onMounted( async() => {
   isLoading.value = true
   await getUserData()
+  await getTransactionData()
   isLoading.value = false
 })
 </script>
@@ -166,129 +251,261 @@ onMounted( async() => {
 <template>
   <div class="rfid-user">
     <div class="container lg">
-      <div class="flex justify-between flex-wrap lg:flex-nowrap pt-40px pb-32px">
-        <el-input class="search-input mb-12px lg:mb-0" v-model="input" :placeholder="t('search')" @keyup.enter="search">
-          <template #append>
-            <el-button :icon="Search" @click="search" />
-          </template>
-        </el-input>
-        <div class="w-full sm:flex justify-between lg:justify-end items-center lg:w-auto">
-          <p class="total-amount box-shadow mr-2rem min-w-20rem font-bold text-center mb-12px md:mb-0"> {{ t('total_amount') + ' : $ ' + total_amount  }}</p>
-          <el-button v-if="MStore.rule_permission.RfidUser.addUser === 'O' || MStore.permission.isCompany"
-            class="btn-secondary box-shadow" @click="addRfidUser"> {{ t('add_user') }} </el-button>
-        </div>
-      </div>
-
-      <div class="overflow-x-auto">
-        <div class="customer-list pb-40px">
-          <el-table 
-              :data="RfidUserData" 
-              class="white-space-nowrap text-primary"
-              height="calc(100vh - 220px)"
-              style="width: 100%"
-              stripe 
-              size="large"
-              :cell-style=msi.tb_cell 
-              :header-cell-style="msi.tb_header_cell"
-              v-loading.fullscreen.lock="isLoading"
-              :default-sort="{ prop: 'updated_date_str', order: 'ascending' }"
-            >
-              <el-table-column
-                prop="tag_id"
-                :label="t('id')"
-                align="center"
-                sortable
-                :sort-method="(a, b) => sortFunc(a, b, 'tag_id')"
-                min-width="150"
-              />
-              <el-table-column
-                prop="name"
-                :label="t('name')"
-                align="center"
-                sortable
-                :sort-method="(a, b) => sortFunc(a, b, 'name')"
-                min-width="150"
-              />
-              <el-table-column
-                prop="phone"
-                :label="t('phone')"
-                align="center"
-                sortable
-                :sort-method="(a, b) => sortFunc(a, b, 'phone')"
-                min-width="150"
-              />
-              <el-table-column
-                prop="rfid"
-                :label="t('rfid_num')"
-                align="center"
-                sortable
-                :sort-method="(a, b) => sortFunc(a, b, 'rfid')"
-                min-width="150"
-              />
-              <el-table-column
-                prop="amount_str"
-                :label="t('amount')"
-                header-align="center"
-                align="right"
-                sortable
-                :sort-method="(a, b) => sortFunc(a, b, 'amount')"
-                min-width="150"
-              >
-                <template #default="scope">
-                  <span v-if="scope.row.amount < 0" class="text-red">{{ scope.row.amount_str }}</span>
-                  <span v-else>{{ scope.row.amount_str }}</span>
+      <div class="tabs pt-40px">
+        <el-tabs v-model="activeName">
+          <el-tab-pane :label="t('user_list')" name="first">
+            <div class="flex justify-between flex-wrap lg:flex-nowrap pt-40px pb-32px">
+              <el-input class="search-input mb-12px lg:mb-0" v-model="input" :placeholder="t('search')" @keyup.enter="search">
+                <template #append>
+                  <el-button :icon="Search" @click="search" />
                 </template>
-              </el-table-column>
+              </el-input>
+              <div class="w-full sm:flex justify-between lg:justify-end items-center lg:w-auto mr-15px">
+                <p class="total-amount box-shadow mr-2rem min-w-20rem font-bold text-center mb-12px md:mb-0"> {{ t('total_amount') + ' : $ ' + total_amount  }}</p>
+                <el-button v-if="MStore.rule_permission.RfidUser.addUser === 'O' || MStore.permission.isCompany"
+                  class="btn-secondary box-shadow" @click="addRfidUser"> {{ t('add_user') }} </el-button>
+              </div>
+            </div>
 
-              <!-- <el-table-column
-                prop="occupied"
-                :label="t('occupied_evse_id')"
-                align="center"
-                sortable
-                :sort-method="(a, b) => sortFunc(a, b, 'occupied')"
-                min-width="200"
-              >
-                <template #default="scope">
-                  <span v-if="scope.row.occupied_detail_str === ''">{{ scope.row.occupied_str }}</span>
-                  <el-tooltip v-else placement="bottom-start">
-                    <template #content>
-                      <div v-html="scope.row.occupied_detail_str"></div>
+            <div class="overflow-x-auto">
+              <div class="customer-list pb-40px">
+                <el-table 
+                    :data="RfidUserData" 
+                    class="white-space-nowrap text-primary"
+                    height="calc(100vh - 320px)"
+                    style="width: 100%"
+                    stripe 
+                    size="large"
+                    :cell-style=msi.tb_cell 
+                    :header-cell-style="msi.tb_header_cell"
+                    v-loading.fullscreen.lock="isLoading"
+                    :default-sort="{ prop: 'updated_date_str', order: 'ascending' }"
+                  >
+                    <el-table-column
+                      prop="tag_id"
+                      :label="t('id')"
+                      align="center"
+                      sortable
+                      :sort-method="(a, b) => sortFunc(a, b, 'tag_id')"
+                      min-width="150"
+                    />
+                    <el-table-column
+                      prop="name"
+                      :label="t('name')"
+                      align="center"
+                      sortable
+                      :sort-method="(a, b) => sortFunc(a, b, 'name')"
+                      min-width="150"
+                    />
+                    <el-table-column
+                      prop="phone"
+                      :label="t('phone')"
+                      align="center"
+                      sortable
+                      :sort-method="(a, b) => sortFunc(a, b, 'phone')"
+                      min-width="150"
+                    />
+                    <el-table-column
+                      prop="rfid"
+                      :label="t('rfid_num')"
+                      align="center"
+                      sortable
+                      :sort-method="(a, b) => sortFunc(a, b, 'rfid')"
+                      min-width="150"
+                    />
+                    <el-table-column
+                      prop="amount_str"
+                      :label="t('amount')"
+                      header-align="center"
+                      align="right"
+                      sortable
+                      :sort-method="(a, b) => sortFunc(a, b, 'amount')"
+                      min-width="150"
+                    >
+                      <template #default="scope">
+                        <span v-if="scope.row.amount < 0" class="text-red">{{ scope.row.amount_str }}</span>
+                        <span v-else>{{ scope.row.amount_str }}</span>
+                      </template>
+                    </el-table-column>
+
+                    <!-- <el-table-column
+                      prop="occupied"
+                      :label="t('occupied_evse_id')"
+                      align="center"
+                      sortable
+                      :sort-method="(a, b) => sortFunc(a, b, 'occupied')"
+                      min-width="200"
+                    >
+                      <template #default="scope">
+                        <span v-if="scope.row.occupied_detail_str === ''">{{ scope.row.occupied_str }}</span>
+                        <el-tooltip v-else placement="bottom-start">
+                          <template #content>
+                            <div v-html="scope.row.occupied_detail_str"></div>
+                          </template>
+                          <el-button class="overflow-hidden evse-tooltip-btn">
+                            <span class="font-400 text-1.8rem line-height-2rem text-black-200"> {{ scope.row.occupied_str }} </span>
+                          </el-button>
+                        </el-tooltip>
+                      </template>
+                    </el-table-column> -->
+                    <el-table-column
+                      prop="used_times"
+                      :label="t('used_times')"
+                      align="center"
+                      sortable
+                      :sort-method="(a, b) => sortFunc(a, b, 'used_times')"
+                      min-width="200"
+                    />
+                    <el-table-column
+                      prop="updated_date_str"
+                      :label="t('updated_date')"
+                      align="center"
+                      sortable
+                      :sort-method="(a, b) => sortFunc(a, b, 'updated_date_str')"
+                      min-width="200"
+                    />
+                    <el-table-column
+                      prop="detail"
+                      label=""
+                      align="center"
+                      min-width="150"
+                    >
+                      <template #default="scope">
+                        <el-button v-if="MStore.rule_permission.RfidUser.userDetail === 'O' || MStore.permission.isCompany"
+                          class="btn-more" @click="detail_info(scope.row)"> <font-awesome-icon icon="fa-solid fa-ellipsis" /> </el-button>
+                      </template>
+                    </el-table-column>
+                </el-table>
+              </div>
+            </div>
+          </el-tab-pane>
+          <el-tab-pane :label="t('transaction_list')" name="second">
+            <div class="flex justify-between flex-wrap lg:flex-nowrap pt-40px pb-32px">
+              <div class="date-picker w-full blue-1100">
+                <el-date-picker
+                  v-model="selectTime"
+                  class="mr-16px rounded-full"
+                  type="datetimerange"
+                  range-separator="-"
+                  :prefix-icon="Calendar"
+                  start-placeholder="Start Date"
+                  end-placeholder="End Date"
+                  @change="select_date()"
+                  :default-time="defaultTime"
+                />
+              </div>
+              <div class="w-full mt-4 md:mt-8 lg:mt-0 md:flex justify-end items-center">
+                <el-button
+                  class="download-btn w-full md:w-auto mt-4 md:mt-0 md:ml-30px lg:mr-15px box-shadow"
+                  @click="downloadTransaction"
+                >
+                  <span class="lg:hidden"> {{ t('download') }}</span>
+                  <img
+                    class="w-24px h-24px ml-10px lg:ml-0"
+                    src="@/assets/img/station_download.png"
+                    alt="station_download"
+                  />
+                </el-button>
+              </div>
+            </div>
+            <div class="overflow-x-auto">
+              <div class="customer-list pb-40px">
+                <el-table 
+                    :data="transactionData" 
+                    class="white-space-nowrap text-primary"
+                    height="calc(100vh - 320px)"
+                    style="width: 100%"
+                    stripe 
+                    size="large"
+                    :cell-style=msi.tb_cell 
+                    :header-cell-style="msi.tb_header_cell"
+                    v-loading.fullscreen.lock="isLoading"
+                    :default-sort="{ prop: 'updated_date_str', order: 'ascending' }"
+                  >
+                  <el-table-column
+                    prop="tag_id"
+                    :label="t('id')"
+                    align="center"
+                    sortable
+                    :sort-method="(a, b) => sortFunc(a, b, 'id')"
+                    min-width="150"
+                  />
+                  <el-table-column
+                    prop="name"
+                    :label="t('name')"
+                    align="center"
+                    sortable
+                    :sort-method="(a, b) => sortFunc(a, b, 'name')"
+                    min-width="150"
+                  />
+                  <el-table-column
+                    prop="rfid"
+                    :label="t('rfid_num')"
+                    align="center"
+                    sortable
+                    :sort-method="(a, b) => sortFunc(a, b, 'rfid')"
+                    min-width="150"
+                  />
+                  <el-table-column
+                    prop="origin_str"
+                    :label="t('beginning_balance')"
+                    align="center"
+                    sortable
+                    :sort-method="(a, b) => sortFunc(a, b, 'origin')"
+                    min-width="150"
+                  />
+                  <el-table-column
+                    prop="topup_str"
+                    :label="t('top_up_amount')"
+                    align="center"
+                    sortable
+                    :sort-method="(a, b) => sortFunc(a, b, 'topup')"
+                    min-width="150"
+                  />
+                  <el-table-column
+                    prop="refund_str"
+                    :label="t('refund_amount')"
+                    align="center"
+                    sortable
+                    :sort-method="(a, b) => sortFunc(a, b, 'refund')"
+                    min-width="150"
+                  />
+                  <el-table-column
+                    prop="price_str"
+                    :label="t('transaction_amount')"
+                    align="center"
+                    sortable
+                    :sort-method="(a, b) => sortFunc(a, b, 'price')"
+                    min-width="150"
+                  />
+                  <el-table-column
+                    prop="balance_str"
+                    :label="t('balance')"
+                    align="center"
+                    sortable
+                    :sort-method="(a, b) => sortFunc(a, b, 'balance')"
+                    min-width="150"
+                  >
+                    <template #default="scope">
+                      <span v-if="scope.row.balance < 0" class="text-red">{{ scope.row.balance_str }}</span>
+                      <span v-else>{{ scope.row.balance_str }}</span>
                     </template>
-                    <el-button class="overflow-hidden evse-tooltip-btn">
-                      <span class="font-400 text-1.8rem line-height-2rem text-black-200"> {{ scope.row.occupied_str }} </span>
-                    </el-button>
-                  </el-tooltip>
-                </template>
-              </el-table-column> -->
-              <el-table-column
-                prop="used_times"
-                :label="t('used_times')"
-                align="center"
-                sortable
-                :sort-method="(a, b) => sortFunc(a, b, 'used_times')"
-                min-width="200"
-              />
-              <el-table-column
-                prop="updated_date_str"
-                :label="t('updated_date')"
-                align="center"
-                sortable
-                :sort-method="(a, b) => sortFunc(a, b, 'updated_date_str')"
-                min-width="200"
-              />
-              <el-table-column
-                prop="detail"
-                label=""
-                align="center"
-                min-width="150"
-              >
-                <template #default="scope">
-                  <el-button v-if="MStore.rule_permission.RfidUser.userDetail === 'O' || MStore.permission.isCompany"
-                    class="btn-more" @click="detail_info(scope.row)"> <font-awesome-icon icon="fa-solid fa-ellipsis" /> </el-button>
-                </template>
-              </el-table-column>
-          </el-table>
-        </div>
+                  </el-table-column>
+                  <el-table-column
+                    prop="detail"
+                    label=""
+                    align="center"
+                    min-width="100"
+                  >
+                    <template #default="scope">
+                      <el-button class="btn-more" @click="goUserDetailTransaction(scope.row)"> <font-awesome-icon icon="fa-solid fa-ellipsis" /> </el-button>
+                    </template>
+                  </el-table-column>
+                </el-table>
+              </div>
+            </div>
+          </el-tab-pane>
+        </el-tabs>
       </div>
     </div>
     <el-dialog
@@ -375,6 +592,14 @@ onMounted( async() => {
       color: black;
     }
   }
+  .download-btn {
+    height: 4rem;
+    padding: 0.8rem 2rem;
+    font-size: 1.8rem;
+    background-color: var(--secondary);
+    color: var(--white);
+    border-radius: 2rem;
+  }
   .evse-tooltip-btn {
     background-color: unset;
   }
@@ -384,6 +609,11 @@ onMounted( async() => {
     border-radius: 2rem;
     padding: 0 2rem;
     cursor: default;
+  }
+
+  :deep(.el-tabs__item) {
+    font-size: 24px;
+    font-weight: 700;
   }
 }
 </style>

@@ -211,6 +211,8 @@ export default
     number_phases:                                          'Number Phases',
     none:                                                   'None',
     edit_success:                                           'Edit Success',
+    transaction_list:                                       'Transaction List',
+    balance:                                                'Balance',
 //--------------------------------------------------------------
 // header
 //--------------------------------------------------------------
@@ -325,7 +327,6 @@ export default
 //--------------------------------------------------------------
 // Payment Page                 
 //--------------------------------------------------------------
-    transaction_list:                                       'Transaction List',
     top_up_list:                                            'Top-up List',
     // id:                                                  'ID',
     // method:                                              'Method',
@@ -348,6 +349,7 @@ export default
     // kwh:                                                 'kWh',
     // rfid_num:                                            'RFID Num',
     // amount:                                              'Amount',
+    // transaction_list:                                    'Transaction List',
 //--------------------------------------------------------------
 // Station Page                 
 //--------------------------------------------------------------
@@ -1130,22 +1132,28 @@ export default
 //--------------------------------------------------------------
     id_already_exists:                                      'ID already exists',
     please_chat_to_administrator_it:                        'Please chat to Administrator/IT.',
+    user_list:                                              'User List',
+    beginning_balance:                                      'Beginning Balance',
+    top_up_amount:                                          'Top-up Amount',
+    refund_amount:                                          'Refund Amount',
+    transaction_amount:                                     'Transaction Amount',
     // total_amount:                                        'Total Amount',
     // id:                                                  'ID',
     // name:                                                'Name',
     // phone:                                               'Phone',
-    // rfid_num:                                            'RFID Num.',
+    // rfid_num:                                            'RFID Num',
     // amount:                                              'Amount',
     // occupied_evse_id:                                    'Occupied EVSE ID',
     // used_times:                                          'Used Times',
     // updated_date:                                        'Updated Date',
     // add_user:                                            'Add User',
     // please_confirm_your_subscription_plan:               'Please confirm your subscription plan.',
+    // transaction_list:                                    'Transaction List',
+    // balance:                                             'Balance',
 //--------------------------------------------------------------
 // Rfid User Detail Page
 //--------------------------------------------------------------
     total_rfid:                                             'Total RFID',
-    balance:                                                'Balance',
     refund:                                                 'Refund',
     check:                                                  'Check',
     are_you_sure_to_top_up:                                 'Are you sure to top up',
@@ -1208,6 +1216,7 @@ export default
     // amount:                                              'Amount',
     // top_up:                                              'Top up',
     // transaction:                                         'Transaction',
+    // balance:                                             'Balance',
 //--------------------------------------------------------------
 // Premission Page
 //--------------------------------------------------------------

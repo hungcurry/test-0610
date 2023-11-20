@@ -100,31 +100,31 @@ export default function () {
 
   const register_member = async (json) => {
     AuthToken = VueCookies.get('AuthToken')
-    const response = await postJsonData(api1 + '/account', json, AuthToken)
+    const response = await postJsonData(api1 + '/accounts', json, AuthToken)
     return response
   }
 
   const get_account_info = async (role) => {
     AuthToken = VueCookies.get('AuthToken')
-    const response = await getJsonData(api1 + '/account?role=' + role + '&type=info', AuthToken)
+    const response = await getJsonData(api1 + '/accounts?role=' + role, AuthToken)
     return response
   }
 
   const get_account_detail = async (role, id) => {
     AuthToken = VueCookies.get('AuthToken')
-    const response = await getJsonData(api1 + '/account?role=' + role + '&type=detail&people=' + id, AuthToken)
+    const response = await getJsonData(api1 + '/accounts/' + id + '?role=' + role, AuthToken) // Tony: App member ?
     return response
   }
 
   const edit_account = async (json) => {
     AuthToken = VueCookies.get('AuthToken')
-    const response = await patchJsonData(api1 + '/account', json, AuthToken)
+    const response = await patchJsonData(api1 + '/accounts', json, AuthToken)
     return response
   }
 
   const delete_account = async (params) => {
     AuthToken = VueCookies.get('AuthToken')
-    const response = await delJsonData(api1 + '/account?role=' + params.role + '&id=' + params.id, '', AuthToken)
+    const response = await delJsonData(api1 + '/accounts/' + params.id + '?role=' + params.role, '', AuthToken)
     return response
   }
 
@@ -230,21 +230,46 @@ export default function () {
     return response
   }
 
-  const get_transaction = async (params) => {
+  const get_user_payment = async (json) => {
     AuthToken = VueCookies.get('AuthToken')
-    let path = '/log?'
-    if (params.type !== undefined) {
-      path += ('record_type=' + params.type)
+    let path = '/accounts'
+    if (json.id) {
+      path += ('/' + json.id)
     }
-    if (params.user !== undefined) {
-      path += ('&user=' + params.user)
+    path += ('/payments?role=' + json.role)
+    path += ('&start_date=' + json.start_date)
+    path += ('&end_date=' + json.end_date)
+    const response = await getJsonData(api1 + path, AuthToken)
+    return response
+  }
+
+  const get_user_cash = async (json) => {
+    AuthToken = VueCookies.get('AuthToken')
+    let path = '/accounts'
+    if (json.id) {
+      path += ('/' + json.id)
     }
-    if (params.id !== undefined) {
-      path += ('&id=' + params.id)
-    }
-    if (params.start_date !== undefined && params.end_date !== undefined) {
-      path += ('&start_date=' + params.start_date + '&end_date=' + params.end_date )
-    }
+    path += ('/cashs?role=' + json.role)
+    path += ('&start_date=' + json.start_date)
+    path += ('&end_date=' + json.end_date)
+    const response = await getJsonData(api1 + path, AuthToken)
+    return response
+  }
+
+  const get_paymentHistory = async (json) => {
+    AuthToken = VueCookies.get('AuthToken')
+    let path = '/payments'
+    path += ('?start_date=' + json.start_date)
+    path += ('&end_date=' + json.end_date)
+    const response = await getJsonData(api1 + path, AuthToken)
+    return response
+  }
+
+  const get_cash = async (json) => {
+    AuthToken = VueCookies.get('AuthToken')
+    let path = '/cashs'
+    path += ('?start_date=' + json.start_date)
+    path += ('&end_date=' + json.end_date)
     const response = await getJsonData(api1 + path, AuthToken)
     return response
   }
@@ -358,7 +383,8 @@ export default function () {
       bind_card, search_bind_card, unregister_bind_card, auth_payment, subscribe_plan, member_modify,
       forgotPW, add_rfid_data, edit_rfid_data, delete_rfid_data, set_rfid_cash, 
       clear_charging_profile, get_composite_schedule, set_charging_profile,
-      get_transaction, change_availability, get_diagnostics, get_configuration, change_configuration, sendNotification,
+      get_user_payment, get_user_cash, get_paymentHistory, get_cash, 
+      change_availability, get_diagnostics, get_configuration, change_configuration, sendNotification,
       add_merchant, get_edoc, getTaiwanExchangeRate, remote_start_transaction, remote_stop_transaction,
   }
 }

@@ -211,6 +211,8 @@ export default
     number_phases:                                          '相數',
     none:                                                   '無',
     edit_success:                                           '編輯成功',
+    transaction_list:                                       '交易列表',
+    balance:                                                '結餘',
 //--------------------------------------------------------------
 // header                       
 //--------------------------------------------------------------
@@ -325,7 +327,6 @@ export default
 //--------------------------------------------------------------
 // Payment Page                 
 //--------------------------------------------------------------
-    transaction_list:                                       '交易列表',
     top_up_list:                                            '儲值列表',
     // id:                                                  'ID',
     // method:                                              '方式',
@@ -348,6 +349,7 @@ export default
     // kwh:                                                 '度',
     // rfid_num:                                            'RFID序號',
     // amount:                                              '金額',
+    // transaction_list:                                    '交易列表',
 //--------------------------------------------------------------
 // Station Page                 
 //--------------------------------------------------------------
@@ -1133,6 +1135,11 @@ export default
 //--------------------------------------------------------------
     id_already_exists:                                      'ID 已存在',
     please_chat_to_administrator_it:                        '請與管理員/IT聯繫',
+    user_list:                                              '使用者列表',
+    beginning_balance:                                      '期初金額',
+    top_up_amount:                                          '儲值金額',
+    refund_amount:                                          '退款金額',
+    transaction_amount:                                     '交易金額',
     // total_amount:                                        '總金額',
     // id:                                                  'ID',
     // name:                                                '名稱',
@@ -1143,11 +1150,12 @@ export default
     // used_times:                                          '使用次數',
     // updated_date:                                        '更新時間',
     // add_user:                                            '新增使用者',
+    // transaction_list:                                    '交易列表',
+    // balance:                                             '結餘',
 //--------------------------------------------------------------
 // Rfid User Detail Page
 //--------------------------------------------------------------
     total_rfid:                                             'RFID總數',
-    balance:                                                '結餘',
     refund:                                                 '退款',
     check:                                                  '確認',
     are_you_sure_to_top_up:                                 '你確定要充值',
@@ -1210,6 +1218,7 @@ export default
     // amount:                                              '金額',
     // top_up:                                              '儲值',
     // transaction:                                         '交易',
+    // balance:                                             '結餘',
 //--------------------------------------------------------------
 // Premission Page
 //--------------------------------------------------------------

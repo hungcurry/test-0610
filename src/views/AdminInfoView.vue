@@ -341,7 +341,7 @@ const confirmAdminUser = (action, del_id) => {
                 permission: AdminData.permission_id, edit: permission_edit, active: AdminData.permission_active ,
               }
               res = await MsiApi.register_member(sendData)
-              if (res.status === 201) {
+              if (res.data.message === 'Accepted') {
                 await getAdminData()
                 drawProgram()
               }
@@ -413,7 +413,8 @@ const confirmAdminUser = (action, del_id) => {
           isLoading.value = true
           const params = { role:'admin', id: del_id }
           let res = await MsiApi.delete_account(params)
-          if (res.status === 200) {
+          console.log(res)
+          if (res.data.message === 'Accepted') {
             await getAdminData()
             drawProgram()
           }
