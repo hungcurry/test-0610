@@ -75,7 +75,7 @@ const rfidData_rules = reactive({
 
 
 const isLoading_skeleton = ref(true)
-const parking_visible = ref(true)
+const parking_visible = ref(false)
 const charging_visible = ref(true)
 const now = new Date()
 const defaultTime = [new Date(2000, 1, 1, 0, 0, 0), new Date(2000, 1, 1, 23, 59, 59)]

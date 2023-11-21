@@ -1311,9 +1311,9 @@ export default
     edit_charging_profile:                                  'Edit Charging Profile',
     valid_time:                                             'Valid Time',
     select_date_and_time:                                   'Select date and time',
-    start_date:                                             'Start Date',
-    end_date:                                               'End Date',
     default:                                                'Default'
+    // start_date:                                          'Start Date',
+    // end_date:                                            'End Date',
     // select:                                              'Select',
     // charge_point_max_profile:                            'ChargePointMaxProfile',
     // tx_default_profile:                                  'TxDefaultProfile',

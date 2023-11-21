@@ -69,7 +69,7 @@ const AddCompany = () => {
   companyData.payment = {hashIV:'', hashKey:'', merchantId:'', owner:''}
   companyData.invoice = {hashIV:'', hashKey:'', merchantId:'', owner:''}
   companyData.upgrade_manager = {enable:true}
-  companyData.upgrade_manager_enable = true
+  companyData.active = true
 }
 
 const sortFunc = (obj1, obj2, column) => {
@@ -222,7 +222,6 @@ const detail_info = (detail) => {
   companyData.payment_hashIV = companyData.payment.hashIV
   companyData.payment_hashKey = companyData.payment.hashKey
   companyData.payment_merchantId = companyData.payment.merchantId
-  companyData.upgrade_manager_enable = companyData.upgrade_manager.enable
 }
 
 const checkCompanyName = async() => {
@@ -285,10 +284,10 @@ const editCompany = async (action) => {
               companyData.upgrade_manager.session_fee = []
             companyData.upgrade_manager.session_fee.push({type: 'Session', price: companyData.upgrade_manager_session_fee, currency: companyData.upgrade_manager_session_fee_currency})
           }
-          companyData.upgrade_manager.enable = companyData.upgrade_manager_enable
           let sendData = {  class : 'CompanyInformation', name: companyData.name,
                             country:companyData.country, party_id:companyData.party_id,
                             city:companyData.city, detail:companyData.detail, 
+                            active:companyData.active,
                             // remark:companyData.remark,
                             invoice:companyData.invoice, payment:companyData.payment,
                             address:companyData.address, phone:companyData.phone,
@@ -335,7 +334,6 @@ const editCompany = async (action) => {
             companyData.payment.hashIV = companyData.payment_hashIV
             companyData.payment.hashKey = companyData.payment_hashKey
             companyData.payment.merchantId = companyData.payment_merchantId
-            companyData.upgrade_manager.enable = companyData.upgrade_manager_enable
             if (companyData.upgrade_manager_agreed_fee) {
               if (companyData.upgrade_manager.session_fee === undefined) {
                 companyData.upgrade_manager.session_fee = []
@@ -375,6 +373,7 @@ const editCompany = async (action) => {
                               country:companyData.country, party_id:companyData.party_id,
                               city:companyData.city, detail:companyData.detail, 
                               // remark:companyData.remark,
+                              active:companyData.active,
                               invoice:companyData.invoice, payment:companyData.payment,
                               address:companyData.address, phone:companyData.phone,
                               tax_id:companyData.tax_id,
@@ -703,7 +702,7 @@ onMounted( async() => {
               </el-form-item> -->
 
               <el-form-item v-if="company === 'MSI'" class="mb-24px w-4em" :label="t('active')">
-                <el-switch v-model="companyData.upgrade_manager_enable" />
+                <el-switch v-model="companyData.active" />
               </el-form-item>
             </el-form>
           </div>

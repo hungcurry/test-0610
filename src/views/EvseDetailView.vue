@@ -290,25 +290,8 @@ const check_uploaded  = async () => {
   let response = await MsiApi.mongoAggregate(queryData)
   console.log(response)
   if (response.data.result?.[0]?.ocpp_info?.[0]?.statusNotification?.diagnosticsStatus === "Uploaded") {
-    axios({method: 'get', url: 'google10/msi-hmi-logs/cs_logs.zip', responseType: 'blob'})
-    .then(response => {
-      clearInterval(interval)
-      const blob = new Blob([response.data], { type: 'application/zip' });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'cs_logs.zip'
-      a.style.display = 'none'
-      document.body.appendChild(a)
-      a.click();
-      window.URL.revokeObjectURL(url)
-      clearInterval(interval)
-      ElMessage.success('download sucess')
-    })
-    .catch(error => {
-      ElMessage.error('Error downloading ZIP file:', error);
-      clearInterval(interval)
-    })
+    window.location.href = 'https://storage.googleapis.com/msi-hmi-logs/cs_logs.zip'
+    clearInterval(interval)
   }
   else {
     retry--

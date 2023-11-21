@@ -57,7 +57,7 @@ const rfidData_rules = reactive({
   cash: [{ required: true, message: t('the_item_is_required'), trigger: 'blur' }],
   nickname: [{ required: true, message: t('the_item_is_required'), trigger: 'blur' }],
 })
-const parking_visible = ref(true)
+const parking_visible = ref(false)
 const charging_visible = ref(true)
 const item_count = ref()
 const TransactionTableRef = ref()

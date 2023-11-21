@@ -1313,9 +1313,9 @@ export default
     edit_charging_profile:                                  '編輯充電設定檔',
     valid_time:                                             '有效時間',
     select_date_and_time:                                   '選擇日期與時間',
-    start_date:                                             '開始時間',
-    end_date:                                               '結束時間',
-    default:                                                'Default'
+    default:                                                '預設'
+    // start_date:                                          '開始時間',
+    // end_date:                                            '結束時間',
     // select:                                              '選擇',
     // charge_point_max_profile:                            'ChargePointMaxProfile',
     // tx_default_profile:                                  'TxDefaultProfile',
