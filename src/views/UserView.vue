@@ -392,7 +392,8 @@ onMounted( async() => {
               min-width="150"
             >
               <template #default="scope">
-                <el-button class="btn-more" @click="detail_info(scope.row)"> <font-awesome-icon icon="fa-solid fa-ellipsis" /> </el-button>
+                <el-button v-if="MStore.rule_permission.User.userDetail === 'O' || MStore.permission.isCompany"
+                class="btn-more" @click="detail_info(scope.row)"> <font-awesome-icon icon="fa-solid fa-ellipsis" /> </el-button>
               </template>
             </el-table-column>
           </el-table>

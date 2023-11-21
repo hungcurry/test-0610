@@ -594,7 +594,7 @@ onUnmounted(() => {
                       />
                       <span class="line-height-24px">{{ t('gerernal_info') }}</span>
                     </div>
-                    <el-button link type="primary" @click="editUser()">
+                    <el-button link type="primary" v-if="MStore.rule_permission.RfidUserDetail.userEdit === 'O' || MStore.permission.isCompany" @click="editUser()">
                       <font-awesome-icon
                         class="text-gray-300 w-32px h-32px"
                         icon="fa-regular fa-pen-to-square"
@@ -725,7 +725,8 @@ onUnmounted(() => {
                     />
                     <span class="line-height-24px">{{ t('rfid') }}</span>
                   </div>
-                  <el-button class="button h-32px w-full md:w-150px" round @click="editRfid">
+                  <el-button v-if="MStore.rule_permission.RfidUserDetail.addRFID === 'O' || MStore.permission.isCompany"
+                    class="button h-32px w-full md:w-150px" round @click="editRfid">
                     <!-- <font-awesome-icon class="mr-8px" icon="fa-solid fa-gear" /> -->
                     {{ t('add_rfid') }}
                   </el-button>
@@ -743,6 +744,7 @@ onUnmounted(() => {
                         }}</span>
                         <div class="pt-5px pr-16px">
                           <el-button
+                            v-if="MStore.rule_permission.RfidUserDetail.deleteRFID === 'O' || MStore.permission.isCompany"
                             link
                             type="primary"
                             size="large"
@@ -755,6 +757,7 @@ onUnmounted(() => {
                             />
                           </el-button>
                           <el-button
+                            v-if="MStore.rule_permission.RfidUserDetail.editRFID === 'O' || MStore.permission.isCompany"
                             link
                             type="primary"
                             size="large"

@@ -88,7 +88,7 @@ const download = () => {
 const downloadRFID = () => {
   const tHeader = [
     'Type',
-    'ID/Email',
+    'ID',
     'Name',
     'RFID Num',
     'Amount',
@@ -676,7 +676,7 @@ onMounted(async () => {
 
                   <el-table-column
                     prop="tag_id"
-                    :label="t('id_email')"
+                    :label="t('id')"
                     align="center"
                     sortable="custom"
                     min-width="200"

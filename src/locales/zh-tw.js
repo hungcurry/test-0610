@@ -326,7 +326,7 @@ export default
 //--------------------------------------------------------------
     transaction_list:                                       '交易列表',
     top_up_list:                                            '儲值列表',
-    id_email:                                               'ID/信箱',
+    // id:                                                  'ID',
     // method:                                              '方式',
     // license_plate:                                       '車牌號碼',
     // download:                                            '下載',

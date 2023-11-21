@@ -314,7 +314,7 @@ onMounted( async () => {
         class="btn-secondary shrink-0 soft-reset-button px-30px box-shadow" @click="evseReset('soft')"> {{ t('soft_reset') }} </el-button>
         <el-button v-if="editMode === true && (MStore.rule_permission.StationDetail.reset === 'O' || MStore.permission.isCompany)"
         class="btn-secondary shrink-0 hard-reset-button px-30px box-shadow" @click="evseReset('hard')"> {{ t('hard_reset') }} </el-button>
-        <div v-if="MStore.rule_permission.StationDetail.action === 'O' || MStore.permission.isCompany"  > 
+        <div v-if="MStore.rule_permission.StationDetail.update === 'O' || MStore.rule_permission.StationDetail.reset === 'O' || MStore.permission.isCompany"  > 
           <el-button class="btn-secondary shrink-0  px-30px box-shadow" @click="edit_charger" > {{ t(edit_button_str) }}</el-button>
         </div>
       </div>

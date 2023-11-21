@@ -38,9 +38,9 @@ const download = () => {
   
 
   let tHeader = ['Status','Station','EVSE ID', 'kWh', 'Pirce', 'Start Time', 'End Time']
-  let filterVal = ['status','location_str','evse_str', 'kwh', 'price_str', 'company','start_date_local_time', 'end_date_local_time']
+  let filterVal = ['status','location_str','evse_str', 'kwh', 'price_str', 'start_date_local_time', 'end_date_local_time']
   if (MStore.permission.isMSI) {
-    tHeader = ['Status','Station','EVSE ID', 'kWh', 'Pirce', 'Start Time', 'End Time']
+    tHeader = ['Status','Station','EVSE ID', 'kWh', 'Pirce', 'Company', 'Start Time', 'End Time']
     filterVal = ['status','location_str','evse_str', 'kwh', 'price_str','byCompany_str', 'start_date_local_time', 'end_date_local_time']
   }
 
@@ -64,7 +64,7 @@ const select_date = async () => {
     },
     { "$lookup": {"from":'Location', "localField": "location_id", "foreignField": "id", "as":"Location"}},
     { "$lookup": {"from":'EVSE', "localField": "evse_uid", "foreignField": "uid", "as":"EVSE"}},
-    { "$project": { "_id":0, "status": 1,"total_cost": 1, "start_date_time": 1, "kwh": 1, "end_date_time": 1,"Location.name":1, "EVSE.evse_id":1} },
+    { "$project": { "_id":0, "byCompany":1, "status": 1,"total_cost": 1, "start_date_time": 1, "kwh": 1, "end_date_time": 1,"Location.name":1, "EVSE.evse_id":1} },
   ]
   }
   isLoading.value = true
@@ -99,6 +99,12 @@ const select_date = async () => {
         break;
       default:
         break;
+    }
+    if (OcpiSessionDataAll[i].byCompany !== undefined) {
+      for (let j = 0; j < company_filter_item.length; j++)
+        if (OcpiSessionDataAll[i].byCompany === company_filter_item[j].value) {
+          OcpiSessionDataAll[i].byCompany_str = company_filter_item[j].text
+        }
     }
   }
   await getPageData()
