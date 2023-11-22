@@ -869,10 +869,6 @@ onMounted(async () => {
                         {{ t('clear') }}
                       </el-button>
                     </div>
-                    <div v-if="isLoading_skeleton === false" class="mt-8px">
-                      <span class="info-item min-w-150px">{{ t('status') }}</span>
-                      <span class="line-height-32px font-500 text-blue-1200">{{ }}</span>
-                    </div>
                   </div>
                 </div>
                 <div class="total-record-info overflow-x-auto scrollbar py-24px lg:pr-10px">
