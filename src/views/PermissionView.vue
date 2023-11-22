@@ -105,6 +105,8 @@ const getPermissionRule = async (selType) => {
           for (let item in current[page]) {
             if (current[page][item] === 'O') {
               all_item[page][item] = 'O'  
+            }else{
+              all_item[page][item] = 'X'  
             }
           }
         }
@@ -185,6 +187,8 @@ const getPermissionRule = async (selType) => {
           for (let item in current[page]) {
             if (current[page][item] === 'O') {
               all_item[page][item] = 'O'  
+            }else{
+              all_item[page][item] = 'X'  
             }
           }
         }
@@ -321,7 +325,7 @@ let idx = 1
 const mapKeys = ref({
   Dashboard: ['Dashboard'],
   Payment: ['Payment'],
-  EvseManagement: ['Station','StationDetail', 'StationEdit', 'EVSE', 'EVSEDetail', 'EVSEEdit', 'RatePlan', 'RatePlanDetail', 'ChargingProfile'],
+  EvseManagement: ['Station','StationDetail', 'StationEdit', 'EVSE', 'EVSEDetail', 'EVSEEdit', 'RatePlan', 'RatePlanDetail', 'ChargingProfile','ChargingProfileDetail'],
   //---------------------
   AccountManagement: ['RfidUser','RfidUserDetail','Parking'],
   LogMonitor: ['EVSELog', 'ErrorLog'],
