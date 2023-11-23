@@ -210,6 +210,7 @@ export default
     limit:                                                  '最大值',
     number_phases:                                          '相數',
     none:                                                   '無',
+    edit_success:                                           '編輯成功',
 //--------------------------------------------------------------
 // header                       
 //--------------------------------------------------------------
@@ -1015,7 +1016,6 @@ export default
     do_you_want_to_delete_program:                          '你想要刪除訂閱方案嗎?',
     delete_success:                                         '刪除成功',
     do_you_want_to_edit_program:                            '你想要編輯訂閱方案嗎?',
-    edit_success:                                           '編輯成功',
     do_you_want_to_create_program:                          '你想要建立訂閱方案嗎?',
     create_success:                                         '建立成功',
     edit_program:                                           '編輯訂閱方案',
@@ -1036,6 +1036,7 @@ export default
     // connector:                                           '充電槍',
     // user:                                                '使用者',
     // the_item_is_required:                                '這個項目必填',
+    // edit_success:                                        '編輯成功',
 //--------------------------------------------------------------
 // Parking Page
 //--------------------------------------------------------------
@@ -1283,6 +1284,8 @@ export default
     // add_rfid:                                            '新增RFID卡',
     // edit_rfid:                                           '編輯RFID卡',
     // add_program:                                         '新增編輯訂閱方案',
+    // edit_success:                                        '編輯成功',
+    // error:                                               '錯誤',
 //--------------------------------------------------------------
 // Charge Profile Page                     
 //--------------------------------------------------------------

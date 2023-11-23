@@ -210,6 +210,7 @@ export default
     limit:                                                  'Limit',
     number_phases:                                          'Number Phases',
     none:                                                   'None',
+    edit_success:                                           'Edit Success',
 //--------------------------------------------------------------
 // header
 //--------------------------------------------------------------
@@ -1014,7 +1015,6 @@ export default
     do_you_want_to_delete_program:                          'Do you want to delete program?',
     delete_success:                                         'Delete Success',
     do_you_want_to_edit_program:                            'Do you want to edit program?',
-    edit_success:                                           'Edit Success',
     do_you_want_to_create_program:                          'Do you want to create program?',
     create_success:                                         'Create Success',
     edit_program:                                           'Edit Program',
@@ -1035,6 +1035,7 @@ export default
     // connector:                                           'Connector',
     // user:                                                'User',
     // the_item_is_required:                                'The item is required',
+    // edit_success:                                        'Edit Success',
 //--------------------------------------------------------------
 // Parking Page
 //--------------------------------------------------------------
@@ -1281,6 +1282,8 @@ export default
     // add_rfid:                                            'Add RFID',
     // edit_rfid:                                           'Edit RFID',
     // add_program:                                         'Add Program',
+    // edit_success:                                        'Edit Success',
+    // error:                                               'Error',
 //--------------------------------------------------------------
 // Charge Profile Page                     
 //--------------------------------------------------------------

@@ -301,6 +301,12 @@ const handlerSaveForm = async () => {
       result.config.m_cloud.permissions[userValue.value] = c
       let sendData = {  class : 'CompanyInformation', pk: cpoValue.value, config: result.config}
       let res = await MsiApi.setCollectionData('patch', 'cpo', sendData)
+      if (res.status === 200) {
+        ElMessage({ message: t('edit_success'), type: 'success',})
+      }
+      else {
+        ElMessage({ message: t('error'), type: 'error',})
+      }
       changeItem.value = false
     })    
   }
@@ -308,9 +314,10 @@ const handlerSaveForm = async () => {
     ElMessage({ message: t('unchanged'), type: 'error',})
   }
 }
-const handlerResetForm = (formEl) => {
-  if (!formEl) return
-  formEl.resetFields()
+const handlerResetForm = () => {
+  cpoValue.value = ''
+  userValue.value = ''
+  displayItem.value = false
 }
 onMounted( async() => {
   let queryData  = { "database": "CPO", "collection": "CompanyInformation", "pipelines": [ 
