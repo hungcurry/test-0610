@@ -11,7 +11,7 @@ import { ref, reactive, onMounted , onBeforeMount , computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ElMessageBox } from 'element-plus'
 import { ElMessage } from 'element-plus'
-import { m_cloud_permission } from '@/composables/permission'
+import { m_cloud_permission , mapKeysGroup } from '@/composables/permission'
 
 const { t } = useI18n()
 const MsiApi = ApiFunc()
@@ -102,11 +102,12 @@ const getPermissionRule = async (selType) => {
         current = {}
         current =  JSON.parse(JSON.stringify(select_cpo?.config?.m_cloud?.permissions?.[userValue.value]))
         for (let page in current) {
+          if (!all_item[page]) continue
           for (let item in current[page]) {
-            if (current[page][item] === 'O') {
-              all_item[page][item] = 'O'  
-            }else{
-              all_item[page][item] = 'X'  
+            if (current[page][item] === 'O' && all_item[page][item] ) {
+              all_item[page][item] = 'O';
+            } else if (current[page][item] === 'X' && all_item[page][item] ) {
+              all_item[page][item] = 'X';
             }
           }
         }
@@ -184,11 +185,12 @@ const getPermissionRule = async (selType) => {
         current = {}
         current =  JSON.parse(JSON.stringify(select_cpo?.config?.m_cloud?.permissions?.[userValue.value]))
         for (let page in current) {
+          if (!all_item[page]) continue
           for (let item in current[page]) {
-            if (current[page][item] === 'O') {
-              all_item[page][item] = 'O'  
-            }else{
-              all_item[page][item] = 'X'  
+            if (current[page][item] === 'O' && all_item[page][item] ) {
+              all_item[page][item] = 'O';
+            } else if (current[page][item] === 'X' && all_item[page][item] ) {
+              all_item[page][item] = 'X';
             }
           }
         }
@@ -327,28 +329,17 @@ onMounted( async() => {
   Object.assign(cpo_name, res.data.result)
 })
 // ---- add ------
-// 需修改-要更動mapKeys / sliceKeys
 let idx = 1
 const mapKeys = ref({
-  Dashboard: ['Dashboard'],
-  Payment: ['Payment'],
-  EvseManagement: ['Station','StationDetail', 'StationEdit', 'EVSE', 'EVSEDetail', 'EVSEEdit', 'RatePlan', 'RatePlanDetail', 'ChargingProfile','ChargingProfileDetail'],
+  Dashboard: [],
+  Payment: [],
+  EvseManagement: [],
   //---------------------
-  AccountManagement: ['RfidUser','RfidUserDetail','Parking'],
-  LogMonitor: ['EVSELog', 'ErrorLog'],
-  AdvancedSetting: ['User','UserDetail','Company', 'Administrator', 'SoftwareInfo','Program', 'Permission'],
-  Other: ['AdminInfo'],
+  AccountManagement: [],
+  LogMonitor: [],
+  AdvancedSetting: [],
+  Other: [],
 })
-const sliceKeys = ref([
-  { text: t('dashboard'), value: 'Dashboard', num: idx++ , icon: dashboard },
-  { text: t('payment'), value: 'Payment', num: idx++ , icon: payment },
-  { text: t('evse_management'), value: 'EvseManagement', num: idx++ , icon: evse },
-  //---------------------
-  { text: t('account_management'), value: 'AccountManagement', num: idx++ , icon: account },
-  { text: t('log_monitor'), value: 'LogMonitor', num: idx++ , icon: log },
-  { text: t('advanced_setting'), value: 'AdvancedSetting', num: idx++ , icon: setting },
-  { text: t('others'), value: 'Other', num: idx++ , icon: other },
-])
 const checkedItem2 = ref({})
 const allItem2 = ref({})
 const pageModel = ref({})
@@ -360,6 +351,16 @@ const allPageKey = computed(() => {
 const changeAllPageKey = computed(() => {
   return Object.keys(mapKeys.value)
 })
+const sliceKeys = ref([
+  { text: t('dashboard'), value: changeAllPageKey.value[0], num: idx++ , icon: dashboard },
+  { text: t('payment'), value: changeAllPageKey.value[1], num: idx++ , icon: payment },
+  { text: t('evse_management'), value: changeAllPageKey.value[2] , num: idx++ , icon: evse },
+  //---------------------
+  { text: t('account_management'), value: changeAllPageKey.value[3], num: idx++ , icon: account },
+  { text: t('log_monitor'), value: changeAllPageKey.value[4], num: idx++ , icon: log },
+  { text: t('advanced_setting'), value: changeAllPageKey.value[5], num: idx++ , icon: setting },
+  { text: t('others'), value: changeAllPageKey.value[6] ,num: idx++ , icon: other },
+])
 const baseBlockKey = computed(() => {
   let ary = [...sliceKeys.value]
   return ary.slice(0,3)
@@ -508,6 +509,7 @@ const checkAllState = (str) => {
 }
 onBeforeMount(() => {
   initPageModel()
+  mapKeys.value = mapKeysGroup
 })
 </script>
 
