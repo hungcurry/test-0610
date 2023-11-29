@@ -220,7 +220,21 @@ router.beforeEach(async to => {
         if (res.data.email) {
           const user_permission = MStore?.permission?.user?.name
           if (res1?.data?.result?.[0]?.config?.m_cloud?.permissions?.[user_permission]){
-            MStore.rule_permission = res1.data.result[0].config.m_cloud.permissions[user_permission]
+            // MStore.rule_permission = res1.data.result[0].config.m_cloud.permissions[user_permission]
+            // add-權限合併
+            const remotePermission = res1.data.result[0].config.m_cloud.permissions[user_permission]
+            const localPermission = JSON.parse(JSON.stringify(m_cloud_permission[user_permission]))
+            for (let page in remotePermission) {
+              if (!localPermission[page]) continue
+              for (let item in remotePermission[page]) {
+                if (remotePermission[page][item] === 'O' && localPermission[page][item] ) {
+                  localPermission[page][item] = 'O';
+                } else if (remotePermission[page][item] === 'X' && localPermission[page][item] ) {
+                  localPermission[page][item] = 'X';
+                }
+              }
+            }
+            MStore.rule_permission = localPermission
           }
           else {
             MStore.rule_permission = m_cloud_permission[MStore?.permission?.user?.name]
