@@ -233,12 +233,12 @@ const addUserDialog = async (action) => {
             isLoading.value = true
             let sendData = {'role': 'member', 'first_name' : newUser.first_name, 'last_name' : newUser.last_name,
               'email' : newUser.email, 'password': newUser.password} 
-              let res = await MsiApi.register_member(sendData)
-            if (res.status === 200) {
+            let res = await MsiApi.register_member(sendData)
+            if (res.data.message === 'User is exist') {
               ElMessage.error(t('email_already_exists'))
               dialogFormVisible.value = true
             }
-            else if (res.status === 201) {
+            else if (res.data.message === 'Accepted') {
               let queryData = { 
                 database: 'CPO', 
                 collection: 'UserData', 

@@ -210,6 +210,11 @@ export default
     limit:                                                  '最大值',
     number_phases:                                          '相數',
     none:                                                   '無',
+    edit_success:                                           '編輯成功',
+    transaction_list:                                       '交易列表',
+    balance:                                                '結餘',
+    please_check_evse:                                      '請勾選充電樁',
+    not_found_evse:                                         '找不到充電樁',
 //--------------------------------------------------------------
 // header                       
 //--------------------------------------------------------------
@@ -324,7 +329,6 @@ export default
 //--------------------------------------------------------------
 // Payment Page                 
 //--------------------------------------------------------------
-    transaction_list:                                       '交易列表',
     top_up_list:                                            '儲值列表',
     // id:                                                  'ID',
     // method:                                              '方式',
@@ -347,6 +351,7 @@ export default
     // kwh:                                                 '度',
     // rfid_num:                                            'RFID序號',
     // amount:                                              '金額',
+    // transaction_list:                                    '交易列表',
 //--------------------------------------------------------------
 // Station Page                 
 //--------------------------------------------------------------
@@ -415,6 +420,8 @@ export default
     // parking_lot:                                         '停車場',
     // true:                                                '是',
     // false:                                               '否',
+    // please_check_evse:                                      '請勾選充電樁',
+    // not_found_evse:                                         '找不到充電樁',
 //--------------------------------------------------------------
 // Station Edit Page                    
 //--------------------------------------------------------------
@@ -492,6 +499,8 @@ export default
     // confirm:                                             '確認',
     // add_evse:                                            '新增充電樁',
     // please_confirm_your_subscription_plan:               '請確認訂閱方案',
+    // please_check_evse:                                      '請勾選充電樁',
+    // not_found_evse:                                         '找不到充電樁',
 //--------------------------------------------------------------
 // EVSE Detail Page                 
 //--------------------------------------------------------------
@@ -1014,7 +1023,6 @@ export default
     do_you_want_to_delete_program:                          '你想要刪除訂閱方案嗎?',
     delete_success:                                         '刪除成功',
     do_you_want_to_edit_program:                            '你想要編輯訂閱方案嗎?',
-    edit_success:                                           '編輯成功',
     do_you_want_to_create_program:                          '你想要建立訂閱方案嗎?',
     create_success:                                         '建立成功',
     edit_program:                                           '編輯訂閱方案',
@@ -1035,6 +1043,7 @@ export default
     // connector:                                           '充電槍',
     // user:                                                '使用者',
     // the_item_is_required:                                '這個項目必填',
+    // edit_success:                                        '編輯成功',
 //--------------------------------------------------------------
 // Parking Page
 //--------------------------------------------------------------
@@ -1128,6 +1137,11 @@ export default
 //--------------------------------------------------------------
     id_already_exists:                                      'ID 已存在',
     please_chat_to_administrator_it:                        '請與管理員/IT聯繫',
+    user_list:                                              '使用者列表',
+    beginning_balance:                                      '期初金額',
+    top_up_amount:                                          '儲值金額',
+    refund_amount:                                          '退款金額',
+    transaction_amount:                                     '交易金額',
     // total_amount:                                        '總金額',
     // id:                                                  'ID',
     // name:                                                '名稱',
@@ -1138,12 +1152,12 @@ export default
     // used_times:                                          '使用次數',
     // updated_date:                                        '更新時間',
     // add_user:                                            '新增使用者',
-    // please_confirm_your_subscription_plan:               '請確認訂閱方案',
+    // transaction_list:                                    '交易列表',
+    // balance:                                             '結餘',
 //--------------------------------------------------------------
 // Rfid User Detail Page
 //--------------------------------------------------------------
     total_rfid:                                             'RFID總數',
-    balance:                                                '結餘',
     refund:                                                 '退款',
     check:                                                  '確認',
     are_you_sure_to_top_up:                                 '你確定要充值',
@@ -1206,6 +1220,7 @@ export default
     // amount:                                              '金額',
     // top_up:                                              '儲值',
     // transaction:                                         '交易',
+    // balance:                                             '結餘',
 //--------------------------------------------------------------
 // Premission Page
 //--------------------------------------------------------------
@@ -1280,6 +1295,8 @@ export default
     // add_rfid:                                            '新增RFID卡',
     // edit_rfid:                                           '編輯RFID卡',
     // add_program:                                         '新增編輯訂閱方案',
+    // edit_success:                                        '編輯成功',
+    // error:                                               '錯誤',
 //--------------------------------------------------------------
 // Charge Profile Page                     
 //--------------------------------------------------------------

@@ -183,7 +183,7 @@ const editUserDialog = (action) => {
               const json = JSON.stringify({ role: 'rfid', id: general._id, name: userDataMod.name, phone: userDataMod.phone, 
                 permission: {user: general.permission.user, edit: general.permission.edit, active: userDataMod.permission_active_str} })
               let res = await MsiApi.edit_account(json)
-              if (res.data.status === 'Accepted') {
+              if (res.data.message === 'Accepted') {
                 await getRfidUserData()
               }
               else {
@@ -212,7 +212,7 @@ const editUserDialog = (action) => {
           .then(async () => {
             const params = { role:'rfid', id: general._id }
             let res = await MsiApi.delete_account(params)
-            if (res.data.status === 'Accepted') {
+            if (res.data.message === 'Accepted') {
               router.push({ name: 'rfidUser' })
             }
             else {
@@ -505,11 +505,33 @@ const getTransactionData = async(filters) => {
     }
     const startTime = new Date(select_time.value[0].getTime() - MStore.timeZoneOffset * -60000)
     const endTime = new Date(select_time.value[1].getTime() - MStore.timeZoneOffset * -60000)
-    let params = {user: 'rfid', id: user_id, start_date: startTime, end_date: endTime}
-    let response = await MsiApi.get_transaction(params)
+    let params = {role: 'rfid', id:  user_id, start_date: startTime, end_date: endTime}
+    let response = await MsiApi.get_user_payment(params)
     paymentData.length = 0
-    response.data?.data?.logs?.forEach((item) => {
+    response.data?.data?.forEach((item) => {
       if (filters === null || filters?.tag.length === 0 || filters?.tag.includes(item?.type)) {   // filters?.tag.some(i => item?.type.includes(i))
+        let localTime = new Date(new Date(item.created_date).getTime() + MStore.timeZoneOffset * -60000)
+        item.created_date_str = moment(localTime).format('YYYY-MM-DD HH:mm:ss')
+        item.balance_int = parseFloat(String(item.balance).replace(/,/g, ''))
+        switch (item.type) {
+          case 'Charging':
+            item.type_str  = t('charging')
+          break
+          case 'Parking':
+            item.type_str  = t('parking')
+          break
+          case 'Charging+Parking':
+            item.type_str  = t('charging') + '+' + t('parking')
+          break
+          default:
+          break
+        }
+        paymentData.push(item)
+      }
+    })
+    response = await MsiApi.get_user_cash(params)
+    response.data?.data?.forEach((item) => {
+      if (filters === null || filters?.tag.length === 0 || filters?.tag.includes(item?.type)) {
         let localTime = new Date(new Date(item.created_date).getTime() + MStore.timeZoneOffset * -60000)
         item.created_date_str = moment(localTime).format('YYYY-MM-DD HH:mm:ss')
         item.balance_int = parseFloat(String(item.balance).replace(/,/g, ''))
@@ -519,15 +541,6 @@ const getTransactionData = async(filters) => {
           break
           case 'Refund':
             item.type_str  = t('refund')
-            break
-          case 'Charging':
-          item.type_str  = t('charging')
-            break
-          case 'Parking':
-            item.type_str  = t('parking')
-          break
-          case 'Charging+Parking':
-            item.type_str  = t('charging') + '+' + t('parking')
           break
           default:
           break
@@ -560,6 +573,11 @@ const getTransaction_PageData = async() => {
 }
 
 onMounted(async () => {
+  if (route.query.start_time && route.query.end_time) {
+    select_time.value[0] = new Date(route.query.start_time)
+    select_time.value[1] = new Date(route.query.end_time)
+    activeName.value = 'second'
+  }
   await getRfidUserData()
   await getTransactionData(null)
 

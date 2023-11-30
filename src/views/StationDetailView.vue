@@ -64,7 +64,18 @@ const evseReset = (type) => {
   for (let i = 0; i < multipleSelection.value.length; i++) {
     updataEvseId.push(multipleSelection.value[i].evse_id)
   }
+  if (StationData.EVSES.length === 0) {
+    ElMessage({
+      message: t('not_found_evse'),
+      type: 'warning',
+    })
+    return
+  }
   if (updataEvseId.length === 0) {
+    ElMessage({
+      message: t('please_check_evse'),
+      type: 'warning',
+    })
     return
   }
   let reset_message = t('do_you_want_to_soft_reset')

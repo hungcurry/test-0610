@@ -204,105 +204,17 @@ const topupTableFilter = async(filters) => {
   isLoading.value = false
 }
 
-const mongodb_getPaymentData = async(filters) => {
-  try {
-    if (selectTime.value === null) {
-      return
-    }
-    let queryData = {
-      database: 'CPO',
-      collection: 'PaymentHistory',
-      pipelines: [
-        {
-          $match: {
-            $expr: {
-              $and: [
-                {
-                  $gte: [
-                    '$created_date',
-                    { $dateFromString: { dateString: selectTime.value[0] } },
-                  ],
-                },
-                {
-                  $lte: [
-                    '$created_date',
-                    { $dateFromString: { dateString: selectTime.value[1] } },
-                  ],
-                },
-              ],
-            },
-          },
-        },
-        { $project: { _id: 0, sessionId: 0, location: 0, detail: 0, locationId: 0} },
-      ],
-    }
-    let res = await MsiApi.mongoAggregate(queryData)
-    PaymentData.length = 0
-    res.data.result.forEach((item) => {
-      if (filters === null || filters?.tag.length === 0 || filters?.tag.includes(item.paymethod?.method)) {
-        switch (item.paymethod?.method) {
-          case 'CREDIT':
-            item.paymethod_str = t('credit_card')
-            break
-          case 'GOOGLEPAY':
-            item.paymethod_str = t('google_pay')
-            break
-          case 'SAMSUNGPAY':
-            item.paymethod_str = t('samsung_pay')
-            break
-          case 'FREE':
-            item.paymethod_str = t('free')
-            break
-          case 'RFID':
-            item.paymethod_str = t('rfid')
-            break
-          default:
-            item.paymethod_str = item.paymethod?.method
-            break
-        }
-    
-        item.price_str = item.price?.toLocaleString()
-        let localTime = new Date(new Date(item.created_date).getTime() + MStore.timeZoneOffset * -60000)
-        item.created_date_str = moment(localTime).format('YYYY-MM-DD HH:mm:ss')
-        item.money = item.price_str
-    
-        item.operator_types?.forEach((item2) => {
-          let time = moment.duration(item2.time, 'seconds')
-          let timeFormat = String(time.days()*24 + time.hours()).padStart(2, 0) + ':' + String(time.minutes()).padStart(2, 0) + ':' + String(time.seconds()).padStart(2, 0)
-          switch (item2.type) {
-            case 'charge' :
-              item.charging_time = timeFormat
-              item.charging_energy_str = item2.kwh
-              item.charging_price_str = item2.price.toLocaleString()
-              item.charging_currency_str = item2.currency
-            break
-            case 'parking' :
-              item.parking_time = timeFormat
-              item.parking_car_num_str = item2.car_num
-              item.parking_price_str = item2.price.toLocaleString()
-              item.parking_currency_str = item2.currency
-            break
-          }
-        })
-        PaymentData.push(item)
-      }
-    })
-  }
-  catch {
-    ElMessage.error('An unexpected error occurred.')
-  }
-}
-const api_getPaymentData = async(filters) => {
+const getPaymentData = async(filters) => {
   try {
     if (selectTime.value === null) {
       return
     }
     const startTime = new Date(selectTime.value[0].getTime() - MStore.timeZoneOffset * -60000)
     const endTime = new Date(selectTime.value[1].getTime() - MStore.timeZoneOffset * -60000)
-    let params = {type: 'payment', start_date: startTime, end_date: endTime}
-    let response = await MsiApi.get_transaction(params)
+    let params = {start_date: startTime, end_date: endTime}
+    let response = await MsiApi.get_paymentHistory(params)
     PaymentData.length = 0
-    response?.data?.data?.logs.forEach((item) => {
+    response?.data?.data?.forEach((item) => {
       if (filters === null || filters?.tag.length === 0 || filters?.tag.includes(item?.paymethod)) {
         switch (item?.paymethod) {
           case 'CREDIT':
@@ -333,11 +245,6 @@ const api_getPaymentData = async(filters) => {
     ElMessage.error('An unexpected error occurred.')
   }
 }
-// Tony ++ 
-const getPaymentData = async(filters) => {
-  await mongodb_getPaymentData(filters)
-  // await api_getPaymentData(filters)
-}
 const getCashLogData = async(filters) => {
   try {
     if (selectTime.value === null) {
@@ -345,10 +252,10 @@ const getCashLogData = async(filters) => {
     }
     const startTime = new Date(selectTime.value[0].getTime() - MStore.timeZoneOffset * -60000)
     const endTime = new Date(selectTime.value[1].getTime() - MStore.timeZoneOffset * -60000)
-    let params = {type: 'cash', start_date: startTime, end_date: endTime}
-    let response = await MsiApi.get_transaction(params)
+    let params = {start_date: startTime, end_date: endTime}
+    let response = await MsiApi.get_cash(params)
     RFIDData.length = 0
-    response?.data?.data?.logs.forEach((item) => {
+    response?.data?.data?.forEach((item) => {
       if (filters === null || filters?.tag.length === 0 || filters?.tag.includes(item?.type)) {
         if (item.tag_id !== 'DELETE' && item.name !== 'DELETE') {
           switch (item?.type) {
@@ -675,7 +582,8 @@ onMounted(async () => {
                   />
 
                   <el-table-column
-                    prop="tag_id"
+                    v-if="MStore.permission.isMSI === false"
+                    prop="id"
                     :label="t('id')"
                     align="center"
                     sortable="custom"
@@ -683,6 +591,7 @@ onMounted(async () => {
                   />
 
                   <el-table-column
+                    v-if="MStore.permission.isMSI === false"
                     prop="name"
                     :label="t('name')"
                     align="center"

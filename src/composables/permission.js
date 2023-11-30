@@ -167,7 +167,17 @@ let m_cloud_permission =  {
         ChargingProfileDetail: { page:'X', save:'X'},
         Permission: {page:'X', save:'X', cancel:'X'},
     },
-
 }
 
-export { m_cloud_permission }
+const mapKeysGroup ={
+  Dashboard: ['Dashboard'],
+  Payment: ['Payment'],
+  EvseManagement: ['Station','StationDetail', 'StationEdit', 'EVSE', 'EVSEDetail', 'EVSEEdit', 'RatePlan', 'RatePlanDetail', 'ChargingProfile' ,'ChargingProfileDetail'],
+  //---------------------
+  AccountManagement: ['RfidUser','RfidUserDetail','Parking'],
+  LogMonitor: ['EVSELog', 'ErrorLog'],
+  AdvancedSetting: ['User','UserDetail','Company', 'Administrator', 'SoftwareInfo','Program', 'Permission'],
+  Other: ['AdminInfo'],
+}
+
+export { m_cloud_permission , mapKeysGroup }

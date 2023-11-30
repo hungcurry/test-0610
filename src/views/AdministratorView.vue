@@ -149,9 +149,9 @@ const editAdmin = async (action) => {
       ElMessageBox.confirm(t('do_you_want_to_delete'), t('warning'), { confirmButtonText: t('ok'), cancelButtonText: t('cancel'), type: 'warning' })
         .then(async () => {
           const params = { role:'admin', id: editAdminData._id }
-            let res = await MsiApi.delete_account(params)
+          let res = await MsiApi.delete_account(params)
 
-          if (res.status === 200) {
+          if (res.data.message === 'Accepted') {
             GetPermission()
             console.log(await MongoAggregate())
           }
@@ -197,7 +197,7 @@ const AddAdmin = async (action, visable) => {
                 permission: AddAdminData.permission_id, edit: edit, active: AddAdminData.permission_active ,
               }
               let res = await MsiApi.register_member(sendData)
-              if (res.status === 201) {
+              if (res.data.message === 'Accepted') {
                 GetPermission()
                 console.log(await MongoAggregate())
               }

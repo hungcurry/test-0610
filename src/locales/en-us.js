@@ -210,6 +210,11 @@ export default
     limit:                                                  'Limit',
     number_phases:                                          'Number Phases',
     none:                                                   'None',
+    edit_success:                                           'Edit Success',
+    transaction_list:                                       'Transaction List',
+    balance:                                                'Balance',
+    please_check_evse:                                      'Please Check EVSE',
+    not_found_evse:                                         'Not Found EVSE',
 //--------------------------------------------------------------
 // header
 //--------------------------------------------------------------
@@ -324,7 +329,6 @@ export default
 //--------------------------------------------------------------
 // Payment Page                 
 //--------------------------------------------------------------
-    transaction_list:                                       'Transaction List',
     top_up_list:                                            'Top-up List',
     // id:                                                  'ID',
     // method:                                              'Method',
@@ -347,6 +351,7 @@ export default
     // kwh:                                                 'kWh',
     // rfid_num:                                            'RFID Num',
     // amount:                                              'Amount',
+    // transaction_list:                                    'Transaction List',
 //--------------------------------------------------------------
 // Station Page                 
 //--------------------------------------------------------------
@@ -415,6 +420,8 @@ export default
     // parking_lot:                                         'Parking Lot',
     // true:                                                'True',
     // false:                                               'False',
+    // please_check_evse:                                   'Please Check EVSE',
+    // not_found_evse:                                      'Not Found EVSE',
 //--------------------------------------------------------------
 // Station Edit Page                    
 //--------------------------------------------------------------
@@ -492,6 +499,8 @@ export default
     // confirm:                                             'Confirm',
     // add_evse:                                            'Add EVSE',
     // please_confirm_your_subscription_plan:               'Please confirm your subscription plan.',
+    // please_check_evse:                                   'Please Check EVSE',
+    // not_found_evse:                                      'Not Found EVSE',
 //--------------------------------------------------------------
 // EVSE Detail Page                 
 //--------------------------------------------------------------
@@ -1014,7 +1023,6 @@ export default
     do_you_want_to_delete_program:                          'Do you want to delete program?',
     delete_success:                                         'Delete Success',
     do_you_want_to_edit_program:                            'Do you want to edit program?',
-    edit_success:                                           'Edit Success',
     do_you_want_to_create_program:                          'Do you want to create program?',
     create_success:                                         'Create Success',
     edit_program:                                           'Edit Program',
@@ -1035,6 +1043,7 @@ export default
     // connector:                                           'Connector',
     // user:                                                'User',
     // the_item_is_required:                                'The item is required',
+    // edit_success:                                        'Edit Success',
 //--------------------------------------------------------------
 // Parking Page
 //--------------------------------------------------------------
@@ -1129,22 +1138,28 @@ export default
 //--------------------------------------------------------------
     id_already_exists:                                      'ID already exists',
     please_chat_to_administrator_it:                        'Please chat to Administrator/IT.',
+    user_list:                                              'User List',
+    beginning_balance:                                      'Beginning Balance',
+    top_up_amount:                                          'Top-up Amount',
+    refund_amount:                                          'Refund Amount',
+    transaction_amount:                                     'Transaction Amount',
     // total_amount:                                        'Total Amount',
     // id:                                                  'ID',
     // name:                                                'Name',
     // phone:                                               'Phone',
-    // rfid_num:                                            'RFID Num.',
+    // rfid_num:                                            'RFID Num',
     // amount:                                              'Amount',
     // occupied_evse_id:                                    'Occupied EVSE ID',
     // used_times:                                          'Used Times',
     // updated_date:                                        'Updated Date',
     // add_user:                                            'Add User',
     // please_confirm_your_subscription_plan:               'Please confirm your subscription plan.',
+    // transaction_list:                                    'Transaction List',
+    // balance:                                             'Balance',
 //--------------------------------------------------------------
 // Rfid User Detail Page
 //--------------------------------------------------------------
     total_rfid:                                             'Total RFID',
-    balance:                                                'Balance',
     refund:                                                 'Refund',
     check:                                                  'Check',
     are_you_sure_to_top_up:                                 'Are you sure to top up',
@@ -1207,6 +1222,7 @@ export default
     // amount:                                              'Amount',
     // top_up:                                              'Top up',
     // transaction:                                         'Transaction',
+    // balance:                                             'Balance',
 //--------------------------------------------------------------
 // Premission Page
 //--------------------------------------------------------------
@@ -1281,6 +1297,8 @@ export default
     // add_rfid:                                            'Add RFID',
     // edit_rfid:                                           'Edit RFID',
     // add_program:                                         'Add Program',
+    // edit_success:                                        'Edit Success',
+    // error:                                               'Error',
 //--------------------------------------------------------------
 // Charge Profile Page                     
 //--------------------------------------------------------------
