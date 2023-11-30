@@ -30,6 +30,7 @@ import ChargeProfileDetailView from '@/views/ChargeProfileDetailView.vue'
 import PermissionView from '@/views/PermissionView.vue'
 import RfidUserView from '@/views/RfidUserView.vue'
 import RfidUserDetailView from '@/views/RfidUserDetailView.vue'
+import StationMapView from '@/views/StationMapView.vue'
 import { ElMessage } from 'element-plus'
 import { m_cloud_permission } from '@/composables/permission'
 
@@ -171,6 +172,11 @@ const router = createRouter({
           path: 'rfid-user-detail',
           name: 'rfidUserDetail',
           component: RfidUserDetailView
+        },
+        {
+          path: 'station-map',
+          name: 'stationMap',
+          component: StationMapView
         },
         {
           path: 'test',

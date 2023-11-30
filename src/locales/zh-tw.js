@@ -256,7 +256,6 @@ export default
     agree:                                                  '同意',
     i_fully_understand_the_contents_of_the_terms_and_conditions_and_agree_to_them:
                                                             '我已閱讀並同意使用者條款',
-    user_agreement:                                         '使用者合約',
     forgot_password:                                        '忘記密碼',
     we_will_send_an_email_to_you:                           '我們會寄郵件給您。',
     the_link_in_the_email_will_expire_in_30_minutes:        '電子信箱中的變更密碼連結將在30分鐘後到期。',
@@ -266,6 +265,7 @@ export default
     mail_is_sent_please_check_your_mailbox_to_change_your_password: 
                                                             '請確認你的電子信箱並修改密碼',
     error_please_check_the_email_you_entered:               '錯誤！請檢查輸入的信箱。',
+    //user_agreement:                                       '使用者合約',
     // version:                                             '版本',
     // cancel:                                              '取消',
 //--------------------------------------------------------------
@@ -530,7 +530,7 @@ export default
     remote_stop:                                            'Remote Stop',
     do_you_want_to_remote_start_transaction:                'Do you want to remote start transaction?',
     do_you_want_to_remote_stop_transaction:                 'Do you want to remote stop transaction?',
-
+    charge_point_sn:                                        'Charge Point SN',
     // active_minute:                                       '啟用時間 (分鐘)',
     // deactivate_minute:                                   '截止時間 (分鐘)',
     // charging_by_energy:                                  '依電費計價',
@@ -915,7 +915,6 @@ export default
 //--------------------------------------------------------------    
     email_not_found:                                        '找不到 Email',
     deletion_name_list:                                     '個資刪除清單',
-    // add_admin:                                           '新增管理者',
     // edit_admin:                                          '編輯管理者',
     // engineer_user:                                       '工程師使用者',
     // admin_user:                                          '管理使用者',
@@ -1019,7 +1018,7 @@ export default
     do_you_want_to_create_program:                          '你想要建立訂閱方案嗎?',
     create_success:                                         '建立成功',
     edit_program:                                           '編輯訂閱方案',
-    administrator:                                          '管理者',
+    cpo_account:                                            '營運商帳號',
     // evse:                                                '充電樁',
     // warning:                                             '警告!',
     // ok:                                                  'OK',
@@ -1086,8 +1085,6 @@ export default
     // first_name:                                          '名字',
     // last_name:                                           '姓氏',
     // e_mail:                                              '電子信箱',
-    // station:                                             '充電站',
-    // rate_plan:                                           '方案名稱',
     // currency:                                            '幣別',
     // connector:                                           '充電槍',
     // cancel:                                              '取消',
@@ -1126,7 +1123,6 @@ export default
     // reset_password:                                      '重置密碼',
     // cancel:                                              '取消',
     // confirm:                                             '確認',
-
 //--------------------------------------------------------------
 // Rfid User Page
 //--------------------------------------------------------------
@@ -1142,6 +1138,7 @@ export default
     // used_times:                                          '使用次數',
     // updated_date:                                        '更新時間',
     // add_user:                                            '新增使用者',
+    // please_confirm_your_subscription_plan:               '請確認訂閱方案',
 //--------------------------------------------------------------
 // Rfid User Detail Page
 //--------------------------------------------------------------

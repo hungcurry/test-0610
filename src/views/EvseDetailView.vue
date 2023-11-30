@@ -1283,6 +1283,10 @@ onUnmounted(() => {
                   <p class="info-value w-50% ml-24px">{{ hmiInfoData.hmi_board_sw_version }} </p>
                 </div>   
                 <div class="info-item">
+                  <p class="info-title w-50%"> {{ t('charge_point_sn') }}</p>
+                  <p class="info-value w-50% ml-24px">{{ hmiInfoData.charge_point_sn }} </p>
+                </div>  
+                <div class="info-item">
                   <p class="info-title w-50%"> {{ t('created_date')}} </p>
                   <p class="info-value w-50% ml-24px">{{ hmiInfoData.created_date }} </p>
                 </div>  

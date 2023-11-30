@@ -671,7 +671,7 @@ const getPermission = async() => {
           database: 'CPO', 
           collection: 'UserPermission', 
           pipelines: [
-            { $match: { name: { $nin: ['AnonymousUser', 'MemberUser', 'DeveloperUser', 'CustomerServiceUser', 'ViewerUser', 'FAEUser'] } } },
+            { $match: { name: { $nin: ['AnonymousUser', 'MemberUser',  'CustomerServiceUser', 'ViewerUser', 'FAEUser'] } } },
             {  $project: { _id: 1, name: 1 } }
           ]
         }
@@ -689,7 +689,10 @@ const getPermission = async() => {
           item.name_str = t('admin_user')
           break
         case 'DeveloperUser':
-          item.name_str = t('developer_user')
+          if (MStore.permission.isMSI === true)
+            item.name_str = t('developer_user')
+          else 
+            item.name_str = t('user')
           break
         case 'ViewerUser':
           item.name_str = t('viewer_user')

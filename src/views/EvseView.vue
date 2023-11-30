@@ -352,6 +352,14 @@ onMounted(async () => {
                 :sort-method="(a, b) => sortFunc(a, b, 'evse_id')"
                 min-width="300"
               />
+              <el-table-column v-if="MStore.permission.isMSI"
+                prop="byCompany_str"
+                :label="t('company')"
+                align="center"
+                :filters="company_filter_item"
+                :filter-method="filterCompany"
+                min-width="200"
+              />
               <el-table-column
                 prop="status"
                 :label="t('status')"
@@ -414,14 +422,6 @@ onMounted(async () => {
                   </p>
                 </template>
               </el-table-column>
-              <el-table-column v-if="MStore.permission.isMSI"
-                prop="byCompany_str"
-                :label="t('company')"
-                align="center"
-                :filters="company_filter_item"
-                :filter-method="filterCompany"
-                min-width="200"
-              />
               <el-table-column
                 prop="last_updated_str"
                 :label="t('updated_time')"

@@ -47,31 +47,6 @@ export default ({ mode }) => {
           rewrite: (path) => path.replace(/^\/api10/, ''),
           secure: false,
         },
-
-        '/google10': {
-          target: 'https://storage.googleapis.com',
-          changeOrigin: true,
-          rewrite: (path) => path.replace(/^\/google10/, ''),
-          secure: false,
-        },
-        '/googleStorage': {
-          target: "https://storage.cloud.google.com",
-          changeOrigin: true,
-          rewrite: (path) => path.replace(/^\/googleStorage/, ''),
-          secure: false,
-        },
-        '/rate' : {
-          target: "https://rate.bot.com.tw",
-          changeOrigin: true,
-          rewrite: (path) => path.replace(/^\/rate/, ''),
-          secure: false,
-        },
-        '/port3000' : {
-          target: "http://localhost:3000/",
-          changeOrigin: true,
-          rewrite: (path) => path.replace(/^\/port3000/, ''),
-          secure: false,
-        },
       },
       open: true,
       port: 8080,

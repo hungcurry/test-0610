@@ -314,6 +314,14 @@ onMounted( async() => {
               :column-key="'style'"
               min-width="200"
             />
+            <el-table-column v-if="MStore.permission.isMSI"
+                prop="byCompany_str"
+                :label="t('company')"
+                :column-key="'company_filter'"
+                align="center"
+                :filters="company_filter_item"
+                min-width="200"
+              />
             <el-table-column
               prop="location_str"
               :label="t('station')"
@@ -344,14 +352,6 @@ onMounted( async() => {
               sortable="custom"
               min-width="200"
             />
-            <el-table-column v-if="MStore.permission.isMSI"
-                prop="byCompany_str"
-                :label="t('company')"
-                :column-key="'company_filter'"
-                align="center"
-                :filters="company_filter_item"
-                min-width="200"
-              />
             <el-table-column
               prop="start_date_local_time"
               :label="t('start_time')"

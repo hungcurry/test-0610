@@ -530,7 +530,7 @@ export default
     remote_stop:                                            'Remote Stop',
     do_you_want_to_remote_start_transaction:                'Do you want to remote start transaction?',
     do_you_want_to_remote_stop_transaction:                 'Do you want to remote stop transaction?',
-
+    charge_point_sn:                                        'Charge Point SN',
     // active_minute:                                       'Active (Minute)',
     // deactivate_minute:                                   'Deactivate (Minute)',
     // charging_by_energy:                                  'Charging By Energy',

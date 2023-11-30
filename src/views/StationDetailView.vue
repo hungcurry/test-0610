@@ -99,6 +99,10 @@ const charger_detail = (row) => {
 const StationDetailEvseData = reactive([])
 const StationData = reactive([])
 
+const goto_map = async () => {
+  router.push({ name: 'stationMap', query: {id:station_id} })
+}
+
 onMounted( async () => {
   let queryData1 = { "database":"OCPI", "collection":"Location", "pipelines": [ 
   { $match:  { "id": { "UUID" : station_id} } },
@@ -235,6 +239,7 @@ onMounted( async () => {
             <div class="flex">
               <span class="station-name text-36px font-bold mr-20px">{{ StationData.name }}</span>
               <font-awesome-icon class="text-secondary w-32px h-32px mt-3px" icon="fa-regular fa-pen-to-square" @click="go_to_station_edit_page() " style="cursor:pointer"/>
+              <el-button v-if="MStore.user_data.first_name === 'Steven'" class="btn-secondary w-100px update-button" @click="goto_map"> {{ t('map') }} </el-button>
             </div>
             <p class="text-20px text-blue-900 ml-24px"> {{ t('last_updated') }} : {{ StationData.last_updated_str }} </p>
           </div>

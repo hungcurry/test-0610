@@ -248,6 +248,14 @@ onMounted(async() => {
             @sort-change="tableSort"
             @filter-change="tableFilter"
           >
+            <el-table-column v-if="MStore.permission.isMSI"
+              prop="byCompany_str"
+              :label="t('company')"
+              :column-key="'company_filter'"
+              align="center"
+              :filters="company_filter_item"
+              min-width="200"
+            />
             <el-table-column
               prop="evse_id"
               :label="t('evse_id')"
@@ -276,14 +284,6 @@ onMounted(async() => {
               sortable="custom"
               min-width="200"
             />
-            <el-table-column v-if="MStore.permission.isMSI"
-                prop="byCompany_str"
-                :label="t('company')"
-                :column-key="'company_filter'"
-                align="center"
-                :filters="company_filter_item"
-                min-width="200"
-              />
             <el-table-column
               prop="created_date_str"
               :label="t('created_time')"
