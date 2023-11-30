@@ -85,7 +85,18 @@ const evseReset = (type) => {
   for (let i = 0; i < multipleSelection.value.length; i++) {
     updataEvseId.push(multipleSelection.value[i].evse_id)
   }
+  if (EvseConnectData.length === 0) {
+    ElMessage({
+      message: t('not_found_evse'),
+      type: 'warning',
+    })
+    return
+  }
   if (updataEvseId.length === 0) {
+    ElMessage({
+      message: t('please_check_evse'),
+      type: 'warning',
+    })
     return
   }
 

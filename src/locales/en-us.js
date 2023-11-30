@@ -213,6 +213,8 @@ export default
     edit_success:                                           'Edit Success',
     transaction_list:                                       'Transaction List',
     balance:                                                'Balance',
+    please_check_evse:                                      'Please Check EVSE',
+    not_found_evse:                                         'Not Found EVSE',
 //--------------------------------------------------------------
 // header
 //--------------------------------------------------------------
@@ -418,6 +420,8 @@ export default
     // parking_lot:                                         'Parking Lot',
     // true:                                                'True',
     // false:                                               'False',
+    // please_check_evse:                                   'Please Check EVSE',
+    // not_found_evse:                                      'Not Found EVSE',
 //--------------------------------------------------------------
 // Station Edit Page                    
 //--------------------------------------------------------------
@@ -495,6 +499,8 @@ export default
     // confirm:                                             'Confirm',
     // add_evse:                                            'Add EVSE',
     // please_confirm_your_subscription_plan:               'Please confirm your subscription plan.',
+    // please_check_evse:                                   'Please Check EVSE',
+    // not_found_evse:                                      'Not Found EVSE',
 //--------------------------------------------------------------
 // EVSE Detail Page                 
 //--------------------------------------------------------------
