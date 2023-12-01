@@ -141,7 +141,18 @@ const getTransactionData = async() => {
     let origin = 0
     let balance = 0
 
-    if (item.datetime && user_cash.datetime) {
+    if (item.datetime === undefined || user_cash.datetime === undefined) {
+      if (item.datetime === undefined && user_cash.datetime === undefined) {
+        origin = 0
+      }
+      else if (item.datetime === undefined) {
+        origin = user_cash.origin
+      }
+      else if (user_cash.datetime === undefined) {
+        origin = item.origin
+      }
+    }
+    else if (new Date(item.datetime) >= startTime && new Date(user_cash.datetime) >= startTime) {
       if (item.datetime > user_cash.datetime) {
         origin = user_cash.origin
       }
@@ -149,10 +160,18 @@ const getTransactionData = async() => {
         origin = item.origin
       }
     }
-    else if (item.datetime) {
+    else if (new Date(item.datetime) < startTime && new Date(user_cash.datetime) < startTime) {
+      if (item.datetime > user_cash.datetime) {
+        origin = item.origin
+      }
+      else {
+        origin = user_cash.origin
+      }
+    }
+    else if (new Date(item.datetime) >= startTime) {
       origin = item.origin
     }
-    else if (user_cash.datetime) {
+    else if (new Date(user_cash.datetime) >= startTime) {
       origin = user_cash.origin
     }
     balance = origin + user_cash.topup - Math.abs(user_cash.refund) - item.price
