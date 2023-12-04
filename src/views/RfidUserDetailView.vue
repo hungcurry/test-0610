@@ -610,7 +610,7 @@ onUnmounted(() => {
                         class="icon w-24px h-24px mr-8px"
                         icon="fa-regular fa-user"
                       />
-                      <span class="line-height-24px">{{ t('gerernal_info') }}</span>
+                      <span class="line-height-24px">{{ t('general_info') }}</span>
                     </div>
                     <el-button link type="primary" v-if="MStore.rule_permission.RfidUserDetail.userEdit === 'O' || MStore.permission.isCompany" @click="editUser()">
                       <font-awesome-icon

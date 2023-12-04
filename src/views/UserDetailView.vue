@@ -768,7 +768,7 @@ onMounted(async () => {
                   <div class="flex justify-between">
                     <div class="flex">
                       <font-awesome-icon class="icon w-24px h-24px mr-8px" icon="fa-regular fa-user"/>
-                      <span class="line-height-24px">{{ t('gerernal_info') }}</span>
+                      <span class="line-height-24px">{{ t('general_info') }}</span>
                     </div>
                     <el-button 
                       v-if="MStore.rule_permission.UserDetail.userEdit === 'O' || MStore.permission.isCompany"

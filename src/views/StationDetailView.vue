@@ -73,7 +73,7 @@ const evseReset = (type) => {
   }
   if (updataEvseId.length === 0) {
     ElMessage({
-      message: t('please_check_evse'),
+      message: t('please_choose_evse'),
       type: 'warning',
     })
     return
