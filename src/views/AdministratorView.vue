@@ -117,12 +117,12 @@ const editAdmin = async (action) => {
           // if (editAdminData.permission_edit !== true && editAdminData.permission.edit !== 1) {
           //   return
           // }
-          editAdminData.permission_edit ? 1 : 3
+          let permission_edit = editAdminData.permission_edit ? 1 : 3
           let sendData = {
             class: 'AdminUserData', pk: editAdminData._id,
             first_name: editAdminData.first_name, last_name: editAdminData.last_name,
             email: editAdminData.email, phone: editAdminData.phone,
-            permission: { user: editAdminData.permission_id, edit: editAdminData.permission_edit, active: editAdminData.permission_active },
+            permission: { user: editAdminData.permission_id, edit: permission_edit, active: editAdminData.permission_active },
           }
           ElMessageBox.confirm(t('do_you_want_to_modify'), t('warning'), { confirmButtonText: t('ok'), cancelButtonText: t('cancel'), type: 'warning' })
             .then(async () => {
@@ -130,6 +130,13 @@ const editAdmin = async (action) => {
               if (res.status === 200) {
                 GetPermission()
                 console.log(await MongoAggregate())
+                if (editAdminData.email === MStore.user_data?.email) {
+                  MStore.user_data.first_name = sendData.first_name
+                  MStore.user_data.last_name = sendData.last_name
+                  MStore.permission.active = sendData.permission.active
+                  MStore.permission.edit = sendData.permission.edit
+                  MStore.permission.user = sendData.permission.user
+                }
               }
             })
             .catch((e) => {
@@ -641,7 +648,7 @@ onMounted(async () => {
                 round
                 class="w-48% bg-btn-200 text-white max-w-140px"
                 @click.stop="editAdmin('confirm')"
-                v-if="editAdminData.permission_edit === false"
+                v-if="MStore.permission?.edit === 3"
                 disabled
               >
                 {{ t('confirm') }}
