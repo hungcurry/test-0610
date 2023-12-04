@@ -86,22 +86,22 @@ const download = () => {
   export_json_to_excel({ header: tHeader, data: data, filename: 'Transaction List' })
 }
 const downloadRFID = () => {
-  const tHeader = [
+  let tHeader = [
     'Type',
-    'ID',
-    'Name',
     'RFID Num',
     'Amount',
     'Created Time',
   ]
-  const filterVal = [
+  let filterVal = [
     'type_str',
-    'tag_id',
-    'name',
     'rfid',
     'money',
     'created_date_str',
   ]
+  if (MStore.permission.isMSI === false) {
+    tHeader = ['Type', 'ID', 'Name', 'RFID Num', 'Amount', 'Created Time']
+    filterVal = ['type_str', 'id', 'name', 'rfid', 'money', 'created_date_str']
+  }
   const data = RFIDData.map((v) => filterVal.map((j) => v[j]))
   export_json_to_excel({ header: tHeader, data: data, filename: 'Top-up List' })
 }
@@ -257,7 +257,7 @@ const getCashLogData = async(filters) => {
     RFIDData.length = 0
     response?.data?.data?.forEach((item) => {
       if (filters === null || filters?.tag.length === 0 || filters?.tag.includes(item?.type)) {
-        if (item.tag_id !== 'DELETE' && item.name !== 'DELETE') {
+        if (item.id !== 'DELETE' && item.name !== 'DELETE') {
           switch (item?.type) {
             case 'Top-up':
               item.type_str = t('top_up')

@@ -386,6 +386,13 @@ const confirmAdminUser = (action, del_id) => {
               let res = await MsiApi.setCollectionData('patch', 'cpo', sendData)
               if (res.status === 200) {
                 await getAdminData()
+                if (AdminData.email === MStore.user_data?.email) {
+                  MStore.user_data.first_name = sendData.first_name
+                  MStore.user_data.last_name = sendData.last_name
+                  MStore.permission.active = sendData.permission.active
+                  MStore.permission.edit = sendData.permission.edit
+                  MStore.permission.user = sendData.permission.user
+                }
               }
               isLoading.value = false
             })
@@ -1303,8 +1310,16 @@ onMounted(async () => {
           <el-button
             round
             class="w-48% bg-btn-200 text-white max-w-140px"
+            v-if="MStore.permission?.edit === 3"
+            disabled
+          >
+            {{ t('confirm') }}
+          </el-button>
+          <el-button
+            round
+            class="w-48% bg-btn-200 text-white max-w-140px"
             @click.stop="confirmAdminUser('add', null)"
-            v-if="admin_title === t('add_admin')"
+            v-else-if="admin_title === t('add_admin')"
           >
             {{ t('confirm') }}
           </el-button>

@@ -40,8 +40,8 @@ const download = () => {
   let tHeader = ['Status','Station','EVSE ID', 'kWh', 'Pirce', 'Start Time', 'End Time']
   let filterVal = ['status','location_str','evse_str', 'kwh', 'price_str', 'start_date_local_time', 'end_date_local_time']
   if (MStore.permission.isMSI) {
-    tHeader = ['Status','Station','EVSE ID', 'kWh', 'Pirce', 'Company', 'Start Time', 'End Time']
-    filterVal = ['status','location_str','evse_str', 'kwh', 'price_str','byCompany_str', 'start_date_local_time', 'end_date_local_time']
+    tHeader = ['Status', 'Company', 'Station', 'EVSE ID', 'kWh', 'Pirce', 'Start Time', 'End Time']
+    filterVal = ['status', 'byCompany_str', 'location_str', 'evse_str', 'kwh', 'price_str', 'start_date_local_time', 'end_date_local_time']
   }
 
   const data = OcpiSessionDataAll.map(v => filterVal.map(j => v[j]))
