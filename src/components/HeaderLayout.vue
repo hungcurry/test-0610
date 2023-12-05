@@ -6,6 +6,9 @@ import { useRoute, useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useSideMenuStore } from '@/stores/sidemenu'
 import { useI18n } from "vue-i18n"
+import { useMStore } from '@/stores/m_cloud'
+
+const MStore = useMStore()
 const route = useRoute()
 const router = useRouter()
 const reset_password_visible = ref(false)
@@ -28,7 +31,6 @@ const changeLanguage = (lang) => {
   localStorage.setItem("lang", i18n.global.locale.value)
   window.location.reload()
 }
-
 const Admin_Info = () => {
   router.push({ name: 'adminInfo' })
 }
@@ -87,7 +89,10 @@ const emitCallBack = (res) => {
           <el-dropdown-menu>
             <el-dropdown-item @click="logOut()"> {{ t('log_out') }}</el-dropdown-item>
             <el-dropdown-item @click="resetPW()"> {{ t('reset_password') }}</el-dropdown-item>
-            <el-dropdown-item @click="Admin_Info()"> {{t('admin_info')}}</el-dropdown-item>
+            <el-dropdown-item 
+                v-if="MStore.rule_permission.AdminInfo.page === 'O' || MStore.permission.isCompany" 
+                @click="Admin_Info()"> {{t('admin_info')}}
+            </el-dropdown-item>
           </el-dropdown-menu>
         </template>
       </el-dropdown>

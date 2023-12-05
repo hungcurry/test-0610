@@ -900,56 +900,6 @@ onMounted(async () => {
                 </div>
               </div>
             </div>
-            <div class="rfid-info overflow-x-auto scrollbar py-24px lg:pr-10px">
-              <div class="card-container card-rounded box-shadow p-4 md:p-6">
-                <div class="md:flex justify-between mb-24px min-w-250px">
-                  <div class="flex mb-8px md:mb-0">
-                    <img class="icon w-24px h-24px mr-8px" src="@/assets/img/customer_rfid.png" alt="">
-                    <span class="line-height-24px">{{ t('rfid') }}</span>
-                  </div>
-                  <el-button 
-                    v-if="MStore.rule_permission.UserDetail.addRFID === 'O' || MStore.permission.isCompany"
-                    class="button h-32px w-full md:w-150px" 
-                    round
-                    @click="editRfid"
-                  >
-                    <!-- <font-awesome-icon class="mr-8px" icon="fa-solid fa-gear" /> -->
-                    {{ t('add_rfid') }}
-                  </el-button>
-                </div>
-                <div class="flex flex-wrap">
-                  <div 
-                    v-for="(item, index) in userData.rfids"
-                    :key="item.value"
-                    class="rfid-card box-shadow"
-                  >
-                    <div class="h-99px">
-                      <div class="flex justify-between">
-                        <span class="text-16px pt-16px pb-16px pl-16px pr-16px">{{ item.rfid }}</span>
-                        <div class="pt-5px pr-16px">
-                          <el-button 
-                          v-if="MStore.rule_permission.UserDetail.deleteRFID === 'O' || MStore.permission.isCompany"
-                          link type="primary" size="large" @click="confirmRfid('delete', index)" >
-                            <img class="text-blue-1100 w-24px h-24px" src="@/assets/img/tariff_delete1.png" alt="">
-                          </el-button>
-                          <el-button 
-                          v-if="MStore.rule_permission.UserDetail.editRFID === 'O' || MStore.permission.isCompany"
-                          link type="primary" size="large" @click="card_detail(item, index)">
-                            <font-awesome-icon class="text-blue-1100 w-24px h-24px" icon="fa-regular fa-pen-to-square" />
-                          </el-button>
-                        </div>
-                      </div>
-                      <p class="text-24px pl-16px">{{ item.nickname }}</p>
-                    </div>
-                    <div class="rfid-card-down bg-blue-100 h-50px rounded-b-10px">
-                      <p class="pl-16px pr-16px">$ {{ item.cash }}</p>
-                      <p class="enable pl-16px pr-16px" v-if="item.enable">{{ t('enable') }}</p>
-                      <p class="disable pl-16px pr-16px" v-else> {{ t('disable') }}</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
           </el-tab-pane>
 
           <el-tab-pane 

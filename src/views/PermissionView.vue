@@ -12,7 +12,9 @@ import { useI18n } from 'vue-i18n'
 import { ElMessageBox } from 'element-plus'
 import { ElMessage } from 'element-plus'
 import { m_cloud_permission , mapKeysGroup } from '@/composables/permission'
+import { useMStore } from '@/stores/m_cloud'
 
+const MStore = useMStore()
 const { t } = useI18n()
 const MsiApi = ApiFunc()
 const userType = ref([
@@ -670,10 +672,16 @@ onBeforeMount(() => {
       </el-row>
 
       <div v-if="displayItem" class="flex justify-center pb-40px">
-        <el-button class="btn-secondary bg-btn-100 md:mr-44px" @click="handlerResetForm(ruleFormRef)">
+        <el-button class="btn-secondary bg-btn-100 md:mr-44px" 
+          v-if="MStore.rule_permission.Permission.cancel === 'O' || MStore.permission.isCompany" 
+          @click="handlerResetForm(ruleFormRef)"
+        >
           {{ t('cancel') }}
         </el-button>
-        <el-button class="btn-secondary" @click="handlerSaveForm(ruleFormRef)">
+        <el-button class="btn-secondary" 
+          v-if="MStore.rule_permission.Permission.save === 'O' || MStore.permission.isCompany" 
+          @click="handlerSaveForm(ruleFormRef)"
+        >
           {{ t('save') }}
         </el-button>
       </div>
