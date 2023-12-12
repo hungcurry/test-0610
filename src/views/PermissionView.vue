@@ -610,7 +610,7 @@ onBeforeMount(() => {
                           :label="item1"
                           v-if="item1 !== 'page'"
                         >
-                        <span v-if="item1 !== 'page'">{{ item1 }}</span>
+                        <span v-if="item1 !== 'page'">{{ t(item1) }}</span>
                         </el-checkbox>
                       </el-checkbox-group>
                     </template>
@@ -659,7 +659,7 @@ onBeforeMount(() => {
                         :label="item1"
                         v-if="item1 !== 'page'"
                       >
-                      <span v-if="item1 !== 'page'">{{ item1 }}</span>
+                      <span v-if="item1 !== 'page'">{{ t(item1) }}</span>
                       </el-checkbox>
                     </el-checkbox-group>
                     </template>

@@ -32,17 +32,18 @@ if ( MStore.user_data.first_name === 'Steven') {
   >
     <el-menu-item v-if="MStore.rule_permission.Dashboard.page === 'O' || MStore.permission.isCompany" index="dashboard" 
       @mouseover="hovered[0] = true" @mouseleave="hovered[0] = false">
-      <img v-show="!hovered[0]" class="w-40px h-40px mr-10px" src="@/assets/img/all_ic_dashboard_nor.png" alt=""/>
-      <img v-show="hovered[0]" class="w-40px h-40px mr-10px" src="@/assets/img/all_ic_dashboard_focus.png" alt=""/>
+      <img v-show="!hovered[0]" class="w-45px h-45px -ml-8px" src="@/assets/img/all_ic_dashboard_nor.png" alt=""/>
+      <img v-show="hovered[0]" class="w-45px h-45px -ml-16px" src="@/assets/img/all_ic_dashboard_focus.png" alt=""/>
 
       <template #title>
         <span> {{t('dashboard')}}</span>
       </template>
     </el-menu-item>
+
     <el-menu-item v-if="MStore.rule_permission.Payment.page === 'O' || MStore.permission.isCompany" index="payment"
     @mouseover="hovered[1] = true" @mouseleave="hovered[1] = false">
-      <img v-show="!hovered[1]" class="w-40px h-40px mr-10px" src="@/assets/img/all_ic_payment_nor.png" alt=""/>
-      <img v-show="hovered[1]" class="w-40px h-40px mr-10px" src="@/assets/img/all_ic_payment_focus.png" alt=""/>
+      <img v-show="!hovered[1]" class="w-45px h-45px -ml-8px" src="@/assets/img/all_ic_payment_nor.png" alt=""/>
+      <img v-show="hovered[1]" class="w-45px h-45px -ml-16px" src="@/assets/img/all_ic_payment_focus.png" alt=""/>
 
       <template #title>
         <span>{{t('payment')}}</span>
@@ -52,8 +53,8 @@ if ( MStore.user_data.first_name === 'Steven') {
     <el-menu-item v-if="MStore.permission.isMSI === false && (MStore.rule_permission.RfidUser.page === 'O' || MStore.permission.isCompany)" index="rfid-user"
     @mouseover="hovered[2] = true" @mouseleave="hovered[2] = false">
 
-    <img v-show="!hovered[2]" class="w-40px h-40px mr-10px" src="@/assets/img/all_ic_account_nor.png" alt=""/>
-    <img v-show="hovered[2]" class="w-40px h-40px mr-10px" src="@/assets/img/all_ic_account_focus.png" alt=""/>
+    <img v-show="!hovered[2]" class="w-45px h-45px -ml-8px" src="@/assets/img/all_ic_account_nor.png" alt=""/>
+    <img v-show="hovered[2]" class="w-45px h-45px -ml-16px" src="@/assets/img/all_ic_account_focus.png" alt=""/>
       <template #title>
         <span> {{t('rfid_user')}}</span>
       </template>
@@ -63,8 +64,8 @@ if ( MStore.user_data.first_name === 'Steven') {
     @mouseover="hovered[3] = true" @mouseleave="hovered[3] = false">
       <template #title>
 
-        <img v-show="!hovered[3]" class="w-40px h-40px mr-10px" src="@/assets/img/all_ic_evse_nor.png" alt=""/>
-      <img v-show="hovered[3]" class="w-40px h-40px mr-10px" src="@/assets/img/all_ic_evse_focus.png" alt=""/>
+      <img v-show="!hovered[3]" class="w-45px h-45px -ml-8px" src="@/assets/img/all_ic_evse_nor.png" alt=""/>
+      <img v-show="hovered[3]" class="w-45px h-45px -ml-16px" src="@/assets/img/all_ic_evse_focus.png" alt=""/>
 
         <span>{{t('evse_management')}}</span>
       </template>
@@ -73,13 +74,13 @@ if ( MStore.user_data.first_name === 'Steven') {
       <el-menu-item v-if="MStore.rule_permission.RatePlan.page === 'O' || MStore.permission.isCompany" class="collapse" index="rate-plan">{{t('rate_plan')}}</el-menu-item>
       <el-menu-item v-if="MStore.rule_permission.ChargingProfile.page === 'O'" class="collapse" index="charging-profile">{{t('charging_profile')}}</el-menu-item>
     </el-sub-menu>
-   
+  
     <el-sub-menu index="evse-log" v-if="MStore.rule_permission.EVSELog.page === 'O' || MStore.rule_permission.ErrorLog.page === 'O' || MStore.permission.isCompany"
     @mouseover="hovered[4] = true" @mouseleave="hovered[4] = false">
       <template #title>
 
-        <img v-show="!hovered[4]" class="w-40px h-40px mr-10px" src="@/assets/img/all_ic_log_nor.png" alt=""/>
-      <img v-show="hovered[4]" class="w-40px h-40px mr-10px" src="@/assets/img/all_ic_log_focus.png" alt=""/>
+      <img v-show="!hovered[4]" class="w-45px h-45px -ml-8px" src="@/assets/img/all_ic_log_nor.png" alt=""/>
+      <img v-show="hovered[4]" class="w-45px h-45px -ml-16px" src="@/assets/img/all_ic_log_focus.png" alt=""/>
 
         <span>{{t('log_monitor')}}</span>
       </template>
@@ -92,8 +93,8 @@ if ( MStore.user_data.first_name === 'Steven') {
     @mouseover="hovered[5] = true" @mouseleave="hovered[5] = false">
       <template #title>
 
-        <img v-show="!hovered[5]" class="w-40px h-40px mr-10px" src="@/assets/img/all_ic_setting_nor.png" alt=""/>
-      <img v-show="hovered[5]" class="w-40px h-40px mr-10px" src="@/assets/img/all_ic_setting_focus.png" alt=""/>
+      <img v-show="!hovered[5]" class="w-45px h-45px -ml-8px" src="@/assets/img/all_ic_setting_nor.png" alt=""/>
+      <img v-show="hovered[5]" class="w-45px h-45px -ml-16px" src="@/assets/img/all_ic_setting_focus.png" alt=""/>
 
         <span>{{t('advanced_setting')}}</span>
       </template>
