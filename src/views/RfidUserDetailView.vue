@@ -91,7 +91,7 @@ const tableSort = async(column) => {
       b[target] = ''
     }
 
-    if (target === 'parking_price_str' || target === 'money' || target === 'charging_price_str' || target === 'balance') {
+    if (target === 'parking_price_str' || target === 'money_str' || target === 'charging_price_str' || target === 'balance_str') {
       let a_num = parseFloat(a[target]?.replace(/,/g, ""))
       let b_num = parseFloat(b[target]?.replace(/,/g, ""))
       if (order === 'ascending')
@@ -145,11 +145,11 @@ const download = () => {
     'location_name',
     'evse_id',
     'parking_time',
-    'parking_price_str',
+    'parking_price',
     'parking_car_num_str',
     'charging_time',
-    'charging_energy_str',
-    'charging_price_str',
+    'charging_energy',
+    'charging_price',
     'money',
     'rfid',
     'balance',
@@ -512,7 +512,15 @@ const getTransactionData = async(filters) => {
       if (filters === null || filters?.tag.length === 0 || filters?.tag.includes(item?.type)) {   // filters?.tag.some(i => item?.type.includes(i))
         let localTime = new Date(new Date(item.created_date).getTime() + MStore.timeZoneOffset * -60000)
         item.created_date_str = moment(localTime).format('YYYY-MM-DD HH:mm:ss')
-        item.balance_int = parseFloat(String(item.balance).replace(/,/g, ''))
+        item.balance_str = item.balance.toLocaleString()
+        item.money_str = item.money.toLocaleString()
+        if (item.charging_price) {
+          item.charging_energy_str = item.charging_energy.toLocaleString()
+          item.charging_price_str = item.charging_price.toLocaleString()
+        }
+        if (item.parking_price) {
+          item.parking_price_str = item.parking_price.toLocaleString()
+        }
         switch (item.type) {
           case 'Charging':
             item.type_str  = t('charging')
@@ -534,7 +542,8 @@ const getTransactionData = async(filters) => {
       if (filters === null || filters?.tag.length === 0 || filters?.tag.includes(item?.type)) {
         let localTime = new Date(new Date(item.created_date).getTime() + MStore.timeZoneOffset * -60000)
         item.created_date_str = moment(localTime).format('YYYY-MM-DD HH:mm:ss')
-        item.balance_int = parseFloat(String(item.balance).replace(/,/g, ''))
+        item.balance_str = item.balance.toLocaleString()
+        item.money_str = item.money.toLocaleString()
         switch (item.type) {
           case 'Top-up':
             item.type_str  = t('top_up')
@@ -950,7 +959,7 @@ onUnmounted(() => {
                 </el-table-column>
 
                 <el-table-column
-                  prop="money"
+                  prop="money_str"
                   :label="t('final_paid')"
                   sortable="custom"
                   header-align="center"
@@ -967,7 +976,7 @@ onUnmounted(() => {
                 />
 
                 <el-table-column
-                  prop="balance"
+                  prop="balance_str"
                   :label="t('balance')"
                   sortable="custom"
                   header-align="center"
@@ -975,8 +984,8 @@ onUnmounted(() => {
                   min-width="150"
                 >
                   <template #default="scope">
-                    <span v-if="scope.row.balance_int < 0" class="text-red">{{ scope.row.balance }}</span>
-                    <span v-else>{{ scope.row.balance }}</span>
+                    <span v-if="scope.row.balance < 0" class="text-red">{{ scope.row.balance_str }}</span>
+                    <span v-else>{{ scope.row.balance_str }}</span>
                   </template>
                 </el-table-column>
 

@@ -70,12 +70,12 @@ const download = () => {
     'location_name',
     'evse_id',
     'parking_time',
-    'parking_price_str',
+    'parking_price',
     'parking_currency_str',
     'parking_car_num_str',
     'charging_time',
-    'charging_energy_str',
-    'charging_price_str',
+    'charging_energy',
+    'charging_price',
     'charging_currency_str',
     'money',
     'currency',
@@ -132,7 +132,7 @@ const transactionTableSort = async(column) => {
       b[target] = ''
     }
 
-    if (target === 'parking_price_str' || target === 'money' || target === 'charging_price_str') {
+    if (target === 'parking_price_str' || target === 'money_str' || target === 'charging_price_str') {
       let a_num = parseFloat(a[target]?.replace(/,/g, ""))
       let b_num = parseFloat(b[target]?.replace(/,/g, ""))
       if (order === 'ascending')
@@ -170,7 +170,7 @@ const topupTableSort = async(column) => {
       b[target] = ''
     }
 
-    if (target === 'money') {
+    if (target === 'money_str') {
       let a_num = parseFloat(a[target]?.replace(/,/g, ""))
       let b_num = parseFloat(b[target]?.replace(/,/g, ""))
       if (order === 'ascending')
@@ -237,6 +237,14 @@ const getPaymentData = async(filters) => {
         }
         let localTime = new Date(new Date(item.created_date).getTime() + MStore.timeZoneOffset * -60000)
         item.created_date_str = moment(localTime).format('YYYY-MM-DD HH:mm:ss')
+        if (item.charging_price) {
+          item.charging_energy_str = item.charging_energy.toLocaleString()
+          item.charging_price_str = item.charging_price.toLocaleString()
+        }
+        if (item.parking_price) {
+          item.parking_price_str = item.parking_price.toLocaleString()
+        }
+        item.money_str = item.money.toLocaleString()
         PaymentData.push(item)
       }
     })
@@ -270,6 +278,7 @@ const getCashLogData = async(filters) => {
           }
           let localTime = new Date(new Date(item.created_date).getTime() + MStore.timeZoneOffset * -60000)
           item.created_date_str = moment(localTime).format('YYYY-MM-DD HH:mm:ss')
+          item.money_str = item.money.toLocaleString()
           RFIDData.push(item)
         }
       }
@@ -510,7 +519,7 @@ onMounted(async () => {
                   </el-table-column>
 
                   <el-table-column
-                    prop="money"
+                    prop="money_str"
                     :label="t('final_paid')"
                     header-align="center"
                     align="right"
@@ -608,7 +617,7 @@ onMounted(async () => {
                   />
 
                   <el-table-column
-                    prop="money"
+                    prop="money_str"
                     :label="t('amount')"
                     header-align="center"
                     align="right"
