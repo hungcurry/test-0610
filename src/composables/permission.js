@@ -7,7 +7,7 @@ let m_cloud_permission =  {
         StationDetail:{ page:'O', reset:'O', update:'O', map:'O'},
         StationEdit:{ page:'O', save:'O', delete:'O'},
         EVSE:{ page:'O', addEVSE:'O', reset:'O', update:'O'},
-        EVSEDetail:{ page:'O', delete:'O', edit:'O', ataTransfer:'O', chargingProfile:'O', configuration:'O', getDiagnostics:'O', changeAvailablility:'O', remoteTransaction: 'O'},
+        EVSEDetail:{ page:'O', delete:'O', edit:'O', dataTransfer:'O', chargingProfile:'O', configuration:'O', getDiagnostics:'O', changeAvailablility:'O', remoteTransaction: 'O'},
         EVSEEdit:{ page:'O', save: 'O'},
         RatePlan: { page:'O', addRatePlan:'O', delete:'O', copy:'O', edit:'O'},
         RatePlanDetail: { page:'O', addRatePlan:'O', save:'O'},

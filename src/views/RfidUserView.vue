@@ -110,11 +110,11 @@ const downloadTransaction = () => {
     'tag_id',
     'name',
     'rfid',
-    'origin_str',
-    'topup_str',
-    'refund_str',
-    'price_str',
-    'balance_str',
+    'origin',
+    'topup',
+    'refund',
+    'price',
+    'balance',
   ]
   const data = transactionData.map((v) => filterVal.map((j) => v[j]))
   export_json_to_excel({ header: tHeader, data: data, filename: 'RFID User Transaction List' })
