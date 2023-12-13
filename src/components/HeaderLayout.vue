@@ -1,13 +1,15 @@
 <script setup>
 import i18n from '@/locales'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { ref } from 'vue'
+import { ref, reactive } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useSideMenuStore } from '@/stores/sidemenu'
 import { useI18n } from "vue-i18n"
 import { useMStore } from '@/stores/m_cloud'
+import ApiFunc from '@/composables/ApiFunc'
 
+const MsiApi = ApiFunc()
 const MStore = useMStore()
 const route = useRoute()
 const router = useRouter()
@@ -44,6 +46,35 @@ const resetPW = () => {
 const emitCallBack = (res) => {
   reset_password_visible.value = res
 }
+
+// const companyArr = reactive([])
+
+// const companyValue = ref()
+
+// const selectCompany = async (companyId) => {
+//   console.log('companyId' + companyId)
+//   MStore.selCompany = companyId
+//   console.log(router)
+//   console.log(router.currentRoute.value.fullPath)
+//   router.push({ path: router.currentRoute.value.fullPath})
+// }
+
+// const getCompany = async () => {
+//   let queryData = { 
+//       "database": 'CPO', 
+//       "collection": 'CompanyInformation', 
+//       "pipelines": [
+//         {
+//           $project: { _id: 1, name:1 } 
+//         }
+//       ]
+//     }
+
+//     let response = await MsiApi.mongoAggregate(queryData)
+//     console.log(response)
+//     Object.assign(companyArr, response.data.result)
+// }
+
 </script>
 
 <template>
@@ -71,6 +102,12 @@ const emitCallBack = (res) => {
       </ul>
     </div>
     <div class="common-header shrink-0 ml-72px md:ml-0">
+
+      <!-- <el-select v-model="companyValue" class="m-2" placeholder="Select" size="large" @click="getCompany">
+        <el-option v-for="item in companyArr" :key="item" :label="item.name" :value="item._id" @click="selectCompany(item._id)"
+      />
+      </el-select> -->
+
       <el-dropdown trigger="click">
         <el-button class="user">        
           <span class="material-symbols-outlined">translate</span>

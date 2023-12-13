@@ -1,7 +1,7 @@
 <script setup>
 import * as echarts from 'echarts'
 import ApiFunc from '@/composables/ApiFunc'
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, watchEffect } from 'vue'
 import { useRouter } from 'vue-router'
 import { useMStore } from '@/stores/m_cloud'
 import Calendar from '@/components/icons/IconCalendar.vue'
@@ -261,6 +261,7 @@ const date_select = async (select_time) => {
     select_time1[0] = new Date(selectTime.value[0].getTime())
     select_time1[1] = new Date(selectTime.value[1].getTime())
   }
+  console.log(select_time1)
   customize_start_time.value =  moment(select_time1[0]).format('YYYY-MM-DD HH:mm:ss')
   customize_end_time.value =  moment(select_time1[1]).format('YYYY-MM-DD HH:mm:ss')
   queryTotalUsedTime(select_time1)
@@ -297,6 +298,9 @@ const queryTotalUsedPower = async (select_time1) => {
                     { $dateFromString: { dateString: select_time1[1] } },
                   ],
                 },
+                // {
+                //   $eq: ["$byCompany",{ "ObjectId":MStore.selCompany}]
+                // }
               ],
             },
           },
@@ -315,7 +319,7 @@ const queryTotalUsedPower = async (select_time1) => {
         }
       })
     })
-    totalkwh.value = parseInt(charge_kwh * 1000) / 1000
+    totalkwh.value = (Math.round(parseInt(charge_kwh * 1000) / 1000)).toLocaleString()
     isFetchingTotalUsedPower = false
   }
 }
@@ -369,12 +373,12 @@ const queryTotalUsedTime = async (select_time1) => {
       }
     }
     let duration = moment.duration(charger_time.sec, 'seconds')
-    charger_time.hr = Math.floor(duration.asHours())
-    charger_time.min = duration.minutes();
-
+    charger_time.hr = Math.floor(duration.asHours()).toLocaleString()
+    charger_time.min = duration.minutes().toString().padStart(2, '0');
     duration = moment.duration(parking_time.sec, 'seconds')
-    parking_time.hr = Math.floor(duration.asHours())
-    parking_time.min = duration.minutes()
+    parking_time.hr = Math.floor(duration.asHours()).toLocaleString()
+    
+    parking_time.min = duration.minutes().toString().padStart(2, '0');
     isFetchingTotalUsedTime = false
   }
 }
@@ -534,7 +538,7 @@ const currencyExchange = () => {
     totalIncome = (totalTWD.value / rate.JPY)
   if (selectCurrency.value === 'TWD')
     totalIncome = (totalTWD.value)
-  income.value = parseFloat(totalIncome.toFixed(2)).toLocaleString()
+  income.value = Math.round(parseFloat(totalIncome.toFixed(2))).toLocaleString()
 }
 
 const queryEvseStatus = async () => {
@@ -812,18 +816,21 @@ const queryStationType = async () =>
   location_type_option && location_type.setOption(location_type_option)
 }
 
-onMounted(async () => {
+const onMountedFlow = () => {
   queryEvseStatus()
   queryEvseError()
-  queryTotalUsedTime()
-  queryTotalUsedTimes()
-  queryTotalUsedPower()
+  date_select('month')
   queryCustomers()
   queryLast7dayUsed()
   queryStationType()
-  customize_start_time.value =  moment(new Date(created_date.value)).format('YYYY-MM-DD HH:mm:ss')
-  customize_end_time.value =  moment(now).format('YYYY-MM-DD HH:mm:ss')
+}
+
+onMounted(async () => {
+  onMountedFlow()
 })
+// watchEffect(() => {
+//   onMountedFlow()
+// });
 </script>
 
 <template>

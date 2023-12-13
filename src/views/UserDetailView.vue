@@ -101,12 +101,12 @@ const download = () => {
     'location_name',
     'evse_id',
     'parking_time_str',
-    'parking_price_str',
+    'parking_price',
     'parking_currency_str',
     'parking_car_number_str',
     'charge_time_str',
     'charge_kwh_str',
-    'charge_price_str',
+    'charge_price',
     'charge_currency_str',
     'price',
     'currency',
@@ -163,6 +163,7 @@ const select_date = async () => {
           charge_kwh += paymentData[i].operator_types[j].kwh
           let time = moment.duration(paymentData[i].operator_types[j].time, 'seconds')
           paymentData[i].charge_time_str = String(time.days()*24 + time.hours()).padStart(2, 0) + ':' + String(time.minutes()).padStart(2, 0) + ':' + String(time.seconds()).padStart(2, 0)
+          paymentData[i].charge_price = paymentData[i].operator_types[j].price
           paymentData[i].charge_price_str = paymentData[i].operator_types[j].price.toLocaleString()
           paymentData[i].charge_kwh_str = paymentData[i].operator_types[j].kwh
           paymentData[i].charge_currency_str = paymentData[i].operator_types[j]?.currency
@@ -170,6 +171,7 @@ const select_date = async () => {
         else if (paymentData[i].operator_types[j].type === 'parking') {
           let time = moment.duration(paymentData[i].operator_types[j].time, 'seconds')
           paymentData[i].parking_time_str = String(time.days()*24 + time.hours()).padStart(2, 0) + ':' + String(time.minutes()).padStart(2, 0) + ':' + String(time.seconds()).padStart(2, 0)
+          paymentData[i].parking_price = paymentData[i].operator_types[j].price
           paymentData[i].parking_price_str = paymentData[i].operator_types[j].price.toLocaleString()
           paymentData[i].parking_car_number_str = paymentData[i].operator_types[j].car_num
           paymentData[i].parking_currency_str = paymentData[i].operator_types[j]?.currency
