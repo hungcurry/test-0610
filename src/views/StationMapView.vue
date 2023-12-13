@@ -135,8 +135,7 @@ onMounted(async () => {
       option.series[0].data[i].itemStyle.areaColor = '#bcbcbc'
     }
   }
-  
-  fetch("src/assets/svg/msi_station.svg")
+  fetch("msi_station.svg")
     .then(response => response.text())
     .then(svg => {
       echarts.registerMap('LocationMap', { svg: svg })

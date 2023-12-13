@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "build-all": "run-p build:prod build:test build:dev",
+    "build-all": "run-p build:prod build:test build:dev build:stg",
     "dev": "vite --host 0.0.0.0",
     "build": "vite build",
     "preview": "vite preview",
