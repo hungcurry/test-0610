@@ -254,13 +254,15 @@ const MongoAggregate = async () => {
     if (res.data.result === undefined) {
       router.push({ name: 'login' })
     }
-  
+    // res.data.result[0]._id = null
+    // res.data.result[0]._id ? console.log(111) : console.log(222)
     queryData = { "database": "CPO", "collection": "AdminUserData", 
       "pipelines": [
         { "$match": { "$and": [
             { "first_name": {$ne: 'DELETE'} },
             { "last_name": {$ne: 'DELETE'} },
             { "byCompany": {$eq: { "ObjectId" : res.data.result[0]._id} } },
+            // { "byCompany": res.data.result[0]._id ? {$eq: { "ObjectId" : res.data.result[0]._id} } : { $exists: true }},
           ]}
         },
         { "$project": {  "hashed_password_1": 0,"hashed_password_2": 0,"salt": 0} }
@@ -394,7 +396,9 @@ onMounted(async () => {
           </el-button>
           <template #dropdown>
             <el-dropdown-menu>
-              <el-dropdown-item v-for="(item, index) in deletionData" class="w-200px flex-justify-center" @click="downloadList('download', index)">{{ item.filename_str }}</el-dropdown-item>
+              <el-dropdown-item v-for="(item, index) in deletionData" :key="item.value" 
+              class="w-200px flex-justify-center" @click="downloadList('download', index)">{{ item.filename_str }}
+              </el-dropdown-item>
             </el-dropdown-menu>
           </template>
         </el-dropdown>

@@ -35,15 +35,12 @@ const select_time = ref([ new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0
 const defaultTime = [new Date(2000, 1, 1, 0, 0, 0), new Date(2000, 1, 1, 23, 59, 59)]
 
 const download = () => {
-  
-
   let tHeader = ['Status','Station','EVSE ID', 'kWh', 'Pirce', 'Start Time', 'End Time']
-  let filterVal = ['status','location_str','evse_str', 'kwh', 'price_str', 'start_date_local_time', 'end_date_local_time']
+  let filterVal = ['status','location_str','evse_str', 'kwh', 'price', 'start_date_local_time', 'end_date_local_time']
   if (MStore.permission.isMSI) {
     tHeader = ['Status', 'Company', 'Station', 'EVSE ID', 'kWh', 'Pirce', 'Start Time', 'End Time']
-    filterVal = ['status', 'byCompany_str', 'location_str', 'evse_str', 'kwh', 'price_str', 'start_date_local_time', 'end_date_local_time']
+    filterVal = ['status', 'byCompany_str', 'location_str', 'evse_str', 'kwh', 'price', 'start_date_local_time', 'end_date_local_time']
   }
-
   const data = OcpiSessionDataAll.map(v => filterVal.map(j => v[j]))
   export_json_to_excel ({ header: tHeader, data: data, filename: 'Charger Log' })
 }
@@ -74,6 +71,7 @@ const select_date = async () => {
   Object.assign(OcpiSessionDataOri, res.data.result)
   
   for (let i = 0; i < OcpiSessionDataAll.length; i++) {
+    OcpiSessionDataAll[i].price = OcpiSessionDataAll[i]?.total_cost?.incl_vat
     OcpiSessionDataAll[i].price_str = OcpiSessionDataAll[i]?.total_cost?.incl_vat.toLocaleString()
     OcpiSessionDataAll[i].location_str = OcpiSessionDataAll[i]?.Location[0]?.name
     OcpiSessionDataAll[i].evse_str = OcpiSessionDataAll?.[i]?.EVSE?.[0]?.evse_id
@@ -217,6 +215,7 @@ onMounted( async() => {
   Object.assign(OcpiSessionDataOri, res.data.result)
   Object.assign(OcpiSessionDataAll, res.data.result)
   for (let i = 0; i < OcpiSessionDataAll.length; i++) {
+    OcpiSessionDataAll[i].price = OcpiSessionDataAll[i]?.total_cost?.incl_vat
     OcpiSessionDataAll[i].price_str = OcpiSessionDataAll[i]?.total_cost?.incl_vat.toLocaleString()
     OcpiSessionDataAll[i].location_str = OcpiSessionDataAll[i]?.Location?.[0]?.name
     OcpiSessionDataAll[i].evse_str = OcpiSessionDataAll[i]?.EVSE?.[0]?.evse_id

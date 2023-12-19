@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "build-all": "run-p build:prod build:test build:dev",
+    "build-all": "run-p build:prod build:test build:dev build:stg",
     "dev": "vite --host 0.0.0.0",
     "build": "vite build",
     "preview": "vite preview",
@@ -12,7 +12,8 @@
     "build:prod": "vite build --mode prod",
     "build:test": "vite build --mode test",
     "build:dev": "vite build --mode dev",
-    "build:demo": "vite build --mode demo"
+    "build:demo": "vite build --mode demo",
+    "build:stg": "vite build --mode stg"
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^6.4.0",

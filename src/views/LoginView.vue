@@ -21,14 +21,6 @@ const forgotPWVisable = ref(false)
 const sendEmailCompleted = ref(false)
 const isLoading = ref(false)
 const checkState = ref(false)
-const isCpoUser = ref(true)
-
-const changeMode = () => {
-  if (isCpoUser.value === true) 
-    isCpoUser.value = false
-  else 
-    isCpoUser.value = true
-}
 
 const cancel_eula = () => {
   first_login.value = false
@@ -44,11 +36,7 @@ const pwVisible = () => {
 
 const login = async () => {
   try {
-    let response 
-    if(isCpoUser.value)
-      response = await MsiApi.getToken({ email: account.value, password: password.value, expMethod: '6M', dashboard: true})
-    else 
-      response = await MsiApi.getToken({ email: account.value, password: password.value, expMethod: '6M'})
+    let response = await MsiApi.getToken({ email: account.value, password: password.value, expMethod: '6M', dashboard: true})
     if (response.status === 200) {
       VueCookies.set('AuthToken', { headers: { Authorization: response.data.token } }, '6M')
     } else if (response.status === 400 || response.status === 404) {
@@ -58,18 +46,12 @@ const login = async () => {
       ElMessage.error('Error.')
       return
     }
-  }
-  catch {
-    ElMessage.error('An unexpected error occurred.')
-  }  
-
-  try {
-    const response = await MsiApi.checkToken()
+    response = await MsiApi.checkToken()
     if (response.status === 200) {
-      console.log(response)
       if ( response.data?.permission?.user?.name === 'AdminUser' || response.data?.permission?.user?.name === 'DeveloperUser' ||
-      response.data?.permission?.user?.name === 'ViewerUser' || response.data?.permission?.user?.name === 'FAEUser' ||
-      response.data?.permission?.user?.name === 'CustomerServiceUser' || response.data?.permission?.user?.name === 'MemberUser' || response.data?.permission?.user === undefined) {
+           response.data?.permission?.user?.name === 'ViewerUser' || response.data?.permission?.user?.name === 'FAEUser' ||
+           response.data?.permission?.user?.name === 'CustomerServiceUser' || response.data?.permission?.user?.name === 'MemberUser' || 
+           response.data?.permission?.user === undefined) {
         if (response.data?.permission?.user === undefined || response.data?.config?.m_cloud?.logged) 
           router.push({ name: 'dashboard' })
         else 
@@ -85,7 +67,7 @@ const login = async () => {
   }
   catch {
     ElMessage.error('An unexpected error occurred.')
-  }
+  }  
 }
 
 const aggre_eula = async () => {
@@ -254,7 +236,7 @@ onMounted(() => {
         <p class="text-30px text-white text-center">
           {{ t('version') + ':' + APP_VERSION }}
         </p>
-        <img class="logo block mx-auto" src="@/assets/img/login_msilogo.png" @click="changeMode"/>
+        <img class="logo block mx-auto" src="@/assets/img/login_msilogo.png"/>
       </div>
     </div>
     <el-dialog

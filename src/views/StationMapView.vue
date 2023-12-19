@@ -3,61 +3,73 @@ import { onMounted, ref, reactive ,onUnmounted} from 'vue'
 import * as echarts from 'echarts'
 import { useRoute } from 'vue-router'
 import ApiFunc from '@/composables/ApiFunc'
+import { useMStore } from '@/stores/m_cloud'
+import moment from "moment"
+const MStore = useMStore()
 const MsiApi = ApiFunc()
 const route = useRoute()
 const location_map = ref(null)
 const station_id = route.query.id
-let test = ''
-let get_complete = false
+
+const testFunc = async(params) => {
+  console.log(params.data)
+    let queryData = { "database": 'CPO', "collection": 'ChargePointInfo', 
+      "pipelines": [{ $match: { "evse_id": {$eq:params.data.evse_id }} },  
+      { $project: { ocpp_info: 1, sessions:1} }]
+    }
+    let response = await MsiApi.mongoAggregate(queryData)
+    console.log(response)
+    let idtag = response?.data?.result?.[0]?.ocpp_info[0]?.idTag
+    queryData = { "database": 'OCPI', "collection": 'Session', 
+      "pipelines": [
+      { $match:  { "_id": {"ObjectId": response?.data?.result?.[0]?.sessions?.[0] } }},  
+      { $project: { 111: 0} }]
+    }
+    response = await MsiApi.mongoAggregate(queryData)   
+    let start_time = response?.data?.result?.[0]?.start_date_time
+    let kwh = response?.data?.result[0]?.kwh
+    let cost = response?.data?.result?.[0]?.total_cost?.incl_vat
+    let start_time_str = new Date(new Date(start_time).getTime() + MStore.timeZoneOffset * -60000)
+    start_time_str = moment(start_time_str).format('YYYY-MM-DD HH:mm:ss'),
+    queryData = { 
+      "database": 'CPO', "collection": 'RFIDUserData', "pipelines": [
+        {
+          $unwind: "$rfids"
+        },
+        { 
+          $match: { 
+            $and: [
+              { "rfids.rfid": idtag?.toUpperCase() },
+            ]
+          },
+        },
+        {
+          $project: {tag_id: 1} 
+        }
+      ]
+    },
+    response = await MsiApi.mongoAggregate(queryData)
+    let tag_id = response?.data?.result[0]?.tag_id
+    let txt = 'Location : ' + params.data.name + '<br>' +
+              'EVSE ID : ' + params.data.evse_id + '<br>' + 
+              'Start Time : '+ start_time_str + '<br>' +
+              'kWh : '+ kwh + '<br>' +
+              'Cost : '+ cost + '<br>' +
+              'Tag ID : ' + tag_id 
+              // 'License Plate  : '+ params.data.evse_id + '<br>' +
+    return txt
+}
+
 const option = reactive({
         color:'#001100',
         tooltip: {
           triggerOn: 'click',
-          
-          formatter:(params,ticket,callback) =>{
-            console.log(params)
-            MsiApi.checkToken().then((res)=> {
-              console.log(res)
-              // test = res.data.message
-
-              
-              test = 'Location : ' + params.data.name + '<br>' +
-                   'EVSE ID  : '+ params.data.evse_id + '<br>' +
-                   'Start Time  : '+ params.data.evse_id + '<br>' +
-                   'kWh  : '+ params.data.evse_id + '<br>'  +
-                   'Price  : '+ params.data.evse_id + '<br>' +
-                   'License Plate  : '+ params.data.evse_id + '<br>' 
-
-
-            })
-            
-              setTimeout(() => {
-  console.log('After 1000 milliseconds (1 second)');
-  return test
-}, 1000);
-              
-            
-            console.log(222)
-          }
-
-
-            // formatter: async function (params, ticket, callback) {
-            // await MsiApi.mongoAggregate(queryData1)('detail?name=' + params.name, function (content) {
-            //   callback(ticket, toHTML(content));
-            // })
-            // return 'Loading';
-            // }
-
-
-
-
-            
-            // return 'Location : ' + params.data.name + '<br>' +
-            //        'EVSE ID  : '+ params.data.evse_id + '<br>' +
-            //        'Start Time  : '+ params.data.evse_id + '<br>' +
-            //        'kWh  : '+ params.data.evse_id + '<br>'  +
-            //        'Price  : '+ params.data.evse_id + '<br>' +
-            //        'License Plate  : '+ params.data.evse_id + '<br>' 
+          formatter:  (params,ticket,callback) => {
+            setTimeout( async  () => {
+              callback(ticket, await testFunc(params))
+            }, 0)
+            return 'loading';
+        }
         },
         series: [
           {
@@ -68,27 +80,29 @@ const option = reactive({
             emphasis: { label: {show: false} },
             selectedMode: false,
             data: [
-              { name: 'A1', itemStyle: { areaColor: '' } },
-              { name: 'A2', itemStyle: { areaColor: '' }},
-              { name: 'A3', itemStyle: { areaColor: '' }},
-              { name: 'A4', itemStyle: { areaColor: '' }},
-              { name: 'A5', itemStyle: { areaColor: '' }},
+              { name: 'A1', itemStyle: { areaColor: '#000000' }},
+              { name: 'A2', itemStyle: { areaColor: '#000000' }},
+              { name: 'A3', itemStyle: { areaColor: '#000000' }},
+              { name: 'A4', itemStyle: { areaColor: '#000000' }},
+              { name: 'A5', itemStyle: { areaColor: '#000000' }},
+              { name: 'A6', itemStyle: { areaColor: '#000000' }},
+              { name: 'A7', itemStyle: { areaColor: '#000000' }},
+              { name: 'A8', itemStyle: { areaColor: '#000000' }},
+              { name: 'A9', itemStyle: { areaColor: '#000000' }},
+              { name: 'A10', itemStyle: { areaColor: '#000000' }},
+              { name: 'A11', itemStyle: { areaColor: '#000000' }},
+              { name: 'A12', itemStyle: { areaColor: '#000000' }},
+              { name: 'A13', itemStyle: { areaColor: '#000000' }},
+              { name: 'A14', itemStyle: { areaColor: '#000000' }},
+              { name: 'A15', itemStyle: { areaColor: '#000000' }},
             ],
-            
           }
-          
         ],
-
       })
 let interval 
-const getStationInfo = () => {
 
-}
 onMounted(async () => {
-
   const myChart = echarts.init(location_map.value)
-  option.series[0].data[0].value = 55
-
   let queryData1 = { "database":"OCPI", "collection":"Location", "pipelines": [ 
       { $match:  { "id": { "UUID" : station_id} } },
       { "$lookup": {"from":'EVSE', "localField": "evses", "foreignField": "_id", "as":"EVSES"}},
@@ -102,11 +116,12 @@ onMounted(async () => {
       }
     ]}
   let res = await MsiApi.mongoAggregate(queryData1)
-  console.log(res.data.result[0].EVSES[0].evse_id)
+  let evse_arr = res.data.result[0].EVSES
+  evse_arr.sort(function(a, b) {
+    return a.evse_id.localeCompare(b.evse_id);
+  })
   for (let i = 0; i < res.data.result[0].EVSES.length; i++) {
-  
     option.series[0].data[i].evse_id = res.data.result[0].EVSES[i].evse_id
-    // console.log(res.data.result[0].EVSES[i].status)
     if (res.data.result[0].EVSES[i].status === 'AVAILABLE') {
       option.series[0].data[i].itemStyle.areaColor = '#76bbf4'
     }
@@ -119,22 +134,13 @@ onMounted(async () => {
     else if (res.data.result[0].EVSES[i].status === 'UNKNOWN') {
       option.series[0].data[i].itemStyle.areaColor = '#bcbcbc'
     }
-
-    // let queryData = { "database": 'CPO', "collection": 'ChargePointInfo', 
-    //   "pipelines": [{ $match: { "evse_id": res.data.result[0].EVSES[i].evse_id } },  
-    //   { $project: { ocpp_info: 1, sessions:1} }]
-    // }
-    //   response = await MsiApi.mongoAggregate(queryData)
-
   }
-  
-  fetch("src/assets/svg/msi_station.svg")
+  fetch("msi_station.svg")
     .then(response => response.text())
     .then(svg => {
       echarts.registerMap('LocationMap', { svg: svg })
       myChart.setOption(option);
     })
-    interval = setInterval(getStationInfo, 5000) 
 })
 
 onUnmounted(async () => {
@@ -147,7 +153,7 @@ onUnmounted(async () => {
 <template>
   <div class='station-map'>
     <div>
-      <div id="main" style="width: 800px; height: 400px;" ref="location_map"></div>
+      <div id="main" style="width: 1600px; height: 800px;" ref="location_map"></div>
     </div>
   </div>
 </template>

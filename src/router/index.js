@@ -189,6 +189,13 @@ const router = createRouter({
 })
 
 router.beforeEach(async to => {
+
+  const MStore = useMStore()
+  const MsiApi = ApiFunc()
+
+  if (to.meta.title) document.title = to.meta.title
+  else document.title = "m-Cloud"
+
   let lang = localStorage.getItem("lang")
   if (lang)
     i18n.global.locale.value = lang
@@ -199,15 +206,12 @@ router.beforeEach(async to => {
       i18n.global.locale.value = 'en_us'
     localStorage.setItem("lang", i18n.global.locale.value)
   }
-  if (to.meta.title) document.title = to.meta.title
-  else document.title = "m-Cloud"
   
   if (to.fullPath === '/login') return
-
-  const MStore = useMStore()
-  const MsiApi = ApiFunc()
+  
   if (MStore.timeZoneOffset === undefined) 
     MStore.timeZoneOffset = new Date().getTimezoneOffset()
+
   if (MStore.permission === undefined) {
     let res = await MsiApi.checkToken()
     try {

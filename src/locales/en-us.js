@@ -1137,7 +1137,7 @@ export default {
     // used_times:                                                                                  'Used Times',
     beginning_balance:                                                                              'Beginning Balance',
     id_already_exists:                                                                              'ID already exists',
-    please_chat_to_administrator_it:                                                                'Please chat to Administrator/IT.',
+    please_chat_to_administrator:                                                                   'Please chat to Administrator.',
     refund_amount:                                                                                  'Refund Amount',
     top_up_amount:                                                                                  'Top-up Amount',
     transaction_amount:                                                                             'Transaction Amount',

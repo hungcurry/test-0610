@@ -239,7 +239,7 @@ const addRfidUserDialog = (action) => {
             ElMessage.error(t('id_already_exists'))
           }
           else if (res.data.message === 'Please chat to Administrator/IT.') {
-            ElMessage.error(t('please_chat_to_administrator_it'))
+            ElMessage.error(t('please_chat_to_administrator'))
           }
           else { 
             ElMessage.error(t('error'))
