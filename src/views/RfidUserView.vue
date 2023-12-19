@@ -471,7 +471,7 @@ onMounted( async() => {
                     align="center"
                     sortable
                     :sort-method="(a, b) => sortFunc(a, b, 'origin')"
-                    min-width="150"
+                    min-width="170"
                   />
                   <el-table-column
                     prop="topup_str"
@@ -495,7 +495,7 @@ onMounted( async() => {
                     align="center"
                     sortable
                     :sort-method="(a, b) => sortFunc(a, b, 'price')"
-                    min-width="150"
+                    min-width="170"
                   />
                   <el-table-column
                     prop="balance_str"
