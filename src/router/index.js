@@ -31,6 +31,7 @@ import PermissionView from '@/views/PermissionView.vue'
 import RfidUserView from '@/views/RfidUserView.vue'
 import RfidUserDetailView from '@/views/RfidUserDetailView.vue'
 import StationMapView from '@/views/StationMapView.vue'
+import TokenManagementView from '@/views/TokenManagementView.vue'
 import { ElMessage } from 'element-plus'
 import { m_cloud_permission } from '@/composables/permission'
 
@@ -177,6 +178,11 @@ const router = createRouter({
           path: 'station-map',
           name: 'stationMap',
           component: StationMapView
+        },
+        {
+          path: 'token-management',
+          name: 'tokenManagement',
+          component: TokenManagementView
         },
         {
           path: 'test',

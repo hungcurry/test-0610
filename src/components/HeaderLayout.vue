@@ -110,7 +110,7 @@ const emitCallBack = (res) => {
 
       <el-dropdown trigger="click">
         <el-button class="user">        
-          <span class="material-symbols-outlined">translate</span>
+          <span class="material-symbols-outlined">language</span>
         </el-button>
         <template #dropdown>
           <el-dropdown-menu>

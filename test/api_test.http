@@ -1,6 +1,6 @@
 //Use VS Code REST Client Extension
 
-@baseUrl = https://evse.msi.com/api
+@baseUrl = https://evse.msi.com/api3
 @Token = {{login.response.body.token}}
 
 ###
@@ -339,3 +339,11 @@ Authorization: {{Token}}
 GET http://localhost:3000/api/hello
 ### modify
 GET http://localhost:3000/api/users
+
+###
+DELETE https://evse.msi.com/api3/cpo/StevenTest/token
+Authorization: {{Token}}
+
+{
+    "token": "06e79cb8-5628-4085-b429-f03d89ef2755"
+}

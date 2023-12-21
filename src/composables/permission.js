@@ -174,8 +174,8 @@ const mapKeysGroup ={
   Payment: ['Payment'],
   EvseManagement: ['Station','StationDetail', 'StationEdit', 'EVSE', 'EVSEDetail', 'EVSEEdit', 'RatePlan', 'RatePlanDetail', 'ChargingProfile' ,'ChargingProfileDetail'],
   //---------------------
-  AccountManagement: ['RfidUser','RfidUserDetail','Parking'],
-  LogMonitor: ['EVSELog', 'ErrorLog'],
+  AccountManagement: ['RfidUser','RfidUserDetail'],
+  LogMonitor: ['EVSELog', 'ErrorLog','Parking'],
   AdvancedSetting: ['User','UserDetail','Company', 'Administrator', 'SoftwareInfo','Program', 'Permission'],
   Other: ['AdminInfo'],
 }

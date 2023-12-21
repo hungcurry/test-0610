@@ -153,7 +153,6 @@ const saveStation = async (formEl) => {
   }
 
   let opening_times = { twentyfourseven:station_always_open.value, regular_hours:regular_hours}
-  console.log(opening_times)
   const coordinates = { latitude: parseFloat(StationData.latitude_str).toFixed(6), longitude: parseFloat(StationData.longitude_str).toFixed(6) }
   if (StationData.publish === undefined)
     StationData.publish = false
@@ -337,6 +336,7 @@ onMounted(async () => {
                       placeholder="Select" 
                       size="large"
                       @change="change_country_code(StationData.country)"
+                      filterable 
                     >
                     <el-option v-for="item in country_list" :key="item.value" :label="item.label" :value="item.value" />
                     </el-select>

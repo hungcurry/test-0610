@@ -1372,4 +1372,17 @@ export default {
     edit_charging_profile:                                                                          'Edit Charging Profile',
     select_date_and_time:                                                                           'Select date and time',
     valid_time:                                                                                     'Valid Time',
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//TokenManagementPage   
+    add_token:                                                                                      'add_token',
+    token_management:                                                                               'token_management',
+    token:                                                                                          'token',
+    count:                                                                                          'count',
+    expired_date_time:                                                                               'expired_date_time',
+    // token_management:                                                                               'token_management'
+    // token_management:                                                                               'token_management'
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 }
+
+
+

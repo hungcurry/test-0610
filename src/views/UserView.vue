@@ -18,7 +18,6 @@ const UserData = reactive([])
 const input = ref('')
 const isLoading = ref(false)
 const dialogFormVisible = ref(false)
-const user_type = reactive([])
 const newUser = reactive({first_name:'', last_name:'', email:'', password:'msi32345599'})
 
 const add_user_ref = ref()
@@ -46,32 +45,6 @@ const sortFunc = (obj1, obj2, column) => {
   }
 }
 
-const GetPermission = async () => {
-  try {
-    let queryData = { 
-      "database":"CPO", 
-      "collection":"UserPermission", 
-      pipelines: [
-        {
-          $match: {
-            name: {
-              $nin: ['AdminUser', 'EngineerUser', 'CustomerServiceUser', 'DeveloperUser']
-            }
-          }
-        },
-        { 
-          $project: { _id: 1, name: 1} 
-        }
-      ]
-    }
-    let response = await MsiApi.mongoAggregate(queryData)
-    user_type.length = 0
-    Object.assign(user_type, response.data.result)
-  }
-  catch {
-    ElMessage.error('An unexpected error occurred.')
-  }
-}
 
 const detail_info = (detail) => {
   router.push({ name: 'userDetail', query:{id:detail._id} })
@@ -290,7 +263,6 @@ onMounted( async() => {
       ]
     }
     await MongoAggregate(queryData)
-    GetPermission()
   }
   catch {
     ElMessage.error('An unexpected error occurred.')

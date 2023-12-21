@@ -15,6 +15,8 @@ const MsiApi = ApiFunc()
 const router = useRouter()
 const isLoading = ref(false)
 const first_login = ref(false)
+const agreeFee = ref(0)
+const sessionFee = ref(0)
 
 let companyId = null
 let current_date = null
@@ -172,7 +174,7 @@ const getNextProgramDate = (date) => {
   let month = arr[1]
   let day = arr[2]
   let newYear = year
-  let newMonth = parseInt(month) + 1
+  let newMonth = parseInt(month)
   let newDay = day
   let newDay2 = new Date(newYear, newMonth, 0)
   newDay2 = newDay2.getDate()
@@ -540,6 +542,10 @@ const getCompanyData = async() => {
       ],
     }
     response = await MsiApi.mongoAggregate(queryData)
+    if (response.data.result[0]?.upgrade_manager?.session_fee?.[0]?.price)
+      agreeFee.value = response.data.result[0]?.upgrade_manager?.session_fee?.[0]?.price
+    if (response.data.result[0]?.upgrade_manager?.session_fee?.[1]?.price)
+    sessionFee.value = response.data.result[0]?.upgrade_manager?.session_fee?.[1]?.price
     companyId = response.data.result[0]._id
     companyData.upgrade_manager = response.data.result[0].upgrade_manager
     companyData.Merchant_ID = response.data.result[0].payment?.merchantId
@@ -1038,6 +1044,7 @@ onMounted(async () => {
               <div class="flex">
                 <font-awesome-icon icon="fa-solid fa-coins" class="w-20px h-20px mr-5px text-blue-1200" />
                 <p class="text-1.8rem text-blue-1200 font-bold">{{ t('neweb_pay') }}</p>
+                <!-- <p class="text-1.8rem ml-8px text-blue-1200 font-bold">{{ '( ' + t('Agree Fee ') + agreeFee + ' % / ' + 'Session Fee ' + sessionFee + ' TWD )'}}</p> -->
               </div>
               <el-button round class="button" @click="openNewebDialog" v-if="!companyData.Merchant_ID" >{{ t('create') }}</el-button>
             </div>
@@ -1049,6 +1056,14 @@ onMounted(async () => {
               <div class="w-50% min-w-350px flex mb-5px">
                 <p class="w-150px text-blue-1200">{{ t('merchant_status') }}</p>
                 <p class="text-blue-1200">{{ companyData.Merchant_Status }}</p>
+              </div>
+              <div class="w-50% min-w-350px flex mb-5px">
+                <p class="w-150px text-blue-1200">{{ t('agreed_fee') }}</p>
+                <p class="text-blue-1200">{{ agreeFee }} {{ '%' }}</p>
+              </div>
+              <div class="w-50% min-w-350px flex mb-5px">
+                <p class="w-150px text-blue-1200">{{ t('session_fee') }}</p>
+                <p class="text-blue-1200">{{ sessionFee }} {{ 'TWD' }}</p>
               </div>
             </div>
           </div>

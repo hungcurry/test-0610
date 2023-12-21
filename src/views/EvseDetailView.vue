@@ -460,12 +460,7 @@ const getCompositeSchedule = async () => {
   chargingProfile_dialog_visible.value = false
   ElMessageBox.confirm(t('do_you_want_to_get_composite_schedule'), t('warning'), {confirmButtonText: t('ok'), cancelButtonText: t('cancel'), type: 'warning'})
   .then(async () => {
-    let sendData = {
-      evse_id: evseData.evse_id,
-      duration: chargingProfile_dialog_data.durationInput,
-      chargingRateUnit: chargingProfile_dialog_data.get_charge_rate_unit
-    }
-    let res = await MsiApi.get_composite_schedule(sendData)
+    let res = await MsiApi.get_composite_schedule(evseData.evse_id, chargingProfile_dialog_data.durationInput, chargingProfile_dialog_data.get_charge_rate_unit)
     if (res.status === 200) {
       chargingProfile_dialog_visible.value = true
       Object.assign(chargingProfile_dialog_data, res.data.message)

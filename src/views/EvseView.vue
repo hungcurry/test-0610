@@ -158,52 +158,57 @@ const sortFunc = (obj1, obj2, column) => {
   }
 }
 onMounted(async () => {
+  const startTime = new Date().getTime()
   isLoading.value = true
   if (route.query.page === 'unpaired') {
     activeName.value = '2'
   }
-
-  let queryData = {
-    database: 'CPO',
-    collection: 'VersionControl',
-    query: { type: 'XP012' },
+  let queryData = { database: 'CPO',    collection: 'VersionControl',
+    pipelines: [
+    { $match: { type: { $eq: 'XP012' } } },  
+    { $project: { _id:0, version:1} }],
   }
-  let response = await MsiApi.mongoQuery(queryData)
+  let response = await MsiApi.mongoAggregate(queryData)
   if (response.status === 403) {
     isLoading.value = false
     return
   }
-  swVersion.value = response.data.all[0].version
+  swVersion.value = response.data.result[0].version
 
-  queryData = {
-    database: 'CPO',
-    collection: 'CompanyInformation',
-    pipelines: [{ $project: { _id: 1, name: 1 } }],
-  }
-  response = await MsiApi.mongoAggregate(queryData)
+  queryData = { database: 'CPO', collection: 'CompanyInformation',
+                pipelines: [{ $project: { _id: 1, name: 1 } }],
+              }
+  let response1 = MsiApi.mongoAggregate(queryData)
 
-  let company_filter_item1 =  response.data.result.map(item => {
-    return { text: item.name,value: item._id }
-  })
-  Object.assign(company_filter_item, company_filter_item1)
-  console.log(company_filter_item)
-
-  queryData = {
-    database: 'OCPI',
-    collection: 'Location',
+  queryData = { database: 'OCPI', collection: 'Location',
     pipelines: [{ $project: { _id: 0, evses: 1, name: 1 } }],
   }
-  response = await MsiApi.mongoAggregate(queryData)
-  let locationData = response.data.result
+  let response2 = MsiApi.mongoAggregate(queryData)
 
-  queryData = {
-    database: 'OCPI',
-    collection: 'EVSE',
+  queryData = { database: 'OCPI', collection: 'EVSE',
     pipelines: [{ $project: { _id: 1, connectors: 0 } }],
   }
-  response = await MsiApi.mongoAggregate(queryData)
+  let response3 = MsiApi.mongoAggregate(queryData)
+
+
+  queryData = { database: 'CPO', collection: 'ChargePointInfo',
+    pipelines: [{ $project: { _id: 0, evse_id: 1, hmi: 1 } }],
+  }
+  let response4 = MsiApi.mongoAggregate(queryData)
+  queryData = { database: 'CPO', collection: 'HMIControlBoardInfo',
+    pipelines: [{ $project: { _id: 1, hmi_board_sw_version: 1 } }],
+  }
+  let response5 = MsiApi.mongoAggregate(queryData)
+  const [result1, result2, result3, result4, result5] = await Promise.all([response1, response2, response3, response4, response5])
+
+  Object.assign(company_filter_item, result1.data.result)
+  let locationData = result2.data.result
   EvseData.length = 0
-  Object.assign(EvseData, response.data.result)
+  Object.assign(EvseData, result3.data.result)
+  let chargePointInfoData = result4.data.result
+  let hmiInfoData = result5.data.result
+
+  isLoading.value = false
   EvseData.forEach((item)=> {
     let localEndTime = new Date( new Date(item.last_updated).getTime() + MStore.timeZoneOffset * -60000)
     item.last_updated_str = moment(localEndTime).format('YYYY-MM-DD HH:mm:ss')
@@ -247,14 +252,6 @@ onMounted(async () => {
       EvseConnectData.push(EvseData[i])
     }
   }
-  isLoading.value = false
-  queryData = { database: 'CPO', collection: 'ChargePointInfo', query: {} }
-  response = await MsiApi.mongoQuery(queryData)
-  let chargePointInfoData = response.data.all
-
-  queryData = { database: 'CPO', collection: 'HMIControlBoardInfo', query: {} }
-  response = await MsiApi.mongoQuery(queryData)
-  let hmiInfoData = response.data.all
 
   for (let i = 0; i < EvseData.length; i++) {
     for (let j = 0; j < chargePointInfoData.length; j++)
@@ -265,21 +262,25 @@ onMounted(async () => {
   }
   for (let i = 0; i < EvseData.length; i++) {
     if (EvseData[i].hmi !== undefined) {
-      for (let j = 0; j < hmiInfoData.length; j++)
+      for (let j = 0; j < hmiInfoData.length; j++) {
         if (EvseData[i].hmi === hmiInfoData[j]._id) {
           EvseData[i].hmi_version = hmiInfoData[j].hmi_board_sw_version
-          EvseData[i].control_version = hmiInfoData[j].control_board_fw_version
         }
+      }
     }
   }
   for (let i = 0; i < EvseData.length; i++) {
     if (EvseData[i].byCompany !== undefined) {
-      for (let j = 0; j < company_filter_item.length; j++)
-        if (EvseData[i].byCompany === company_filter_item[j].value) {
-          EvseData[i].byCompany_str = company_filter_item[j].text
+      for (let j = 0; j < company_filter_item.length; j++) {
+        if (EvseData[i].byCompany === company_filter_item[j]._id) {
+          EvseData[i].byCompany_str = company_filter_item[j].name
         }
+      }
     }
   }
+  const endTime = new Date().getTime()
+  const elapsedTime = endTime - startTime;
+  console.log('mount', elapsedTime, 'ms');
 })
 </script>
 

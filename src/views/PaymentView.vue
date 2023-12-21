@@ -211,8 +211,7 @@ const getPaymentData = async(filters) => {
     }
     const startTime = new Date(selectTime.value[0].getTime() - MStore.timeZoneOffset * -60000)
     const endTime = new Date(selectTime.value[1].getTime() - MStore.timeZoneOffset * -60000)
-    let params = {start_date: startTime, end_date: endTime}
-    let response = await MsiApi.get_paymentHistory(params)
+    let response = await MsiApi.get_paymentHistory(startTime, endTime)
     PaymentData.length = 0
     response?.data?.data?.forEach((item) => {
       if (filters === null || filters?.tag.length === 0 || filters?.tag.includes(item?.paymethod)) {
@@ -260,8 +259,7 @@ const getCashLogData = async(filters) => {
     }
     const startTime = new Date(selectTime.value[0].getTime() - MStore.timeZoneOffset * -60000)
     const endTime = new Date(selectTime.value[1].getTime() - MStore.timeZoneOffset * -60000)
-    let params = {start_date: startTime, end_date: endTime}
-    let response = await MsiApi.get_cash(params)
+    let response = await MsiApi.get_cash(startTime, endTime)
     RFIDData.length = 0
     response?.data?.data?.forEach((item) => {
       if (filters === null || filters?.tag.length === 0 || filters?.tag.includes(item?.type)) {

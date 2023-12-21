@@ -12,61 +12,49 @@ const sideMenuStore = useSideMenuStore()
 const route = useRoute()
 const path = route.path.slice(1)
 const { isCollapse } = storeToRefs(sideMenuStore)
-const hovered = ref([false,false,false,false,false,false])
-let dev_member = false
+const hovered = ref({ dashboardIcon: false, paymentIcon: false, rfidUserIcon: false, evseIcon: false, logIcon: false, advIcon: false})
 
-if ( MStore.user_data.first_name === 'Steven') {
-  dev_member = true  
-}
+// let dev_member = false
+// if ( MStore.user_data.first_name === 'Steven') {
+//   dev_member = true  
+// }
 
 </script>
 
 <template>
-  <el-menu
-    :default-active="path"
-    class="el-menu-vertical-demo"
-    text-color="#fff"
-    active-text-color="#61a8d8"
-    router
-    :collapse="isCollapse"
-  >
+  <el-menu :default-active="path" class="el-menu-vertical-demo" text-color="#fff" active-text-color="#61a8d8" router :collapse="isCollapse">
     <el-menu-item v-if="MStore.rule_permission.Dashboard.page === 'O' || MStore.permission.isCompany" index="dashboard" 
-      @mouseover="hovered[0] = true" @mouseleave="hovered[0] = false">
-      <img v-show="!hovered[0]" class="w-45px h-45px -ml-8px" src="@/assets/img/all_ic_dashboard_nor.png" alt=""/>
-      <img v-show="hovered[0]" class="w-45px h-45px -ml-16px" src="@/assets/img/all_ic_dashboard_focus.png" alt=""/>
-
+      @mouseover="hovered.dashboardIcon = true" @mouseleave="hovered.dashboardIcon = false">
+      <img v-show="!hovered.dashboardIcon" class="w-45px h-45px -ml-8px" src="@/assets/img/all_ic_dashboard_nor.png" alt=""/>
+      <img v-show="hovered.dashboardIcon" class="w-45px h-45px -ml-16px" src="@/assets/img/all_ic_dashboard_focus.png" alt=""/>
       <template #title>
         <span> {{t('dashboard')}}</span>
       </template>
     </el-menu-item>
 
     <el-menu-item v-if="MStore.rule_permission.Payment.page === 'O' || MStore.permission.isCompany" index="payment"
-    @mouseover="hovered[1] = true" @mouseleave="hovered[1] = false">
-      <img v-show="!hovered[1]" class="w-45px h-45px -ml-8px" src="@/assets/img/all_ic_payment_nor.png" alt=""/>
-      <img v-show="hovered[1]" class="w-45px h-45px -ml-16px" src="@/assets/img/all_ic_payment_focus.png" alt=""/>
-
+    @mouseover="hovered.paymentIcon = true" @mouseleave="hovered.paymentIcon = false">
+      <img v-show="!hovered.paymentIcon" class="w-45px h-45px -ml-8px" src="@/assets/img/all_ic_payment_nor.png" alt=""/>
+      <img v-show="hovered.paymentIcon" class="w-45px h-45px -ml-16px" src="@/assets/img/all_ic_payment_focus.png" alt=""/>
       <template #title>
         <span>{{t('payment')}}</span>
       </template>
     </el-menu-item>
 
     <el-menu-item v-if="MStore.permission.isMSI === false && (MStore.rule_permission.RfidUser.page === 'O' || MStore.permission.isCompany)" index="rfid-user"
-    @mouseover="hovered[2] = true" @mouseleave="hovered[2] = false">
-
-    <img v-show="!hovered[2]" class="w-45px h-45px -ml-8px" src="@/assets/img/all_ic_account_nor.png" alt=""/>
-    <img v-show="hovered[2]" class="w-45px h-45px -ml-16px" src="@/assets/img/all_ic_account_focus.png" alt=""/>
+    @mouseover="hovered.rfidUserIcon = true" @mouseleave="hovered.rfidUserIcon = false">
+      <img v-show="!hovered.rfidUserIcon" class="w-45px h-45px -ml-8px" src="@/assets/img/all_ic_account_nor.png" alt=""/>
+      <img v-show="hovered.rfidUserIcon" class="w-45px h-45px -ml-16px" src="@/assets/img/all_ic_account_focus.png" alt=""/>
       <template #title>
         <span> {{t('rfid_user')}}</span>
       </template>
     </el-menu-item>
 
     <el-sub-menu v-if="MStore.rule_permission.Station === 'O' || MStore.rule_permission.EVSE.page === 'O' || MStore.rule_permission.RatePlan.page === 'O' || MStore.permission.isCompany" index="station"
-    @mouseover="hovered[3] = true" @mouseleave="hovered[3] = false">
+    @mouseover="hovered.evseIcon = true" @mouseleave="hovered.evseIcon = false">
       <template #title>
-
-      <img v-show="!hovered[3]" class="w-45px h-45px -ml-8px" src="@/assets/img/all_ic_evse_nor.png" alt=""/>
-      <img v-show="hovered[3]" class="w-45px h-45px -ml-16px" src="@/assets/img/all_ic_evse_focus.png" alt=""/>
-
+        <img v-show="!hovered.evseIcon" class="w-45px h-45px -ml-8px" src="@/assets/img/all_ic_evse_nor.png" alt=""/>
+        <img v-show="hovered.evseIcon" class="w-45px h-45px -ml-16px" src="@/assets/img/all_ic_evse_focus.png" alt=""/>
         <span>{{t('evse_management')}}</span>
       </template>
       <el-menu-item v-if="MStore.rule_permission.Station.page === 'O' || MStore.permission.isCompany" class="collapse" index="station">{{t('by_station')}}</el-menu-item>
@@ -75,13 +63,11 @@ if ( MStore.user_data.first_name === 'Steven') {
       <el-menu-item v-if="MStore.rule_permission.ChargingProfile.page === 'O'" class="collapse" index="charging-profile">{{t('charging_profile')}}</el-menu-item>
     </el-sub-menu>
   
-    <el-sub-menu index="evse-log" v-if="MStore.rule_permission.EVSELog.page === 'O' || MStore.rule_permission.ErrorLog.page === 'O' || MStore.permission.isCompany"
-    @mouseover="hovered[4] = true" @mouseleave="hovered[4] = false">
+    <el-sub-menu v-if="MStore.rule_permission.EVSELog.page === 'O' || MStore.rule_permission.ErrorLog.page === 'O' || MStore.permission.isCompany" index="evse-log" 
+    @mouseover="hovered.logIcon = true" @mouseleave="hovered.logIcon = false">
       <template #title>
-
-      <img v-show="!hovered[4]" class="w-45px h-45px -ml-8px" src="@/assets/img/all_ic_log_nor.png" alt=""/>
-      <img v-show="hovered[4]" class="w-45px h-45px -ml-16px" src="@/assets/img/all_ic_log_focus.png" alt=""/>
-
+        <img v-show="!hovered.logIcon" class="w-45px h-45px -ml-8px" src="@/assets/img/all_ic_log_nor.png" alt=""/>
+        <img v-show="hovered.logIcon" class="w-45px h-45px -ml-16px" src="@/assets/img/all_ic_log_focus.png" alt=""/>
         <span>{{t('log_monitor')}}</span>
       </template>
       <el-menu-item v-if="MStore.rule_permission.EVSELog.page === 'O' || MStore.permission.isCompany" class="collapse" index="evse-log">{{t('evse_log')}}</el-menu-item>
@@ -90,12 +76,10 @@ if ( MStore.user_data.first_name === 'Steven') {
     </el-sub-menu>
 
     <el-sub-menu index="advanced-setting" v-if="MStore.permission.isMSI"
-    @mouseover="hovered[5] = true" @mouseleave="hovered[5] = false">
+    @mouseover="hovered.advIcon = true" @mouseleave="hovered.advIcon = false">
       <template #title>
-
-      <img v-show="!hovered[5]" class="w-45px h-45px -ml-8px" src="@/assets/img/all_ic_setting_nor.png" alt=""/>
-      <img v-show="hovered[5]" class="w-45px h-45px -ml-16px" src="@/assets/img/all_ic_setting_focus.png" alt=""/>
-
+        <img v-show="!hovered.advIcon" class="w-45px h-45px -ml-8px" src="@/assets/img/all_ic_setting_nor.png" alt=""/>
+        <img v-show="hovered.advIcon" class="w-45px h-45px -ml-16px" src="@/assets/img/all_ic_setting_focus.png" alt=""/>
         <span>{{t('advanced_setting')}}</span>
       </template>
       <el-menu-item v-if="MStore.rule_permission.User.page === 'O' || MStore.permission.isCompany" class="collapse" index="user">{{t('app_member')}}</el-menu-item>
@@ -104,9 +88,10 @@ if ( MStore.user_data.first_name === 'Steven') {
       <el-menu-item v-if="MStore.rule_permission.SoftwareInfo.page === 'O' || MStore.permission.isCompany" class="collapse" index="software-info">{{t('softwart_info')}}</el-menu-item>
       <el-menu-item v-if="MStore.rule_permission.Program.page === 'O' || MStore.permission.isCompany" class="collapse" index="program">{{t('program')}}</el-menu-item>
       <el-menu-item v-if="MStore.permission.isMSI && MStore.rule_permission.Permission.page === 'O'" class="collapse" index="permission">{{t('permission')}}</el-menu-item>
-      <el-menu-item v-if="dev_member" class="collapse" index="test">test</el-menu-item>
+      <el-menu-item v-if="MStore.permission.isMSI && MStore.rule_permission.Permission.page === 'O'" class="collapse" index="token-management">{{t('token_management')}}</el-menu-item>
+      <!-- <el-menu-item v-if="MStore.permission.isMSI && MStore.rule_permission.Permission.page === 'O'" class="collapse" index="rfid-user">{{t('rfid_user')}}</el-menu-item> -->
+      <!-- <el-menu-item v-if="dev_member" class="collapse" index="test">test</el-menu-item> -->
     </el-sub-menu>
-    
   </el-menu>
 </template>
 

@@ -438,7 +438,7 @@ const GetPermission = async () => {
     user_type.length = 0
     let member_permission = []
     for (let i = 0; i < response.data.result.length; i++) {
-      if (response.data.result[i].name === 'AnonymousUser' || response.data.result[i].name === 'MemberUser') {
+      if (response.data.result[i].name === 'AnonymousUser' || response.data.result[i].name === 'MemberUser' || response.data.result[i].name === 'FAEUser') {
         member_permission.push(response.data.result[i])
       }
     }
@@ -448,21 +448,12 @@ const GetPermission = async () => {
         case 'AnonymousUser':
           user_type[i].name = t('anonymous_user')
           break
-        case 'AdminUser':
-          user_type[i].name = t('admin_user')
-          break
-        case 'CustomerServiceUser':
-          user_type[i].name = t('customer_service_user')
-          break
-        case 'DeveloperUser':
-          user_type[i].name = t('developer_user')
-          break
-        case 'EngineerUser':
-          user_type[i].name = t('engineer_user')
-          break
         case 'MemberUser':
           user_type[i].name = t('member_user')
           break
+        case 'FAEUser':
+          user_type[i].name = t('fae_user')
+        break
         default:
           break
       }
@@ -490,6 +481,7 @@ const editUser = () => {
   userDataMod.phone = userData.phone
   userDataMod.permission_str = userData.permission_str
   userDataMod.permission_active_str = userData.permission.active
+  userDataMod.company = userData?.config?.company
   EditCustomerFormVisible.value = true 
   GetPermission()
 }
@@ -511,6 +503,7 @@ const editUserDialog = (action) => {
             .then(async () => {
               let sendData = { class: 'UserData', pk: userData._id, first_name: userDataMod.first_name, last_name: userDataMod.last_name,
                 email: userDataMod.email , phone: userDataMod.phone , permission: { user: permission_id, active: userDataMod.permission_active_str },
+                config: {company: userDataMod.company}
               }
               let res = await MsiApi.setCollectionData('patch', 'cpo', sendData)
               if (res.status === 200) {
@@ -571,6 +564,7 @@ const editUserDialog = (action) => {
       userDataMod.email = userData.email
       userDataMod.phone = userData.phone
       userDataMod.permission_str = userData.permission_str
+      userDataMod.company = userData.config?.company
     }
   }
   catch {
@@ -623,6 +617,7 @@ onMounted(async () => {
     for (let i = 0; i < user_type.length; i++) {
       if (user_type[i]._id === userData.permission.user) {
         userData.permission_str = user_type[i].name
+        console.log(userData.permission_str)
       }
     }
     for (let i = 0; i < userData?.paylist?.length; i++) {
@@ -805,7 +800,7 @@ onMounted(async () => {
                         <span class="info-item min-w-110px ">{{ t('permission') }}</span>
                         <span class="line-height-32px font-500 text-blue-1200">{{ userData.permission_str }}</span>
                       </div>
-    
+
                       <div class="mb-8px">
                         <span class="info-item min-w-110px white-space-nowrap">{{ t('updated_date') }}</span>
                         <span class="line-height-32px font-500 text-blue-1200 white-space-nowrap">{{ userData.updated_date_str }}</span>
@@ -831,7 +826,7 @@ onMounted(async () => {
                         round class="button w-full" @click="device_detail">{{ t('device_details') }}</el-button>
                       </div>
                       <div class="md:flex mb-8px">
-                        <span class="info-item min-w-110px">{{ t('') }}</span>
+                        <span class="info-item min-w-110px">{{ '' }}</span>
                         <el-button 
                         v-if="MStore.rule_permission.UserDetail.deviceDetail === 'O' || MStore.permission.isCompany"
                         round class="button w-full" @click="notification">{{ t('send_notification') }}</el-button>
@@ -1136,6 +1131,9 @@ onMounted(async () => {
               <el-select class="el-select" v-model="userDataMod.permission_str" :placeholder="t('select')" size="large">
                 <el-option v-for="item in user_type" :key="item.value" :label="item.name" :value="item.name" />
               </el-select>
+            </el-form-item>
+            <el-form-item v-if="userDataMod.permission_str === t('fae_user')" :label="t('company')">
+              <el-input v-model="userDataMod.company" />
             </el-form-item>
             <el-form-item :label="t('active')">
               <el-switch v-model="userDataMod.permission_active_str" />

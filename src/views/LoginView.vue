@@ -38,7 +38,7 @@ const login = async () => {
   try {
     let response = await MsiApi.getToken({ email: account.value, password: password.value, expMethod: '6M', dashboard: true})
     if (response.status === 200) {
-      VueCookies.set('AuthToken', { headers: { Authorization: response.data.token } }, '6M')
+      VueCookies.set('AuthToken', { headers: { Authorization: response.data.token, "X-Client-From":'m-Cloud' } }, '6M')
     } else if (response.status === 400 || response.status === 404) {
       ElMessage.error(t('oops_account_or_password_error'))
       return
