@@ -1350,7 +1350,7 @@ onUnmounted(() => {
                     <el-table-column prop="restrictions.start_time" :label="t('start_time')" min-width="120" align="center"/>
                     <el-table-column prop="restrictions.end_time" :label="t('end_time')" min-width="120" align="center"/>
                     <el-table-column prop="restrictions_min_duration_str" :label="t('active_minute')" min-width="120" align="center"/>
-                    <el-table-column prop="restrictions_max_duration_str" :label="t('deactivate_minute')" min-width="120" align="center"/>
+                    <el-table-column prop="restrictions_max_duration_str" :label="t('deactivate_minute')" min-width="150" align="center"/>
                     <el-table-column prop="restrictions.day_of_week_str" :label="t('day_of_week')" min-width="200" align="center"/>
                   </el-table>
                   
@@ -1499,7 +1499,7 @@ onUnmounted(() => {
             <el-form class="w-full" :rules="set_charging_profile_rules" :model="chargingProfile_dialog_data" ref="set_charging_profile_formRef" label-position="left">
               <el-form-item class="m-auto w-360px mb-24px" :label= "t('profile_purpose')" prop="set_charge_profile_purpose" label-width="140px" >
                 <el-select v-model="chargingProfile_dialog_data.set_charge_profile_purpose" class="w-200px" placeholder="Select" size="large" @change="filterChargeProfilePurpose">
-                  <el-option v-for="item in chargingProfilePurpose" :label="item.name" :value="item.value" />
+                  <el-option v-for="item in chargingProfilePurpose" :key="item.name" :label="item.name" :value="item.value" />
                 </el-select>
               </el-form-item>
               <el-form-item class="m-auto w-360px mb-24px" :label= "t('profile_name')" prop="set_charge_profile" label-width="140px" >
@@ -1589,7 +1589,7 @@ onUnmounted(() => {
       </template>
       <div class="dialog-context pb-20px configuration">
         <el-form class="max-w-500px m-auto" >
-          <el-form-item v-for="(item, index) in cp_config" class="mb-24px flex">
+          <el-form-item v-for="(item, index) in cp_config" :key="item.key" class="mb-24px flex">
             <span slot="label" class="w-290px" :class="{modify_item: item.modify}">{{ item.key }}</span>
             <el-switch v-if="item.value === false || item.value === true" v-model="item.value" :disabled="item.readonly" @change="value => editConfiguration(value, index)" />
             <el-input v-else v-model="item.value" :disabled="item.readonly" @change="value => editConfiguration(value, index)" />
