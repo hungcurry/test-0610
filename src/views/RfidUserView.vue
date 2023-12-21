@@ -137,7 +137,7 @@ const getTransactionData = async() => {
 
   transactionData.length = 0
   payments?.data?.data?.forEach(item => {
-    let user_cash = cashs?.data?.data?.find(item2 => item2._id === item._id)
+    let user_cash = cashs?.data?.data?.find(item2 => item2.rfid === item.rfid)
     let origin = 0
     let balance = 0
 
