@@ -4,7 +4,7 @@ import axios from 'axios'
 let apiServer = 'api10/api'
 axios.defaults.timeout = 15000
 if (import.meta.env.VITE_API !== undefined) {
-  apiServer = import.meta.env.VITE_API
+  apiServer = import.meta.env.VITE_SERVER_URL+'/'+import.meta.env.VITE_API
 }
 
 const axiosInterface = async (method, url, data) => {

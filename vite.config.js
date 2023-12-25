@@ -7,15 +7,15 @@ import ElementPlus from 'unplugin-element-plus/vite'
 import unocss from 'unocss/vite'
 export default ({ mode }) => {
   // eslint-disable-next-line no-undef
-  let env = loadEnv(mode, process.cwd(), '')
+  // let env = loadEnv(mode, process.cwd(), '')
+  process.env = Object.assign(process.env, loadEnv(mode, process.cwd(), ''));
   return defineConfig({
     define: {
       __VUE_I18N_FULL_INSTALL__: true,
       __VUE_I18N_LEGACY_API__: false,
-      __INTLIFY_PROD_DEVTOOLS__: false,
-      APP_VERSION: "'0.3.6'",
+      __INTLIFY_PROD_DEVTOOLS__: false
     },
-    base: env.VITE_BASE_URL,
+    base: process.env.VITE_BASE_URL,
     productionSourceMap: false,
     plugins: [
       vue(),
@@ -40,13 +40,24 @@ export default ({ mode }) => {
       },
     },
     server: {
-      proxy: {
+      proxy:
+      {
         '/api10': {
-          target: 'https://evse.msi.com',
+          target: process.env.VITE_SERVER_URL+process.env.VITE_API_VERSION || 'https://evse.msi.com/api3',
+          pathRewrite: { 
+            [`^${process.env.VITE_API_VERSION || '/api3'}`]: ''
+          },
           changeOrigin: true,
-          rewrite: (path) => path.replace(/^\/api10/, ''),
-          secure: false,
-        },
+          ws: true
+        }
+      
+      // proxy: {
+      //   '/api10': {
+      //     target: process.env.VITE_SERVER_URL,
+      //     changeOrigin: true,
+      //     rewrite: (path) => path.replace(/^\/api10/, ''),
+      //     secure: false,
+      //   },
       },
       open: true,
       port: 8080,
@@ -54,7 +65,7 @@ export default ({ mode }) => {
       hmr: true,
     },
     build: {
-      outDir: 'dist/' + env.VITE_NAME,
+      outDir: 'dist/' + process.env.VITE_NAME,
     },
   })
 }

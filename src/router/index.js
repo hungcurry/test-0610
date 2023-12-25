@@ -36,6 +36,7 @@ import { ElMessage } from 'element-plus'
 import { m_cloud_permission } from '@/composables/permission'
 
 const router = createRouter({
+  base: import.meta.env.VITE_BASE_URL,
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
