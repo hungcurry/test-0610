@@ -36,10 +36,13 @@ const updateConfirm = async () => {
 }
 const updateSW = async() => {
   sw_version_visable.value = true
-  let queryData = { "database":"CPO", "collection":"VersionControl", "query": { "type": 'XP012'}}
-  let response = await MsiApi.mongoQuery(queryData)
-  fwVersion.value = response.data.all[0].version
-  let release_note = response.data.all[0].release_note.find(obj => obj.version === fwVersion.value)
+  let queryData = { database: 'CPO', collection: 'VersionControl',
+    pipelines: [{ $match: { type: { $eq: 'XP012' } } },
+    { $project: { _id: 0, type:0, release_date:0, "release_note.description": 0,"release_note.update_time": 0} }
+  ]}
+  let response = await MsiApi.mongoAggregate(queryData)
+  fwVersion.value = response.data.result[0].version
+  let release_note = response.data.result[0].release_note.find(obj => obj.version === fwVersion.value)
   if (release_note) {
     update_file.value = release_note.file
   }

@@ -131,9 +131,8 @@ const getTransactionData = async() => {
   }
   const startTime = new Date(selectTime.value[0].getTime() - MStore.timeZoneOffset * -60000)
   const endTime = new Date(selectTime.value[1].getTime() - MStore.timeZoneOffset * -60000)
-  let params = {role:'rfid', start_date: startTime, end_date: endTime}
-  let payments = await MsiApi.get_user_payment(params)
-  let cashs = await MsiApi.get_user_cash(params)
+  let payments = await MsiApi.get_user_payment({role:'rfid', start_date: startTime, end_date: endTime})
+  let cashs = await MsiApi.get_user_cash({role:'rfid', start_date: startTime, end_date: endTime})
 
   transactionData.length = 0
   payments?.data?.data?.forEach(item => {

@@ -18,9 +18,9 @@ const MsiApi = ApiFunc()
 const router = useRouter()
 const checkState = ref(false)
 
-const closeModal = (state) => {
+const closeModal = async (state) => {
   if (state === false)
-    VueCookies.remove('AuthToken')
+    await MsiApi.clearCookies()
   emit('closeModal', state)
 }
 watchEffect(() => {

@@ -216,14 +216,20 @@ const convertTimeToHours = (timeString) => {
 }
 
 onMounted(async () => {
-  let jsonData = { "database": "OCPI", "collection": "Location", "query": { "id": { "UUID": station_id } } }
   if (station_id === undefined) {
     edit_title.value = t('add_station')
   }
   else {
-    let response = await MsiApi.mongoQuery(jsonData)
+    let queryData = { database: 'OCPI', collection: 'Location', 
+    pipelines: [
+        { $match: { id: { $eq: { "UUID": station_id } } }},
+        { $project: { _id: 0, byCompany:0, last_updated:0 } }
+      ],
+    }
+    let response = await MsiApi.mongoAggregate(queryData)
+    console.log(response)
     StationData.length = 0
-    Object.assign(StationData, response.data.all[0])
+    Object.assign(StationData, response.data.result[0])
     if (StationData?.opening_times?.regular_hours) {
       StationData.opening_times.regular_hours.forEach ( (item) => {
         let hours1 = convertTimeToHours(item.period_begin);

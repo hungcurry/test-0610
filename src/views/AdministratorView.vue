@@ -131,8 +131,6 @@ const editAdmin = async (action) => {
                 GetPermission()
                 console.log(await MongoAggregate())
                 if (editAdminData.email === MStore.user_data?.email) {
-                  MStore.user_data.first_name = sendData.first_name
-                  MStore.user_data.last_name = sendData.last_name
                   MStore.permission.active = sendData.permission.active
                   MStore.permission.edit = sendData.permission.edit
                   MStore.permission.user = sendData.permission.user
@@ -155,9 +153,7 @@ const editAdmin = async (action) => {
       EditAdminFormVisible.value = false  
       ElMessageBox.confirm(t('do_you_want_to_delete'), t('warning'), { confirmButtonText: t('ok'), cancelButtonText: t('cancel'), type: 'warning' })
         .then(async () => {
-          const params = { role:'admin', id: editAdminData._id }
-          let res = await MsiApi.delete_account(params)
-
+          const res = await MsiApi.delete_account({ role:'admin', id: editAdminData._id })
           if (res.data.message === 'Accepted') {
             GetPermission()
             console.log(await MongoAggregate())

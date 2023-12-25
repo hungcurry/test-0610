@@ -41,14 +41,13 @@ const filterCompany = (value, row) => {
 
 const updateSW = async () => {
   sw_version_visable.value = true
-  let queryData = {
-    database: 'CPO',
-    collection: 'VersionControl',
-    query: { type: 'XP012' },
-  }
-  let response = await MsiApi.mongoQuery(queryData)
-  swVersion.value = response.data.all[0].version
-  let release_note = response.data.all[0].release_note.find(
+  let queryData = { database: 'CPO', collection: 'VersionControl',
+    pipelines: [{ $match: { type: { $eq: 'XP012' } } },
+    { $project: { _id: 0, type:0, release_date:0, "release_note.description": 0,"release_note.update_time": 0} }
+  ]}
+  let response = await MsiApi.mongoAggregate(queryData)
+  swVersion.value = response.data.result[0].version
+  let release_note = response.data.result[0].release_note.find(
     (obj) => obj.version === swVersion.value
   )
   if (release_note) {
@@ -115,21 +114,15 @@ const evseReset = (type) => {
       })
   }
 }
+
 const status_filter = (value, rowData) => {
   return rowData.status === value
 }
+
 const detail_info = async (detail) => {
-  let queryData = {
-    database: 'OCPI',
-    collection: 'Location',
-    query: { evses: { $in: [{ ObjectId: detail._id }] } },
-  }
-  let response = await MsiApi.mongoQuery(queryData)
-  router.push({
-    name: 'evseDetail',
-    query: { station_id: response?.data?.all?.[0]?.id, evse_id: detail.uid },
-  })
+  router.push({ name: 'evseDetail', query: {  evse_id: detail.uid }})
 }
+
 const add_charger = () => {
   if (EvseData.length >= MStore.program.evse && MStore.permission.isMSI === false) {
     ElMessage.error(t('please_confirm_your_subscription_plan'))
@@ -137,6 +130,7 @@ const add_charger = () => {
   }
   router.push({ name: 'evseEdit' })
 }
+
 const edit = () => {
   if (editMode.value === false) {
     editMode.value = true
@@ -146,6 +140,7 @@ const edit = () => {
     edit_button_str.value = 'update_or_restart'
   }
 }
+
 const sortFunc = (obj1, obj2, column) => {
   let at = obj1[column]
   let bt = obj2[column]
@@ -201,7 +196,13 @@ onMounted(async () => {
   let response5 = MsiApi.mongoAggregate(queryData)
   const [result1, result2, result3, result4, result5] = await Promise.all([response1, response2, response3, response4, response5])
 
-  Object.assign(company_filter_item, result1.data.result)
+  let company_filter =  result1.data.result.map(item => {
+    return { text: item.name,value: item._id }
+  })
+  Object.assign(company_filter_item, company_filter)
+
+  let company_list = result1.data.result
+
   let locationData = result2.data.result
   EvseData.length = 0
   Object.assign(EvseData, result3.data.result)
@@ -271,9 +272,9 @@ onMounted(async () => {
   }
   for (let i = 0; i < EvseData.length; i++) {
     if (EvseData[i].byCompany !== undefined) {
-      for (let j = 0; j < company_filter_item.length; j++) {
-        if (EvseData[i].byCompany === company_filter_item[j]._id) {
-          EvseData[i].byCompany_str = company_filter_item[j].name
+      for (let j = 0; j < company_list.length; j++) {
+        if (EvseData[i].byCompany === company_list[j]._id) {
+          EvseData[i].byCompany_str = company_list[j].name
         }
       }
     }

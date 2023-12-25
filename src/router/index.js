@@ -21,7 +21,6 @@ import RatePlanDetailView from '@/views/RatePlanDetailView.vue'
 import EvseEditView from '@/views/EvseEditView.vue'
 import SoftwareInfoView from '@/views/SoftwareInfoView.vue'
 import ErrorLogView from '@/views/ErrorLogView.vue'
-import TestView from '@/views/TestView.vue'
 import ParkingView from '@/views/ParkingView.vue'
 import AdminInfoView from '@/views/AdminInfoView.vue'
 import ProgramView from '@/views/ProgramView.vue'
@@ -184,11 +183,6 @@ const router = createRouter({
           name: 'tokenManagement',
           component: TokenManagementView
         },
-        {
-          path: 'test',
-          name: 'test',
-          component: TestView
-        },
       ]
     }
   ]
@@ -202,7 +196,7 @@ router.beforeEach(async to => {
   if (to.meta.title) document.title = to.meta.title
   else document.title = "m-Cloud"
 
-  let lang = localStorage.getItem("lang")
+  const lang = localStorage.getItem("lang")
   if (lang)
     i18n.global.locale.value = lang
   else {
@@ -219,35 +213,46 @@ router.beforeEach(async to => {
     MStore.timeZoneOffset = new Date().getTimezoneOffset()
 
   if (MStore.permission === undefined) {
-    let res = await MsiApi.checkToken()
     try {
+      let res = await MsiApi.checkToken()
       if (res.status === 200) {
         MStore.permission = res.data.permission
-        if (res.data.permission.company.name === 'MSI') {
+        if (res.data.permission?.company?.name === 'MSI') 
           MStore.permission.isMSI = true
+        else 
+          MStore.permission.isMSI = false
+        if (res.data.email) {
+          MStore.permission.isCompany = false
+          MStore.user_data.email = res.data.email
         }
         else {
-          MStore.permission.isMSI = false
+          MStore.permission.isCompany = true
+          MStore.user_data.email = ''
+          MStore.rule_permission = m_cloud_permission.AdminUser
         }
-        let queryData  = { "database": "CPO", "collection": "CompanyInformation", "pipelines": [ 
-          { $match:  { "name": { "$eq": MStore.permission.company.name } } }, { "$project": { "_id": 0} }
+      } 
+      else {
+        return '/login'  
+      }
+      
+      if (MStore.permission.isCompany === false) {
+        const user_permission = MStore?.permission?.user?.name
+        let queryData  = { database: "CPO", collection: "CompanyInformation", pipelines: [ 
+          { $match:  { name: { $eq: MStore.permission.company.name} } }, 
+          { $project: { _id: 0, config: 1} }
         ]}
-          let res1 = await MsiApi.mongoAggregate(queryData)
-        if (res.data.email) {
-          const user_permission = MStore?.permission?.user?.name
-          if (res1?.data?.result?.[0]?.config?.m_cloud?.permissions?.[user_permission]){
-            // MStore.rule_permission = res1.data.result[0].config.m_cloud.permissions[user_permission]
-            // add-權限合併
-            const remotePermission = res1.data.result[0].config.m_cloud.permissions[user_permission]
+        res = await MsiApi.mongoAggregate(queryData)
+        if (res.status === 200) {
+          if (res.data.result[0]?.config?.m_cloud?.permissions?.[user_permission]) {
+            const remotePermission = res.data.result[0].config.m_cloud.permissions[user_permission]
             const localPermission = JSON.parse(JSON.stringify(m_cloud_permission[user_permission]))
             for (let page in remotePermission) {
               if (!localPermission[page]) continue
               for (let item in remotePermission[page]) {
-                if (remotePermission[page][item] === 'O' && localPermission[page][item] ) {
-                  localPermission[page][item] = 'O';
-                } else if (remotePermission[page][item] === 'X' && localPermission[page][item] ) {
-                  localPermission[page][item] = 'X';
-                }
+                if (remotePermission[page][item] === 'O' && localPermission[page][item] ) 
+                  localPermission[page][item] = 'O'
+                else if (remotePermission[page][item] === 'X' && localPermission[page][item] ) 
+                  localPermission[page][item] = 'X'
               }
             }
             MStore.rule_permission = localPermission
@@ -255,45 +260,21 @@ router.beforeEach(async to => {
           else {
             MStore.rule_permission = m_cloud_permission[MStore?.permission?.user?.name]
           }
-          MStore.permission.isCompany = false
-          MStore.user_data.email = res.data.email
-          MStore.user_data.first_name = res.data.first_name
-          MStore.user_data.last_name = res.data.last_name
         }
         else {
-          MStore.rule_permission = m_cloud_permission["AdminUser"]
-          MStore.permission.isCompany = true
-          MStore.user_data.email = ''
-          MStore.user_data.first_name = ''
-          MStore.user_data.last_name = ''
-        }
-        queryData = {
-          database: 'CPO',
-          collection: 'LimitPlan',
-          pipelines: [
-            { $match: { _id: { $eq: {ObjectId : res.data.permission.company.upgrade_manager.subscribe.due_plan} } } },
-            { $project: { aaa: 0 } },
-          ],
-        }
-        res = await MsiApi.mongoAggregate(queryData)
-        if (res.status === 200) {
-          MStore.program.name = res.data.result[0].name
-          MStore.program.price = res.data.result[0].price
-          MStore.program.location = res.data.result[0].location
-          MStore.program.evse = res.data.result[0].evse
-          MStore.program.tariff = res.data.result[0].tariff
-          MStore.program.user = res.data.result[0].user
-          MStore.program.admin_user = res.data.result[0].admin_user
-          MStore.program.connector = res.data.result[0].connector
-          MStore.program.currency = res.data.result[0].currency
-        }
-        else { 
-          ElMessage.error('Error')
           return '/login'  
         }
-      } 
+      }
+
+      let queryData = { database: 'CPO', collection: 'LimitPlan', pipelines: [
+        { $match: { _id: { $eq: {ObjectId : MStore.permission.company.upgrade_manager.subscribe.due_plan} } } },
+        { $project: { _id: 0 } },
+      ]}
+      res = await MsiApi.mongoAggregate(queryData)
+      if (res.status === 200) {
+        MStore.program = res.data.result[0]
+      }
       else { 
-        ElMessage.error('Error')
         return '/login'  
       }
     }
@@ -303,9 +284,6 @@ router.beforeEach(async to => {
     }
   }
 
-  if (MStore.permission === 0) 
-    return '/login'
-  
   let toPath = to.fullPath.toLowerCase()
 
   if (toPath === '/company' && MStore.permission.company.name !== 'MSI' ) {
@@ -313,10 +291,6 @@ router.beforeEach(async to => {
   }
   
   if (toPath === '/program' && MStore.permission.company.name !== 'MSI' ) {
-    return '/login'
-  }
-
-  if (toPath === '/test' && MStore.user_data.first_name !== 'Steven' ) {
     return '/login'
   }
 })

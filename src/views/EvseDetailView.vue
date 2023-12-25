@@ -308,11 +308,7 @@ const getDiagnostics = async () => {
   ElMessageBox.confirm(t('do_you_want_to_get_diagnostics'), t('warning'), {confirmButtonText: t('ok'), cancelButtonText: t('cancel'), type: 'warning'})
   .then(async () => {
     
-    let sendData = {
-      evse_id: evseData.evse_id,
-      location: "https://storage.googleapis.com/msi-hmi-logs/",
-    }
-    let response = await MsiApi.get_diagnostics(sendData)
+    let response = await MsiApi.get_diagnostics({ evse_id: evseData.evse_id, location: "https://storage.googleapis.com/msi-hmi-logs/"})
     console.log(response)
     if (response.status === 200) {
       interval = setInterval(check_uploaded, 5000) 
@@ -327,10 +323,8 @@ const getDiagnostics = async () => {
 const getConfiguration = async () => {
   ElMessageBox.confirm(t('do_you_want_to_get_configuration'), t('warning'), {confirmButtonText: t('ok'), cancelButtonText: t('cancel'), type: 'warning'})
   .then(async () => {
-    let sendData = {
-      evse_id: evseData.evse_id,
-    }
-    const response = await MsiApi.get_configuration(sendData)
+    const response = await MsiApi.get_configuration(evseData.evse_id)
+    console.log(123, response)
     if (response.status === 200) {
       cp_config.length = 0
       Object.assign(cp_config, response.data.configurationKey)

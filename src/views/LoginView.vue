@@ -22,9 +22,9 @@ const sendEmailCompleted = ref(false)
 const isLoading = ref(false)
 const checkState = ref(false)
 
-const cancel_eula = () => {
+const cancel_eula = async () => {
   first_login.value = false
-  VueCookies.remove('AuthToken')
+  await MsiApi.clearCookies()
 }
 
 const pwVisible = () => {
@@ -36,7 +36,7 @@ const pwVisible = () => {
 
 const login = async () => {
   try {
-    let response = await MsiApi.getToken({ email: account.value, password: password.value, expMethod: '6M', dashboard: true})
+    const response = await MsiApi.getToken({ email: account.value, password: password.value, expMethod: '6M', dashboard: true})
     if (response.status === 200) {
       VueCookies.set('AuthToken', { headers: { Authorization: response.data.token, "X-Client-From":'m-Cloud' } }, '6M')
     } else if (response.status === 400 || response.status === 404) {
@@ -46,19 +46,25 @@ const login = async () => {
       ElMessage.error('Error.')
       return
     }
-    response = await MsiApi.checkToken()
+  }
+  catch {
+    ElMessage.error('An unexpected error occurred.')
+    return
+  }  
+  
+  try {
+    const response = await MsiApi.checkToken()
     if (response.status === 200) {
-      if ( response.data?.permission?.user?.name === 'AdminUser' || response.data?.permission?.user?.name === 'DeveloperUser' ||
-           response.data?.permission?.user?.name === 'ViewerUser' || response.data?.permission?.user?.name === 'FAEUser' ||
-           response.data?.permission?.user?.name === 'CustomerServiceUser' || response.data?.permission?.user?.name === 'MemberUser' || 
-           response.data?.permission?.user === undefined) {
-        if (response.data?.permission?.user === undefined || response.data?.config?.m_cloud?.logged) 
+      if ( ['AdminUser', 'DeveloperUser', 'ViewerUser', 'CustomerServiceUser', 'FAEUser'].includes(response.data?.permission?.user?.name) 
+          || response.data?.permission?.user === undefined) {
+        if (response.data?.config?.m_cloud?.logged) 
           router.push({ name: 'dashboard' })
         else 
           first_login.value = true
       }
-      else 
+      else  {
         ElMessage.error(t('oops_account_or_password_error'))
+      }
     }
     else {
       ElMessage.error('Error.')
@@ -73,12 +79,10 @@ const login = async () => {
 const aggre_eula = async () => {
   try {
     const response = await MsiApi.member_modify({ config: { m_cloud: { logged: true } } })
-    if (response.status === 200) {
+    if (response.status === 200) 
       router.push({ name: 'dashboard' })
-    }
-    else {
+    else 
       ElMessage.error('Error.')
-    }
   }
   catch {
     ElMessage.error('An unexpected error occurred.')
@@ -121,11 +125,11 @@ onBeforeMount(() => {
   }
 })
 
-onMounted(() => {
+onMounted( async () => {
   let targetTimezoneOffset = new Date().getTimezoneOffset()
   MStore.timeZoneOffset = targetTimezoneOffset
   MStore.permission = undefined
-  VueCookies.remove('AuthToken')
+  await MsiApi.clearCookies()
 })
 </script>
 

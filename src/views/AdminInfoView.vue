@@ -17,6 +17,7 @@ const isLoading = ref(false)
 const first_login = ref(false)
 const agreeFee = ref(0)
 const sessionFee = ref(0)
+const currency = ref('')
 
 let companyId = null
 let current_date = null
@@ -389,8 +390,6 @@ const confirmAdminUser = (action, del_id) => {
               if (res.status === 200) {
                 await getAdminData()
                 if (AdminData.email === MStore.user_data?.email) {
-                  MStore.user_data.first_name = sendData.first_name
-                  MStore.user_data.last_name = sendData.last_name
                   MStore.permission.active = sendData.permission.active
                   MStore.permission.edit = sendData.permission.edit
                   MStore.permission.user = sendData.permission.user
@@ -420,8 +419,7 @@ const confirmAdminUser = (action, del_id) => {
       ElMessageBox.confirm(t('do_you_want_to_delete'), t('warning'), { confirmButtonText: t('ok'), cancelButtonText: t('cancel'), type: 'warning' })
         .then(async () => {
           isLoading.value = true
-          const params = { role:'admin', id: del_id }
-          let res = await MsiApi.delete_account(params)
+          let res = await MsiApi.delete_account({ role:'admin', id: del_id })
           console.log(res)
           if (res.data.message === 'Accepted') {
             await getAdminData()
@@ -498,10 +496,7 @@ const confirmNewebPay = async(action) => {
     newebDialogVisible.value = false
     ElMessageBox.confirm(t('do_you_want_to_create'), t('warning'), { confirmButtonText: t('ok'), cancelButtonText: t('cancel'), type: 'warning' })
       .then(async () => {
-        let res = null
-        let sendData = {merchantId: neweb_id.value}
-        
-        res = await MsiApi.add_merchant(sendData)
+        const res = await MsiApi.add_merchant(neweb_id.value)
         if (res.status === 200) {
           isLoading.value = true
           document.body.innerHTML += res.data
@@ -542,10 +537,19 @@ const getCompanyData = async() => {
       ],
     }
     response = await MsiApi.mongoAggregate(queryData)
-    if (response.data.result[0]?.upgrade_manager?.session_fee?.[0]?.price)
+    if (response.data.result[0]?.upgrade_manager?.session_fee?.[0]?.type === 'AgreeFee') 
       agreeFee.value = response.data.result[0]?.upgrade_manager?.session_fee?.[0]?.price
-    if (response.data.result[0]?.upgrade_manager?.session_fee?.[1]?.price)
-    sessionFee.value = response.data.result[0]?.upgrade_manager?.session_fee?.[1]?.price
+    else {
+      sessionFee.value = response.data.result[0]?.upgrade_manager?.session_fee?.[0]?.price
+      sessionFee.value = response.data.result[0]?.upgrade_manager?.session_fee?.[0]?.currency
+    }
+    if (response.data.result[0]?.upgrade_manager?.session_fee?.[1]?.type === 'AgreeFee')
+      agreeFee.value = response.data.result[0]?.upgrade_manager?.session_fee?.[1]?.price
+    else {
+      sessionFee.value = response.data.result[0]?.upgrade_manager?.session_fee?.[1]?.price
+      sessionFee.value = response.data.result[0]?.upgrade_manager?.session_fee?.[1]?.currency
+    }
+    console.log(response.data.result[0]?.upgrade_manager)
     companyId = response.data.result[0]._id
     companyData.upgrade_manager = response.data.result[0].upgrade_manager
     companyData.Merchant_ID = response.data.result[0].payment?.merchantId
@@ -1063,7 +1067,7 @@ onMounted(async () => {
               </div>
               <div class="w-50% min-w-350px flex mb-5px">
                 <p class="w-150px text-blue-1200">{{ t('session_fee') }}</p>
-                <p class="text-blue-1200">{{ sessionFee }} {{ 'TWD' }}</p>
+                <p class="text-blue-1200">{{ sessionFee }} {{ currency }}</p>
               </div>
             </div>
           </div>

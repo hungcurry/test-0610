@@ -918,16 +918,7 @@ const status_filter = (value, rowData) => {
   return rowData.status === value
 }
 const goToEvseDetail = async(detail) => {
-  let queryData = {
-    database: 'OCPI',
-    collection: 'Location',
-    query: { evses: { $in: [{ ObjectId: detail._id }] } },
-  }
-  let response = await MsiApi.mongoQuery(queryData)
-  router.push({
-    name: 'evseDetail',
-    query: { station_id: response?.data?.all?.[0]?.id, evse_id: detail.uid },
-  })
+  router.push({name: 'evseDetail', query: { evse_id: detail.uid }})
 }
 
 onMounted(async () => {
