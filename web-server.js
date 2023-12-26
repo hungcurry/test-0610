@@ -6,8 +6,6 @@ const publicPath = process.env.PUBLIC_PATH || '/dev/m-cloud';
 
 const app = express();
 
-// app.use(express.static(path.join(__dirname, publicPath)));
-// app.use(publicPath, express.static(path.join(__dirname, 'dist')));
 app.use(publicPath, express.static(path.join(__dirname, publicPath)));
 
 app.get('*', (req, res) => {

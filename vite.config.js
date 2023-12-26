@@ -7,7 +7,6 @@ import ElementPlus from 'unplugin-element-plus/vite'
 import unocss from 'unocss/vite'
 export default ({ mode }) => {
   // eslint-disable-next-line no-undef
-  // let env = loadEnv(mode, process.cwd(), '')
   process.env = Object.assign(process.env, loadEnv(mode, process.cwd(), ''));
   return defineConfig({
     define: {
@@ -42,7 +41,7 @@ export default ({ mode }) => {
     server: {
       proxy:
       {
-        '/api10': {
+        [process.env.VITE_API_VERSION || '/api3']: {
           target: process.env.VITE_SERVER_URL+process.env.VITE_API_VERSION || 'https://evse.msi.com/api3',
           pathRewrite: { 
             [`^${process.env.VITE_API_VERSION || '/api3'}`]: ''
