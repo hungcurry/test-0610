@@ -129,19 +129,21 @@ const deleteEvse = () => {
     sendData = { 'class' : 'Connector', 'id' : connectorData.id }
     console.log(await MsiApi.setCollectionData('delete', 'ocpi', sendData))
 
-    if(chargePointInfoData.hmi !== '') { 
+    if(chargePointInfoData.hmi !== '' && chargePointInfoData.hmi !== null && chargePointInfoData.hmi !== undefined) { 
       sendData = { 'class' : 'HMIControlBoardInfo', 'pk' : chargePointInfoData.hmi }
       console.log(await MsiApi.setCollectionData('delete', 'cpo', sendData))
     }
-    let evseArr = []
-    for (let i = 0; i < locationData?.evses?.length; i++) {
-      if (locationData.evses[i].uid === evseId) {
-        continue
-      }
-      evseArr.push(locationData.evses[i]._id)
+    if (locationData.name !== '') {
+      let evseArr = locationData.evses
+      let queryData = { database: 'OCPI', collection: 'EVSE',
+                      pipelines: [ { $match: { uid: {"UUID":evseId}}}, { $project: { _id: 1} }],
+                  }
+    
+      let response = await MsiApi.mongoAggregate(queryData)
+      evseArr = evseArr.filter(item => item !== response.data.result[0]._id)  
+      let sendData1 = { 'class' : 'Location', 'id': locationData.id, 'evses' : evseArr}
+      console.log(await MsiApi.setCollectionData('patch', 'ocpi', sendData1))
     }
-    let sendData1 = { 'class' : 'Location', 'id': locationData.id, 'evses' : evseArr}
-    console.log(await MsiApi.setCollectionData('patch', 'ocpi', sendData1))
 
     router.back(-1)
   })
@@ -288,9 +290,10 @@ let retry = 3
 const check_uploaded  = async () => {
   let queryData = { database: 'CPO', collection: 'ChargePointInfo', pipelines: [{ $match: {evse_id:evseData.evse_id},},{ $project: { _id: 0 } }]}
   let response = await MsiApi.mongoAggregate(queryData)
-  console.log(response)
   if (response.data.result?.[0]?.ocpp_info?.[0]?.statusNotification?.diagnosticsStatus === "Uploaded") {
-    window.location.href = 'https://storage.googleapis.com/msi-hmi-logs/cs_logs.zip'
+    let evseId_replace = evseData.evse_id.replace(/[^a-zA-Z0-9]/g, '_')
+    let fileName = 'cs_logs_' + evseId_replace
+    window.location.href = 'https://storage.googleapis.com/msi-hmi-logs/' + fileName + '.zip'
     clearInterval(interval)
   }
   else {
@@ -523,10 +526,14 @@ const confirmRemoteTransaction = async() => {
 }
 
 const getRealTimeEvseInfo = async () => {
-  let queryData = { "database":"OCPI", "collection":"EVSE", "query": { "uid": {"UUID":evseId}}}
-  let response = await MsiApi.mongoQuery(queryData)
   let localStartTime 
-  Object.assign(evseData, response.data.all[0]) 
+  let queryData = { database: "OCPI", collection: "EVSE", 
+      pipelines: [ { $match:  { "uid": {"UUID":evseId}} }, 
+      { $project: {  byCompany: 0 } }]
+    }
+  let response = await MsiApi.mongoAggregate(queryData)
+  Object.assign(evseData, response.data.result[0]) 
+
   let localEndTime =  new Date( (new Date(evseData.last_updated).getTime()) + ((MStore.timeZoneOffset ) * -60000))
   evseData.last_updated_str = (moment(localEndTime).format("YYYY-MM-DD HH:mm:ss"))
   remote_transaction_title.value = t('remote_start')
@@ -971,9 +978,14 @@ onMounted( async () => {
   let queryData
   let response
   let localEndTime
-  queryData = { "database":"OCPI", "collection":"Connector", "query": { "_id": { "ObjectId" : evseData?.connectors?.[0]?._id}}}
-  response = await MsiApi.mongoQuery(queryData)
-  Object.assign(connectorData, response.data.all[0])
+  
+  queryData = { database: "OCPI", collection: "Connector", 
+      pipelines: [ { $match: { "_id": { "ObjectId" : evseData?.connectors?.[0]}} }, 
+      { $project: {  byCompany: 0 } }]
+    }
+  response = await MsiApi.mongoAggregate(queryData)
+
+  Object.assign(connectorData, response.data.result[0])
   if (connectorData.standard === 'IEC_62196_T1') 
     connectorData.type_str = 'Type 1 (J1772)'
   else if (connectorData.standard === 'IEC_62196_T2')
@@ -983,20 +995,34 @@ onMounted( async () => {
   
   localEndTime =  new Date( (new Date(connectorData.last_updated).getTime()) + ((MStore.timeZoneOffset ) * -60000))
   connectorData.last_updated_str = (moment(localEndTime).format("YYYY-MM-DD HH:mm:ss"))
-  queryData = { "database":"CPO", "collection":"ChargePointInfo", "query": { "evse": { "ObjectId" : evseData?._id}}}
-  response = await MsiApi.mongoQuery(queryData)
-  Object.assign(chargePointInfoData, response.data.all[0])
+  
+  queryData = { database: "CPO", collection: "ChargePointInfo", 
+      pipelines: [ { $match: { "evse": { "ObjectId" : evseData?._id}} }, 
+      { $project: {  byCompany: 0 } }]
+    }
+  response = await MsiApi.mongoAggregate(queryData)
+
+  Object.assign(chargePointInfoData,response.data.result[0])
   hmiInfoData.max_amperage = 0
   if(chargePointInfoData.hmi !== '') {
-    queryData = { "database":"CPO", "collection":"HMIControlBoardInfo", "query": { "_id": { "ObjectId" : chargePointInfoData?.hmi}}}    
-    response = await MsiApi.mongoQuery(queryData)
-    Object.assign(hmiInfoData, response.data.all[0])    
+    queryData = { database: "CPO", collection: "HMIControlBoardInfo", 
+      pipelines: [ { $match:  { "_id": { "ObjectId" : chargePointInfoData?.hmi}} }, 
+      { $project: {  byCompany: 0 } }]
+    }
+    response = await MsiApi.mongoAggregate(queryData)
+
+    Object.assign(hmiInfoData, response.data.result[0])    
     if (hmiInfoData.minmax_current)
       hmiInfoData.max_amperage = (hmiInfoData.minmax_current.split(" ").map(hex => parseInt(hex, 16)))[7]
   }
-  queryData = { "database":"OCPI", "collection":"Location", "query": {  "evses" : {"$in": [  {"ObjectId" : evseData?._id }]}  }}
-  response = await MsiApi.mongoQuery(queryData)
-  if (response.data.all.length === 0) {
+
+  queryData = { database: "OCPI", collection: "Location", 
+      pipelines: [ { $match: { "evses" : {"$in": [  {"ObjectId" : evseData?._id }]} } }, 
+      { $project: {  byCompany: 0 } }]
+    }
+  response = await MsiApi.mongoAggregate(queryData)
+
+  if (response.data.result.length === 0) {
     if(locationData.name === undefined)
       locationData.name = ''
     if(locationData.country === undefined)
@@ -1011,8 +1037,9 @@ onMounted( async () => {
       locationData.address1 = ''
   }
   else {
-    Object.assign(locationData, response.data.all[0])
+    Object.assign(locationData, response.data.result[0])
   }
+  console.log(locationData)
   const addr_parts = locationData.address.split('\n')
   const city_parts = locationData.city.split('\n')
   if (addr_parts.length === 2) {
@@ -1023,9 +1050,13 @@ onMounted( async () => {
     locationData.city = city_parts[0]
     locationData.city1 = city_parts[1]
   }
-  queryData = { "database":"OCPI", "collection":"Tariff", "query": { "id": { "UUID" : connectorData.tariff_ids[0]}}}
-  response = await MsiApi.mongoQuery(queryData)
-  Object.assign(tariffData, response.data.all[0])
+
+  queryData = { database: 'OCPI', collection: 'Tariff',
+                      pipelines: [ { $match: { "id": { "UUID" : connectorData.tariff_ids?.[0]}}}, 
+                      { $project: { _id: 0, byCompany:0, last_updated:0, type:0, id:0, country_code:0, party_id:0} }],
+                  }
+  response = await MsiApi.mongoAggregate(queryData)
+  Object.assign(tariffData, response.data.result[0])
   tariffData.name = tariffData.custom?.name
   tariffData.description = tariffData.custom?.description
   
@@ -1167,7 +1198,7 @@ onUnmounted(() => {
               <div class="container-data h-full md:px-32px">
                 <!-- <div class="info-item">
                   <p class="info-title w-50%">Charger ID</p>
-                  <p class="info-value w-50% ml-24px">{{ evseData.uid }}</p>
+                  <p class="info-value w-50% ml-24px">{{ !.uid }}</p>
                 </div> -->
                 <div class="info-item">
                   <p class="info-title w-50%"> {{ t('evse_id') }}</p>

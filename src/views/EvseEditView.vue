@@ -27,7 +27,6 @@ const station_id = route.query.station_id
 const evse_id = route.query.evse_id
 const stationName = ref('')
 const ruleFormRef  = ref()
-let station_evses = []
 const evse_edit_title = ref(t('add_evse'))
 const activeName = ref('one')
 
@@ -103,13 +102,12 @@ const SaveEvseEdit = async (formEl) => {
             ElMessage.error(response.data.message)
             return
           }
-          let queryData = {
-            database: 'OCPI',
-            collection: 'Connector',
-            query: { id: { UUID: connector_obj.id } },
+          let queryData = { database: 'OCPI', collection: 'Connector',
+            pipelines: [ { $match: {id: { UUID: connector_obj.id }} }, { $project: { aaa: 0} } ],
           }
-          response = await MsiApi.mongoQuery(queryData)
-          evse_obj.connectors.push(response.data.all[0]._id)
+          response = await MsiApi.mongoAggregate(queryData)
+
+          evse_obj.connectors.push(response.data.result[0]._id)
           evse_obj.uid = uuidv4()
 
           response = await MsiApi.setCollectionData('post', 'ocpi', evse_obj)
@@ -117,14 +115,7 @@ const SaveEvseEdit = async (formEl) => {
             ElMessage.error(response.data.message)
             return
           }
-          queryData = {
-            database: 'OCPI',
-            collection: 'EVSE',
-            query: { uid: { UUID: evse_obj.uid } },
-          }
-          response = await MsiApi.mongoQuery(queryData)
-          station_evses.push(response.data.all[0]._id)
-          if (response.status === 200) {
+          else {
             router.push({ name: 'evse', query: { page: 'unpaired' } })
           }
         })
@@ -165,8 +156,6 @@ const parking_bgColor = '#94eadb'
 const fillFullCalendar = () => {
   tariffObj.length = 0
   Object.assign(tariffObj, selectTariffObj.elements)
-  console.log(tariffObj)
-
   chargingCalendarOptions.events = []
   parkingCalendarOptions.events = []
 
@@ -589,18 +578,17 @@ const getCharging_profile = async() => {
       }
     })
   })
-
   changeChargingProfileTab(0)
 }
 
 onMounted(async () => {
-  let queryData,
-    response = undefined
-  let connectors = []
+  let queryData, response = undefined
   let tariff_ids = []
-  queryData = { database: 'OCPI', collection: 'Tariff', query: {} }
-  response = await MsiApi.mongoQuery(queryData)
-  Object.assign(tariff_profile, response.data.all)
+  queryData = { database: 'OCPI', collection: 'Tariff',
+                pipelines: [{ $project: { _id: 0, byCompany:0, last_updated:0, type:0, country_code:0, party_id:0} }]
+              }
+  response = await MsiApi.mongoAggregate(queryData)  
+  Object.assign(tariff_profile, response.data.result)
 
   tariff_profile.forEach((item)=>{
     item.elements.forEach((element)=>{
@@ -631,7 +619,7 @@ onMounted(async () => {
         }
       }
       element.restrictions.day_of_week_str = day_of_week_str
-      element.price_components[0].price_incl = element.price_components[0].price *  (1 + (element.price_components[0].vat / 100))
+      element.price_components[0].price_incl = element.price_components[0].price * (1 + (element.price_components[0].vat / 100))
       switch (element.price_components[0].type) {
         case 'ENERGY' :
           element.price_components[0].type_str = t('charging_by_energy')
@@ -656,39 +644,32 @@ onMounted(async () => {
   })
   if (evse_id !== undefined) {
     evse_edit_title.value = t('edit_evse')
+    queryData = { database: 'OCPI', collection: 'EVSE',
+      pipelines: [ { $match: {uid: { UUID: evse_id }} }, { $project: { aaa: 0} } ],
+    }
+    response = await MsiApi.mongoAggregate(queryData)
+    Object.assign(evse_obj, response.data.result[0])
 
-    queryData = {
-      database: 'OCPI',
-      collection: 'EVSE',
-      query: { uid: { UUID: evse_id } },
-    }
-    response = await MsiApi.mongoQuery(queryData)
-    Object.assign(evse_obj, response.data.all[0])
-    for (let i = 0; i < evse_obj?.connectors?.length; i++) {
-      connectors.push(evse_obj?.connectors[i]._id)
-    }
-    evse_obj.connectors = connectors
-    queryData = {
-      database: 'OCPI',
-      collection: 'Connector',
-      query: { _id: { ObjectId: evse_obj.connectors[0] } },
-    }
-    response = await MsiApi.mongoQuery(queryData)
-    Object.assign(connector_obj, response.data.all[0])
+    if (evse_obj?.connectors?.length > 0) {
+        queryData = { database: 'OCPI', collection: 'Connector',
+        pipelines: [ { $match: { "_id" : {"$in": [  {"ObjectId" : evse_obj.connectors[0]}]} } }]
+      }
+      response = await MsiApi.mongoAggregate(queryData)
+      evse_obj.connectors = response.data.result
 
-    switch (connector_obj.standard) {
-      case 'IEC_62196_T1':
-        connector_obj.standard_str = 'Type 1 (J1772)'
-      break
-      case 'IEC_62196_T2':
-        connector_obj.standard_str = 'Type 2 (Mennekes)'
-      break
-      default:
-        connector_obj.standard_str = t('others')
+      Object.assign(connector_obj, response.data.result[0])
+      switch (connector_obj.standard) {
+        case 'IEC_62196_T1':
+          connector_obj.standard_str = 'Type 1 (J1772)'
+        break
+        case 'IEC_62196_T2':
+          connector_obj.standard_str = 'Type 2 (Mennekes)'
+        break
+        default:
+          connector_obj.standard_str = t('others')
+      }
     }
-
     evse_obj.select_profile = connector_obj.tariff_ids[0]
-
     for (let i = 0; i < tariff_profile.length; i++) {
       if (evse_obj.select_profile === tariff_profile[i].id)
         Object.assign(selectTariffObj, tariff_profile[i])
@@ -699,33 +680,30 @@ onMounted(async () => {
     }
     connector_obj.tariff_ids = tariff_ids
   }
-  queryData = {
-    database: 'OCPI',
-    collection: 'Location',
-    query: { id: { UUID: station_id } },
-  }
+  queryData = { database: 'OCPI', collection: 'Location', 
+                pipelines: [ { $match: {  id: { UUID: station_id } } }]}
   response = await MsiApi.mongoQuery(queryData)
-  for (let i = 0; i < response.data.all[0]?.evses?.length; i++) {
-    station_evses.push(response.data.all[0]?.evses[i]._id)
-  }
+  
   stationName.value = response.data.all[0]?.name
 
-  queryData = {
-    database: 'CPO',
-    collection: 'ChargePointInfo',
-    query: { evse: { ObjectId: evse_obj._id } },
-  }
-  response = await MsiApi.mongoQuery(queryData)
-  if (response.data.all[0]?.hmi !== '') {
-    queryData = {
-      database: 'CPO',
-      collection: 'HMIControlBoardInfo',
-      query: { _id: { ObjectId: response.data.all[0].hmi } },
+  queryData = { database: 'CPO', collection: 'ChargePointInfo',
+        pipelines: [ { $match: { evse: { ObjectId: evse_obj._id } } }]
+      }
+  response = await MsiApi.mongoAggregate(queryData)
+
+  if (response.data.result[0]?.hmi !== '' && response.data.result[0]?.hmi !== null && response.data.result[0]?.hmi !== undefined) {
+    queryData = { database: 'CPO', collection: 'ChargePointInfo',
+                  pipelines: [ { $match: { evse: { ObjectId: evse_obj._id } } }]
     }
-    response = await MsiApi.mongoQuery(queryData)
-    max_amperage.value = response.data.all[0].minmax_current
-      .split(' ')
-      .map((hex) => parseInt(hex, 16))[7]
+    response = await MsiApi.mongoAggregate(queryData)
+
+
+    queryData = { database: 'CPO', collection: 'HMIControlBoardInfo',
+        pipelines: [ { $match: { _id: { ObjectId: response.data.result[0].hmi }} }]
+    }
+    response = await MsiApi.mongoAggregate(queryData)
+    max_amperage.value = response.data.result[0].minmax_current.split(' ').map((hex) => parseInt(hex, 16))[7]
+    console.log(max_amperage.value)
   }
   fillFullCalendar()
   getCharging_profile()

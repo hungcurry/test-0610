@@ -364,7 +364,6 @@ const confirmRfid = async (confirm, index) => {
   // const hex_pair= rfidData.rfid.match(/.{1,2}/g)
   // const reversedHexPairs = hex_pair.reverse().map(pair => pair.split('').join(''));  
   // const reversedHex = reversedHexPairs.join('');
-  // console.log(reversedHex)
 
   try {
     if (confirm === 'confirm') {

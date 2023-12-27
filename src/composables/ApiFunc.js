@@ -220,7 +220,6 @@ export default () => {
    
   const get_configuration = async (evse_id) => {
     const response = await axiosInterface('get', '/cp/ocpp/v16/get_configuration' +'?evse_id=' + evse_id)
-    console.log(response)
     return response
   }
 

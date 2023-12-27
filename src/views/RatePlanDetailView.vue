@@ -923,9 +923,14 @@ const goToEvseDetail = async(detail) => {
 
 onMounted(async () => {
   if (tariff_id) {
-    let queryData = { "database": "OCPI", "collection": "Tariff", "query": { "_id": { "ObjectId": tariff_id } } }
-    let res = await MsiApi.mongoQuery(queryData)
-    Object.assign(TariffData, res.data.all[0])
+
+    let queryData = { database: "OCPI", collection: "Tariff", 
+      pipelines: [ { $match:  { _id: { "ObjectId": tariff_id } } }, 
+      { $project: {  byCompany: 0, last_updated:0} }
+    ]}
+    let res = await MsiApi.mongoAggregate(queryData)
+
+    Object.assign(TariffData, res.data.result[0])
     TariffData.custom_profile_name = TariffData?.custom?.name
     TariffData.custom_description = TariffData?.custom?.description
     for (let i = 0; i < TariffData?.tariff_alt_text?.length; i++) {
