@@ -40,6 +40,7 @@ deploy-dev:
     - gcloud container clusters get-credentials $KUBE_CLUSTER --zone=$ARTIFACT_REGISTRY_REGION --project=$KUBE_PROJECT
     - kubectl config set-context --current --namespace=$KUBE_NAMESPACE
     - kubectl set image deployment/$REPOSITORY_NAME $REPOSITORY_NAME-$REPOSITORY_ENV=$ARTIFACT_REGISTRY_REGION-docker.pkg.dev/$KUBE_PROJECT/registry/$REPOSITORY_ENV/$REPOSITORY_NAME:latest -n $KUBE_NAMESPACE
+    - kubectl set image deployment/$REPOSITORY_NAME $REPOSITORY_NAME-$REPOSITORY_ENV=$ARTIFACT_REGISTRY_REGION-docker.pkg.dev/$KUBE_PROJECT/registry/$REPOSITORY_ENV/$REPOSITORY_NAME -n $KUBE_NAMESPACE
   retry: 2
   environment:
     name: $CI_COMMIT_BRANCH
