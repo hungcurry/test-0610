@@ -298,9 +298,9 @@ const updateRfidCash = (type) => {
         type: 'warning',
       })
       .then(async() => {
-        const json = JSON.stringify({ id: general._id, rfid: {rfid: rfidData.rfid.toUpperCase(), cash: Number(cash)} })
-        let res = await MsiApi.set_rfid_cash(json)
-        if (res.data.status === 'Accepted') {
+        const json = JSON.stringify({ id: general._id, role: "rfid", rfids: {rfid: rfidData.rfid.toUpperCase(), cash: Number(cash)} })
+        let res = await MsiApi.edit_rfid_data(json)
+        if (res.status === 200) {
           await getRfidUserData()
           await getTransactionData(null)
           getTransaction_PageData()
@@ -369,7 +369,7 @@ const confirmRfid = (action, index) => {
           if (modify_card_index.value === -1) {
             const json = JSON.stringify({ id: general._id, rfid: {rfid: rfidData.rfid.toUpperCase(), cash: parseInt(rfidData.cash), enable: rfidData.enable, nickname: rfidData.nickname} })
             let res = await MsiApi.add_rfid_data(json)
-            if (res.data.status === 'Accepted') {
+            if (res.status === 201) {
               ElMessage({ type: 'success', message: `${t('add')} ${rfidData.rfid.toUpperCase()} ${t('card_no')}` })
               await getRfidUserData()
               await getTransactionData(null)
@@ -382,9 +382,9 @@ const confirmRfid = (action, index) => {
           }
           // Edit RFID Card
           else {
-            const json = JSON.stringify({ id: general._id, rfid: {rfid: rfidData.rfid.toUpperCase(), enable: rfidData.enable, nickname: rfidData.nickname} })
+            const json = JSON.stringify({ id: general._id, role: "rfid", rfids: {rfid: rfidData.rfid.toUpperCase(), enable: rfidData.enable, nickname: rfidData.nickname} })
             let res = await MsiApi.edit_rfid_data(json)
-            if (res.data.status === 'Accepted') {
+            if (res.status === 200) {
               await getRfidUserData()
             }
             else {
@@ -414,7 +414,7 @@ const confirmRfid = (action, index) => {
         ElMessageBox.confirm(t('do_you_want_to_delete'), t('warning'), { confirmButtonText: t('ok'), cancelButtonText: t('cancel'), type: 'warning' })
         .then(async () => {
           let res = await MsiApi.delete_rfid_data({ id: general._id, rfid: rfids[modify_card_index.value].rfid })
-          if (res.data.status === 'Accepted') {
+          if (res.status === 200) {
             await getRfidUserData()
             await getTransactionData(null)
             getTransaction_PageData()
