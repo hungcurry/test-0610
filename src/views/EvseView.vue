@@ -26,6 +26,7 @@ const isLoading = ref(false)
 const EvseData = reactive([])
 const EvseConnectData = reactive([])
 const EvseUnConnectData = reactive([])
+const EvseHomeDevice = reactive([])
 const company_filter_item = reactive([])
 const status_filter_item = [
   { text: t('available'), value: 'AVAILABLE' },
@@ -158,7 +159,7 @@ onMounted(async () => {
   if (route.query.page === 'unpaired') {
     activeName.value = '2'
   }
-  let queryData = { database: 'CPO',    collection: 'VersionControl',
+  let queryData = { database: 'CPO', collection: 'VersionControl',
     pipelines: [
     { $match: { type: { $eq: 'XP012' } } },  
     { $project: { _id:0, version:1} }],
@@ -245,10 +246,14 @@ onMounted(async () => {
       if (EvseData[i].locationName) break
     }
   }
-
   for (let i = 0; i < EvseData.length; i++) {
     if (EvseData[i].locationName === undefined) {
-      EvseUnConnectData.push(EvseData[i])
+      if (EvseData[i].evse_id.startsWith('XP01')) {
+        EvseHomeDevice.push(EvseData[i])
+      }
+      else 
+        EvseUnConnectData.push(EvseData[i])
+      
     } else {
       EvseConnectData.push(EvseData[i])
     }
@@ -570,6 +575,118 @@ onMounted(async () => {
               <el-table-column v-else type="selection" align="center" min-width="150" />
             </el-table>
           </el-tab-pane>
+
+          <el-tab-pane :label="t('home_device')" name="3">
+            <el-table
+              class="evse-table"
+              :data="EvseHomeDevice"
+              style="width: 100%; height: calc(100vh - 260px)"
+              stripe
+              :cell-style="msi.tb_cell"
+              :header-cell-style="msi.tb_header_cell"
+              size="large"
+              v-loading.fullscreen.lock="isLoading"
+              @selection-change="handleSelectionChange"
+            >
+              <el-table-column
+                prop="locationName"
+                :label="t('station')"
+                align="center"
+                sortable
+                :sort-method="(a, b) => sortFunc(a, b, 'locationName')"
+                min-width="150"
+              />
+              <el-table-column
+                prop="floor_level"
+                :label="t('floor_level')"
+                align="center"
+                sortable
+                :sort-method="(a, b) => sortFunc(a, b, 'floor_level')"
+                min-width="150"
+              />
+              <el-table-column
+                prop="evse_id"
+                :label="t('evse_id')"
+                align="center"
+                sortable
+                :sort-method="(a, b) => sortFunc(a, b, 'evse_id')"
+                min-width="300"
+              />
+              <el-table-column
+                prop="status"
+                :label="t('status')"
+                align="center"
+                min-width="150"
+                :filters="status_filter_item"
+                :filter-method="status_filter"
+              >
+                <template #default="scope">
+                  <p
+                    class="available text-center"
+                    v-if="scope.row.status === 'AVAILABLE'"
+                  >
+                    {{ '●' + scope.row.status_str }}
+                  </p>
+                  <p
+                    class="charging text-center"
+                    v-else-if="scope.row.status === 'CHARGING'"
+                  >
+                    {{ '●' + scope.row.status_str }}
+                  </p>
+                  <p
+                    class="offline text-center"
+                    v-else-if="scope.row.status === 'UNKNOWN'"
+                  >
+                    {{ '●' + scope.row.status_str }}
+                  </p>
+                  <p
+                    class="error text-center"
+                    v-else-if="scope.row.status === 'OUTOFORDER'"
+                  >
+                    {{ '●' + scope.row.status_str }}
+                  </p>
+                </template>
+              </el-table-column>
+              <el-table-column
+                prop="hmi_version"
+                :label="t('sw_ver')"
+                sortable
+                align="center"
+                :sort-method="(a, b) => sortFunc(a, b, 'hmi_version')"
+                min-width="150"
+              />
+              <el-table-column prop="" :label="t('latest_sw')" align="center" min-width="150">
+                <template #default="scope">
+                  <p v-if="scope.row.hmi_version === swVersion">{{ 'V' }}</p>
+                </template>
+              </el-table-column>
+
+              <el-table-column
+                prop="last_updated_str"
+                :label="t('updated_time')"
+                align="center"
+                sortable
+                :sort-method="(a, b) => sortFunc(a, b, 'last_updated_str')"
+                min-width="200"
+              />
+              <el-table-column
+                v-if="editMode === false"
+                prop=""
+                label=""
+                align="center"
+                min-width="150"
+              >
+                <template #default="scope">
+                  <el-button class="btn-more" @click="detail_info(scope.row)">
+                    <font-awesome-icon icon="fa-solid fa-ellipsis" />
+                  </el-button>
+                </template>
+              </el-table-column>
+              <el-table-column v-else type="selection" align="center" min-width="150" />
+            </el-table>
+          </el-tab-pane>
+
+
         </el-tabs>
       </div>
 

@@ -683,7 +683,6 @@ onMounted(async () => {
   queryData = { database: 'OCPI', collection: 'Location', 
                 pipelines: [ { $match: {  id: { UUID: station_id } } }]}
   response = await MsiApi.mongoQuery(queryData)
-  
   stationName.value = response.data.all[0]?.name
 
   queryData = { database: 'CPO', collection: 'ChargePointInfo',
@@ -697,13 +696,11 @@ onMounted(async () => {
     }
     response = await MsiApi.mongoAggregate(queryData)
 
-
     queryData = { database: 'CPO', collection: 'HMIControlBoardInfo',
         pipelines: [ { $match: { _id: { ObjectId: response.data.result[0].hmi }} }]
     }
     response = await MsiApi.mongoAggregate(queryData)
     max_amperage.value = response.data.result[0].minmax_current.split(' ').map((hex) => parseInt(hex, 16))[7]
-    console.log(max_amperage.value)
   }
   fillFullCalendar()
   getCharging_profile()

@@ -14,7 +14,7 @@ const MStore = useMStore()
 const MsiApi = ApiFunc()
 const router = useRouter()
 const isLoading = ref(false)
-const first_login = ref(false)
+const eula_visible = ref(false)
 const agreeFee = ref(0)
 const sessionFee = ref(0)
 const currency = ref('')
@@ -520,7 +520,7 @@ const confirmNewebPay = async(action) => {
   }
 }
 const display_eula = () => {
-  first_login.value=true
+  eula_visible.value = true
   language = localStorage.getItem("lang")
 }
 
@@ -1048,7 +1048,6 @@ onMounted(async () => {
               <div class="flex">
                 <font-awesome-icon icon="fa-solid fa-coins" class="w-20px h-20px mr-5px text-blue-1200" />
                 <p class="text-1.8rem text-blue-1200 font-bold">{{ t('neweb_pay') }}</p>
-                <!-- <p class="text-1.8rem ml-8px text-blue-1200 font-bold">{{ '( ' + t('Agree Fee ') + agreeFee + ' % / ' + 'Session Fee ' + sessionFee + ' TWD )'}}</p> -->
               </div>
               <el-button round class="button" @click="openNewebDialog" v-if="!companyData.Merchant_ID" >{{ t('create') }}</el-button>
             </div>
@@ -1080,7 +1079,7 @@ onMounted(async () => {
                 <p class="text-1.8rem text-blue-1200 font-bold">{{ t('policy') }}</p>
               </div>
             </div>
-            <a class="text-blue-1200 underline cursor-pointer" @click="display_eula">End User License Agreement</a>
+            <a class="text-blue-1200 underline cursor-pointer" @click="display_eula"> {{ t('user_agreement')}}</a>
           </div>
         </el-col>
       </el-row>
@@ -1355,7 +1354,7 @@ onMounted(async () => {
     </el-dialog>
 
     <el-dialog
-      v-model="first_login"
+      v-model="eula_visible"
       class="max-w-992px h-90% flex-col"
       width="90%"
       destroy-on-close

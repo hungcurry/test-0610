@@ -75,9 +75,9 @@ const search = async () => {
           { $match: { $and: [
             { first_name: {$ne: 'DELETE'} },
             { last_name: {$ne: 'DELETE'} },
-            { byCompany: { "ObjectId" : res.data.result[0]._id} }
+            { byCompany: { ObjectId : res.data.result[0]._id} }
           ]}},
-          { $project: { _id: 1, first_name: 1, last_name: 1, email: 1, evse_list: 1, payment_history:1, updated_date: 1, byCompany: 1, } }
+          { $project: { _id: 1, first_name: 1, last_name: 1, email: 1, evse_list: 1, payment_history:1, updated_date: 1, byCompany: 1, home_devices:1} }
         ]
       }
     }
@@ -142,7 +142,7 @@ const search = async () => {
               ]
             }
           },
-          { $project: { _id: 1, first_name: 1, last_name: 1, email: 1, evse_list: 1, payment_history:1, updated_date: 1, byCompany: 1, } }
+          { $project: { _id: 1, first_name: 1, last_name: 1, email: 1, evse_list: 1, payment_history:1, updated_date: 1, byCompany: 1, home_devices:1} }
         ]
       }
     }
@@ -164,6 +164,10 @@ const MongoAggregate = async (queryData) => {
       let localEndTime =  new Date( (new Date(UserData[i].updated_date).getTime()) + ((MStore.timeZoneOffset ) * -60000))
       UserData[i].updated_date_str = (moment(localEndTime).format("YYYY-MM-DD HH:mm:ss"))
       UserData[i].payment_length = UserData[i]?.payment_history?.length
+      if (UserData[i]?.home_devices?.length)
+        UserData[i].home_device = UserData[i]?.home_devices?.length
+      else 
+        UserData[i].home_device = 0
       UserData[i].evse_list_str = ''
       UserData[i].evse_list_str_detail = ''
       if (UserData[i]?.evse_list[0]?.evseId) {
@@ -221,7 +225,7 @@ const addUserDialog = async (action) => {
                     { last_name: {$ne: 'DELETE'} },
                   ]}},
                   { 
-                    $project: { _id: 1, first_name: 1, last_name: 1, email: 1, evse_list: 1, payment_history:1, updated_date: 1, } 
+                    $project: { _id: 1, first_name: 1, last_name: 1, email: 1, evse_list: 1, payment_history:1, updated_date: 1, home_devices:1} 
                   }
                 ]
               }
@@ -259,7 +263,7 @@ onMounted( async() => {
           { first_name: {$ne: 'DELETE'} },
           { last_name: {$ne: 'DELETE'} },
         ]}},
-        { $project: { _id: 1, first_name: 1, last_name: 1, email: 1, evse_list: 1, payment_history:1, updated_date: 1, byCompany: 1, } }
+        { $project: { _id: 1, first_name: 1, last_name: 1, email: 1, evse_list: 1, payment_history:1, updated_date: 1, byCompany: 1, home_devices:1} }
       ]
     }
     await MongoAggregate(queryData)
@@ -302,7 +306,7 @@ onMounted( async() => {
               align="center"
               sortable
               :sort-method="(a, b) => sortFunc(a, b, 'first_name')"
-              min-width="200"
+              min-width="150"
             />
             <el-table-column
               prop="last_name"
@@ -310,7 +314,7 @@ onMounted( async() => {
               align="center"
               sortable
               :sort-method="(a, b) => sortFunc(a, b, 'last_name')"
-              min-width="200"
+              min-width="150"
             />
             <el-table-column
               prop="email"
@@ -326,7 +330,7 @@ onMounted( async() => {
               align="center"
               sortable
               :sort-method="(a, b) => sortFunc(a, b, 'evse_list_str')"
-              min-width="250"
+              min-width="200"
             >
               <template #default="scope">
                 <span v-if="scope.row.evse_list_str_detail === ''">{{ scope.row.evse_list_str }}</span>
@@ -349,6 +353,15 @@ onMounted( async() => {
               :sort-method="(a, b) => sortFunc(a, b, 'payment_length')"
               min-width="200"
             />
+
+            <el-table-column
+              prop="home_device"
+              :label="t('home_device')"
+              align="center"
+              sortable
+              min-width="150"
+            />
+
             <el-table-column
               prop="updated_date_str"
               :label="t('updated_date')"

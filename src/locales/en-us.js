@@ -868,6 +868,9 @@ export default {
     device:                                                                                         'Device',
     device_details:                                                                                 'Device Details',
     expire_date_YY_MM:                                                                              'Expire Date(YY/MM)',
+    home_device:                                                                                    'Home Device',
+    home_device_details:                                                                            'Home Device Details',
+    home_session:                                                                                   'Home Session',
     member_user:                                                                                    'Member User',
     os_version:                                                                                     'OS Version',
     platform:                                                                                       'Platform',
@@ -1376,11 +1379,12 @@ export default {
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 //TokenManagementPage   
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    add_token:                                                                                      'add_token',
-    token_management:                                                                               'token_management',
-    token:                                                                                          'token',
-    count:                                                                                          'count',
-    expired_date_time:                                                                              'expired_date_time',
+    add_token:                                                                                      'Add Token',
+    count:                                                                                          'Count',
+    create_token:                                                                                   'Create Token',
+    expired_date_time:                                                                              'Expired Date Time',
+    token:                                                                                          'Token',
+    token_management:                                                                               'Token Management',
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 }
 

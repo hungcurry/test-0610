@@ -102,7 +102,7 @@ const setPermission = (permission_id) => {
 const detail_info = (detail) => {
   EditAdminFormVisible.value = true
   editAdminData.length = 0
-  Object.assign(editAdminData, UserData[detail.$index])
+  Object.assign(editAdminData, detail.row)
   editAdminData.permission_id = editAdminData?.permission?.user
   editAdminData.permission_edit = editAdminData.permission.edit === 1? true : false
   editAdminData.permission_active = editAdminData.permission.active === true? true : false

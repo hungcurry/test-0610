@@ -82,16 +82,9 @@ const editToken = async (action) => {
 }
 
 const mountedFlow = async() => {
-  let queryData = { 
-    "database": 'CPO', "collection": 'CompanyInformation', "pipelines": [
-      {
-        $match: {
-          credentials: { $exists: true }
-        }
-      },
-      {
-        $project: { _id: 0, name: 1, credentials: 1} 
-      }
+  let queryData = { database: 'CPO', collection: 'CompanyInformation', pipelines: [
+      { $match: { credentials: { $exists: true } } },
+      { $project: { _id: 0, name: 1, credentials: 1}}
     ]
   }
   let response = await MsiApi.mongoAggregate(queryData)
@@ -112,13 +105,8 @@ const mountedFlow = async() => {
   tokenData.length = 0
   Object.assign(tokenData, transformedData)
   
-  queryData = { 
-    "database": 'CPO', 
-    "collection": 'CompanyInformation', 
-    "pipelines": [
-      {
-        $project: { _id: 0, name: 1, } 
-      }
+  queryData = { database: 'CPO', collection: 'CompanyInformation', pipelines: [
+      { $project: { _id: 0, name: 1, }}
     ]
   }
   response = await MsiApi.mongoAggregate(queryData)
@@ -157,7 +145,6 @@ onMounted(() => {
             :cell-style="msi.tb_cell"
             :header-cell-style="msi.tb_header_cell"
             v-loading.fullscreen.lock="isLoading"
-            
           >
             <el-table-column prop="name" :label="t('company')" align="center" min-width="150"/>
             <el-table-column prop="type" :label="t('type')" align="center" min-width="150"/>
@@ -173,8 +160,6 @@ onMounted(() => {
           </el-table>
         </div>
         
-
-
         <el-dialog v-model="tokenFormVisible"  class="max-w-600px" :show-close="true" width="90%" destroy-on-close center>
           <template #header="{ titleId, titleClass }">
             <div class="py-2rem relative bg-blue-100">
@@ -190,8 +175,11 @@ onMounted(() => {
           <div class="dialog-context">
             <el-form class="max-w-500px m-auto" :rules="token_rules" ref="token_ref" :model="companyTokenData">
               <el-form-item class="mb-24px" :label="t('name')" prop="name">
-                <el-select v-model="companyTokenData.name" class="m-2" placeholder="Select" size="large">
-                  <el-option v-for="item in companyList" :key="item.name" :label="item.name" :value="item.name"/>
+                <el-select v-if=" create_mode" v-model="companyTokenData.name" class="m-2" placeholder="Select" size="large">
+                  <el-option v-for="item in companyList" :key="item.name" :label="item.name" :value="item.name" />
+                </el-select>  
+                <el-select v-else v-model="companyTokenData.name" class="m-2" placeholder="Select" size="large" disabled>
+                  <el-option v-for="item in companyList" :key="item.name" :label="item.name" :value="item.name" />
                 </el-select>  
               </el-form-item>
               <el-form-item class="mb-24px" :label="t('type')" prop="type">
@@ -239,8 +227,6 @@ onMounted(() => {
           </template>
         </el-dialog>
 
-
-        
       </div>
     </div>
   </div>

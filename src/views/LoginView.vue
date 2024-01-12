@@ -26,7 +26,6 @@ const cancel_eula = async () => {
   first_login.value = false
   await MsiApi.clearCookies()
 }
-
 const pwVisible = () => {
   if (pw_type.value === 'password') 
     pw_type.value = 'text'
@@ -47,7 +46,8 @@ const login = async () => {
       return
     }
   }
-  catch {
+  catch (e){
+    console.log(e)
     ElMessage.error('An unexpected error occurred.')
     return
   }  

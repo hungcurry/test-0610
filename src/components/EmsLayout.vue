@@ -17,7 +17,11 @@ logoutTime.value = Date.now() / 1000 + 600
 let logoutTimer = null
 
 const reflashTimer = () => {
-  logoutTime.value = Date.now() / 1000 + 600
+  if (import.meta.env.VITE_API !== undefined)
+    logoutTime.value = Date.now() / 1000 + 600
+  else {
+    logoutTime.value = Date.now() / 1000 + 60000
+  }
 }
 
 const open = () => {
