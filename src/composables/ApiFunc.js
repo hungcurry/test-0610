@@ -173,22 +173,17 @@ export default () => {
   }
 
   const add_rfid_data = async (json) => {
-    const response = await axiosInterface('post', '/rfid', json)
+    const response = await axiosInterface('post', '/rfids', json)
     return response
   }
 
   const edit_rfid_data = async (json) => {
-    const response = await axiosInterface('patch', '/rfid', json)
+    const response = await axiosInterface('patch', '/rfids', json)
     return response
   }
 
   const delete_rfid_data = async ( {id, rfid}) => {
-    const response = await axiosInterface('delete', '/rfid?id=' + id + '&rfid=' + rfid)
-    return response
-  }
-
-  const set_rfid_cash = async (json) => {
-    const response = await axiosInterface('patch', '/rfid', json)
+    const response = await axiosInterface('delete', '/rfids/' + rfid + '?id=' + id)
     return response
   }
 
@@ -292,7 +287,7 @@ export default () => {
     register_member, get_account_info, get_account_detail, edit_account, delete_account,
     resetPW, reset_evse, updateFw, getTimeZone, getCoordinates, getAddress,
     bind_card, search_bind_card, unregister_bind_card, auth_payment, subscribe_plan, member_modify,
-    forgotPW, add_rfid_data, edit_rfid_data, delete_rfid_data, set_rfid_cash, 
+    forgotPW, add_rfid_data, edit_rfid_data, delete_rfid_data, 
     clear_charging_profile, get_composite_schedule, set_charging_profile,
     get_user_payment, get_user_cash, get_paymentHistory, get_cash, 
     change_availability, get_diagnostics, get_configuration, change_configuration, sendNotification,
