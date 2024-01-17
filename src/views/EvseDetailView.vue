@@ -1,5 +1,4 @@
 <script setup>
-import axios from 'axios'
 import { ref, reactive, onMounted, onUnmounted} from 'vue'
 import { useRoute, useRouter} from 'vue-router'
 import ApiFunc from '@/composables/ApiFunc'
@@ -123,27 +122,31 @@ const remote_transaction_rules = reactive({
 const deleteEvse = () => {
   ElMessageBox.confirm(t('do_you_want_to_delete'), t('warning'), {confirmButtonText: t('ok'), cancelButtonText: t('cancel'), type: 'warning'})
   .then(async () => {
-    let sendData = { 'class' : 'EVSE', 'id' : evseId }
-    console.log(await MsiApi.setCollectionData('delete', 'ocpi', sendData))
-
-    sendData = { 'class' : 'Connector', 'id' : connectorData.id }
-    console.log(await MsiApi.setCollectionData('delete', 'ocpi', sendData))
-
-    if(chargePointInfoData.hmi !== '' && chargePointInfoData.hmi !== null && chargePointInfoData.hmi !== undefined) { 
-      sendData = { 'class' : 'HMIControlBoardInfo', 'pk' : chargePointInfoData.hmi }
-      console.log(await MsiApi.setCollectionData('delete', 'cpo', sendData))
-    }
+    let evse_id 
     if (locationData.name !== '') {
-      let evseArr = locationData.evses
       let queryData = { database: 'OCPI', collection: 'EVSE',
                       pipelines: [ { $match: { uid: {"UUID":evseId}}}, { $project: { _id: 1} }],
                   }
-    
       let response = await MsiApi.mongoAggregate(queryData)
-      evseArr = evseArr.filter(item => item !== response.data.result[0]._id)  
-      let sendData1 = { 'class' : 'Location', 'id': locationData.id, 'evses' : evseArr}
+      evse_id = (response.data.result[0]._id)
+    }
+    let sendData = { class: 'EVSE', id: evseId, status: "REMOVED"}
+    console.log(await MsiApi.setCollectionData('patch', 'ocpi', sendData))
+
+    // sendData = { class : 'Connector', id : connectorData.id }
+    // console.log(await MsiApi.setCollectionData('delete', 'ocpi', sendData))
+
+    if (locationData.name !== '') {
+      let evseArr = locationData.evses
+      evseArr = evseArr.filter(item => item !== evse_id)
+      let sendData1 = { class : 'Location', id: locationData.id, evses : evseArr}
       console.log(await MsiApi.setCollectionData('patch', 'ocpi', sendData1))
     }
+
+    // if(chargePointInfoData.hmi !== '' && chargePointInfoData.hmi !== null && chargePointInfoData.hmi !== undefined) { 
+    //   sendData = { class : 'HMIControlBoardInfo', pk : chargePointInfoData.hmi }
+    //   console.log(await MsiApi.setCollectionData('delete', 'cpo', sendData))
+    // }
 
     router.back(-1)
   })
@@ -998,7 +1001,7 @@ onMounted( async () => {
   
   queryData = { database: "CPO", collection: "ChargePointInfo", 
       pipelines: [ { $match: { "evse": { "ObjectId" : evseData?._id}} }, 
-      { $project: {  byCompany: 0 } }]
+      { $project: {  byCompany11: 0 } }]
     }
   response = await MsiApi.mongoAggregate(queryData)
 

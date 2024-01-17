@@ -780,7 +780,7 @@ export default {
     // updated_date:                                                                                'Updated Date',
     // used_times:                                                                                  'Used Times',
     // warning:                                                                                     'Warning !',
-    send_notification:                                                                              'Send Notification',
+    first_name_last_name_email_time:                                                                'First Name / Last Name / E-mail / Time',
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 //UserDetailPage                                                                                                        '                                                                                              -
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -861,6 +861,7 @@ export default {
     anonymous_user:                                                                                 'Anonymous User',
     app_version:                                                                                    'App Version',
     binding_card:                                                                                   'Binding Card',
+    binding_rfid_card:                                                                              'Binding RFID Card',
     card_number_already_exists:                                                                     'Card number already exists',
     card_number_is_duplicated_with_user:                                                            'Card number is duplicated with user "{user_name}"',
     cash:                                                                                           'Cash',
@@ -874,6 +875,7 @@ export default {
     member_user:                                                                                    'Member User',
     os_version:                                                                                     'OS Version',
     platform:                                                                                       'Platform',
+    send_notification:                                                                              'Send Notification',
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 //CompanyPage                                                                                                        '                                                                                              -
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

@@ -420,7 +420,6 @@ const confirmAdminUser = (action, del_id) => {
         .then(async () => {
           isLoading.value = true
           let res = await MsiApi.delete_account({ role:'admin', id: del_id })
-          console.log(res)
           if (res.data.message === 'Accepted') {
             await getAdminData()
             drawProgram()

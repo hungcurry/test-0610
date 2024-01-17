@@ -11,36 +11,13 @@ import { useMStore } from "../stores/m_cloud"
 import moment from "moment"
 import { useI18n } from "vue-i18n"
 
-const UserRenderData = reactive({
-  first_name: '', last_name: '', email: '', phone: '',
-  country: '', language: '', permission: '', updated_date: '',created_date: '',
-  evse_list_id: '', evse_list_id_tooltip: '', paylist: [], device_list: []
-})
-// paylist = [paylist_obj]
-// paylist_obj = {card_enable:, card_num:, expireDate:, bindingDate:}
-// device_list = [device_object]
-// device_object = {device_name:'', device_platform:'', device_os_version:'', app_version:''}
-const PaymentSummaryRenderData = reactive([])
-// PaymentSummaryRenderData = [payment_history_obj]
-
-const paymentHistoryRenderData = reactive([])
-// payment_history_obj = {charge_kwh:'', cost_str:'', amount_str:'', charge_hr:'', charge_min:'', charge_sec:''}
-
-// location_name, evse_id, parking_time_str, parking_price_str, parking_currency_str, parking_car_number_str, charge_time_str
-// charge_kwh_str, charge_price_str, charge_currency_str, price_str, currency, paymethod_str, created_date_str
-
-const userTypeRenderData = reactive([])          
-
-const chargePointInfoRenderData = reactive ([])
-const homeDeviceSession = reactive ([])
-
-
 let userData = []
 let userPermission = []
 let paymentHistory = []
+let evseData = []
 let paymentSummaryData = []
 let chargePointInfo = []
-let userSession = []
+let userSessionData = []
 const { t } = useI18n()
 const MStore = useMStore()
 const MsiApi = ApiFunc()
@@ -48,77 +25,77 @@ const route = useRoute()
 const router = useRouter()
 const company = MStore?.permission?.company?.name
 const user_id = route.query.id
-const modify_card_index = ref(-1)
-const layoutVisible = reactive({
-  home_device : false, notification : false, device : false,
-  binding_card : false, edit_customer : false, edit_rfid : false,
-  charging_visible: true, parking_visible : false
-})
- 
 
+const UserRenderData = reactive({
+  first_name: '', last_name: '', email: '', phone: '',
+  country: '', language: '', permission: '', updated_date: '',created_date: '',
+  evse_list_id: '', evse_list_id_tooltip: '', paylist: [], device_list: []
+})
+const PaymentSummaryRenderData = reactive({ charge_kwh: 0,  cost_str: 0, amount_str: 0, charge_hr: 0, charge_min: 0, charge_sec: 0,})
+const paymentHistoryRenderData = reactive([])
+const userTypeRenderData = reactive([])          
+const chargePointInfoRenderData = reactive ([])
+const homeDeviceSession = reactive ([])
 const userDataMod = reactive([])
+const rfidData = reactive({ rfid: '', cash: 0, enable: true, nickname: '' })
+const NotificationData = reactive({ title: '', data: '', route: ''})
+
+// paylist = [{card_enable:'', card_num:'', expireDate:'', bindingDate:''}]
+// device_list = [{device_name:'', device_platform:'', device_os_version:'', app_version:''}]
+// paymentHistoryRenderData = [{ location_name:'', evse_id:'', parking_time_str:'', parking_price_str:'', parking_car_number_str:'',
+//                               parking_currency_str:'', charge_time_str:'', charge_kwh_str:'', charge_price_str:'', charge_currency_str:'',
+//                               price_str:'', currency:'', paymethod_str:'', created_date_str:'', }]
+
+const layoutVisible = reactive({ home_device: false, notification: false, device: false,  binding_card: false, 
+                                 edit_customer: false, edit_rfid: false, charging_visible: true, parking_visible: false
+})
+
+const activeName = ref('first')
+const rfid_title = ref(t('add_rfid'))
 const userData_ref = ref()
+const rfidData_ref = ref()
 const userData_rules = reactive({
   first_name: [ { required: true, message: t('the_item_is_required'), trigger: 'blur' } ],
   last_name: [ { required: true, message: t('the_item_is_required'), trigger: 'blur' } ],
 })
-
-const activeName = ref('first')
-const rfidData = reactive({ rfid: '', cash: 0, enable: true, nickname: '' })
-const NotificationData = reactive({ title: '', data: '', route: ''})
-const rfid_title = ref(t('add_rfid'))
-const rfidData_ref = ref()
 const rfidData_rules = reactive({
   rfid: [ { required: true, message: t('the_item_is_required'), trigger: 'blur' } ],
   cash: [ { required: true, message: t('the_item_is_required'), trigger: 'blur' } ],
   nickname: [ { required: true, message: t('the_item_is_required'), trigger: 'blur' }],
 })
-
 const isLoading_skeleton = ref(true)
 const now = new Date()
-const defaultTime = [new Date(2000, 1, 1, 0, 0, 0), new Date(2000, 1, 1, 23, 59, 59)]
+const defaultTime = [new Date(2000, 0, 1, 0, 0, 0), new Date(2000, 1, 1, 23, 59, 59)]
 const select_time = ref([ new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0), new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59)])
 
-const getUserData = async () => {
-  try {
-    let queryData = { database: 'CPO', collection: 'UserData', 
-      pipelines: [ 
-        { $match: { _id: { ObjectId: user_id } } },
-        { $project: { _id: 1, salt: 0, hashed_password_1: 0, hashed_password_2: 0, image: 0, byCompany: 0 } }
-      ]
-    }
-    let response = await MsiApi.mongoAggregate(queryData)
-    if (response.status === 200) {
-      userData = response.data.result
-      console.log(userData)
-    }
-    else {
-      ElMessage.error(t('error')) 
-    }
-  }
-  catch {
-    ElMessage.error('An unexpected error occurred.')
+const convertPaymethodStr = (item) => {
+  switch (item) {
+    case 'CREDIT':                  return t('credit_card')
+    case 'GOOGLEPAY':               return t('google_pay')
+    case 'SAMSUNGPAY':              return t('samsung_pay')
+    case 'RFID':                    return t('rfid')
+    case 'FREE':                    return t('free')
+    default:                        return item
   }
 }
 
-const getChargePointInfo = async () => {
+const getUserData = async () => {
   try {
-    console.log(userData[0])
-    if (userData[0]?.home_devices?.length > 0) {
-      let home_devices_list = []
-      for (let i = 0; i < userData[0].home_devices.length; i++) {
-        home_devices_list.push( {ObjectId:userData[0].home_devices[i]?.device} )
-      }
-      console.log(home_devices_list)
-      let queryData = { database: 'CPO', collection: 'ChargePointInfo', 
-        pipelines: [ { $match: { _id : {$in:  home_devices_list } } },
-          { $project: { _id: 0, created_date:1, evse:1, evse_id:1, name:1 ,schedules:1, ocpp_info:1, sessions:1} }
+    if (user_id) {
+      let queryData = { database: 'CPO', collection: 'UserData', 
+        pipelines: [ 
+          { $match: { _id: { ObjectId: user_id } } },
+          { $project: { _id: 1, salt: 0, hashed_password_1: 0, hashed_password_2: 0, image: 0, byCompany: 0 } }
         ]
       }
       let response = await MsiApi.mongoAggregate(queryData)
       if (response.status === 200) {
-        chargePointInfo = response.data.result
-        console.log(chargePointInfo)
+        if (response.data.result.length === 0) {
+          router.push({ name: 'user' })
+          return "user_not_exist"
+          }
+        else 
+          userData = response.data.result
       }
       else {
         ElMessage.error(t('error')) 
@@ -126,7 +103,31 @@ const getChargePointInfo = async () => {
     }
   }
   catch {
-    ElMessage.error('An unexpected error occurred.')
+    ElMessage.error('An unexpected error occurred3.')
+  }
+}
+
+const getChargePointInfo = async () => {
+  try {
+    if (userData[0]?.home_info?.devices?.length > 0) {
+      let home_devices_list = []
+      for (let i = 0; i < userData[0].home_info.devices.length; i++) {
+        home_devices_list.push( {ObjectId:userData[0].home_info.devices[i].device_id} )
+      }
+      let queryData = { database: 'CPO', collection: 'ChargePointInfo', 
+        pipelines: [ { $match: { _id : {$in:  home_devices_list } } },
+          { $project: { _id: 0, created_date:1, evse:1, evse_id:1, name:1 ,schedules:1, ocpp_info:1} }
+        ]
+      }
+      let response = await MsiApi.mongoAggregate(queryData)
+      if (response.status === 200) 
+        chargePointInfo = response.data.result
+      else 
+        ElMessage.error(t('error')) 
+    }
+  }
+  catch {
+    ElMessage.error('An unexpected error occurred1.')
   }
 }
 const getUserPermission = async () => {
@@ -135,70 +136,82 @@ const getUserPermission = async () => {
       pipelines: [ { $project: { _id: 1, name: 1 } }]
     }
     let response = await MsiApi.mongoAggregate(queryData)
-    if (response.status === 200) {
+    if (response.status === 200) 
       userPermission = response.data.result
-    }
-    else {
+    else 
       ElMessage.error(t('error')) 
-    }
   }    
   catch {
-    ElMessage.error('An unexpected error occurred.')
+    ElMessage.error('An unexpected error occurred4.')
   }
 }
 const getUserPaymentHistory = async () => {
   try {
-    let UserPaymentHistoryArray = []
-    for(let i = 0; i < userData[0].payment_history.length; i++) {
-      UserPaymentHistoryArray.push( {"ObjectId":userData[0].payment_history[i]}  )
-    }
-    let queryData = { database: 'CPO', collection: 'PaymentHistory', 
-      pipelines: [ 
-        { $match: 
-          { _id: { $in: UserPaymentHistoryArray },
-            $expr: {
-              $and : [ 
-                { $gte : [ "$created_date", { "$dateFromString": {"dateString": select_time.value[0]}}]},
-                { $lte : [ "$created_date", { "$dateFromString": {"dateString": select_time.value[1]}}]}
-              ]
+    if (userData[0]?.payment_history?.length) {
+      let UserPaymentHistoryArray = []
+      for(let i = 0; i < userData[0].payment_history.length; i++) {
+        UserPaymentHistoryArray.push( {"ObjectId":userData[0].payment_history[i]}  )
+      }
+      if (!select_time.value ) {
+        select_time.value = ([ new Date(2000, 0, 1, 0, 0, 0), new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59)])
+      }
+      
+      let queryData = { database: 'CPO', collection: 'PaymentHistory', 
+        pipelines: [ 
+          { $match: 
+            { _id: { $in: UserPaymentHistoryArray },
+              $expr: {
+                $and : [ 
+                  { $gte : [ "$created_date", { "$dateFromString": { dateString: select_time.value[0]}}]},
+                  { $lte : [ "$created_date", { "$dateFromString": { dateString: select_time.value[1]}}]}
+                ]
+              }
             }
-          }
-        },
-        { $project: { sessionId: 0, locationId: 0, location: 0, invoice: 0, detail: 0, byCompany: 0 } }
-      ]
+          },
+          { $project: { sessionId: 0, locationId: 0, location: 0, invoice: 0, detail: 0, byCompany: 0 } }
+        ]
+      }
+      let response = await MsiApi.mongoAggregate(queryData)
+      if (response.status === 200) 
+        paymentHistory = response.data.result
+      else 
+      ElMessage.error(t('error')) 
     }
-    let response = await MsiApi.mongoAggregate(queryData)
-    paymentHistory = response.data.result
   }
-  catch {
-    ElMessage.error('An unexpected error occurred.')
+  catch (e){
+    ElMessage.error('An unexpected error occurred5.')
   }
 }
 const getUserPaymentsummary = async () => {
   try {
-    let UserPaymentHistoryArray = []
-    for(let i = 0; i < userData[0].payment_history.length; i++) {
-      UserPaymentHistoryArray.push( {"ObjectId":userData[0].payment_history[i]}  )
-    }
-    let jsonData = { database: "CPO", collection: "PaymentHistory", 
-      pipelines: [
-        { $match: {'_id': { $in: UserPaymentHistoryArray }}},
-        { $facet: {
-          summaryPrice: [{ $group: { _id: null, price: { $sum: "$price" } } }],
-          summaryTimes: [{ $group: { _id: null, times: { $sum: 1 } } }],
-          summaryPower: [{ $unwind: "$operator_types"}, { $match: { 'operator_types.type': 'charge' } }, { $group: { _id: null, power: { $sum: "$operator_types.kwh" } } }],
-          summaryTime:  [{ $unwind: "$operator_types"}, { $match: { 'operator_types.type': 'charge' } }, { $group: { _id: null, time: { $sum: "$operator_types.time"} } }]
+    if (userData[0].payment_history.length) {
+      let UserPaymentHistoryArray = []
+      for(let i = 0; i < userData[0].payment_history.length; i++) {
+        UserPaymentHistoryArray.push( {"ObjectId":userData[0].payment_history[i]}  )
+      }
+      let jsonData = { database: "CPO", collection: "PaymentHistory", 
+        pipelines: [
+          { $match: {'_id': { $in: UserPaymentHistoryArray }}},
+          { $facet: {
+            summaryPrice: [{ $group: { _id: null, price: { $sum: "$price" } } }],
+            summaryTimes: [{ $group: { _id: null, times: { $sum: 1 } } }],
+            summaryPower: [{ $unwind: "$operator_types"}, { $match: { 'operator_types.type': 'charge' } }, { $group: { _id: null, power: { $sum: "$operator_types.kwh" } } }],
+            summaryTime:  [{ $unwind: "$operator_types"}, { $match: { 'operator_types.type': 'charge' } }, { $group: { _id: null, time: { $sum: "$operator_types.time"} } }]
+            },
           },
-        },
-        { $project: { summary: {
-              price: { $arrayElemAt: ["$summaryPrice.price", 0] }, times: { $arrayElemAt: ["$summaryTimes.times", 0] },
-              power: { $arrayElemAt: ["$summaryPower.power", 0] }, time: { $arrayElemAt:  ["$summaryTime.time", 0] }
+          { $project: { summary: {
+                price: { $arrayElemAt: ["$summaryPrice.price", 0] }, times: { $arrayElemAt: ["$summaryTimes.times", 0] },
+                power: { $arrayElemAt: ["$summaryPower.power", 0] }, time: { $arrayElemAt:  ["$summaryTime.time", 0] }
+              }
             }
           }
-        }
-      ]}
-    let response = await MsiApi.mongoAggregate(jsonData)
-    paymentSummaryData = response.data.result[0]
+        ]}
+      let response = await MsiApi.mongoAggregate(jsonData)
+      if (response.status === 200) 
+        paymentSummaryData = response.data.result
+      else 
+        ElMessage.error(t('error')) 
+    }
   } 
     catch (error) {
     console.log(error)
@@ -207,55 +220,60 @@ const getUserPaymentsummary = async () => {
 
 const getSession = async () => {
   try {
-    let UserChargePoint = []
-    for (let i = 0; i < chargePointInfo.length; i++) { 
-      UserChargePoint.push( chargePointInfo[i].evse_id  )
-    }
-    let queryData = { database: 'OCPI', collection: 'EVSE', 
-      pipelines: [ 
-        { $match: 
-          { evse_id: { $in: UserChargePoint },}
-        },
-        { $project: { _id:1, uid: 1, evse_id : 1} }
-      ]
-    }
-    let response = await MsiApi.mongoAggregate(queryData)
-
-    userSession = response.data.result
-    console.log(userSession)
-    let userSessionArr = []
-
-    for (let i = 0; i < userSession.length; i++) {
-      userSessionArr.push ({"UUID": userSession[i].uid})
-    }
-    console.log(userSessionArr)
-    queryData = { database: 'OCPI', collection: 'Session', 
-      pipelines: [ 
-        { $match: { evse_uid: { $in: userSessionArr } } },
-        { $project: { _id:0 } }
-      ]
-    }
-    response = await MsiApi.mongoAggregate(queryData)
-    console.log(response.data.result)
-    let sessionData = response.data.result
-
-    for (let i =0; i < sessionData.length; i++) {
-      let homeDeviceSessionObj = {}
-      for (let j = 0; j < userSession.length; j++) {
-        console.log(sessionData[i].evse_uid)
-        console.log(userSession)
-        if (sessionData[i].evse_uid === userSession[j].uid)
-          homeDeviceSessionObj.evse_id = userSession[j].evse_id
-
+    if (userData[0]?.home_info?.sessions.length) {
+      let userSessionArr = []
+      for (let i = 0; i < userData[0]?.home_info?.sessions.length; i++) {
+        userSessionArr.push ({"ObjectId": userData[0]?.home_info?.sessions[i]})
       }
-      homeDeviceSessionObj.kwh = sessionData[i].kwh
-      homeDeviceSessionObj.start_date_time = moment(new Date( (new Date(sessionData[i].start_date_time).getTime()) + ((MStore.timeZoneOffset ) * -60000))).format("YYYY-MM-DD HH:mm:ss")
-      homeDeviceSessionObj.end_date_time = moment(new Date( (new Date(sessionData[i].end_date_time).getTime()) + ((MStore.timeZoneOffset ) * -60000))).format("YYYY-MM-DD HH:mm:ss")
+      let queryData = { database: 'OCPI', collection: 'Session', 
+        pipelines: [ { $match: { _id: { $in: userSessionArr } } },
+                     { $project: { _id:0,  kwh:1, start_date_time:1, end_date_time:1, evse_uid:1 } }
+                    ]
+      }
+      let response = await MsiApi.mongoAggregate(queryData)
+      if (response.status === 200) {
+        userSessionData = response.data.result
+        let evse_uidArr = []
+        for (let i = 0; i < userSessionData.length; i++) {
+          evse_uidArr.push ({"UUID": userSessionData[i].evse_uid})
+        }  
+        let queryData = { database: 'OCPI', collection: 'EVSE', 
+          pipelines: [ 
+            // { $match: { "uid": { $in: evse_uidArr } } },
+            { $project: { _id:1, evse_id:1, uid: 1  } }
+          ]
+        }
+        response = await MsiApi.mongoAggregate(queryData)  
+        console.log(response)
+        if ((response.status === 200)) 
+          evseData = response.data.result
+      }
+      else 
+        ElMessage.error(t('error')) 
+    }
+  } catch (error) {
+    ElMessage.error('An unexpected error occurred6.')
+  }
+}
+
+const RenderSessionData = async () => {
+  try {
+    for (let i = 0; i < userSessionData.length; i++) {
+      let homeDeviceSessionObj = {}
+      for (let j = 0; j < evseData.length; j++ ) {        
+        if (evseData[j].uid === userSessionData[i].evse_uid) {
+          homeDeviceSessionObj.evse_id = evseData[j].evse_id
+        }
+      }
+      homeDeviceSessionObj.kwh = userSessionData[i].kwh
+      homeDeviceSessionObj.start_date_time = moment(new Date( (new Date(userSessionData[i].start_date_time).getTime()) + ((MStore.timeZoneOffset ) * -60000))).format("YYYY-MM-DD HH:mm:ss")
+      homeDeviceSessionObj.end_date_time = moment(new Date( (new Date(userSessionData[i].end_date_time).getTime()) + ((MStore.timeZoneOffset ) * -60000))).format("YYYY-MM-DD HH:mm:ss")
       homeDeviceSession.push(homeDeviceSessionObj)
     }
   } catch (error) {
-    console.log(error)
+    ElMessage.error('An unexpected error occurred7.')
   }
+
 }
 
 const RenderUserRenderData = async () => {
@@ -268,10 +286,10 @@ const RenderUserRenderData = async () => {
           if (userPermission[i]._id === userData[0].permission.user) {
             switch (userPermission[i].name) {
               case 'AnonymousUser':
-              UserRenderData.permission = t('anonymous_user')
+                UserRenderData.permission = t('anonymous_user')
                 break
               case 'MemberUser':
-              UserRenderData.permission = t('member_user')
+                UserRenderData.permission = t('member_user')
                 break
               default:
                 break
@@ -297,11 +315,10 @@ const RenderUserRenderData = async () => {
           if (i < userData[0].evse_list.length) {
             UserRenderData.evse_list_id_tooltip += ' /<br> '
           }
-        }        
+        }
       }
       for (let i = 0; i < userData[0].binding_cards.paylist.length; i++) {
         let paylist_detail = JSON.parse(userData[0].binding_cards.paylist[i].detail)
-        
         paylist_detail.card_num = paylist_detail.card6No + '******' + paylist_detail.card4No
         let paylist_obj = { card_enable: userData[0].binding_cards.paylist[i].enable, 
                             card_num: paylist_detail.card_num, 
@@ -326,15 +343,17 @@ const RenderUserRenderData = async () => {
 }
 const RenderPaymentSummaryRenderData = async () => {
   try {
-    const charge_hours = Math.floor(moment.duration(paymentSummaryData.summary.time, 'seconds').asHours());
-    const charge_min = moment( {m:moment.duration(paymentSummaryData.summary.time, 'second').minutes()}).format('mm')
-    const charge_sec = moment( {s:moment.duration(paymentSummaryData.summary.time, 'second').hours()}).format('ss')
-    PaymentSummaryRenderData.charge_kwh = paymentSummaryData.summary.power
-    PaymentSummaryRenderData.cost_str = paymentSummaryData.summary.price
-    PaymentSummaryRenderData.amount_str = paymentSummaryData.summary.times
-    PaymentSummaryRenderData.charge_hr = charge_hours
-    PaymentSummaryRenderData.charge_min = charge_min
-    PaymentSummaryRenderData.charge_sec = charge_sec
+    if (paymentSummaryData.length) {
+      const charge_hours = Math.floor(moment.duration(paymentSummaryData[0].summary.time, 'seconds').asHours());
+      const charge_min = moment( {m:moment.duration(paymentSummaryData[0].summary.time, 'second').minutes()}).format('mm')
+      const charge_sec = moment( {s:moment.duration(paymentSummaryData[0].summary.time, 'second').hours()}).format('ss')
+      PaymentSummaryRenderData.charge_kwh = paymentSummaryData[0].summary.power
+      PaymentSummaryRenderData.cost_str = paymentSummaryData[0].summary.price
+      PaymentSummaryRenderData.amount_str = paymentSummaryData[0].summary.times
+      PaymentSummaryRenderData.charge_hr = charge_hours
+      PaymentSummaryRenderData.charge_min = charge_min
+      PaymentSummaryRenderData.charge_sec = charge_sec
+    }
   } catch (error) {
     console.log(error)
   }
@@ -347,27 +366,7 @@ const RenderPaymentHistoryRenderData = async () => {
       let create_time = (moment(new Date( (new Date(paymentHistory[i].created_date).getTime()) + ((MStore.timeZoneOffset ) * -60000))).format("YYYY-MM-DD HH:mm:ss"))
       let charge_time_str, charge_price_str, charge_kwh_str, charge_currency_str, 
       parking_time_str, parking_price_str, parking_car_number_str, parking_currency_str, paymethod_str
-
-      switch (paymentHistory[i].paymethod.method) {
-        case 'CREDIT':
-          paymethod_str = t('credit_card')
-          break
-        case 'GOOGLEPAY':
-          paymethod_str = t('google_pay')
-          break
-        case 'SAMSUNGPAY':
-          paymethod_str = t('samsung_pay')
-          break
-        case 'RFID':
-          paymethod_str = t('rfid')
-          break
-        case 'FREE':
-          paymethod_str = t('free')
-          break
-        default:
-          paymethod_str = paymentHistory[i].paymethod.method
-          break
-      }
+      paymethod_str = convertPaymethodStr(paymentHistory[i].paymethod.method)
 
       for (let j = 0; j < paymentHistory[i].operator_types.length; j++) {
         if (paymentHistory[i].operator_types[j].type === 'charge') {
@@ -405,7 +404,7 @@ const RenderPaymentHistoryRenderData = async () => {
     }
   } catch (error) {
     console.log(error)
-  }}
+}}
 
 const RenderUserTypeRenderData = async () => {
   try {
@@ -430,10 +429,13 @@ const RenderUserTypeRenderData = async () => {
 const RenderChargePointInfoRenderData = async () => {
   try {
     for (let i = 0; i < chargePointInfo.length; i++) {
-      let chargePointInfoRenderObj = {}  
+      let chargePointInfoRenderObj = {evse_id: '', created_date: '', binding_rfid_card: ''}
       chargePointInfoRenderObj.evse_id = chargePointInfo[i].evse_id
-      let create_time = (moment(new Date( (new Date(chargePointInfo[i].created_date).getTime()) + ((MStore.timeZoneOffset ) * -60000))).format("YYYY-MM-DD HH:mm:ss"))
+      let create_time = moment(new Date( (new Date(chargePointInfo[i].created_date).getTime()) + ((MStore.timeZoneOffset ) * -60000))).format("YYYY-MM-DD HH:mm:ss")
       chargePointInfoRenderObj.created_date = create_time
+      for ( let i = 0; i < userData[0]?.home_info?.devices?.[0]?.rfids.length; i++) {
+        chargePointInfoRenderObj.binding_rfid_card += userData[0].home_info.devices[0].rfids[0]
+      }
       chargePointInfoRenderData.push(chargePointInfoRenderObj)
     }
   } catch (error) {
@@ -442,50 +444,37 @@ const RenderChargePointInfoRenderData = async () => {
 }
 
 const SendNotification = async (action) => {
+  NotificationData.title = NotificationData.body = NotificationData.route = ''
   if (action === 'confirm') {
     let sendData = { users:[userData[0].email], title:NotificationData.title, body:NotificationData.body, data: {route:NotificationData.route}}
-    let response = await MsiApi.sendNotification (sendData)
-    console.log(response)
+    let response = await MsiApi.sendNotification(sendData)
+    if (response.status !== 200)
+      ElMessage.error(response.data.message)
   }
-  NotificationData.title = NotificationData.body = NotificationData.route = ''
   layoutVisible.notification = false
 }
 const download = () => {
-  const tHeader = [
-    'Station Name',
-    'Station EVSE ID',
-    'Parking Used Time',
-    'Parking Price',
-    'Parking Currency',
-    'Parking License Plate',
-    'Charging Used Time',
-    'Charging kWh',
-    'Charging Price',
-    'Charging Currency',
-    'Final Paid',
-    'Currency',
-    'Method',
-    'Created Time'
+  const tHeader = ['Station Name', 'Station EVSE ID', 'Parking Used Time', 'Parking Price', 'Parking Currency', 'Parking License Plate',
+    'Charging Used Time',  'Charging kWh', 'Charging Price', 'Charging Currency', 'Final Paid', 'Currency', 'Method', 'Created Time'
   ]
-  const filterVal = [
-    'location_name',
-    'evse_id',
-    'parking_time_str',
-    'parking_price',
-    'parking_currency_str',
-    'parking_car_number_str',
-    'charge_time_str',
-    'charge_kwh_str',
-    'charge_price',
-    'charge_currency_str',
-    'price',
-    'currency',
-    'paymethod_str',
-    'created_date_str'
+  const filterVal = ['location_name', 'evse_id', 'parking_time_str', 'parking_price_str', 'parking_currency_str', 'parking_car_number_str',
+    'charge_time_str', 'charge_kwh_str', 'charge_price_str', 'charge_currency_str', 'price_str', 'currency', 'paymethod_str', 'created_date_str'
   ]
   const data = paymentHistoryRenderData.map(v => filterVal.map(j => v[j]))
+  
+  const indicesToConvert = [3, 8, 10] // parking_price_str, charge_price_str, price_str
+
+  for (let i = 0; i < data.length; i++) {
+    for (const index of indicesToConvert) {
+      if (typeof data[i][index] === 'string') {
+        data[i][index] = parseInt(data[i][index], 10);
+      }
+    }
+  }
   export_json_to_excel ({ header: tHeader, data: data, filename: 'User Payment' })
 }
+
+
 const select_date = async () => {
   await getUserPaymentHistory()
   await RenderPaymentHistoryRenderData()
@@ -541,8 +530,8 @@ const clearEvseList = async () => {
       let sendData = { 'class': 'UserData', 'pk': userData[0]._id, 'evse_list': [] }
       let res = await MsiApi.setCollectionData('patch', 'cpo', sendData)
       if (res.status === 200) {
-        userData[0].evse_list_id = ''
-        userData[0].evse_list_id_detail = ''
+        getUserData()
+        RenderUserRenderData()
       }
     })
     .catch((e) => {
@@ -550,140 +539,8 @@ const clearEvseList = async () => {
     })
   }
   catch {
-    ElMessage.error('An unexpected error occurred.')
+    ElMessage.error('An unexpected error occurred1.')
   }
-}
-
-
-const card_detail = (data, index) => {
-  rfid_title.value= t('edit_rfid')
-  layoutVisible.edit_rfid = true
-  modify_card_index.value = userData[0].rfids.indexOf(data)
-  rfidData.rfid = data.rfid
-  rfidData.cash = data.cash
-  rfidData.enable = data.enable
-  rfidData.nickname = data.nickname
-  rfidData.index = index
-}
-
-const checkRfidCard = async() => {
-  try {
-    let queryData = { 
-      "database": 'CPO', 
-      "collection": 'UserData', 
-      "pipelines": [
-        {
-          $unwind: "$rfids"
-        },
-        { 
-          $match: { 
-            $and: [
-              {
-                "rfids.rfid": rfidData.rfid.toUpperCase()
-              },
-              {
-                _id: { $ne: {"ObjectId" : userData[0]._id}}
-              }
-            ]
-          },
-        },
-        {
-          $project: { _id: 1, first_name: 1, last_name: 1, rfids: 1 } 
-        }
-      ]
-    }
-    let response = await MsiApi.mongoAggregate(queryData) 
-    if (response.data.result.length !== 0) {
-      let user_name = response.data.result[0].first_name + ' ' + response.data.result[0].last_name
-      ElMessage({ type: 'error', message: t(`card_number_is_duplicated_with_user`, { user_name }) })
-      return false
-    }
-    
-    for (let i=0; i<userData[0].rfids.length; i++) {
-      if (rfidData.rfid.toUpperCase() === userData[0].rfids[i].rfid.toUpperCase() && rfidData.index !== i) {
-        ElMessage({ type: 'error', message: t('card_number_already_exists') })
-        return false
-      }
-    }
-  
-    return true
-  }
-  catch {
-    ElMessage.error('An unexpected error occurred.')
-    return false
-  }
-}
-const confirmRfid = async (confirm, index) => {
-
-  // const hex_pair= rfidData.rfid.match(/.{1,2}/g)
-  // const reversedHexPairs = hex_pair.reverse().map(pair => pair.split('').join(''));  
-  // const reversedHex = reversedHexPairs.join('');
-
-  try {
-    if (confirm === 'confirm') {
-      rfidData_ref.value.validate(async valid => {
-        if (valid && await checkRfidCard() === true) {
-          layoutVisible.edit_rfid = false
-          if (modify_card_index.value === -1) {
-            userData[0].rfids.push({
-              rfid: rfidData.rfid.toUpperCase(), cash: parseInt(rfidData.cash),
-              enable: rfidData.enable, nickname: rfidData.nickname
-            })
-            let sendData = { 'class': 'UserData', 'pk': userData[0]._id, 'rfids': userData[0].rfids }
-            let res = await MsiApi.setCollectionData('patch', 'cpo', sendData)
-            if (res.status === 200) {
-              ElMessage({ type: 'success', message: `${t('add')} ${rfidData.rfid.toUpperCase()} ${t('card_no')}` })
-            }
-            else {
-              userData[0].rfids.pop()
-              // ElMessage.error(t('error'))
-              ElMessage.error(res.response.data.message)
-            }
-          }
-          else {
-            userData[0].rfids[modify_card_index.value].rfid = rfidData.rfid.toUpperCase()
-            userData[0].rfids[modify_card_index.value].cash = rfidData.cash
-            userData[0].rfids[modify_card_index.value].enable = rfidData.enable
-            userData[0].rfids[modify_card_index.value].nickname = rfidData.nickname
-            let sendData = { 'class': 'UserData', 'pk': userData[0]._id, 'rfids': userData[0].rfids }
-            MsiApi.setCollectionData('patch', 'cpo', sendData)
-          }
-        }
-        else {
-          return false
-        }
-      })
-    }
-    else if (confirm === 'delete') {
-      ElMessageBox.confirm(t('do_you_want_to_delete'), t('warning'), { confirmButtonText: t('ok'), cancelButtonText: t('cancel'), type: 'warning' })
-        .then(async () => {
-          if (index !== undefined) {
-            modify_card_index.value = index
-          }
-          userData[0].rfids.splice(modify_card_index.value, 1)
-          let sendData = { 'class': 'UserData', 'pk': userData[0]._id, 'rfids': userData[0].rfids }
-          await MsiApi.setCollectionData('patch', 'cpo', sendData)
-        })
-        .catch((e) => {
-          console.log(e)
-        })
-    }
-    else if (confirm === 'cancel')
-    layoutVisible.edit_rfid = false
-  }
-  catch {
-    ElMessage.error('An unexpected error occurred.')
-  }
-}
-
-const editRfid = () => {
-  modify_card_index.value = -1
-  rfid_title.value= t('add_rfid')
-  layoutVisible.edit_rfid = true
-  rfidData.rfid = ''
-  rfidData.cash = ''
-  rfidData.nickname = ''
-  rfidData.enable = true
 }
 
 const editUser = () => {
@@ -752,7 +609,13 @@ const editUserDialog = (action) => {
       ElMessageBox.confirm(t('do_you_want_to_delete'), t('warning'), { confirmButtonText: t('ok'), cancelButtonText: t('cancel'), type: 'warning' })
         .then(async () => {
           console.log(await MsiApi.setCollectionData('delete', 'cpo', sendData))
-          router.push({ name: 'user' })
+          let res = await MsiApi.delete_account({ role:'member', id: userData[0]._id })
+            if (res.data.message === 'Accepted') {
+              router.push({ name: 'user' })
+            }
+            else {
+              ElMessage.error(t('error'))
+            }
         })
         .catch((e) => {
           console.log(e)
@@ -763,14 +626,15 @@ const editUserDialog = (action) => {
     }
   }
   catch {
-    ElMessage.error('An unexpected error occurred.')
+    ElMessage.error('An unexpected error occurred2.')
   }
 }
 
 onMounted(async () => {
   // const startTime = new Date().getTime()
-
-  await getUserData()
+  let status = await getUserData()
+  if (status === 'user_not_exist')
+    return
   await getChargePointInfo()
   await getUserPermission()
   await getUserPaymentHistory()
@@ -781,8 +645,8 @@ onMounted(async () => {
   await RenderPaymentHistoryRenderData()
   await RenderUserTypeRenderData()  
   await RenderChargePointInfoRenderData()
+  await RenderSessionData()
   setTimeout(isLoading_skeleton.value = false , 2000)
-  
   // console.log('mount', new Date().getTime() - startTime, 'ms');
 
 })
@@ -898,7 +762,6 @@ onMounted(async () => {
                       <el-tooltip v-else placement="bottom-start">
                         <template #content>
                           <div v-html="UserRenderData.evse_list_id_tooltip"></div>
-                          <!-- <div class="max-h-300px overflow-y-auto w-200px text-16px line-height-32px"> {{ userData.evse_list_id_detail }} </div> -->
                         </template>
                         <el-button class="overflow-hidden border-0 evse-tooltip-btn">
                           <span class="font-400 text-16px line-height-32px text-black-200"> {{ UserRenderData.evse_list_id }} </span>
@@ -1415,6 +1278,7 @@ onMounted(async () => {
           <el-table :data="chargePointInfoRenderData">
             <el-table-column property="evse_id" :label="t('evse_id')" min-width="250" />
             <el-table-column property="created_date" :label="t('created_date')" min-width="250" />
+            <el-table-column property="binding_rfid_card" :label="t('binding_rfid_card')" min-width="250" />
           </el-table>
         </div>
       </el-dialog>
