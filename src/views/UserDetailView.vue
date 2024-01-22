@@ -93,7 +93,7 @@ const getUserData = async () => {
         if (response.data.result.length === 0) {
           router.push({ name: 'user' })
           return "user_not_exist"
-          }
+        }
         else 
           userData = response.data.result
       }
@@ -120,8 +120,9 @@ const getChargePointInfo = async () => {
         ]
       }
       let response = await MsiApi.mongoAggregate(queryData)
-      if (response.status === 200) 
+      if (response.status === 200) {
         chargePointInfo = response.data.result
+      }
       else 
         ElMessage.error(t('error')) 
     }
@@ -344,7 +345,7 @@ const RenderUserRenderData = async () => {
 const RenderPaymentSummaryRenderData = async () => {
   try {
     if (paymentSummaryData.length) {
-      const charge_hours = Math.floor(moment.duration(paymentSummaryData[0].summary.time, 'seconds').asHours());
+      const charge_hours = Math.floor(moment.duration(paymentSummaryData[0].summary.time, 'seconds').asHours())
       const charge_min = moment( {m:moment.duration(paymentSummaryData[0].summary.time, 'second').minutes()}).format('mm')
       const charge_sec = moment( {s:moment.duration(paymentSummaryData[0].summary.time, 'second').hours()}).format('ss')
       PaymentSummaryRenderData.charge_kwh = paymentSummaryData[0].summary.power
@@ -433,8 +434,10 @@ const RenderChargePointInfoRenderData = async () => {
       chargePointInfoRenderObj.evse_id = chargePointInfo[i].evse_id
       let create_time = moment(new Date( (new Date(chargePointInfo[i].created_date).getTime()) + ((MStore.timeZoneOffset ) * -60000))).format("YYYY-MM-DD HH:mm:ss")
       chargePointInfoRenderObj.created_date = create_time
-      for ( let i = 0; i < userData[0]?.home_info?.devices?.[0]?.rfids.length; i++) {
-        chargePointInfoRenderObj.binding_rfid_card += userData[0].home_info.devices[0].rfids[0]
+      for ( let i = 0; i < userData[0]?.home_info?.devices?.[0]?.rfids?.length; i++) {
+        chargePointInfoRenderObj.binding_rfid_card += userData[0].home_info.devices[0].rfids[i]
+        if ( i !== userData[0]?.home_info?.devices?.[0]?.rfids?.length -1 )
+          chargePointInfoRenderObj.binding_rfid_card += ' / '
       }
       chargePointInfoRenderData.push(chargePointInfoRenderObj)
     }
@@ -605,12 +608,11 @@ const editUserDialog = (action) => {
     }
     else if (action === 'delete') {
       layoutVisible.edit_customer = false 
-      let sendData = { class: 'UserData', pk: userData[0]._id }
       ElMessageBox.confirm(t('do_you_want_to_delete'), t('warning'), { confirmButtonText: t('ok'), cancelButtonText: t('cancel'), type: 'warning' })
         .then(async () => {
-          console.log(await MsiApi.setCollectionData('delete', 'cpo', sendData))
           let res = await MsiApi.delete_account({ role:'member', id: userData[0]._id })
             if (res.data.message === 'Accepted') {
+              ElMessage.error('Success')
               router.push({ name: 'user' })
             }
             else {
@@ -670,7 +672,7 @@ onMounted(async () => {
                       <span class="line-height-24px">{{ t('general_info') }}</span>
                     </div>
                     <el-button 
-                      v-if="MStore.rule_permission.UserDetail.userEdit === 'O' || MStore.permission.isCompany"
+                      v-if="MStore.rule_permission.UserDetail.userEdit === 'O'"
                       link type="primary" @click="editUser()">
                       <font-awesome-icon class="text-gray-300 w-32px h-32px" icon="fa-regular fa-pen-to-square" />
                     </el-button>
@@ -717,28 +719,28 @@ onMounted(async () => {
                       <div class="md:flex mb-8px">
                         <span class="info-item min-w-110px">{{ t('binding_card') }}</span>
                         <el-button 
-                        v-if="MStore.rule_permission.UserDetail.cardDetails === 'O' || MStore.permission.isCompany"
+                        v-if="MStore.rule_permission.UserDetail.cardDetails === 'O'"
                         round class="button w-full" @click="layoutVisible.binding_card = true">{{ t('card_details') }}</el-button>
                       </div>
     
                       <div class="md:flex mb-8px">
                         <span class="info-item min-w-110px">{{ t('device') }}</span>
                         <el-button 
-                        v-if="MStore.rule_permission.UserDetail.deviceDetail === 'O' || MStore.permission.isCompany"
+                        v-if="MStore.rule_permission.UserDetail.deviceDetail === 'O'"
                         round class="button w-full" @click="layoutVisible.device = true">{{ t('device_details') }}</el-button>
                       </div>
 
                       <div class="md:flex mb-8px">
                         <span class="info-item min-w-110px">{{ t('home_device') }}</span>
                         <el-button 
-                        v-if="MStore.rule_permission.UserDetail.deviceDetail === 'O' || MStore.permission.isCompany"
+                        v-if="MStore.rule_permission.UserDetail.deviceDetail === 'O'"
                         round class="button w-full" @click="layoutVisible.home_device = true">{{ t('home_device_details') }}</el-button>
                       </div>
 
                       <div class="md:flex mb-8px">
                         <span class="info-item min-w-110px">{{ '' }}</span>
                         <el-button 
-                        v-if="MStore.rule_permission.UserDetail.deviceDetail === 'O' || MStore.permission.isCompany"
+                        v-if="MStore.rule_permission.UserDetail.deviceDetail === 'O'"
                         round class="button w-full" @click="layoutVisible.notification = true">{{ t('send_notification') }}</el-button>
                       </div>
                     </div>
@@ -768,7 +770,7 @@ onMounted(async () => {
                         </el-button>
                       </el-tooltip>
                       <el-button 
-                        v-if="company === 'MSI' && (MStore.rule_permission.UserDetail.clear === 'O' || MStore.permission.isCompany)" 
+                        v-if="company === 'MSI' && (MStore.rule_permission.UserDetail.clear === 'O')" 
                         round
                         class="button md:ml-auto w-full"
                         @click="clearEvseList"
@@ -811,7 +813,7 @@ onMounted(async () => {
           </el-tab-pane>
 
           <el-tab-pane 
-          v-if="MStore.rule_permission.UserDetail.payment === 'O' || MStore.permission.isCompany"
+          v-if="MStore.rule_permission.UserDetail.payment === 'O'"
           :label="t('payment')" name="second">
             <div class="flex justify-between flex-wrap lg:flex-nowrap pt-24px pb-32px">
               <div class="date-picker w-full blue-1100">
@@ -1004,7 +1006,7 @@ onMounted(async () => {
 
 
           <el-tab-pane 
-          v-if="MStore.rule_permission.UserDetail.payment === 'O' || MStore.permission.isCompany"
+          v-if="MStore.rule_permission.UserDetail.payment === 'O'"
           :label="t('home_session')" name="third">
             <div class="overflow-x-auto">
               <div class="">

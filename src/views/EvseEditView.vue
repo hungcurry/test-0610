@@ -46,6 +46,7 @@ const evse_obj = reactive({
   evse_id: '',
   status: 'UNKNOWN',
   connectors: [],
+  connectorsData: []
 })
 const router = useRouter()
 const selectTariffObj = reactive({})
@@ -651,11 +652,11 @@ onMounted(async () => {
     Object.assign(evse_obj, response.data.result[0])
 
     if (evse_obj?.connectors?.length > 0) {
-        queryData = { database: 'OCPI', collection: 'Connector',
-        pipelines: [ { $match: { "_id" : {"$in": [  {"ObjectId" : evse_obj.connectors[0]}]} } }]
+      queryData = { database: 'OCPI', collection: 'Connector',
+                    pipelines: [ { $match: { "_id": {"$in": [ {"ObjectId" : evse_obj.connectors[0]}]}} }]
       }
       response = await MsiApi.mongoAggregate(queryData)
-      evse_obj.connectors = response.data.result
+      evse_obj.connectorsData = response.data.result
 
       Object.assign(connector_obj, response.data.result[0])
       switch (connector_obj.standard) {
@@ -1077,7 +1078,7 @@ onMounted(async () => {
           {{ t('cancel') }}
         </el-button>
         <el-button 
-          v-if="MStore.rule_permission.EVSEEdit.save === 'O' || MStore.permission.isCompany"  
+          v-if="MStore.rule_permission.EVSEEdit.save === 'O'"  
           class="btn-secondary" @click="SaveEvseEdit(ruleFormRef)"> 
           {{ t('save') }}
         </el-button>

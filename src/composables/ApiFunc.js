@@ -1,7 +1,7 @@
 import VueCookies from 'vue-cookies'
 import axios from 'axios'
 
-let apiServer = 'api10/api2'
+let apiServer = 'api10/api3'
 axios.defaults.timeout = 15000
 if (import.meta.env.VITE_API !== undefined) {
   apiServer = import.meta.env.VITE_API
@@ -275,10 +275,19 @@ export default () => {
     return response
   }
 
-  const setToken = async (method, data) => {
-    const companyName = data.name
-    delete data.name
-    const response = await axiosInterface(method, '/cpo/' + companyName + '/token', data)
+
+  const createToken = async (companyName, data) => {
+    const response = await axiosInterface('post', '/cpo/' + companyName + '/token', data)
+    return response
+  }
+
+  const patchToken = async (companyName, data) => {
+    const response = await axiosInterface('patch', '/cpo/' + companyName + '/token', data)
+    return response
+  }
+
+  const deleteToken = async (companyName, data) => {
+    const response = await axiosInterface('delete', '/cpo/' + companyName + '/token', data)
     return response
   }
 
@@ -292,6 +301,6 @@ export default () => {
     get_user_payment, get_user_cash, get_paymentHistory, get_cash, 
     change_availability, get_diagnostics, get_configuration, change_configuration, sendNotification,
     add_merchant, get_edoc, remote_start_transaction, remote_stop_transaction,
-    setToken,
+    createToken, patchToken, deleteToken
   }
 }

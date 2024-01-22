@@ -435,9 +435,9 @@ onMounted(async () => {
       </div>
 
       <div class="flex flex-justify-center pb-40px">
-        <el-button class="btn-secondary bg-btn-100 md:mr-44px" v-if="station_id && (MStore.rule_permission.StationEdit.delete === 'O' || MStore.permission.isCompany)" @click="deleteStation"> {{t('delete') }} </el-button>
+        <el-button class="btn-secondary bg-btn-100 md:mr-44px" v-if="station_id && (MStore.rule_permission.StationEdit.delete === 'O')" @click="deleteStation"> {{t('delete') }} </el-button>
         <el-button class="btn-secondary bg-btn-100 md:mr-44px" @click="backStation"> {{ t('cancel') }}  </el-button>
-        <el-button class="btn-secondary" v-if="MStore.rule_permission.StationEdit.save === 'O' || MStore.permission.isCompany"   @click="saveStation(ruleFormRef)"> {{ t('save') }}  </el-button>
+        <el-button class="btn-secondary" v-if="MStore.rule_permission.StationEdit.save === 'O'" @click="saveStation(ruleFormRef)"> {{ t('save') }}  </el-button>
       </div>
     </div>
   </div>

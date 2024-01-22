@@ -972,7 +972,7 @@ onMounted(async () => {
                 <font-awesome-icon icon="fa-regular fa-user" class="w-20px h-20px mr-5px text-blue-1200" />
                 <p class="text-1.8rem text-blue-1200 font-bold">{{ t('admin') }}</p>
               </div>
-              <el-button v-if="MStore.rule_permission.AdminInfo.addAdmin === 'O' || MStore.permission.isCompany" 
+              <el-button v-if="MStore.rule_permission.AdminInfo.addAdmin === 'O'" 
                 round class="button" @click="openAdminUserDialog('add', null)">{{ t('add_admin') }}</el-button>
             </div>
             <div class="overflow-x-auto">

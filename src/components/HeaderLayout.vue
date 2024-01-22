@@ -127,7 +127,7 @@ const emitCallBack = (res) => {
             <el-dropdown-item @click="logOut()"> {{ t('log_out') }}</el-dropdown-item>
             <el-dropdown-item @click="resetPW()"> {{ t('reset_password') }}</el-dropdown-item>
             <el-dropdown-item 
-                v-if="MStore.rule_permission.AdminInfo.page === 'O' || MStore.permission.isCompany" 
+                v-if="MStore.rule_permission.AdminInfo.page === 'O'" 
                 @click="Admin_Info()"> {{t('admin_info')}}
             </el-dropdown-item>
           </el-dropdown-menu>

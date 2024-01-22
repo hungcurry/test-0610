@@ -500,7 +500,7 @@ onMounted( async() => {
           </template>
         </el-input>
         <el-button 
-          v-if="MStore.rule_permission.Company.addCompany === 'O' || MStore.permission.isCompany"
+          v-if="MStore.rule_permission.Company.addCompany === 'O'"
           class="btn-secondary box-shadow" @click="AddCompany"> {{ t('add_company') }} </el-button>
       </div>
 
@@ -589,7 +589,7 @@ onMounted( async() => {
             >
               <template #default="scope">
                 <el-button 
-                  v-if="MStore.rule_permission.Company.detail === 'O' || MStore.permission.isCompany"
+                  v-if="MStore.rule_permission.Company.detail === 'O'"
                   class="btn-more" @click="detail_info(scope.row)"> <font-awesome-icon icon="fa-solid fa-ellipsis" /> </el-button>
               </template>
             </el-table-column>

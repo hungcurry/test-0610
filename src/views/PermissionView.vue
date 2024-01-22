@@ -673,13 +673,13 @@ onBeforeMount(() => {
 
       <div v-if="displayItem" class="flex justify-center pb-40px">
         <el-button class="btn-secondary bg-btn-100 md:mr-44px" 
-          v-if="MStore.rule_permission.Permission.cancel === 'O' || MStore.permission.isCompany" 
+          v-if="MStore.rule_permission.Permission.cancel === 'O'" 
           @click="handlerResetForm(ruleFormRef)"
         >
           {{ t('cancel') }}
         </el-button>
         <el-button class="btn-secondary" 
-          v-if="MStore.rule_permission.Permission.save === 'O' || MStore.permission.isCompany" 
+          v-if="MStore.rule_permission.Permission.save === 'O'" 
           @click="handlerSaveForm(ruleFormRef)"
         >
           {{ t('save') }}

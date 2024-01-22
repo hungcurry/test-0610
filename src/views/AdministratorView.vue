@@ -379,7 +379,7 @@ onMounted(async () => {
       <div class="flex flex-justify-end flex-items-baseline flex-wrap lg:flex-nowrap pt-40px pb-32px">
         <el-dropdown class="mr-12px" trigger="click">
           <el-button
-            v-if="MStore.rule_permission.Administrator.downloadList === 'O' || MStore.permission.isCompany"
+            v-if="MStore.rule_permission.Administrator.downloadList === 'O'"
             class="download-btn w-full md:w-auto mt-4 md:mt-0 box-shadow"
             @click="downloadList('get')"
           >
@@ -400,7 +400,7 @@ onMounted(async () => {
         </el-dropdown>
 
         <el-button 
-          v-if="MStore.rule_permission.Administrator.addAdmin === 'O' || MStore.permission.isCompany"
+          v-if="MStore.rule_permission.Administrator.addAdmin === 'O'"
           class="btn-secondary box-shadow" @click="addAdminUser"> {{ t('add_admin') }} </el-button>
       </div>
 
@@ -479,7 +479,7 @@ onMounted(async () => {
             >
               <template #default="scope">
                 <el-button 
-                  v-if="MStore.rule_permission.Administrator.detailAdmin === 'O' || MStore.permission.isCompany"
+                  v-if="MStore.rule_permission.Administrator.detailAdmin === 'O'"
                   class="btn-more" @click="detail_info(scope)"> <font-awesome-icon icon="fa-solid fa-ellipsis" /> </el-button>
               </template>
             </el-table-column>

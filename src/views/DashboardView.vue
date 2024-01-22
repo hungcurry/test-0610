@@ -1005,7 +1005,7 @@ onMounted(async () => {
                   />
                 </el-select>
                 <el-button 
-                  v-if="MStore.rule_permission.Dashboard.payment === 'O' || MStore.permission.isCompany" class="ellipsis ml-8" @click="goto_payment">
+                  v-if="MStore.rule_permission.Dashboard.payment === 'O'" class="ellipsis ml-8" @click="goto_payment">
                   <font-awesome-icon icon="fa-solid fa-ellipsis"/>
                 </el-button>
                 <el-tooltip content="Convert based on the current buying exchange rates from Taiwan Bank." placement="top">

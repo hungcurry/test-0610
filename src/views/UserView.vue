@@ -206,7 +206,7 @@ onMounted( async() => {
           </template>
         </el-input>
         <el-button 
-        v-if="MStore.rule_permission.User.addUser === 'O' || MStore.permission.isCompany"
+        v-if="MStore.rule_permission.User.addUser === 'O'"
         class="btn-secondary box-shadow" @click="addUser"> {{ t('add_user') }} </el-button>
       </div>
       <div class="overflow-x-auto">
@@ -299,7 +299,7 @@ onMounted( async() => {
               min-width="150"
             >
               <template #default="scope">
-                <el-button v-if="MStore.rule_permission.User.userDetail === 'O' || MStore.permission.isCompany"
+                <el-button v-if="MStore.rule_permission.User.userDetail === 'O'"
                 class="btn-more" @click="detail_info(scope.row.email)"> <font-awesome-icon icon="fa-solid fa-ellipsis" /> </el-button>
               </template>
             </el-table-column>

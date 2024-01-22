@@ -296,35 +296,35 @@ onMounted(async () => {
       <div class="pt-40px pb-20px overflow-x-auto">
         <div class="flex lg:justify-end pr-10px">
           <el-button
-            v-if="editMode === true && (MStore.rule_permission.EVSE.update === 'O' || MStore.permission.isCompany)" 
+            v-if="editMode === true && (MStore.rule_permission.EVSE.update === 'O')" 
             class="btn-secondary shrink-0 update-button px-30px box-shadow"
             @click="updateSW"
           >
           {{ t('update_sw') }}
           </el-button>
           <el-button
-            v-if="editMode === true && (MStore.rule_permission.EVSE.reset === 'O' || MStore.permission.isCompany)"
+            v-if="editMode === true && (MStore.rule_permission.EVSE.reset === 'O')"
             class="btn-secondary shrink-0 soft-reset-button px-30px box-shadow"
             @click="evseReset('soft')"
           >
           {{ t('soft_reset') }}
           </el-button>
           <el-button
-            v-if="editMode === true && (MStore.rule_permission.EVSE.reset === 'O' || MStore.permission.isCompany)"
+            v-if="editMode === true && (MStore.rule_permission.EVSE.reset === 'O')"
             class="btn-secondary shrink-0 hard-reset-button px-30px box-shadow"
             @click="evseReset('hard')"
           >
           {{ t('hard_reset') }}
           </el-button>
           <el-button
-            v-if="editMode === false && (MStore.rule_permission.EVSE.addEVSE === 'O' || MStore.permission.isCompany)"
+            v-if="editMode === false && (MStore.rule_permission.EVSE.addEVSE === 'O')"
             class="btn-secondary shrink-0 add-charger px-30px box-shadow"
             @click="add_charger"
           >
           {{ t('add_evse') }}</el-button
           >
           <el-button 
-            v-if="MStore.rule_permission.EVSE.update === 'O' || MStore.rule_permission.EVSE.reset === 'O' || MStore.permission.isCompany"
+            v-if="MStore.rule_permission.EVSE.update === 'O' || MStore.rule_permission.EVSE.reset === 'O'"
             class="btn-secondary shrink-0 edit px-30px box-shadow" @click="edit">
             {{ t(edit_button_str) }}</el-button
           >

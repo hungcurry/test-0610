@@ -1154,26 +1154,26 @@ onUnmounted(() => {
                 <span>{{ locationData.city1 + locationData.address1 }}</span>
               </p>
               <div class="flex justify-end" >
-                <el-button v-if="MStore.rule_permission.EVSEDetail.changeAvailablility === 'O' || MStore.permission.isCompany"
+                <el-button v-if="MStore.rule_permission.EVSEDetail.changeAvailablility === 'O'"
                   type="primary" class="btn-secondary box-shadow delete" @click="changeAvailability"> {{t('change_availability')}} </el-button>
-                  <el-button v-if="MStore.rule_permission.EVSEDetail.delete === 'O' || MStore.permission.isCompany"
+                  <el-button v-if="MStore.rule_permission.EVSEDetail.delete === 'O'"
                   type="primary" class="btn-secondary box-shadow delete" @click="deleteEvse"> {{t('delete')}} </el-button>
-                  <el-button v-if="MStore.rule_permission.EVSEDetail.edit === 'O' || MStore.permission.isCompany"
+                  <el-button v-if="MStore.rule_permission.EVSEDetail.edit === 'O'"
                   type="primary" class="btn-secondary box-shadow edit" @click="edit"> {{t('edit')}} </el-button>
               </div>
               <br>
               <div class="flex justify-end">
-                <!-- <el-button v-if="MStore.rule_permission.EVSEDetail.dataTransfer === 'O' || MStore.permission.isCompany" disabled
+                <!-- <el-button v-if="MStore.rule_permission.EVSEDetail.dataTransfer === 'O'" disabled
                   type="primary" class="btn-secondary box-shadow delete" @click="dataTransfer"> {{t('data_transfer')}} </el-button> -->
-                <el-button v-if="MStore.rule_permission.EVSEDetail.remoteTransaction === 'O' || MStore.permission.isCompany"
+                <el-button v-if="MStore.rule_permission.EVSEDetail.remoteTransaction === 'O'"
                   type="primary" class="btn-secondary box-shadow delete" @click="remoteTransaction"> {{ remote_transaction_title }} </el-button>
-                <el-button v-if="MStore.rule_permission.EVSEDetail.getDiagnostics === 'O' || MStore.permission.isCompany"
+                <el-button v-if="MStore.rule_permission.EVSEDetail.getDiagnostics === 'O'"
                   type="primary" class="btn-secondary box-shadow delete" @click="getDiagnostics"> {{t('get_diagnostics')}} </el-button>
-                <el-button v-if="MStore.rule_permission.EVSEDetail.configuration === 'O' || MStore.permission.isCompany"
+                <el-button v-if="MStore.rule_permission.EVSEDetail.configuration === 'O'"
                   type="primary" class="btn-secondary box-shadow delete" @click="openConfigurationDialog"> {{t('configuration')}} </el-button>
 
                   <el-dropdown class="ml-12px">
-                  <el-button v-if="MStore.rule_permission.EVSEDetail.chargingProfile === 'O' || MStore.permission.isCompany" 
+                  <el-button v-if="MStore.rule_permission.EVSEDetail.chargingProfile === 'O'" 
                     type="primary" class="btn-secondary box-shadow delete"> {{t('charging_profile')}} </el-button>
                   <template #dropdown>
                     <el-dropdown-menu>

@@ -925,7 +925,7 @@ onMounted(async () => {
   if (tariff_id) {
 
     let queryData = { database: "OCPI", collection: "Tariff", 
-      pipelines: [ { $match:  { _id: { "ObjectId": tariff_id } } }, 
+      pipelines: [ { $match:  { id: { "UUID": tariff_id } } }, 
       { $project: {  byCompany: 0, last_updated:0} }
     ]}
     let res = await MsiApi.mongoAggregate(queryData)
@@ -993,7 +993,7 @@ onMounted(async () => {
     TariffData.max_price_str = TariffData?.max_price?.incl_vat
     queryData = {
       "database": "OCPI", "collection": "Tariff", "pipelines": [
-        { $match: { "_id": { "ObjectId": tariff_id } } }, { "$project": { "id": 1, } }
+        { $match: { "id": { "UUID": tariff_id } } }, { "$project": { "id": 1, } }
       ]
     }
     let response = await MsiApi.mongoAggregate(queryData)
@@ -1056,7 +1056,7 @@ onMounted(async () => {
       <div class="flex justify-between flex-wrap lg:flex-nowrap pt-40px pb-32px">
         <p class="text-36px"> {{ t('rate_profile_details') }}</p>
         <el-button 
-          v-if="MStore.rule_permission.RatePlanDetail.addRatePlan === 'O' || MStore.permission.isCompany"  
+          v-if="MStore.rule_permission.RatePlanDetail.addRatePlan === 'O'"  
           class="btn-secondary box-shadow mt-4 md:mt-0 md:ml-30px box-shadow" @click="ShowAddElementDialog"> {{ t('add_rate') }} </el-button>
       </div>
 
@@ -1375,7 +1375,7 @@ onMounted(async () => {
       <div class="flex justify-center mb-44px">
         <el-button class="btn-secondary bg-btn-100 md:mr-44px" @click="cancel_tariff"> {{t('cancel')}} </el-button>
         <el-button 
-          v-if="MStore.rule_permission.RatePlanDetail.save === 'O' || MStore.permission.isCompany"  
+          v-if="MStore.rule_permission.RatePlanDetail.save === 'O'"  
           class="btn-secondary" @click="save_tariff(ruleFormRef)"> {{t('save')}} </el-button>
       </div>
 

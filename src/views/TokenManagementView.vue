@@ -6,116 +6,241 @@ import moment from 'moment'
 import { ref, reactive, onMounted } from 'vue'
 import { useMStore } from '../stores/m_cloud'
 import { useI18n } from "vue-i18n"
-import CommpnFunc from '@/composables/CommonFunc'
-const MsiFunc = CommpnFunc()
+import { ElMessage, ElMessageBox } from 'element-plus'
+
+let companyInfoData = []
+let companyList = []
 const { t } = useI18n()
 const MStore = useMStore()
 const MsiApi = ApiFunc()
 const isLoading = ref(false)
-const tokenData = reactive([])
-const companyTokenData = reactive({})
 const token_ref = ref()
 const tokenFormVisible = ref(false)
 const create_mode = ref(false)
 const token_title= ref('')
-const input = ref('')
-const companyList = reactive([])
-
+const search_input = ref('')
+const rendercompanyList = reactive([])
+const renderTokenData = reactive([])
+const renderTokenDetailData = reactive({count: 0, enable: false, expired_date_time: '', name: '', token: '', type: 'AISKU'})
 const token_rules = reactive({
-  name: [
-    { required: true, message: t('the_item_is_required'), trigger: 'blur' },
-  ],
-  expired_date_time: [
-    { required: true, message: t('the_item_is_required'), trigger: 'blur' },
-  ],
+  name: [ { required: true, message: t('the_item_is_required'), trigger: 'blur' }],
+  expired_date_time: [ { required: true, message: t('the_item_is_required'), trigger: 'blur' }],
 })
 
-
 const search = () => {
-
+  try {
+    renderTokenDataLayout()
+    if (search_input.value !== '') {  
+      let tempBuf = []
+      for (let i = 0 ; i < renderTokenData.length; i++) {
+        if ( renderTokenData[i].name.toLowerCase().includes(search_input.value.toLowerCase()) || 
+             renderTokenData[i].type.toLowerCase().includes(search_input.value.toLowerCase()) || 
+             renderTokenData[i].token.toLowerCase().includes(search_input.value.toLowerCase()) || 
+             renderTokenData[i].enable.toLowerCase().includes(search_input.value.toLowerCase()) ||
+             renderTokenData[i].count.toLowerCase().includes(search_input.value.toLowerCase()) || 
+             renderTokenData[i].expired_date_time.toLowerCase().includes(search_input.value.toLowerCase())) 
+        {
+          let renderTokenDataObj = {}
+          renderTokenDataObj.name = renderTokenData[i].name
+          renderTokenDataObj.type = renderTokenData[i].type
+          renderTokenDataObj.token = renderTokenData[i].token
+          renderTokenDataObj.enable = renderTokenData[i].enable
+          renderTokenDataObj.count = renderTokenData[i].count
+          renderTokenDataObj.expired_date_time = renderTokenData[i].expired_date_time
+          tempBuf.push(renderTokenDataObj)
+        }
+      }
+      renderTokenData.length = 0
+      Object.assign(renderTokenData, tempBuf)
+    }
+  } catch (error) {
+    console.log(error)
+    ElMessage.error(t('error'))
+  }
 }
-const detail_info = (detail) => {
-  
-  if (detail === 'create') {
-    create_mode.value = true
-    companyTokenData.count = 0
-    companyTokenData.enable = false
-    companyTokenData.expired_date_time = ''
-    companyTokenData.name = ''
-    companyTokenData.token = ''
-    companyTokenData.type = 'AISKU'
-    token_title.value = t('create_token')
+
+const getCompanyInformation = async () => {
+  try {
+    let queryData = { database: 'CPO', collection: 'CompanyInformation', 
+      pipelines: [
+        { $match: { credentials: { $exists: true, $not: { $size: 0 } } } },
+        { $project: { _id: 0, name: 1, credentials: 1}}
+      ]}
+    let response = await MsiApi.mongoAggregate(queryData)    
+    if (response.status === 200) {
+      companyInfoData = response.data.result
+    }
+    else {
+      ElMessage.error(t('error'))
+    }
+  } catch (error) {
+    ElMessage.error(t('error'))
   }
-  else {
-    create_mode.value = false
-    companyTokenData.count = detail.count
-    companyTokenData.enable = detail.enable
-    companyTokenData.expired_date_time = detail.expired_date_time
-    companyTokenData.name = detail.name
-    companyTokenData.token = detail.token
-    companyTokenData.type = detail.type
-    companyTokenData.expired_date_time_str = new Date(companyTokenData.expired_date_time).getTime() + MStore.timeZoneOffset * -60000
-    companyTokenData.expired_date_time_str = moment(companyTokenData.expired_date_time_str).format('YYYY-MM-DD HH:mm:ss')
-    token_title.value = t('edit_token')
+}
+
+const getCompanyList = async () => {
+  try {
+    let queryData = { database: 'CPO', collection: 'CompanyInformation', 
+                      pipelines: [{ $project: { _id: 0, name: 1, }}]}
+    let response = await MsiApi.mongoAggregate(queryData)
+    if (response.status === 200) {
+      companyList = response.data.result
+    }
+    else {
+      ElMessage.error(t('error'))
+    }
   }
+  catch (error) {
+    ElMessage.error(t('error'))
+  }
+}
+
+const renderTokenDataLayout = async () => {
+  try {
+    renderTokenData.length = 0
+    for (let i = 0 ; i < companyInfoData.length; i++) {
+      for (let j = 0; j < companyInfoData[i].credentials?.length; j++) {
+        let renderTokenDataObj = {}
+        renderTokenDataObj.name = companyInfoData[i].name
+        renderTokenDataObj.type = companyInfoData[i].credentials[j].type
+        renderTokenDataObj.token = companyInfoData[i].credentials[j].token
+        renderTokenDataObj.enable = companyInfoData[i].credentials[j].enable.toString()
+        renderTokenDataObj.count = companyInfoData[i].credentials[j].count.toString()
+        let temp = new Date(companyInfoData[i].credentials[j].expired_date_time).getTime() + MStore.timeZoneOffset * -60000
+        renderTokenDataObj.expired_date_time = moment(temp).format('YYYY-MM-DD HH:mm:ss')
+        renderTokenData.push(renderTokenDataObj)
+      }
+    }
+  } catch (error) {
+    ElMessage.error(t('error'))
+  }
+}
+
+const renderCompanyList = async () =>{
+  try {
+    for (let i = 0; i < companyList.length; i++) {
+      rendercompanyList.push(companyList[i].name)
+    }  
+  } catch (error) {
+    ElMessage.error(t('error'))
+  }
+}
+
+const add_token = () => {
+  token_title.value = t('create_token')
+  create_mode.value = true
+  renderTokenDetailData.enable = false
+  renderTokenDetailData.expired_date_time = ''
+  renderTokenDetailData.name = ''
+  renderTokenDetailData.token = ''
+  renderTokenDetailData.type = 'AISKU'
   tokenFormVisible.value = true
 }
 
-const editToken = async (action) => {
-  MsiFunc.deleteEmptyKeys(companyTokenData)
-  console.log(companyTokenData)
-  companyTokenData.expired_date_time = companyTokenData.expired_date_time_str 
-  delete companyTokenData.expired_date_time_str 
-  if (create_mode.value) {
-    await MsiApi.setToken('post', companyTokenData)    
-  }
-  else {
-    if (action === 'delete') {
-      await MsiApi.setToken('delete', companyTokenData)    
+const tokenDialogConfirm = async () => {
+  try {
+    token_ref.value.validate(async valid => {
+    if (valid) {
+      if (create_mode.value === true) {
+        ElMessageBox.confirm(t('do_you_want_to_create'), t('warning'), {confirmButtonText: t('ok'), cancelButtonText: t('cancel'), type: 'warning'})
+        .then(async () => {
+          if (create_mode.value === true) {
+            let sendData = { expired_date_time: renderTokenDetailData.expired_date_time, type: renderTokenDetailData.type }
+            let companyName = renderTokenDetailData.name
+            isLoading.value = true
+            let response = await MsiApi.createToken(companyName, sendData)
+            if (response.status === 200) {
+              ElMessage.success('Success')
+            }
+            else {
+              ElMessage.error(t('error'))
+            }
+            tokenFormVisible.value = false
+            await getCompanyInformation()
+            await renderTokenDataLayout()
+            isLoading.value = false
+          }
+        })
+      }
+      else {
+        ElMessageBox.confirm(t('do_you_want_to_modify'), t('warning'), {confirmButtonText: t('ok'), cancelButtonText: t('cancel'), type: 'warning'})
+        .then(async () => {
+          let sendData = { enable:renderTokenDetailData.enable, expired_date_time: renderTokenDetailData.expired_date_time, token: renderTokenDetailData.token}
+          let companyName = renderTokenDetailData.name
+          isLoading.value = true
+          let response = await MsiApi.patchToken(companyName, sendData)
+          if (response.status === 200) {
+            ElMessage.success('Success')
+          }
+          else {
+            ElMessage.error(t('error'))
+          }
+          tokenFormVisible.value = false
+          await getCompanyInformation()
+          await renderTokenDataLayout()
+          isLoading.value = false
+        })
+      }
     }
-    else if (action === 'confirm') {
-      await MsiApi.setToken('patch', companyTokenData)    
+    else {
+      return false
     }
+  })
+  } catch (error) {
+    console.log(error)
+    ElMessage.error(t('error'))
   }
-  tokenFormVisible.value = false
-  mountedFlow()
 }
 
-const mountedFlow = async() => {
-  let queryData = { database: 'CPO', collection: 'CompanyInformation', pipelines: [
-      { $match: { credentials: { $exists: true } } },
-      { $project: { _id: 0, name: 1, credentials: 1}}
-    ]
+const tokenDialogDelete = async () => {
+  try {
+    ElMessageBox.confirm(t('do_you_want_to_delete'), t('warning'), {confirmButtonText: t('ok'), cancelButtonText: t('cancel'), type: 'warning'})
+    .then(async () => {
+    let sendData = { token: renderTokenDetailData.token }
+    let companyName = renderTokenDetailData.name
+    isLoading.value = true
+    let response = await MsiApi.deleteToken(companyName, sendData)
+    if (response.status === 200) 
+      ElMessage.success('Success')
+    else 
+      ElMessage.error(t('error'))
+    tokenFormVisible.value = false
+    await getCompanyInformation()
+    await renderTokenDataLayout()
+  })
+  } catch (error) {
+    console.log(error)
+    ElMessage.error(t('error'))
   }
-  let response = await MsiApi.mongoAggregate(queryData)
-  const transformedData = response.data.result.flatMap(item =>
-    item.credentials.map(credential => ({
-      type: credential.type,
-      token: credential.token,
-      enable: credential.enable,
-      count: credential.count,
-      expired_date_time: credential.expired_date_time,
-      name: item.name
-    }))
-  )
-  for (let i = 0; i < transformedData.length; i++) {
-    transformedData[i].expired_date_time_str = new Date(transformedData[i].expired_date_time).getTime() + MStore.timeZoneOffset * -60000
-    transformedData[i].expired_date_time_str = moment(transformedData[i].expired_date_time_str).format('YYYY-MM-DD HH:mm:ss')
+  finally {
+    isLoading.value = false
   }
-  tokenData.length = 0
-  Object.assign(tokenData, transformedData)
-  
-  queryData = { database: 'CPO', collection: 'CompanyInformation', pipelines: [
-      { $project: { _id: 0, name: 1, }}
-    ]
-  }
-  response = await MsiApi.mongoAggregate(queryData)
-  companyList.length = 0
-  Object.assign(companyList,response.data.result)
 }
 
-onMounted(() => {
-  mountedFlow()
+const token_detail = (detail) => {
+  try {
+    create_mode.value = false
+    token_title.value = t('edit_token')
+    renderTokenDetailData.count = detail.count
+    renderTokenDetailData.enable = detail.enable
+    renderTokenDetailData.expired_date_time = detail.expired_date_time
+    renderTokenDetailData.name = detail.name
+    renderTokenDetailData.token = detail.token
+    renderTokenDetailData.type = detail.type
+    tokenFormVisible.value = true
+  } catch (error) {
+    console.log(error)
+    ElMessage.error(t('error'))
+  }
+}
+
+onMounted( async() => {
+  isLoading.value = true
+  await getCompanyInformation()
+  await getCompanyList()
+  await renderTokenDataLayout()  
+  await renderCompanyList()  
+  isLoading.value = false
 })
 </script>
 
@@ -124,19 +249,19 @@ onMounted(() => {
     <div class="container lg">
 
       <div class="flex justify-between flex-wrap lg:flex-nowrap pt-40px pb-32px">
-        <el-input class="search-input" v-model="input" :placeholder="t('search')" @keyup.enter="search">
+        <el-input class="search-input" v-model="search_input" :placeholder="t('search')" @keyup.enter="search">
           <template #append>
             <el-button :icon="Search" @click="search" />
           </template>
         </el-input>
-        <el-button class="btn-secondary box-shadow" @click="detail_info('create')"> {{ t('add_token') }} </el-button>
+        <el-button class="btn-secondary box-shadow" @click="add_token()"> {{ t('add_token') }} </el-button>
       </div>
       
       <div class="overflow-x-auto ">
         <div class="pb-40px mt-80px">
           <el-table
             ref="tableRef"
-            :data="tokenData"
+            :data="renderTokenData"
             class="white-space-nowrap text-primary"
             height="calc(100vh - 220px)"
             style="width: 100%"
@@ -151,10 +276,10 @@ onMounted(() => {
             <el-table-column prop="token" :label="t('token')" align="center" min-width="150"/>
             <el-table-column prop="enable" :label="t('enable')" align="center" min-width="150"/>
             <el-table-column prop="count" :label="t('count')" align="center" min-width="150"/>
-            <el-table-column prop="expired_date_time_str" :label="t('expired_date_time')" align="center" min-width="150"/>
+            <el-table-column prop="expired_date_time" :label="t('expired_date_time')" align="center" min-width="150"/>
             <el-table-column prop="detail" label="" align="center" min-width="150">
               <template #default="scope">
-                <el-button class="btn-more" @click="detail_info(scope.row)"> <font-awesome-icon icon="fa-solid fa-ellipsis" /> </el-button>
+                <el-button class="btn-more" @click="token_detail(scope.row)"> <font-awesome-icon icon="fa-solid fa-ellipsis" /> </el-button>
               </template>
             </el-table-column>
           </el-table>
@@ -173,30 +298,30 @@ onMounted(() => {
             </div>
           </template>
           <div class="dialog-context">
-            <el-form class="max-w-500px m-auto" :rules="token_rules" ref="token_ref" :model="companyTokenData">
-              <el-form-item class="mb-24px" :label="t('name')" prop="name">
-                <el-select v-if=" create_mode" v-model="companyTokenData.name" class="m-2" placeholder="Select" size="large">
+            <el-form class="max-w-500px m-auto" :rules="token_rules" ref="token_ref" :model="renderTokenDetailData">
+              <el-form-item class="mb-24px" :label="t('company')" prop="name">
+                <el-select v-if=" create_mode" v-model="renderTokenDetailData.name" class="m-2" placeholder="Select" size="large">
                   <el-option v-for="item in companyList" :key="item.name" :label="item.name" :value="item.name" />
                 </el-select>  
-                <el-select v-else v-model="companyTokenData.name" class="m-2" placeholder="Select" size="large" disabled>
+                <el-select v-else v-model="renderTokenDetailData.name" class="m-2" placeholder="Select" size="large" disabled>
                   <el-option v-for="item in companyList" :key="item.name" :label="item.name" :value="item.name" />
                 </el-select>  
               </el-form-item>
               <el-form-item class="mb-24px" :label="t('type')" prop="type">
-                <el-input v-model="companyTokenData.type" disabled/>
+                <el-input v-model="renderTokenDetailData.type" disabled/>
               </el-form-item>
               <el-form-item v-if=" !create_mode" class="mb-24px" :label="t('token')" prop="token" >
-                <el-input v-model="companyTokenData.token" disabled/>
+                <el-input v-model="renderTokenDetailData.token" disabled/>
               </el-form-item>
               <el-form-item v-if=" !create_mode" class="mb-24px" :label="t('enable')" prop="enable">
-                <el-switch v-model="companyTokenData.enable" />
+                <el-switch v-model="renderTokenDetailData.enable" />
               </el-form-item>
               <el-form-item v-if=" !create_mode" class="mb-24px" :label="t('count')" prop="count">
-                <el-input v-model="companyTokenData.count" disabled/>
+                <el-input v-model="renderTokenDetailData.count" disabled/>
               </el-form-item>
               <el-form-item class="mb-24px" :label="t('expired_date_time')" prop="expired_date_time">
                 <div class="block">
-                  <el-date-picker v-model="companyTokenData.expired_date_time_str" type="datetime" placeholder="Select date and time"/>
+                  <el-date-picker v-model="renderTokenDetailData.expired_date_time" type="datetime" placeholder="Select date and time"/>
                 </div>
               </el-form-item>
             </el-form>
@@ -207,26 +332,25 @@ onMounted(() => {
                 v-if=" !create_mode"
                 round
                 class="w-48% bg-btn-100 text-white max-w-140px"
-                @click.stop="editToken('delete')"
+                @click.stop="tokenDialogDelete()"
               >
                 {{ t('delete') }}
               </el-button>
               <el-button round class="w-48% bg-btn-100 text-white max-w-140px"
-                @click.stop="editToken('cancel')"
+                @click.stop="tokenFormVisible = false"
               >
                 {{ t('cancel') }}
               </el-button>
               <el-button
                 round
                 class="w-48% bg-btn-200 text-white max-w-140px"
-                @click.stop="editToken('confirm')"
+                @click.stop="tokenDialogConfirm()"
               >
                 {{ t('confirm') }}
               </el-button>
             </span>
           </template>
         </el-dialog>
-
       </div>
     </div>
   </div>
