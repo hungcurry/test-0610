@@ -31,6 +31,8 @@ const tariffData = reactive([])
 const tariff_elements = reactive([])
 const activeName = ref('one')
 
+let chargePoint_id = ''
+
 const cp_config_core = {
 AllowOfflineTxForUnknownId: undefined,
 AuthorizationCacheEnabled: undefined,
@@ -130,7 +132,7 @@ const deleteEvse = () => {
       let response = await MsiApi.mongoAggregate(queryData)
       evse_id = (response.data.result[0]._id)
     }
-    let sendData = { class: 'EVSE', id: evseId, status: "REMOVED"}
+    let sendData = { class: 'EVSE', id: evseId, status: "REMOVED" }
     console.log(await MsiApi.setCollectionData('patch', 'ocpi', sendData))
 
     // sendData = { class : 'Connector', id : connectorData.id }
@@ -147,6 +149,10 @@ const deleteEvse = () => {
     //   sendData = { class : 'HMIControlBoardInfo', pk : chargePointInfoData.hmi }
     //   console.log(await MsiApi.setCollectionData('delete', 'cpo', sendData))
     // }
+
+    sendData = { class: 'ChargePointInfo', pk: chargePoint_id, hmi: "" }
+    console.log(await MsiApi.setCollectionData('patch', 'cpo', sendData))
+
 
     router.back(-1)
   })
@@ -1004,7 +1010,7 @@ onMounted( async () => {
       { $project: {  byCompany11: 0 } }]
     }
   response = await MsiApi.mongoAggregate(queryData)
-
+  chargePoint_id = response.data.result[0]._id
   Object.assign(chargePointInfoData,response.data.result[0])
   hmiInfoData.max_amperage = 0
   if(chargePointInfoData.hmi !== '') {

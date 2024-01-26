@@ -110,6 +110,7 @@ export default {
     method:                                                                                         'Method',
     min:                                                                                            'min',
     min_charging_rate:                                                                              'Min Charging Rate',
+    min_current:                                                                                    'Min Current',
     min_price:                                                                                      'Min Price',
     mon:                                                                                            'Mon.',
     name:                                                                                           'Name',

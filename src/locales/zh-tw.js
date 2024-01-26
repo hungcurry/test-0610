@@ -110,6 +110,7 @@ export default {
     method:                                                                                         '方式',
     min:                                                                                            '分鐘',
     min_charging_rate:                                                                              '最低充電速率',
+    min_current:                                                                                    '最小電流',
     min_price:                                                                                      '最低價格',
     mon:                                                                                            '星期一',
     name:                                                                                           '名稱',
