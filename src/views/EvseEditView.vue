@@ -169,7 +169,7 @@ const fillFullCalendar = () => {
   let parkingCount = 0
 
   for (let i=0; i<tariffObj.length; i++) {
-    for (let j=0; j<tariffObj[i].restrictions.day_of_week.length; j++) {
+    for (let j=0; j<tariffObj[i]?.restrictions?.day_of_week.length; j++) {
       if (tariffObj[i].restrictions.day_of_week[j] === 'MONDAY') daysOfWeek.push('1')
       if (tariffObj[i].restrictions.day_of_week[j] === 'TUESDAY') daysOfWeek.push('2')
       if (tariffObj[i].restrictions.day_of_week[j] === 'WEDNESDAY') daysOfWeek.push('3')
@@ -675,7 +675,6 @@ onMounted(async () => {
       if (evse_obj.select_profile === tariff_profile[i].id)
         Object.assign(selectTariffObj, tariff_profile[i])
     }
-
     for (let i = 0; i < connector_obj?.tariff_ids?.length; i++) {
       tariff_ids.push(connector_obj?.tariff_ids[i])
     }
@@ -683,9 +682,8 @@ onMounted(async () => {
   }
   queryData = { database: 'OCPI', collection: 'Location', 
                 pipelines: [ { $match: {  id: { UUID: station_id } } }]}
-  response = await MsiApi.mongoQuery(queryData)
-  stationName.value = response.data.all[0]?.name
-
+  response = await MsiApi.mongoAggregate(queryData)
+  stationName.value = response.data.result[0]?.name
   queryData = { database: 'CPO', collection: 'ChargePointInfo',
         pipelines: [ { $match: { evse: { ObjectId: evse_obj._id } } }]
       }

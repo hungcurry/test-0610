@@ -73,6 +73,7 @@ const hovered = ref({ dashboardIcon: false, paymentIcon: false, rfidUserIcon: fa
       <el-menu-item v-if="MStore.rule_permission.EVSELog.page === 'O'" class="collapse" index="evse-log">{{t('evse_log')}}</el-menu-item>
       <el-menu-item v-if="MStore.rule_permission.ErrorLog.page === 'O'" class="collapse" index="error-log">{{t('error_log')}}</el-menu-item>
       <el-menu-item v-if="MStore.rule_permission.Parking.page === 'O'" class="collapse" index="parking">{{t('parking')}}</el-menu-item>
+      <el-menu-item v-if="MStore.rule_permission.Parking.page === 'O'" class="collapse" index="cdr">{{t('cdr')}}</el-menu-item>
     </el-sub-menu>
 
     <el-sub-menu index="advanced-setting" v-if="MStore.permission.isMSI"

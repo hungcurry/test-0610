@@ -1261,7 +1261,7 @@ onMounted(async () => {
 
       <el-dialog 
         v-model="layoutVisible.home_device" 
-        class="max-w-700px"
+        class="max-w-800px"
         width="90%"
         draggable
       >

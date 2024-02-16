@@ -20,6 +20,7 @@ const router = useRouter()
 const AddAdminData = reactive([])
 const UserData = reactive([])
 const user_type = reactive([])
+const company = reactive([])
 const editAdminData = reactive([])
 const AdminData_ref = ref()
 const AdminData_rules = reactive({
@@ -617,6 +618,18 @@ onMounted(async () => {
                   <el-option v-for="item in user_type" :key="item.value" :label="item.name" :value="item._id" />
                 </el-select>
               </el-form-item>
+
+              <!-- <el-form-item class="mb-24px" :label="t('company')" prop="permission_str" v-if="MStore.permission.company.name === 'MSI'">
+                <el-select 
+                  class="el-select" 
+                  v-model="editAdminData.permission_str" 
+                  :placeholder="t('select')" 
+                  size="large"
+                  @change="setPermission"
+                >
+                  <el-option v-for="item in user_type" :key="item.value" :label="item.name" :value="item._id" />
+                </el-select>
+              </el-form-item> -->
 
               <el-form-item class="mb-24px w-4em" :label="t('edit')">
                 <el-switch v-model="editAdminData.permission_edit" />

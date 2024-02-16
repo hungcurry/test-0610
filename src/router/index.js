@@ -31,6 +31,7 @@ import RfidUserView from '@/views/RfidUserView.vue'
 import RfidUserDetailView from '@/views/RfidUserDetailView.vue'
 import StationMapView from '@/views/StationMapView.vue'
 import TokenManagementView from '@/views/TokenManagementView.vue'
+import CdrView from '@/views/CdrView.vue'
 import { ElMessage } from 'element-plus'
 import { m_cloud_permission } from '@/composables/permission'
 
@@ -134,6 +135,11 @@ const router = createRouter({
           component: ErrorLogView
         },
         {
+          path: 'cdr',
+          name: 'cdr',
+          component: CdrView
+        },
+        {
           path: 'software-info',
           name: 'softwareInfo',
           component: SoftwareInfoView
@@ -234,7 +240,8 @@ router.beforeEach(async to => {
       else {
         return '/login'  
       }
-      
+      console.log(MStore.rule_permission)
+      console.log(MStore.permission.isCompany)
       if (MStore.permission.isCompany === false) {
         const user_permission = MStore?.permission?.user?.name
         let queryData  = { database: "CPO", collection: "CompanyInformation", pipelines: [ 
@@ -242,6 +249,7 @@ router.beforeEach(async to => {
           { $project: { _id: 0, config: 1} }
         ]}
         res = await MsiApi.mongoAggregate(queryData)
+        console.log(res)
         if (res.status === 200) {
           if (res.data.result[0]?.config?.m_cloud?.permissions?.[user_permission]) {
             const remotePermission = res.data.result[0].config.m_cloud.permissions[user_permission]

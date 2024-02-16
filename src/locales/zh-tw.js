@@ -244,6 +244,7 @@ export default {
     by_station:                                                                                     '依照充電站',
     charging_profile:                                                                               '充電設定檔',
     company_cpo:                                                                                    '公司 / 營運商',
+    cdr:                                                                                            'CDR',
     dashboard:                                                                                      '總覽',
     error_log:                                                                                      '錯誤紀錄',
     evse_log:                                                                                       '充電樁紀錄',
@@ -760,6 +761,7 @@ export default {
     modify:                                                                                         '修改',
     parking_rate:                                                                                   '停車費率',
     rate_profile_details:                                                                           '費率方案詳細資料',
+    restrictions:                                                                                   '限制',
     time:                                                                                           '時間',
     wh:                                                                                             'Wh',
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

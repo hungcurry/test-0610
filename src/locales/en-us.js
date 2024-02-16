@@ -242,6 +242,7 @@ export default {
     app_member:                                                                                     'App Member',
     by_evse:                                                                                        'By EVSE',
     by_station:                                                                                     'By Station',
+    cdr:                                                                                            'CDR',
     charging_profile:                                                                               'Charging Profile',
     company_cpo:                                                                                    'Company / CPO',
     dashboard:                                                                                      'Dashboard',
@@ -760,6 +761,7 @@ export default {
     modify:                                                                                         'Modify',
     parking_rate:                                                                                   'Parking Rate',
     rate_profile_details:                                                                           'Rate Profile Details',
+    restrictions:                                                                                   'Restrictions',
     time:                                                                                           'Time',
     wh:                                                                                             'Wh',
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
