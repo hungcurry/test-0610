@@ -594,31 +594,35 @@ onMounted(async () => {
   tariff_profile.forEach((item)=>{
     item.elements.forEach((element)=>{
       let day_of_week_str = []
-      for (const day of element.restrictions.day_of_week) {
-        switch (day) {
-          case 'MONDAY':
-            day_of_week_str.push(t('mon'))
-          break
-          case 'TUESDAY':
-            day_of_week_str.push(t('tue'))
-          break
-          case 'WEDNESDAY':
-            day_of_week_str.push(t('wed'))
-          break
-          case 'THURSDAY':
-            day_of_week_str.push(t('thu'))
-          break
-          case 'FRIDAY':
-            day_of_week_str.push(t('fri'))
-          break
-          case 'SATURDAY':
-            day_of_week_str.push(t('sat'))
-          break
-          case 'SUNDAY':
-            day_of_week_str.push(t('sun'))
-          break
+      if (element.restrictions) {
+        if (element.restrictions.day_of_week) {
+        for (const day of element.restrictions.day_of_week) {
+          switch (day) {
+            case 'MONDAY':
+              day_of_week_str.push(t('mon'))
+            break
+            case 'TUESDAY':
+              day_of_week_str.push(t('tue'))
+            break
+            case 'WEDNESDAY':
+              day_of_week_str.push(t('wed'))
+            break
+            case 'THURSDAY':
+              day_of_week_str.push(t('thu'))
+            break
+            case 'FRIDAY':
+              day_of_week_str.push(t('fri'))
+            break
+            case 'SATURDAY':
+              day_of_week_str.push(t('sat'))
+            break
+            case 'SUNDAY':
+              day_of_week_str.push(t('sun'))
+            break
+          }
         }
       }
+    }
       element.restrictions.day_of_week_str = day_of_week_str
       element.price_components[0].price_incl = element.price_components[0].price * (1 + (element.price_components[0].vat / 100))
       switch (element.price_components[0].type) {

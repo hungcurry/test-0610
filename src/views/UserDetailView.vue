@@ -447,7 +447,6 @@ const RenderChargePointInfoRenderData = async () => {
 }
 
 const SendNotification = async (action) => {
-  NotificationData.title = NotificationData.body = NotificationData.route = ''
   if (action === 'confirm') {
     let sendData = { users:[userData[0].email], title:NotificationData.title, body:NotificationData.body, data: {route:NotificationData.route}}
     let response = await MsiApi.sendNotification(sendData)
@@ -455,6 +454,7 @@ const SendNotification = async (action) => {
       ElMessage.error(response.data.message)
   }
   layoutVisible.notification = false
+  NotificationData.title = NotificationData.body = NotificationData.route = ''
 }
 const download = () => {
   const tHeader = ['Station Name', 'Station EVSE ID', 'Parking Used Time', 'Parking Price', 'Parking Currency', 'Parking License Plate',

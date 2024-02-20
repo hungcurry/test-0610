@@ -24,7 +24,6 @@ let pressCloseIcon = false  // for Calendar close button
 let select_element_index = 0
 
 const displayRestrictions = ref(false)
-
 const renderEvseListData = reactive([])
 const renderTariffData = reactive({})
 const renderTariffElementsData = reactive([])
@@ -36,7 +35,7 @@ const vat_select = ref('1')
 const isCalendarMounted = ref(false)
 const chargingCalendarRef = ref()
 const parkingCalendarRef = ref()
-const tariffObj = reactive([])
+const ElementsData = reactive([])
 const multiTime = reactive([])
 const charging_bgColor = '#61a8d8'
 const parking_bgColor = '#94eadb'
@@ -48,7 +47,7 @@ const MsiApi = ApiFunc()
 const tariff_elements = reactive([])
 const MStore = useMStore()
 
-const new_element = ref({day_of_week:[]})
+const new_element = reactive({day_of_week:[]})
 const element_action = ref('')
 const route = useRoute()
 const activeName = ref('one')
@@ -61,13 +60,9 @@ const tariff_id = route.query.id
 const day = [{ label: 'Mon.', value: 'MONDAY' }, { label: 'Tue.', value: 'TUESDAY' }, { label: 'Wed.', value: 'WEDNESDAY' }, { label: 'Thu.', value: 'THURSDAY' },
 { label: 'Fri.', value: 'FRIDAY' }, { label: 'Sat.', value: 'SATURDAY' }, { label: 'Sun.', value: 'SUNDAY' }]
 const tariff_currency_opeion = [{ value: 'TWD', label: 'TWD' }, { value: 'USD', label: 'USD' }, { value: 'JPY', label: 'JPY' }, { value: 'EUR', label: 'EUR' },{ value: 'CNY', label: 'CNY' }]
-let price_type_opeion = [ { value: 'ENERGY', label: 'Charging By Energy' }, 
-                          { value: 'TIME', label: 'Charging By Time' }, 
-                          { value: 'PARKING_TIME', label: 'Parking By Time' }, 
-                          { value: 'FLAT', label: 'FLAT' },
-                          { value: 'PARKING_LOT_TIME', label: 'PARKING_LOT_TIME' }
+let price_type_opeion = [ { value: 'ENERGY', label: 'Charging By Energy' }, { value: 'TIME', label: 'Charging By Time' }, { value: 'PARKING_TIME', label: 'Parking By Time' }, 
+                          // { value: 'FLAT', label: 'FLAT' }, { value: 'PARKING_LOT_TIME', label: 'PARKING_LOT_TIME' }
                         ]
-
 const statusMap = {
   [t('available')]: { class: 'available' },
   [t('charging')]: { class: 'charging' },
@@ -141,26 +136,26 @@ const rules = reactive({
 })
 
 const rules1 = reactive({
-  type: [{ required: true, message: t(' ') }],
-  price: [{ required: true, message: t(' ')}],
-  unit: [{ required: true,  message: t(' ')},],
+  type: [{ required: true, message: '' }],
+  price: [{ required: true, message: ''}],
+  unit: [{ required: true,  message: ''},],
 })
 
 const calPrice = (select) => {
   if (select === '1') {
-    new_element.value.price_price_incl = parseFloat(  (new_element.value.price_price * (1 + new_element.value.vat / 100) )  )
+    new_element.price_price_incl = parseFloat(  (new_element.price_price * (1 + new_element.vat / 100) )  )
   }
   else {
-    new_element.value.price_price = parseFloat(  (new_element.value.price_price_incl / (1 + new_element.value.vat / 100))   )
+    new_element.price_price = parseFloat(  (new_element.price_price_incl / (1 + new_element.vat / 100))   )
   }
 }
 
 const calPrice1 = (incl_vat, index) => {
   if (renderElementDetail.price_components[index].price !== null) {
     if (incl_vat) 
-        renderElementDetail.price_components[index].price = formatNumber(renderElementDetail.price_components[index].price * (1 + renderElementDetail.price_components[index].vat / 100), 4)
+      renderElementDetail.price_components[index].price = formatNumber(renderElementDetail.price_components[index].price * (1 + renderElementDetail.price_components[index].vat / 100), 4)
     else 
-        renderElementDetail.price_components[index].price = formatNumber(renderElementDetail.price_components[index].price / (1 + renderElementDetail.price_components[index].vat / 100), 4 )
+      renderElementDetail.price_components[index].price = formatNumber(renderElementDetail.price_components[index].price / (1 + renderElementDetail.price_components[index].vat / 100), 4 )
   }
 }
 
@@ -180,8 +175,8 @@ const setEventBgColor = (bgColor, count) => {
 
 const overEventHeight = (startTimeStr, endTimeStr) => {
   let rowHeight = 24;
-  let startTime = parseInt(startTimeStr.split(':')[0])*60 + parseInt(startTimeStr.split(':')[1])
-  let endTime = parseInt(endTimeStr.split(':')[0])*60 + parseInt(endTimeStr.split(':')[1])
+  let startTime = parseInt(startTimeStr.split(':')[0]) * 60 + parseInt(startTimeStr.split(':')[1])
+  let endTime = parseInt(endTimeStr.split(':')[0]) * 60 + parseInt(endTimeStr.split(':')[1])
   let eventHeight = (endTime - startTime) / 60 * rowHeight
   if (eventHeight < 5 * rowHeight) {
     return true
@@ -195,27 +190,30 @@ const handleTabClick = (tab) => {
   switch (activeName.value) {
     case 'three' :
       price_type_opeion = [{ value: 'ENERGY', label: t('charging_by_energy') }, { value: 'TIME', label: t('charging_by_time') }, 
-                           { value: 'FLAT', label: 'FLAT' }]
+                          //  { value: 'FLAT', label: 'FLAT' }
+                          ]
       fillFullCalendar()
       break
     case 'four' :
-      price_type_opeion = [{ value: 'PARKING_TIME', label: t('parking_by_time') }, { value: 'PARKING_LOT_TIME', label: 'PARKING_LOT_TIME' }, 
-                           { value: 'FLAT', label: 'FLAT' }]
+      price_type_opeion = [{ value: 'PARKING_TIME', label: t('parking_by_time') }
+                          // , { value: 'PARKING_LOT_TIME', label: 'PARKING_LOT_TIME' }, { value: 'FLAT', label: 'FLAT' }
+                          ]
       fillFullCalendar()
       break
     default :
       price_type_opeion = [ { value: 'ENERGY', label: 'Charging By Energy' }, { value: 'TIME', label: 'Charging By Time' }, 
-                            { value: 'PARKING_TIME', label: 'Parking By Time' }, { value: 'FLAT', label: 'FLAT' },
-                            { value: 'PARKING_LOT_TIME', label: 'PARKING_LOT_TIME' }]
+                            { value: 'PARKING_TIME', label: 'Parking By Time' }, 
+                            // { value: 'FLAT', label: 'FLAT' }, { value: 'PARKING_LOT_TIME', label: 'PARKING_LOT_TIME' }
+                          ]
       break
   }
 }
 
 const openDialog = () => {
-  if (activeName.value === 'three' && new_element.value.price_type === '') 
-    new_element.value.price_type = 'ENERGY'
+  if (activeName.value === 'three' && new_element.price_type === '') 
+    new_element.price_type = 'ENERGY'
   else if (activeName.value === 'four') 
-    new_element.value.price_type = 'PARKING_TIME'
+    new_element.price_type = 'PARKING_TIME'
 }
 
 const closeDialog = () => {
@@ -223,9 +221,8 @@ const closeDialog = () => {
 }
 
 const fillFullCalendar = () => {
-  tariffObj.length = 0
-  Object.assign(tariffObj, tariff_elements)
-
+  ElementsData.length = 0
+  Object.assign(ElementsData, tariffElementsData)
   chargingCalendarOptions.events = []
   parkingCalendarOptions.events = []
   setTimeout(() => isCalendarMounted.value = true, 0)
@@ -236,77 +233,58 @@ const fillFullCalendar = () => {
   let daysOfWeek = []
   let chargingCount = 0
   let parkingCount = 0
-  for (let i = 0; i < tariffObj.length; i++) {
-    for (let j = 0; j < tariffObj[i].restrictions.day_of_week.length; j++) {
-      if (tariffObj[i].restrictions.day_of_week[j] === 'MONDAY') daysOfWeek.push('1')
-      if (tariffObj[i].restrictions.day_of_week[j] === 'TUESDAY') daysOfWeek.push('2')
-      if (tariffObj[i].restrictions.day_of_week[j] === 'WEDNESDAY') daysOfWeek.push('3')
-      if (tariffObj[i].restrictions.day_of_week[j] === 'THURSDAY') daysOfWeek.push('4')
-      if (tariffObj[i].restrictions.day_of_week[j] === 'FRIDAY') daysOfWeek.push('5')
-      if (tariffObj[i].restrictions.day_of_week[j] === 'SATURDAY') daysOfWeek.push('6')
-      if (tariffObj[i].restrictions.day_of_week[j] === 'SUNDAY') daysOfWeek.push('0')
+  for (let i = 0; i < ElementsData?.length; i++) {
+    for (let j = 0; j < ElementsData[i].restrictions?.day_of_week?.length; j++) {
+      if (ElementsData[i].restrictions.day_of_week[j] === 'MONDAY') daysOfWeek.push('1')
+      if (ElementsData[i].restrictions.day_of_week[j] === 'TUESDAY') daysOfWeek.push('2')
+      if (ElementsData[i].restrictions.day_of_week[j] === 'WEDNESDAY') daysOfWeek.push('3')
+      if (ElementsData[i].restrictions.day_of_week[j] === 'THURSDAY') daysOfWeek.push('4')
+      if (ElementsData[i].restrictions.day_of_week[j] === 'FRIDAY') daysOfWeek.push('5')
+      if (ElementsData[i].restrictions.day_of_week[j] === 'SATURDAY') daysOfWeek.push('6')
+      if (ElementsData[i].restrictions.day_of_week[j] === 'SUNDAY') daysOfWeek.push('0')
     }
-    price_excl_str = tariffObj[i].price_components[0].price
-    price_incl_str = tariffObj[i].price_components[0].price_incl
-    startTime = tariffObj[i].restrictions.start_time
-    endTime = tariffObj[i].restrictions.end_time
+    price_excl_str = ElementsData[i].price_components[0].price
+    price_incl_str = ElementsData[i].price_components[0].price_incl
+    startTime = ElementsData[i].restrictions.start_time
+    endTime = ElementsData[i].restrictions.end_time
     if (endTime === '00:00')
       endTime = '23:59'
-    if (tariffObj[i].price_components[0].type === 'ENERGY') {
-      let event_title = 'title'
-      let elements_index = i
-      chargingCalendarOptions.events.push({
-        daysOfWeek: daysOfWeek, startTime: startTime, endTime: endTime, title: event_title, index: elements_index,
-        shortTitle: overEventHeight(startTime, endTime),
-        borderColor: setEventBgColor(charging_bgColor, chargingCount),
-        extendedProps: {
-          // price_str: '$' + price_excl_str + ` ($${price_incl_str})` + ' /' + t('kwh'),
-          price_excl: '$' + price_excl_str + ' /' + t('kwh'),
-          price_incl: '$' + price_incl_str + ' /' + t('kwh'),
-          time: startTime + ' - ' + endTime,
-          price: tariffObj[i].price_components[0].price + ' / ' + t('kwh')
-        }
-      })
+    if (startTime === undefined)
+      startTime = ''
+    if (endTime === undefined)
+      endTime = ''
+    let event_title = 'title'
+    let elements_index = i
+    let evsnts_obj = { daysOfWeek: daysOfWeek, startTime: startTime, endTime: endTime, title: event_title, index: elements_index,
+      shortTitle: overEventHeight(startTime, endTime),
+      borderColor: setEventBgColor(charging_bgColor, chargingCount),
+      extendedProps: { price_excl: '$' + price_excl_str + ' /' + t('kwh'), price_incl: '$' + price_incl_str + ' /' + t('kwh'),
+        time: startTime + ' - ' + endTime, price: ElementsData[i].price_components[0].price + ' / ' + t('kwh')
+      }
+    }
+    if (ElementsData[i].price_components[0].type === 'ENERGY') {
+      evsnts_obj.extendedProps = { price_excl: '$' + price_excl_str + ' /' + t('kwh'), price_incl: '$' + price_incl_str + ' /' + t('kwh'),
+                                    time: startTime + ' - ' + endTime, price: ElementsData[i].price_components[0].price + 
+                                    ' / ' + t('kwh')
+      }
+    }
+    else if ( ElementsData[i].price_components[0].type === 'TIME' || ElementsData[i].price_components[0].type === 'PARKING_TIME') {
+      evsnts_obj.extendedProps = { price_excl: '$' + price_excl_str + ' /' + t('hr'), price_incl: '$' + price_incl_str + ' /' + t('hr'),
+                                    time: startTime + ' - ' + endTime, 
+                                    price: (ElementsData[i].price_components[0].price / (3600 / ElementsData[i].price_components[0].step_size)).toFixed(2) + 
+                                    ' / ' + ElementsData[i].price_components[0].step_size / 60 + t('min')
+      }
+      if (ElementsData[i].price_components[0].type === 'PARKING_TIME')
+      evsnts_obj.borderColor = setEventBgColor(parking_bgColor, parkingCount)
+    }
+    if (ElementsData[i].price_components[0].type === 'ENERGY' || ElementsData[i].price_components[0].type === 'TIME') {
+      chargingCalendarOptions.events.push(evsnts_obj)
       chargingCount++
     }
-    else if (tariffObj[i].price_components[0].type === 'TIME') {
-      let event_title = 'title'
-      let elements_index = i
-      chargingCalendarOptions.events.push({
-        daysOfWeek: daysOfWeek, startTime: startTime, endTime: endTime, title: event_title, index: elements_index,
-        borderColor: setEventBgColor(charging_bgColor, chargingCount),
-        shortTitle: overEventHeight(startTime, endTime),
-        extendedProps: {
-          // price_str: '$' + price_excl_str + ` ($${price_incl_str})` + ' /' + t('hr'),
-          price_excl: '$' + price_excl_str + ' /' + t('hr'),
-          price_incl: '$' + price_incl_str + ' /' + t('hr'),
-          time: startTime + ' - ' + endTime,
-          price: (tariffObj[i].price_components[0].price / (3600 / tariffObj[i].price_components[0].step_size)).toFixed(2)
-            + ' / ' + tariffObj[i].price_components[0].step_size / 60 + t('min')
-        }
-      })
-      chargingCount++
-    }
-    else if (tariffObj[i].price_components[0].type === 'PARKING_TIME') {
-      let event_title = 'title'
-      let elements_index = i
-      parkingCalendarOptions.events.push({
-        daysOfWeek: daysOfWeek, startTime: startTime, endTime: endTime, title: event_title, index: elements_index,
-        borderColor: setEventBgColor(parking_bgColor, parkingCount),
-        shortTitle: overEventHeight(startTime, endTime),
-        extendedProps: {
-          // price_str: '$' + price_excl_str + ` ($${price_incl_str})` + ' /' + t('hr'),
-          price_excl: '$' + price_excl_str + ' /' + t('hr'),
-          price_incl: '$' + price_incl_str + ' /' + t('hr'),
-          time: startTime + ' - ' + endTime,
-          price:  (tariffObj[i].price_components[0].price / (3600 / tariffObj[i].price_components[0].step_size)).toFixed(2)
-            + ' / ' + tariffObj[i].price_components[0].step_size / 60 + t('min')
-        }
-      })
+    else if (ElementsData[i].price_components[0].type === 'PARKING_TIME') {
+      parkingCalendarOptions.events.push(evsnts_obj)
       parkingCount++
     }
-    startTime = ''
-    endTime = ''
     daysOfWeek = []
   }
 }
@@ -373,37 +351,31 @@ const handleEventCreate = (selectInfo) => {
     // First event, set new_element
     if (i === 0) {
       if (eventCount !== 1) {
-        if (firstDayCount === 1) {  // set endTimeStr as the next day of startStr, and endTime is 00:00
-          let date = new Date(selectInfo.startStr)
-          let nextTime = date.getTime() + 24*60*60*1000
-          let tempTime = new Date(nextTime).toLocaleString()
-          let nextDate = tempTime.replaceAll('/', '-').split(' ')[0]
-          
-          firstEndTimeStr = endTimeStr = nextDate + 'T00:00:00' + timeZone
-        }
-        else {    // set endTimeStr as the next day of endStr, and endTime is 00:00
-          let date = new Date(selectInfo.endStr)
-          let nextTime = date.getTime() + 24*60*60*1000
-          let tempTime = new Date(nextTime).toLocaleString()
-          let nextDate = tempTime.replaceAll('/', '-').split(' ')[0]
-          
-          firstEndTimeStr = endTimeStr = nextDate + 'T00:00:00' + timeZone
-        }
+        let date
+        if (firstDayCount === 1)   // set endTimeStr as the next day of startStr, and endTime is 00:00
+          date = new Date(selectInfo.startStr)
+        else 
+          date = new Date(selectInfo.endStr)
+        let nextTime = date.getTime() + 24 * 60 * 60 * 1000
+        let tempTime = new Date(nextTime).toLocaleString()
+        let nextDate = tempTime.replaceAll('/', '-').split(' ')[0]
+
+        firstEndTimeStr = endTimeStr = nextDate + 'T00:00:00' + timeZone
         startTime = moment(new Date(selectInfo.start)).format("HH:mm")
         endTime = '23:59'
       }
-      new_element.value.start_time = startTime
-      new_element.value.end_time = endTime
-      new_element.value.day_of_week = []
+      new_element.start_time = startTime
+      new_element.end_time = endTime
+      new_element.day_of_week = []
       for (let j=0; j<firstDayCount; j++) {
         let day = startDay + j
-        if (day === 1) new_element.value.day_of_week.push('MONDAY')
-        if (day === 2) new_element.value.day_of_week.push('TUESDAY')
-        if (day === 3) new_element.value.day_of_week.push('WEDNESDAY')
-        if (day === 4) new_element.value.day_of_week.push('THURSDAY')
-        if (day === 5) new_element.value.day_of_week.push('FRIDAY')
-        if (day === 6) new_element.value.day_of_week.push('SATURDAY')
-        if (day === 7) new_element.value.day_of_week.push('SUNDAY')
+        if (day === 1) new_element.day_of_week.push('MONDAY')
+        if (day === 2) new_element.day_of_week.push('TUESDAY')
+        if (day === 3) new_element.day_of_week.push('WEDNESDAY')
+        if (day === 4) new_element.day_of_week.push('THURSDAY')
+        if (day === 5) new_element.day_of_week.push('FRIDAY')
+        if (day === 6) new_element.day_of_week.push('SATURDAY')
+        if (day === 7) new_element.day_of_week.push('SUNDAY')
       }
     }
     // Continue event, set multiTime
@@ -454,12 +426,12 @@ const handleEventCreate = (selectInfo) => {
   element_detail_visible.value = true
   element_action.value = 'add'
   element_title.value = t('add_rate')
-  new_element.value.price_type = ''
-  new_element.value.vat = 5
-  new_element.value.price_price = 0
-  new_element.value.step_size = new_element.value.step_size_str = 1
-  new_element.value.min_duration = new_element.value.max_duration = 0
-  new_element.value.min_duration_str = new_element.value.max_duration_str =  0
+  new_element.price_type = ''
+  new_element.vat = 5
+  new_element.price_price = 0
+  new_element.step_size = new_element.step_size_str = 1
+  new_element.min_duration = new_element.max_duration = 0
+  new_element.min_duration_str = new_element.max_duration_str =  0
 }
 const handleEventEdit = (clickInfo) => {
   element_detail_visible.value = true
@@ -467,43 +439,40 @@ const handleEventEdit = (clickInfo) => {
   element_title.value = t('edit_rate')
 
   modifyIndex.value = clickInfo.event.extendedProps.index
-  new_element.value.day_of_week.length =  0
-  new_element.value.price_type = tariffObj[modifyIndex.value].price_components[0].type
-  new_element.value.price_price = tariffObj[modifyIndex.value].price_components[0].price
-  new_element.value.price_price_incl = tariffObj[modifyIndex.value].price_components[0].price * (1 + tariffObj[modifyIndex.value].price_components[0].vat / 100)
-  // console.log(tariffObj[modifyIndex.value].price_components[0].step_size)
-  // console.log(tariffObj[modifyIndex.value].price_components[0].price)
-  // console.log(tariffObj[modifyIndex.value].price_components[0].price / (60 / (tariffObj[modifyIndex.value].price_components[0].step_size / 60)))
-  if (new_element.value.price_type !== 'ENERGY') 
-    new_element.value.step_size_str = tariffObj[modifyIndex.value].price_components[0].step_size / 60 
+  new_element.day_of_week.length =  0
+  new_element.price_type = ElementsData[modifyIndex.value].price_components[0].type
+  new_element.price_price = ElementsData[modifyIndex.value].price_components[0].price
+  new_element.price_price_incl = ElementsData[modifyIndex.value].price_components[0].price * (1 + ElementsData[modifyIndex.value].price_components[0].vat / 100)
+  if (new_element.price_type !== 'ENERGY') 
+    new_element.step_size_str = ElementsData[modifyIndex.value].price_components[0].step_size / 60 
   else 
-    new_element.value.step_size_str = tariffObj[modifyIndex.value].price_components[0].step_size
-  new_element.value.vat = tariffObj[modifyIndex.value].price_components[0].vat
-  new_element.value.min_duration_str = tariffObj[modifyIndex.value].restrictions.min_duration / 60
-  new_element.value.max_duration_str = tariffObj[modifyIndex.value].restrictions.max_duration / 60
-  new_element.value.start_time = tariffObj[modifyIndex.value].restrictions.start_time 
-  new_element.value.end_time = tariffObj[modifyIndex.value].restrictions.end_time
-  for (let i = 0; i < tariffObj[modifyIndex.value].restrictions.day_of_week.length; i++) {
-    new_element.value.day_of_week.push(tariffObj[modifyIndex.value].restrictions.day_of_week[i]) 
+    new_element.step_size_str = ElementsData[modifyIndex.value].price_components[0].step_size
+  new_element.vat = ElementsData[modifyIndex.value].price_components[0].vat
+  new_element.min_duration_str = ElementsData[modifyIndex.value].restrictions.min_duration / 60
+  new_element.max_duration_str = ElementsData[modifyIndex.value].restrictions.max_duration / 60
+  new_element.start_time = ElementsData[modifyIndex.value].restrictions.start_time 
+  new_element.end_time = ElementsData[modifyIndex.value].restrictions.end_time
+  for (let i = 0; i < ElementsData[modifyIndex.value].restrictions.day_of_week.length; i++) {
+    new_element.day_of_week.push(ElementsData[modifyIndex.value].restrictions.day_of_week[i]) 
   }
 }
 const handleEventDelete = (clickInfo) => {    // for Calendar close button
   if (confirm(`Are you sure you want to delete the event '${clickInfo.event.title}'`)) {
     modifyIndex.value = clickInfo.event.extendedProps.index
-    new_element.value.day_of_week.length =  0
-    new_element.value.price_type = tariffObj[modifyIndex.value].price_components[0].type
-    new_element.value.price_price = tariffObj[modifyIndex.value].price_components[0].price
-    if (new_element.value.price_type !== 'ENERGY') 
-      new_element.value.step_size_str = tariffObj[modifyIndex.value].price_components[0].step_size / 60 
+    new_element.day_of_week.length =  0
+    new_element.price_type = ElementsData[modifyIndex.value].price_components[0].type
+    new_element.price_price = ElementsData[modifyIndex.value].price_components[0].price
+    if (new_element.price_type !== 'ENERGY') 
+      new_element.step_size_str = ElementsData[modifyIndex.value].price_components[0].step_size / 60 
     else 
-      new_element.value.step_size_str = tariffObj[modifyIndex.value].price_components[0].step_size
-    new_element.value.vat = tariffObj[modifyIndex.value].price_components[0].vat
-    new_element.value.min_duration_str =tariffObj[modifyIndex.value].restrictions.min_duration / 60
-    new_element.value.max_duration_str =tariffObj[modifyIndex.value].restrictions.max_duration / 60
-    new_element.value.start_time = tariffObj[modifyIndex.value].restrictions.start_time 
-    new_element.value.end_time = tariffObj[modifyIndex.value].restrictions.end_time
-    for (let i = 0; i < tariffObj[modifyIndex.value].restrictions.day_of_week.length; i++) {
-      new_element.value.day_of_week.push(tariffObj[modifyIndex.value].restrictions.day_of_week[i]) 
+      new_element.step_size_str = ElementsData[modifyIndex.value].price_components[0].step_size
+    new_element.vat = ElementsData[modifyIndex.value].price_components[0].vat
+    new_element.min_duration_str =ElementsData[modifyIndex.value].restrictions.min_duration / 60
+    new_element.max_duration_str =ElementsData[modifyIndex.value].restrictions.max_duration / 60
+    new_element.start_time = ElementsData[modifyIndex.value].restrictions.start_time 
+    new_element.end_time = ElementsData[modifyIndex.value].restrictions.end_time
+    for (let i = 0; i < ElementsData[modifyIndex.value].restrictions.day_of_week.length; i++) {
+      new_element.day_of_week.push(ElementsData[modifyIndex.value].restrictions.day_of_week[i]) 
     }
     editElement('delete')
     clickInfo.event.remove()
@@ -520,27 +489,27 @@ const handleEventClick = (clickInfo) => {
 }
 const handleEventMouseEnter = (info) => {
   let index = info.event._def.extendedProps.index
-  let type_str = tariffObj[index].price_components_type_str
-  let vat_str = tariffObj[index].price_components[0].vat
-  let step_size_str = tariffObj[index].price_components_step_size_str
-  let price_excl_vat_str = tariffObj[index].price_components[0].price
-  let price_incl_vat_str = tariffObj[index].price_components[0].price * (1 + vat_str / 100)
-  let min_duration_str = tariffObj[index].restrictions.min_duration / 60
-  let max_duration_str = tariffObj[index].restrictions.max_duration / 60
+  let type_str = ElementsData[index].price_components_type_str
+  let vat_str = ElementsData[index].price_components[0].vat
+  let step_size_str = ElementsData[index].price_components_step_size_str
+  let price_excl_vat_str = ElementsData[index].price_components[0].price
+  let price_incl_vat_str = ElementsData[index].price_components[0].price * (1 + vat_str / 100)
+  let min_duration_str = ElementsData[index].restrictions.min_duration / 60
+  let max_duration_str = ElementsData[index].restrictions.max_duration / 60
   let unit = ''
   let duration_content = ''
 
-  switch (tariffObj[index].price_components[0].type) {
+  switch (ElementsData[index].price_components[0].type) {
     case 'ENERGY' :
-      step_size_str = tariffObj[index].price_components[0].step_size
+      step_size_str = ElementsData[index].price_components[0].step_size
       unit = t('kwh')
       break
     case 'TIME' :
-      step_size_str = tariffObj[index].price_components[0].step_size / 60
+      step_size_str = ElementsData[index].price_components[0].step_size / 60
       unit = t('min')
       break
     case 'PARKING_TIME' :
-      step_size_str = tariffObj[index].price_components[0].step_size / 60
+      step_size_str = ElementsData[index].price_components[0].step_size / 60
       unit = t('min')
       duration_content = 
       `
@@ -613,35 +582,15 @@ const handleEventContent = (arg) => {
   }
 }
 
-const chargingCalendarOptions = reactive({
+const CalendarOptions =  reactive({
   plugins: [interactionPlugin, dayGridPlugin, timeGridPlugin],
   height: 'auto',  // 609px 602px
-  initialView: 'timeGridWeek',
-  editable: false,
-  selectMirror: true,
-  selectable: true,
-  selectOverlap: false,
-  allDaySlot: false,
-  firstDay: 1,
-  headerToolbar: false,
-  slotMinTime: '00:00',
-  slotMaxTime: '24:00',
-  slotDuration: '00:60:00',
-  slotLabelFormat: {
-    hour12: false,
-    hour: '2-digit',
-    minute: '2-digit',
-  },
+  initialView: 'timeGridWeek', editable: false, selectMirror: true, selectable: true, selectOverlap: false,
+  allDaySlot: false, firstDay: 1, headerToolbar: false, slotMinTime: '00:00', slotMaxTime: '24:00', slotDuration: '00:60:00',
+  slotLabelFormat: { hour12: false, hour: '2-digit', minute: '2-digit'},
+  eventTimeFormat: { hour12: false, hour: '2-digit', minute: '2-digit'},
   slotLabelContent: info => info.text.replace(/24:00/g, '00:00'),   // can also try: locale: 'en-GB'
-  dayHeaderFormat: {
-    weekday: 'short'
-  },
-  eventTimeFormat: {
-    hour12: false,
-    hour: '2-digit',
-    minute: '2-digit',
-  },
-
+  dayHeaderFormat: { weekday: 'short'},
   events: [],
   eventClassNames: ['mfc-event'],
   eventColor: '#fff',
@@ -649,56 +598,17 @@ const chargingCalendarOptions = reactive({
   eventClick: handleEventClick,
   select: handleEventCreate,
   eventContent: handleEventContent,
-  eventMouseEnter: handleEventMouseEnter,
-  // editable: true,
-  // eventDrop: handleEventDrop,
-  // validRange: selectValidRange,
-})
-const parkingCalendarOptions = reactive({
-  plugins: [interactionPlugin, dayGridPlugin, timeGridPlugin],
-  height: 'auto',    // 609px 602px
-  initialView: 'timeGridWeek',
-  editable: false,
-  selectMirror: true,
-  selectable: true,
-  selectOverlap: false,
-  allDaySlot: false,
-  firstDay: 1,
-  headerToolbar: false,
-  slotMinTime: '00:00',
-  slotMaxTime: '24:00',
-  slotDuration: '00:60:00',
-  slotLabelFormat: {
-    hour12: false,
-    hour: '2-digit',
-    minute: '2-digit',
-  },
-  slotLabelContent: info => info.text.replace(/24:00/g, '00:00'),   // can also try: locale: 'en-GB'
-  dayHeaderFormat: {
-    weekday: 'short'
-  },
-  eventTimeFormat: {
-    hour12: false,
-    hour: '2-digit',
-    minute: '2-digit',
-  },
-
-  events: [],
-  eventClassNames: ['mfc-event'],
-  eventColor: '#fff',
-  eventTextColor: '#000',
-  eventClick: handleEventClick,
-  select: handleEventCreate,
-  eventContent: handleEventContent,
-  eventMouseEnter: handleEventMouseEnter,
+  eventMouseEnter: handleEventMouseEnter
 })
 
+const chargingCalendarOptions = {...CalendarOptions}
+const parkingCalendarOptions = {...CalendarOptions}
 
 const seletcType = (type) => {
   if (type === 'ENERGY')
-    new_element.value.step_size = 1
+    new_element.step_size = 1
   else
-    new_element.value.step_size = 0
+    new_element.step_size = 0
 }
 
 const cancel_tariff = () => {
@@ -709,7 +619,6 @@ const save_tariff = async (formEl) => {
   if (!formEl) return
   let check_format_success = false
   await formEl.validate((valid) => {
-    console.log(valid)
     if (valid === true) 
       check_format_success = true
   })
@@ -717,7 +626,8 @@ const save_tariff = async (formEl) => {
     return 
   }
 
-  let sendData = await renderDataToSendData ()
+  let sendData = await renderDataToSendData()
+  sendData.tariff_alt_text = [{language:'a', text:'a'},{language:'b', text:'b'}] // fix app issue
   sendData.country_code = 'TW'
   if (tariff_id) {
     sendData.id = tariff_id
@@ -729,7 +639,6 @@ const save_tariff = async (formEl) => {
         ElMessage.success(res.data.message)
       else {
         ElMessage.error(res.data.message)
-        console.log(res)
       }
       router.push({ name: 'ratePlan' })
     })
@@ -748,15 +657,12 @@ const save_tariff = async (formEl) => {
 }
 
 const deleteRestrictions = () => {
-  // renderElementDetail.restrictions = null
   displayRestrictions.value = false
-  // renderTariffElementsData.hasRestrictions = false
 }
 
 const ShowRestrictions = (scope) => {
   element_restrictions_visible.value = true
-  console.log(scope.row)
-  let restrictions = { day_of_week: null, start_time: null , end_time: null , max_duration: null, min_duration: null,
+  let restrictions = { day_of_week: [], start_time: null , end_time: null , max_duration: null, min_duration: null,
     max_parking_duration: null, min_parking_duration: null, min_current: null, max_current: null }
   renderElementDetail.restrictions = restrictions
   if ( Object.keys(scope.row.restrictions).length !== 0) {
@@ -771,15 +677,13 @@ const ShowRestrictions = (scope) => {
       renderElementDetail.restrictions.max_current = scope.row.restrictions.max_current
     if(scope.row.restrictions.min_duration || scope.row.restrictions.min_duration === 0)
       renderElementDetail.restrictions.min_duration = scope.row.restrictions.min_duration
-    console.log(scope.row.restrictions.max_duration)
     if(scope.row.restrictions.max_duration || scope.row.restrictions.max_duration === 0)
       renderElementDetail.restrictions.max_duration = scope.row.restrictions.max_duration
     if(scope.row.restrictions.min_parking_duration || scope.row.restrictions.min_parking_duration === 0)
       renderElementDetail.restrictions.min_parking_duration = scope.row.restrictions.min_parking_duration
     if(scope.row.restrictions.max_parking_duration || scope.row.restrictions.max_parking_duration === 0)
       renderElementDetail.restrictions.max_parking_duration = scope.row.restrictions.max_parking_duration      
-    if(scope.row.restrictions.day_of_week) {
-      renderElementDetail.restrictions.day_of_week = []
+    if(scope.row.restrictions.day_of_week.length !== 0) {
       let dayArray = scope.row.restrictions.day_of_week.split(/[/ ]+/)
       dayArray = dayArray.filter(function(day) {return day !== ""})
       dayArray.forEach((day) => {
@@ -790,14 +694,14 @@ const ShowRestrictions = (scope) => {
 }
 
 const ShowEditElementDialog = (scope) => {
+  if (scope.row.hasRestrictions === false ) 
+    displayRestrictions.value = false
   element_title.value = t('edit_rate')
   add_element.value = false
-  let restrictions = { day_of_week: null, start_time: null , end_time: null , max_duration: null, min_duration: null, min_current: null, max_current: null,
-    min_parking_duration:null, max_parking_duration:null,
-   }
+  let restrictions = { day_of_week: [], start_time: null , end_time: null , max_duration: null, min_duration: null, min_current: null, max_current: null,
+    min_parking_duration:null, max_parking_duration:null }
   renderElementDetail.restrictions = restrictions
   if ( Object.keys(scope.row.restrictions).length !== 0) {
-    console.log(scope.row.restrictions)
     displayRestrictions.value = true
     if(scope.row.restrictions.start_time)
       renderElementDetail.restrictions.start_time = scope.row.restrictions.start_time
@@ -815,15 +719,12 @@ const ShowEditElementDialog = (scope) => {
       renderElementDetail.restrictions.min_parking_duration = scope.row.restrictions.min_parking_duration      
     if(scope.row.restrictions.max_parking_duration || scope.row.restrictions.max_parking_duration === 0)
       renderElementDetail.restrictions.max_parking_duration = scope.row.restrictions.max_parking_duration
-
-    if(scope.row.restrictions.day_of_week) {
-
-      renderElementDetail.restrictions.day_of_week = []
+    if(scope?.row?.restrictions?.day_of_week?.length > 0) {
       let dayArray = scope.row.restrictions.day_of_week.split(/[/ ]+/)
-          dayArray = dayArray.filter(function(day) {return day !== ""})
-          dayArray.forEach((day) => {
-            renderElementDetail.restrictions.day_of_week.push(reConverDayString(day))
-        })
+      dayArray = dayArray.filter(function(day) {return day !== ""})
+      dayArray.forEach((day) => {
+        renderElementDetail.restrictions.day_of_week.push(reConverDayString(day))
+      })
     }
   }
   renderElementDetail.price_components = []
@@ -853,30 +754,23 @@ const renderDataToSendData = async () => {
     sendData.max_price.incl_vat = renderTariffData.max_price
     sendData.max_price.excl_vat = renderTariffData.min_price
   }
-
+  
   renderTariffElementsData.forEach((element, index) => {
     if (element.restrictions) {
       sendData.elements[index] = {}
       sendData.elements[index].restrictions = {}
-      if(element.restrictions.start_time) 
-        sendData.elements[index].restrictions.start_time = element.restrictions.start_time
-      if(element.restrictions.end_time)
-        sendData.elements[index].restrictions.end_time = element.restrictions.end_time
-      if(element.restrictions.min_current)
-        sendData.elements[index].restrictions.min_current = element.restrictions.min_current      
-      if(element.restrictions.max_current)
-        sendData.elements[index].restrictions.max_current = element.restrictions.max_current
-      if(element.restrictions.min_duration)
-        sendData.elements[index].restrictions.min_duration = element.restrictions.min_duration * 60 
-      if(element.restrictions.max_duration)
-        sendData.elements[index].restrictions.max_duration = element.restrictions.max_duration * 60 
-
-      if(element.restrictions.min_parking_duration)
-        sendData.elements[index].restrictions.min_parking_duration = element.restrictions.min_parking_duration * 60 
-      if(element.restrictions.max_parking_duration)
-        sendData.elements[index].restrictions.max_parking_duration = element.restrictions.max_parking_duration * 60 
-
-      if(element.restrictions.day_of_week) {
+      let elementKeys = Object.keys(element.restrictions)  
+      elementKeys.forEach ( (key) => {
+        if (element.restrictions[key] !== null) {
+          if (key === 'day_of_week')
+            return
+          if (key === 'min_duration' || key === 'max_duration' || key === 'min_parking_duration' || key === 'max_parking_duration')
+            sendData.elements[index].restrictions[key] = element.restrictions[key] / 60
+          else 
+            sendData.elements[index].restrictions[key] = element.restrictions[key]
+        }
+      })
+      if( element.restrictions?.day_of_week && element.restrictions?.day_of_week?.length !== 0) {
         sendData.elements[index].restrictions.day_of_week = []
         let dayArray = element.restrictions.day_of_week.split(/[/ ]+/)
         dayArray = dayArray.filter(function(day) {return day !== ""})
@@ -885,18 +779,17 @@ const renderDataToSendData = async () => {
         })
       }
     }
+    sendData.elements[index].price_components = []
     element.price_components.forEach((price_component) => {
       let price_component_obj = {}
       price_component_obj.type = reConvertTypeString(price_component.type)
       price_component_obj.price = price_component.price
-      console.log(price_component.type)
       if (price_component_obj.type === 'PARKING_TIME' || price_component_obj.type === 'TIME')
         price_component_obj.step_size = price_component.step_size * 60
       else 
         price_component_obj.step_size = price_component.step_size
       if (price_component.vat)
         price_component_obj.vat = price_component.vat
-      sendData.elements[index].price_components = []
       sendData.elements[index].price_components.push(price_component_obj)
     })
   })
@@ -905,6 +798,7 @@ const renderDataToSendData = async () => {
 
 const addElement = () => {
   add_element.value = true
+  element_title.value = t('add_rate')
   let price_components = [ { type: null, price: null, vat: null, step_size: null, incl_vat: false } ]
   renderElementDetail.price_components = price_components
   renderElementDetail.restrictions = {}
@@ -918,8 +812,7 @@ const add_price_component = () => {
 }
 
 const createElement = async () => {
-  for (let i = 0; i < renderElementDetail.price_components.length; i++)
-  {
+  for (let i = 0; i < renderElementDetail.price_components.length; i++) {
     if (renderElementDetail.price_components[i].type === null || 
         renderElementDetail.price_components[i].price === null || 
         renderElementDetail.price_components[i].step_size === null) {
@@ -927,7 +820,6 @@ const createElement = async () => {
       return
     }
   }
-
   let renderTariffElementsDataObj = {}
   if (renderElementDetail.restrictions)
     renderTariffElementsDataObj.restrictions = {}
@@ -961,7 +853,6 @@ const createElement = async () => {
   renderElementDetail.price_components.forEach( (PriceComponent) => {
     let price_componentsObj = { price:0, step_size:0, type:'', vat:0 }
     price_componentsObj.vat = PriceComponent.vat
-    console.log(PriceComponent.price)
     price_componentsObj.price = formatNumber(PriceComponent.price, 4)
     price_componentsObj.price_excl_vat = formatNumber(PriceComponent.price, 4)
     price_componentsObj.price_incl_vat = formatNumber((PriceComponent.price * (1 + PriceComponent.vat/100) ), 4)
@@ -996,14 +887,16 @@ const modifyElement = () => {
     renderTariffElementsData[select_element_index].price_components[index].type = convertTypeString(price_component.type)
     renderTariffElementsData[select_element_index].price_components[index].vat = price_component.vat
     renderTariffElementsData[select_element_index].price_components[index].price_excl_vat = formatNumber(price_component.price, 4)
-    renderTariffElementsData[select_element_index].price_components[index].price_incl_vat = formatNumber((price_component.price * (1 + price_component.vat/100) ), 4)
+    if (price_component.vat)
+      renderTariffElementsData[select_element_index].price_components[index].price_incl_vat = formatNumber((price_component.price * (1 + price_component.vat/100) ), 4)
+    else
+      renderTariffElementsData[select_element_index].price_components[index].price_incl_vat = renderTariffElementsData[select_element_index].price_components[index].price_excl_vat
   })
 
   if (displayRestrictions.value === false) {
     delete renderTariffElementsData[select_element_index].restrictions
     delete renderElementDetail.restrictions
   }
-
   if (renderElementDetail.restrictions) {
     renderTariffElementsData[select_element_index].restrictions = {}
     if (renderElementDetail.restrictions.day_of_week) {
@@ -1027,8 +920,8 @@ const modifyElement = () => {
     renderTariffElementsData[select_element_index].hasRestrictions = true
   }
   else {
-    let restrictions = { day_of_week: null, start_time: null , end_time: null , max_duration: null, min_duration: null, min_current: null, max_current: null,
-        min_parking_duration:null, max_parking_duration:null}
+    let restrictions = { day_of_week: [], start_time: null , end_time: null , max_duration: null, min_duration: null, min_current: null, max_current: null,
+        min_parking_duration:null, max_parking_duration: null}
     renderTariffElementsData[select_element_index].hasRestrictions = false
     renderTariffElementsData[select_element_index].restrictions = restrictions
     renderElementDetail.restrictions = restrictions
@@ -1041,32 +934,32 @@ const deletePriceComponent = (index) => {
 }
 
 const editElement = (action) => {
-  if (new_element.value.end_time === '00:00')
-    new_element.value.end_time = '23:59'
+  if (new_element.end_time === '00:00')
+    new_element.end_time = '23:59'
   let tempArr = []
-  for(let i = 0; i < new_element.value.day_of_week.length; i++) {
-    tempArr.push(new_element.value.day_of_week[i])
+  for(let i = 0; i < new_element.day_of_week.length; i++) {
+    tempArr.push(new_element.day_of_week[i])
   }
-  if (new_element.value.price_type !== 'PARKING_TIME') {
-    new_element.value.max_duration = new_element.value.min_duration = 0
+  if (new_element.price_type !== 'PARKING_TIME') {
+    new_element.max_duration = new_element.min_duration = 0
   }
 
-  if (new_element.value.price_type === "ENERGY")
-    new_element.value.price_components_type_str = t('charging_by_energy')
-  else if (new_element.value.price_type === "TIME")
-    new_element.value.type_str = t('charging_by_time')
-  else if (new_element.value.price_type === "PARKING_TIME")
-    new_element.value.type_str = t('parking_by_time')
+  if (new_element.price_type === "ENERGY")
+    new_element.price_components_type_str = t('charging_by_energy')
+  else if (new_element.price_type === "TIME")
+    new_element.type_str = t('charging_by_time')
+  else if (new_element.price_type === "PARKING_TIME")
+    new_element.type_str = t('parking_by_time')
 
-    new_element.value.min_duration = new_element.value.min_duration_str * 60
-    new_element.value.max_duration = new_element.value.max_duration_str * 60
-    if (new_element.value.price_type !== "ENERGY")
-      new_element.value.step_size = new_element.value.step_size_str * 60
-  new_element.value.price_price_incl = new_element.value.price_price *  (1 + (new_element.value.vat / 100))
-  let modify_element = { price_components:[{ type:new_element.value.price_type, price:new_element.value.price_price, price_incl:new_element.value.price_price_incl,
-                                            step_size:new_element.value.step_size, vat:new_element.value.vat} ],
-                                            restrictions:{ min_duration:new_element.value.min_duration, max_duration:new_element.value.max_duration,
-                                            start_time:new_element.value.start_time, end_time:new_element.value.end_time, day_of_week:tempArr
+    new_element.min_duration = new_element.min_duration_str * 60
+    new_element.max_duration = new_element.max_duration_str * 60
+    if (new_element.price_type !== "ENERGY")
+      new_element.step_size = new_element.step_size_str * 60
+  new_element.price_price_incl = new_element.price_price *  (1 + (new_element.vat / 100))
+  let modify_element = { price_components:[{ type:new_element.price_type, price:new_element.price_price, price_incl:new_element.price_price_incl,
+                                            step_size:new_element.step_size, vat:new_element.vat} ],
+                                            restrictions:{ min_duration:new_element.min_duration, max_duration:new_element.max_duration,
+                                            start_time:new_element.start_time, end_time:new_element.end_time, day_of_week:tempArr
                                             }
                                           }
   if (action === 'add') {
@@ -1077,9 +970,9 @@ const editElement = (action) => {
           tempArr.push(multiTime[i - 1].day_of_week[j])
         }
         modify_element = {
-          price_components:[{ type:new_element.value.price_type, price:new_element.value.price_price, price_incl:new_element.value.price_price_incl,
-            step_size:new_element.value.step_size, vat:new_element.value.vat} ],
-          restrictions:{ min_duration:new_element.value.min_duration, max_duration:new_element.value.max_duration,
+          price_components:[{ type:new_element.price_type, price:new_element.price_price, price_incl:new_element.price_price_incl,
+            step_size:new_element.step_size, vat:new_element.vat} ],
+          restrictions:{ min_duration:new_element.min_duration, max_duration:new_element.max_duration,
             start_time:multiTime[i - 1].start_time, end_time:multiTime[i - 1].end_time, day_of_week:tempArr
           }
         }
@@ -1092,13 +985,13 @@ const editElement = (action) => {
       }
       else if (element.price_components[0].type === "TIME") {
         element.price_components_type_str = t('charging_by_time')
-        element.price_components_step_size_str = new_element.value.step_size / 60
+        element.price_components_step_size_str = new_element.step_size / 60
       }
       else if (element.price_components[0].type === "PARKING_TIME") {
         element.price_components_type_str = t('parking_by_time')
-        element.price_components_step_size_str = new_element.value.step_size / 60
-        element.restrictions_min_duration_str = new_element.value.min_duration / 60
-        element.restrictions_max_duration_str = new_element.value.max_duration / 60
+        element.price_components_step_size_str = new_element.step_size / 60
+        element.restrictions_min_duration_str = new_element.min_duration / 60
+        element.restrictions_max_duration_str = new_element.max_duration / 60
       }
       else if (element.price_components[0].type === '') {   // Invalid data, don't push to tariff_elements
         element_detail_visible.value = false
@@ -1132,7 +1025,6 @@ const editElement = (action) => {
         }
       }
       element.restrictions.day_of_week_str = day_of_week_str
-
       tariff_elements.push(element)
     }
     eventCount = 1
@@ -1156,31 +1048,31 @@ const editElement = (action) => {
     }
     let day_of_week_str = []
     for (const day of tariff_elements[modifyIndex.value].restrictions.day_of_week) {
-        switch (day) {
-          case 'MONDAY':
-          day_of_week_str.push(t('mon'))
-          break
-          case 'TUESDAY':
-          day_of_week_str.push(t('tue'))
-          break
-          case 'WEDNESDAY':
-          day_of_week_str.push(t('wed'))
-          break
-          case 'THURSDAY':
-          day_of_week_str.push(t('thu'))
-          break
-          case 'FRIDAY':
-          day_of_week_str.push(t('fri'))
-          break
-          case 'SATURDAY':
-          day_of_week_str.push(t('sat'))
-          break
-          case 'SUNDAY':
-          day_of_week_str.push(t('sun'))
-          break
-        }
+      switch (day) {
+        case 'MONDAY':
+        day_of_week_str.push(t('mon'))
+        break
+        case 'TUESDAY':
+        day_of_week_str.push(t('tue'))
+        break
+        case 'WEDNESDAY':
+        day_of_week_str.push(t('wed'))
+        break
+        case 'THURSDAY':
+        day_of_week_str.push(t('thu'))
+        break
+        case 'FRIDAY':
+        day_of_week_str.push(t('fri'))
+        break
+        case 'SATURDAY':
+        day_of_week_str.push(t('sat'))
+        break
+        case 'SUNDAY':
+        day_of_week_str.push(t('sun'))
+        break
       }
-      tariff_elements[modifyIndex.value].restrictions.day_of_week_str = day_of_week_str
+    }
+    tariff_elements[modifyIndex.value].restrictions.day_of_week_str = day_of_week_str
   }
   else if (action === 'delete') {
     tariff_elements.splice(modifyIndex.value, 1)
@@ -1212,7 +1104,6 @@ const getTariffData = async () => {
     return 'rate_not_found'
   }
   tariffData = res.data.result
-  console.log(tariffData)
   tariffElementsData = tariffData[0].elements
 }
 
@@ -1245,7 +1136,6 @@ const renderTarinffDataLayout = async () => {
   renderTariffData.currency = tariffData[0].currency
   if (tariffData[0].min_price?.incl_vat)
     renderTariffData.min_price = tariffData[0].min_price?.incl_vat
-  console.log(renderTariffData.min_price)
   if (tariffData[0].custom?.description)
     renderTariffData.description = tariffData[0].custom?.description
 }
@@ -1253,53 +1143,47 @@ const renderTarinffDataLayout = async () => {
 const renderElementLayout = async () => {
   tariffElementsData.forEach((element)=> {
     let renderTariffElementsDataObj = { price_components:[], restrictions:{}, hasRestrictions:false }
+    
     if (element?.restrictions?.day_of_week) {
       renderTariffElementsDataObj.restrictions.day_of_week = ''
     }
+    
     element?.restrictions?.day_of_week?.forEach( ( day, index ) => {
       renderTariffElementsDataObj.restrictions.day_of_week += convertDayString(day)
       if (element.restrictions.day_of_week.length - 1 !== index )
         renderTariffElementsDataObj.restrictions.day_of_week += ' / '
     })
-    
-    if (element?.restrictions?.start_time)
-      renderTariffElementsDataObj.restrictions.start_time = element?.restrictions?.start_time
-    if (element?.restrictions?.end_time)
-      renderTariffElementsDataObj.restrictions.end_time = element?.restrictions?.end_time
-    if (element?.restrictions?.min_current || element?.restrictions?.min_current === 0)
-      renderTariffElementsDataObj.restrictions.min_current = element?.restrictions?.min_current
-    if (element?.restrictions?.max_current || element?.restrictions?.max_current === 0)
-      renderTariffElementsDataObj.restrictions.max_current = element?.restrictions?.max_current
-    if (element?.restrictions?.min_duration || element?.restrictions?.min_duration === 0)
-      renderTariffElementsDataObj.restrictions.min_duration = element?.restrictions?.min_duration / 60
-    if (element?.restrictions?.max_duration || element?.restrictions?.max_duration === 0)
-      renderTariffElementsDataObj.restrictions.max_duration = element?.restrictions?.max_duration / 60
-    if (element?.restrictions?.min_parking_duration || element?.restrictions?.min_parking_duration === 0)
-      renderTariffElementsDataObj.restrictions.min_parking_duration = element?.restrictions?.min_parking_duration / 60
-    if (element?.restrictions?.max_parking_duration || element?.restrictions?.max_parking_duration === 0)
-      renderTariffElementsDataObj.restrictions.max_parking_duration = element?.restrictions?.max_parking_duration / 60
 
-    if (element?.restrictions?.min_parking_duration)
-      renderTariffElementsDataObj.restrictions.min_parking_duration = element?.restrictions?.min_parking_duration / 60
-    if (element?.restrictions?.max_parking_duration)
-      renderTariffElementsDataObj.restrictions.max_parking_duration = element?.restrictions?.max_parking_duration / 60
-
+    if (element.restrictions) {
+      let elementKeys = Object.keys(element.restrictions)  
+      elementKeys.forEach ( (key) => {
+        if (key === 'day_of_week')
+          return
+        if (key === 'min_duration' || key === 'max_duration' || key === 'min_parking_duration' || key === 'max_parking_duration')
+          renderTariffElementsDataObj.restrictions[key] = element.restrictions[key] / 60
+        else 
+          renderTariffElementsDataObj.restrictions[key] = element.restrictions[key]
+      })
+    }
 
     if ( Object.keys(renderTariffElementsDataObj.restrictions).length !== 0) 
       renderTariffElementsDataObj.hasRestrictions = true
-    element.price_components.forEach( (PriceComponent) => {
-      let price_componentsObj = { price:0, step_size:0, type:'', vat:0 }
-      price_componentsObj.vat = PriceComponent.vat
-      price_componentsObj.price = formatNumber(PriceComponent.price, 4)
-      price_componentsObj.price_excl_vat = formatNumber(PriceComponent.price, 4)
-      price_componentsObj.price_incl_vat = formatNumber((PriceComponent.price * (1 + PriceComponent.vat/100) ), 4)
-      price_componentsObj.type = convertTypeString(PriceComponent.type)
-      if ( PriceComponent.type !== "ENERGY") 
-        price_componentsObj.step_size = PriceComponent.step_size / 60
-      else 
-        price_componentsObj.step_size = PriceComponent.step_size
-      renderTariffElementsDataObj.price_components.push(price_componentsObj)
-    })
+      element.price_components.forEach( (PriceComponent) => {
+        let price_componentsObj = { price:0, step_size:0, type:'', vat:0 }
+        price_componentsObj.vat = PriceComponent.vat
+        price_componentsObj.price = formatNumber(PriceComponent.price, 4)
+        price_componentsObj.price_excl_vat = formatNumber(PriceComponent.price, 4)
+        if (PriceComponent.vat)
+          price_componentsObj.price_incl_vat = formatNumber((PriceComponent.price * (1 + PriceComponent.vat/100) ), 4)
+        else 
+          price_componentsObj.price_incl_vat = price_componentsObj.price_excl_vat
+        price_componentsObj.type = convertTypeString(PriceComponent.type)
+        if ( PriceComponent.type !== "ENERGY") 
+          price_componentsObj.step_size = PriceComponent.step_size / 60
+        else 
+          price_componentsObj.step_size = PriceComponent.step_size
+        renderTariffElementsDataObj.price_components.push(price_componentsObj)
+      })
     renderTariffElementsData.push(renderTariffElementsDataObj)
   })
 }
@@ -1315,6 +1199,7 @@ const renderEvseLayout = async () => {
     renderEvseListData.push(renderEvseListDataObj)
   }
 }
+
 onMounted(async () => {
   if (tariff_id) {
     let status = await getTariffData()
@@ -1359,7 +1244,6 @@ onMounted(async () => {
                 </el-form>
               </div>
               <div class="v-line"></div>
-
               <div class="right w-full flex-col mt-24px lg:ml-20px">
                 <div class="flex justify-between">
                   <p class="text-secondary text-22px lg:ml-20px"> {{ t('rate_description') }}</p>
@@ -1386,7 +1270,6 @@ onMounted(async () => {
                   </div>
                 </template>
               </el-table-column>
-
               <el-table-column :label="t('price_excl_vat')" prop="price_components" min-width="100">
                 <template #default="scope">
                   <div v-for="(item, index) in scope.row.price_components" :key="index">
@@ -1395,7 +1278,6 @@ onMounted(async () => {
                   </div>
                 </template>
               </el-table-column>
-
               <el-table-column :label="t('price_incl_vat')" prop="price_components" min-width="100">
                 <template #default="scope">
                   <div v-for="(item, index) in scope.row.price_components" :key="index">
@@ -1404,7 +1286,6 @@ onMounted(async () => {
                   </div>
                 </template>
               </el-table-column>              
-              
               <el-table-column :label="t('vat')" prop="price_components" min-width="50">
                 <template #default="scope">
                   <div v-for="(item, index) in scope.row.price_components" :key="index">
@@ -1412,8 +1293,7 @@ onMounted(async () => {
                     {{ item.vat }}
                   </div>
                 </template>
-              </el-table-column>              
-
+              </el-table-column>
               <el-table-column :label="t('unit')" prop="price_components" min-width="50" >
                 <template #default="scope">
                   <div v-for="(item, index) in scope.row.price_components" :key="index">
@@ -1422,23 +1302,20 @@ onMounted(async () => {
                   </div>
                 </template>
               </el-table-column>     
-
               <el-table-column :label="t('restrictions')" align="center" min-width="100">
                 <template #default="scope">
                   <el-button class="btn-more" v-if="scope.row.hasRestrictions" @click="ShowRestrictions(scope)"> <font-awesome-icon icon="fa-solid fa-ellipsis" /></el-button>
                 </template>
               </el-table-column>
-
               <el-table-column :label="t('detail')" align="center" min-width="100">
                 <template #default="scope">
                   <el-button class="btn-more" @click="ShowEditElementDialog(scope)"> <font-awesome-icon icon="fa-solid fa-ellipsis" /></el-button>
                 </template>
               </el-table-column>
-
             </el-table>
           </el-tab-pane>
 
-          <el-tab-pane :label="t('charging_rate')" name="three">
+          <!-- <el-tab-pane :label="t('charging_rate')" name="three">
             <div class="overflow-x-auto pb-8px">
               <FullCalendar v-if="isCalendarMounted" ref="chargingCalendarRef" :options="chargingCalendarOptions" class="min-w-992px">
               </FullCalendar>
@@ -1450,7 +1327,7 @@ onMounted(async () => {
               <FullCalendar v-if="isCalendarMounted" ref="parkingCalendarRef" :options="parkingCalendarOptions" class="min-w-992px">
               </FullCalendar>
             </div>
-          </el-tab-pane>
+          </el-tab-pane> -->
 
           <el-tab-pane :label="t('evse_list')" name="five">
             <el-table 
@@ -1502,7 +1379,6 @@ onMounted(async () => {
             <div class="v-line1 mt-12px mb-12px"></div>
 
             <div v-if="new_element.price_type !== ''">
-              
 
               <el-radio-group v-model="vat_select" @change="calPrice(vat_select)">
                 <el-radio label="1" size="large">{{ t('price_excl_vat') }}</el-radio>
@@ -1570,7 +1446,6 @@ onMounted(async () => {
                 </el-form-item>
               </div>
 
-
               <div class="flex justify-between">
                 <el-form-item class="mb-24px" :label="t('unit')">
                   <el-input v-if="new_element.price_type === 'ENERGY'" v-model="new_element.step_size_str" type="number" class="w-220px" :controls="false" disabled >
@@ -1605,7 +1480,6 @@ onMounted(async () => {
                 </el-form-item>
               </div>
             </div>
-
 
             <div class="v-line1 mt-12px mb-12px"></div>
 
@@ -1649,7 +1523,6 @@ onMounted(async () => {
 
             <div v-if="new_element.price_type === 'PARKING_TIME'" class="flex justify-between">
               <el-form-item class="mb-24px" :label="t('active_minute')">
-                <!-- <el-input-number v-model="new_element.min_duration" :controls="false" /> -->
                 <el-input v-model="new_element.min_duration_str" type="number" class="w-220px" :controls="false" >
                   <template #suffix>
                     <span> {{ t('min') }}</span>
@@ -1657,7 +1530,6 @@ onMounted(async () => {
                 </el-input>
               </el-form-item>
               <el-form-item class="mb-24px" :label="t('deactivate_minute')">
-                <!-- <el-input-number v-model="new_element.max_duration" :controls="false" /> -->
                 <el-input v-model="new_element.max_duration_str" type="number" class="w-220px" :controls="false" >
                   <template #suffix>
                     <span> {{ t('min') }}</span>
@@ -1684,9 +1556,7 @@ onMounted(async () => {
                                                   @open='openDialog'  @close='closeDialog' draggable>
         <template #header="{ titleId, titleClass }">
           <div class="py-2rem relative bg-blue-100">
-            <h4 :id="titleId" :class="titleClass" class="m-0 text-center text-blue-1200 font-400 text-24px line-height-26px">
-              {{ element_title }}
-            </h4>
+            <h4 :id="titleId" :class="titleClass" class="m-0 text-center text-blue-1200 font-400 text-24px line-height-26px"> {{ element_title }} </h4>
           </div>
         </template>
 
@@ -1789,7 +1659,7 @@ onMounted(async () => {
                 </el-input>
               </el-form-item>
             </div>
-            <div class="flex justify-between">
+            <!-- <div class="flex justify-between">
               <el-form-item class="mb-24px" :label="t('min_parking_duration')">
                 <el-input v-model.number="renderElementDetail.restrictions.min_parking_duration" type="number" class="w-220px" :controls="false" >
                   <template #suffix>
@@ -1805,7 +1675,7 @@ onMounted(async () => {
                   </template>
                 </el-input>
               </el-form-item>
-            </div>
+            </div> -->
           </div>
         </el-form>
 
@@ -1877,7 +1747,7 @@ onMounted(async () => {
               </el-form-item>
 
             </div>
-              <div class="flex justify-between">
+            <!-- <div class="flex justify-between">
               <el-form-item class="mb-24px" :label="t('min_parking_duration')">
                 <el-input v-model.number="renderElementDetail.restrictions.min_parking_duration" type="number" class="w-220px" :controls="false" disabled>
                   <template #suffix>
@@ -1893,8 +1763,7 @@ onMounted(async () => {
                   </template>
                 </el-input>
               </el-form-item>
-
-            </div>
+            </div> -->
           <template #footer>
           <el-button round class="w-48% bg-btn-100 text-white max-w-140px mb-44px" @click="element_restrictions_visible = false" > {{ t('ok') }}</el-button>
         </template>
@@ -2019,8 +1888,6 @@ onMounted(async () => {
     -webkit-appearance: none !important;
   }
 }
-
-
 
 ::-webkit-scrollbar {
   width: 0.8rem;
