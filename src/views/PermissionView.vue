@@ -17,7 +17,7 @@ import { useMStore } from '@/stores/m_cloud'
 const MStore = useMStore()
 const { t } = useI18n()
 const MsiApi = ApiFunc()
-const userType = ref([
+const userTypeMSI = ref([
   {
     value: 'AdminUser',
     label: t('admin_user'),
@@ -37,6 +37,20 @@ const userType = ref([
   {
     value: 'CustomerServiceUser',
     label: t('customer_service_user'),
+  },
+  {
+    value: 'EngineerUser',
+    label: t('engineer_user'),
+  },
+])
+const userTypeCPO = ref([
+  {
+    value: 'AdminUser',
+    label: t('admin_user'),
+  },
+  {
+    value: 'DeveloperUser',
+    label: t('user'),
   },
   {
     value: 'EngineerUser',
@@ -425,6 +439,15 @@ const allItem2Length_total = computed(() => {
   });
   return obj;
 })
+const isMSIAdminUser = computed(() => {
+  const user_permission = userValue.value === 'AdminUser'
+  const isMSI = cpoValue.value === '645ce730856df09e88d68d70'
+  return user_permission && isMSI
+})
+const userType = computed(() => {
+  const isMSI = cpoValue.value === '645ce730856df09e88d68d70'
+  return isMSI ? userTypeMSI.value : userTypeCPO.value
+})
 const initPageModel = ()=> {
   changeAllPageKey.value.forEach((key) => {
     pageModel.value[key] = {};
@@ -678,8 +701,9 @@ onBeforeMount(() => {
         >
           {{ t('cancel') }}
         </el-button>
-        <el-button class="btn-secondary" 
-          v-if="MStore.rule_permission.Permission.save === 'O'" 
+        <el-button class="btn-secondary"
+          :disabled="isMSIAdminUser"
+          v-if="MStore.rule_permission.Permission.save === 'O' " 
           @click="handlerSaveForm(ruleFormRef)"
         >
           {{ t('save') }}
