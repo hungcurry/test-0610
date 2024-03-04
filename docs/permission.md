@@ -55,10 +55,10 @@
 |   [Save]                     | O     | O         | X   | X      | X                |  X       |  
 
 | -AccountManagement-          | -     | -         | -   | -      | -                |  -       |  
-| **Rfid User**                | O     | O         | O   | O      | O                |  X       |  
+| **Rfid User**                | O     | O         | X   | X      | X                |  X       |  
 |   [Add_User]                 | O     | O         | X   | X      | X                |  X       |  
-|   [User_Detail]              | O     | O         | O   | O      | O                |  X       |  
-| **RfidUser Detail**          | O     | O         | O   | O      | O                |  X       |  
+|   [User_Detail]              | O     | O         | X   | X      | X                |  X       |  
+| **RfidUser Detail**          | O     | O         | X   | X      | X                |  X       |  
 |   [User_Edit]                | O     | O         | X   | X      | X                |  X       |  
 |   [Add_RFID]                 | O     | O         | X   | X      | X                |  X       |  
 |   [Delete_RFID]              | O     | O         | X   | X      | X                |  X       |  

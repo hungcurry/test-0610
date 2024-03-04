@@ -83,8 +83,8 @@ let m_cloud_permission =  {
     ChargingProfile: { page:'X', addProfile:'X', deleteProfile:'X', detail:'X',},
     ChargingProfileDetail: { page:'X', save:'X'},
     //-------- AccountManagement --------
-    RfidUser: { page:'O', addUser:'X', userDetail:'O'},
-    RfidUserDetail: { page:'O', userEdit:'X', addRFID:'X', deleteRFID:'X', editRFID:'X'},
+    RfidUser: { page:'X', addUser:'X', userDetail:'X'},
+    RfidUserDetail: { page:'X', userEdit:'X', addRFID:'X', deleteRFID:'X', editRFID:'X'},
     //-------- LogMonitor ---------------
     EVSELog: { page:'O',},
     ErrorLog: { page:'O',},
@@ -117,8 +117,8 @@ let m_cloud_permission =  {
     ChargingProfile: { page:'O', addProfile:'X', deleteProfile:'X', detail:'X',},
     ChargingProfileDetail: { page:'X', save:'X'},
     //-------- AccountManagement --------
-    RfidUser: { page:'O', addUser:'X', userDetail:'O'},
-    RfidUserDetail: { page:'O', userEdit:'X', addRFID:'X', deleteRFID:'X', editRFID:'X'},
+    RfidUser: { page:'X', addUser:'X', userDetail:'X'},
+    RfidUserDetail: { page:'X', userEdit:'X', addRFID:'X', deleteRFID:'X', editRFID:'X'},
     //-------- LogMonitor ---------------
     EVSELog: { page:'O',},
     ErrorLog: { page:'O',},
@@ -151,8 +151,8 @@ let m_cloud_permission =  {
     ChargingProfile: { page:'X', addProfile:'X', deleteProfile:'X', detail:'X',},
     ChargingProfileDetail: { page:'X', save:'X'},
     //-------- AccountManagement --------
-    RfidUser: { page:'O', addUser:'X', userDetail:'O'},
-    RfidUserDetail: { page:'O', userEdit:'X', addRFID:'X', deleteRFID:'X', editRFID:'X'},
+    RfidUser: { page:'X', addUser:'X', userDetail:'X'},
+    RfidUserDetail: { page:'X', userEdit:'X', addRFID:'X', deleteRFID:'X', editRFID:'X'},
     //-------- LogMonitor ---------------
     EVSELog: { page:'O',},
     ErrorLog: { page:'O',},

@@ -17,7 +17,7 @@ import { useMStore } from '@/stores/m_cloud'
 const MStore = useMStore()
 const { t } = useI18n()
 const MsiApi = ApiFunc()
-const userType = ref([
+const userTypeMSI = ref([
   {
     value: 'AdminUser',
     label: t('admin_user'),
@@ -37,6 +37,20 @@ const userType = ref([
   {
     value: 'CustomerServiceUser',
     label: t('customer_service_user'),
+  },
+  {
+    value: 'EngineerUser',
+    label: t('engineer_user'),
+  },
+])
+const userTypeCPO = ref([
+  {
+    value: 'AdminUser',
+    label: t('admin_user'),
+  },
+  {
+    value: 'DeveloperUser',
+    label: t('user'),
   },
   {
     value: 'EngineerUser',
@@ -329,6 +343,11 @@ onMounted( async() => {
   ]}
   let res = await MsiApi.mongoAggregate(queryData)
   Object.assign(cpo_name, res.data.result)
+  // console.log(`cpo_name` ,cpo_name);
+  // console.log(`----`);
+  // const user_permission = MStore?.permission?.user?.name
+  // console.log(`isMSI`, MStore.permission.isMSI)
+  // console.log(`user_permission`, user_permission)
 })
 // ---- add ------
 let idx = 1
@@ -424,6 +443,22 @@ const allItem2Length_total = computed(() => {
     obj[key] = sum;
   });
   return obj;
+})
+const getMSIObject = () => {
+  if (cpoValue.value === '') return 
+  const msiObj = cpo_name.find(item => item._id === cpoValue.value)
+  return msiObj.name === 'MSI'
+};
+const isMSIAdminUser = computed(() => {
+  if (cpoValue.value === '') return
+  const isMSI = getMSIObject()
+  const isAdminUser = userValue.value === 'AdminUser'
+  return isAdminUser && isMSI
+})
+const userType = computed(() => {
+  if (cpoValue.value === '') return
+  const isMSI = getMSIObject()
+  return isMSI ? userTypeMSI.value : userTypeCPO.value
 })
 const initPageModel = ()=> {
   changeAllPageKey.value.forEach((key) => {
@@ -678,8 +713,9 @@ onBeforeMount(() => {
         >
           {{ t('cancel') }}
         </el-button>
-        <el-button class="btn-secondary" 
-          v-if="MStore.rule_permission.Permission.save === 'O'" 
+        <el-button class="btn-secondary"
+          :disabled="isMSIAdminUser"
+          v-if="MStore.rule_permission.Permission.save === 'O' " 
           @click="handlerSaveForm(ruleFormRef)"
         >
           {{ t('save') }}

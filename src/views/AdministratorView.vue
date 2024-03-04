@@ -61,7 +61,13 @@ const downloadList = async(action, index) => {
     window.dispatchEvent(new Event('resize'))
   }
   else if (action === 'download') {
-    if (deletionData[index].filename_str === '') return
+    if (deletionData[index].filename_str === '') {
+      ElMessage({
+        message: t('file_not_found'),
+        type: 'error',
+      })
+      return
+    }
     let sendData = {filename: deletionData[index].downloadname}
     let res = await MsiApi.get_edoc(sendData)
     if (res.status === 200) {
@@ -378,9 +384,10 @@ onMounted(async () => {
   <div class="customer">
     <div class="container lg">
       <div class="flex flex-justify-end flex-items-baseline flex-wrap lg:flex-nowrap pt-40px pb-32px">
-        <el-dropdown class="mr-12px" trigger="click">
+        <el-dropdown 
+          v-if="MStore?.rule_permission?.Administrator?.downloadList === 'O'"  
+          class="mr-12px" trigger="click">
           <el-button
-            v-if="MStore.rule_permission.Administrator.downloadList === 'O'"
             class="download-btn w-full md:w-auto mt-4 md:mt-0 box-shadow"
             @click="downloadList('get')"
           >
@@ -394,7 +401,8 @@ onMounted(async () => {
           <template #dropdown>
             <el-dropdown-menu>
               <el-dropdown-item v-for="(item, index) in deletionData" :key="item.value" 
-              class="w-200px flex-justify-center" @click="downloadList('download', index)">{{ item.filename_str }}
+              class="w-200px flex-justify-center" @click="downloadList('download', index)">
+              {{ deletionData[index].filename_str === '' ? t('file_not_found')  : item.filename_str }}
               </el-dropdown-item>
             </el-dropdown-menu>
           </template>
