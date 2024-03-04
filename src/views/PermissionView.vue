@@ -343,6 +343,11 @@ onMounted( async() => {
   ]}
   let res = await MsiApi.mongoAggregate(queryData)
   Object.assign(cpo_name, res.data.result)
+  // console.log(`cpo_name` ,cpo_name);
+  // console.log(`----`);
+  // const user_permission = MStore?.permission?.user?.name
+  // console.log(`isMSI`, MStore.permission.isMSI)
+  // console.log(`user_permission`, user_permission)
 })
 // ---- add ------
 let idx = 1
@@ -439,13 +444,20 @@ const allItem2Length_total = computed(() => {
   });
   return obj;
 })
+const getMSIObject = () => {
+  if (cpoValue.value === '') return 
+  const msiObj = cpo_name.find(item => item._id === cpoValue.value)
+  return msiObj.name === 'MSI'
+};
 const isMSIAdminUser = computed(() => {
-  const user_permission = userValue.value === 'AdminUser'
-  const isMSI = cpoValue.value === '645ce730856df09e88d68d70'
-  return user_permission && isMSI
+  if (cpoValue.value === '') return
+  const isMSI = getMSIObject()
+  const isAdminUser = userValue.value === 'AdminUser'
+  return isAdminUser && isMSI
 })
 const userType = computed(() => {
-  const isMSI = cpoValue.value === '645ce730856df09e88d68d70'
+  if (cpoValue.value === '') return
+  const isMSI = getMSIObject()
   return isMSI ? userTypeMSI.value : userTypeCPO.value
 })
 const initPageModel = ()=> {
