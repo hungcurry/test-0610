@@ -169,7 +169,7 @@ const fillFullCalendar = () => {
   let parkingCount = 0
 
   for (let i=0; i<tariffObj.length; i++) {
-    for (let j=0; j<tariffObj[i]?.restrictions?.day_of_week.length; j++) {
+    for (let j=0; j<tariffObj[i]?.restrictions?.day_of_week?.length; j++) {
       if (tariffObj[i].restrictions.day_of_week[j] === 'MONDAY') daysOfWeek.push('1')
       if (tariffObj[i].restrictions.day_of_week[j] === 'TUESDAY') daysOfWeek.push('2')
       if (tariffObj[i].restrictions.day_of_week[j] === 'WEDNESDAY') daysOfWeek.push('3')
@@ -244,8 +244,8 @@ const fillFullCalendar = () => {
 }
 const overEventHeight = (startTimeStr, endTimeStr) => {
   let rowHeight = 24;
-  let startTime = parseInt(startTimeStr.split(':')[0])*60 + parseInt(startTimeStr.split(':')[1])
-  let endTime = parseInt(endTimeStr.split(':')[0])*60 + parseInt(endTimeStr.split(':')[1])
+  let startTime = parseInt(startTimeStr?.split(':')[0])*60 + parseInt(startTimeStr?.split(':')[1])
+  let endTime = parseInt(endTimeStr?.split(':')[0])*60 + parseInt(endTimeStr?.split(':')[1])
   let eventHeight = (endTime - startTime) / 120 * rowHeight
   if (eventHeight < 5 * rowHeight) {
     return true

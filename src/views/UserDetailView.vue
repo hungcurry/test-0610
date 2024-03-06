@@ -733,14 +733,14 @@ onMounted(async () => {
                       <div class="md:flex mb-8px">
                         <span class="info-item min-w-110px">{{ t('home_device') }}</span>
                         <el-button 
-                        v-if="MStore.rule_permission.UserDetail.deviceDetail === 'O'"
+                        v-if="MStore.rule_permission.UserDetail.homeDeviceDetails === 'O'"
                         round class="button w-full" @click="layoutVisible.home_device = true">{{ t('home_device_details') }}</el-button>
                       </div>
 
                       <div class="md:flex mb-8px">
                         <span class="info-item min-w-110px">{{ '' }}</span>
                         <el-button 
-                        v-if="MStore.rule_permission.UserDetail.deviceDetail === 'O'"
+                        v-if="MStore.rule_permission.UserDetail.sendNotification === 'O'"
                         round class="button w-full" @click="layoutVisible.notification = true">{{ t('send_notification') }}</el-button>
                       </div>
                     </div>
@@ -1006,7 +1006,7 @@ onMounted(async () => {
 
 
           <el-tab-pane 
-          v-if="MStore.rule_permission.UserDetail.payment === 'O'"
+          v-if="MStore.rule_permission.UserDetail.homeSession === 'O'"
           :label="t('home_session')" name="third">
             <div class="overflow-x-auto">
               <div class="">
