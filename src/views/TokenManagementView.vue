@@ -254,7 +254,10 @@ onMounted( async() => {
             <el-button :icon="Search" @click="search" />
           </template>
         </el-input>
-        <el-button class="btn-secondary box-shadow" @click="add_token()"> {{ t('add_token') }} </el-button>
+        <el-button 
+          v-if="MStore.rule_permission.TokenManagement.addToken === 'O'"
+          class="btn-secondary box-shadow" @click="add_token()"> {{ t('add_token') }} 
+        </el-button>
       </div>
       
       <div class="overflow-x-auto ">
@@ -279,7 +282,11 @@ onMounted( async() => {
             <el-table-column prop="expired_date_time" :label="t('expired_date_time')" align="center" min-width="150"/>
             <el-table-column prop="detail" label="" align="center" min-width="150">
               <template #default="scope">
-                <el-button class="btn-more" @click="token_detail(scope.row)"> <font-awesome-icon icon="fa-solid fa-ellipsis" /> </el-button>
+                <el-button class="btn-more"
+                v-if="MStore.rule_permission.TokenManagement.detail === 'O'"
+                @click="token_detail(scope.row)">
+                  <font-awesome-icon icon="fa-solid fa-ellipsis" />
+                </el-button>
               </template>
             </el-table-column>
           </el-table>

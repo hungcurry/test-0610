@@ -543,7 +543,7 @@ onMounted(async () => {
                   size="large"
                   @change="setPermission"
                 >
-                  <el-option v-for="item in user_type" :key="item.value" :label="item.name" :value="item._id" />
+                  <el-option v-for="item in user_type" :key="item.value" :label="item.name_str" :value="item._id" />
                 </el-select>
               </el-form-item>
 
@@ -623,7 +623,7 @@ onMounted(async () => {
                   size="large"
                   @change="setPermission"
                 >
-                  <el-option v-for="item in user_type" :key="item.value" :label="item.name" :value="item._id" />
+                  <el-option v-for="item in user_type" :key="item.value" :label="item.name_str" :value="item._id" />
                 </el-select>
               </el-form-item>
 
