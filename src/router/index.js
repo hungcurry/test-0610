@@ -240,8 +240,6 @@ router.beforeEach(async to => {
       else {
         return '/login'  
       }
-      console.log(MStore.rule_permission)
-      console.log(MStore.permission.isCompany)
       if (MStore.permission.isCompany === false) {
         const user_permission = MStore?.permission?.user?.name
         let queryData  = { database: "CPO", collection: "CompanyInformation", pipelines: [ 
@@ -251,6 +249,8 @@ router.beforeEach(async to => {
         res = await MsiApi.mongoAggregate(queryData)
         console.log(res)
         if (res.status === 200) {
+          console.log(`company=>` ,MStore.permission.company.name)
+          console.log(`userPermission=>` , user_permission)
           if (res.data.result[0]?.config?.m_cloud?.permissions?.[user_permission]) {
             const remotePermission = res.data.result[0].config.m_cloud.permissions[user_permission]
             const localPermission = JSON.parse(JSON.stringify(m_cloud_permission[user_permission]))

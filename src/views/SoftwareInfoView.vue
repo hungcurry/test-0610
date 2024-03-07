@@ -290,25 +290,28 @@ onMounted(async () => {
             <el-table-column prop="description" :label="t('description')" min-width="350" />
             <el-table-column prop="update_time_str" :label="t('update_time')" min-width="250" />
             <el-table-column
-              v-if="isMSI"
+              v-if="isMSI && (MStore.rule_permission.SoftwareInfo.release === 'O')"
               prop=""
               class="text-right"
               :label="t('release')"
               min-width="100"
             >
               <template #default="scope">
-                <el-button class="btn-info" @click="release(scope, 'XP012')"
-                  v-if="MStore.rule_permission.SoftwareInfo.addSwRelease === 'O'"
-                  >{{ t('release') }}</el-button
-                >
+                <el-button class="btn-info" @click="release(scope, 'XP012')">
+                  {{ t('release') }}
+                </el-button>
               </template>
             </el-table-column>
-            <el-table-column v-if="isMSI" prop="" label="" min-width="100">
+            <el-table-column 
+              v-if="isMSI && (MStore.rule_permission.SoftwareInfo.detail === 'O')" 
+              prop="" 
+              label="" 
+              min-width="100"
+            >
               <template #default="scope">
-                <el-button class="btn-more" @click="detail_info(scope, 'XP012')"
-                  v-if="MStore.rule_permission.SoftwareInfo.detail === 'O'"
-                  ><font-awesome-icon icon="fa-solid fa-ellipsis"
-                /></el-button>
+                <el-button class="btn-more" @click="detail_info(scope, 'XP012')">
+                  <font-awesome-icon icon="fa-solid fa-ellipsis"/>
+                </el-button>
               </template>
             </el-table-column>
           </el-table>
@@ -345,25 +348,28 @@ onMounted(async () => {
             <el-table-column prop="description" :label="t('description')" min-width="350" />
             <el-table-column prop="update_time_str" :label="t('update_time')" min-width="250" />
             <el-table-column
-              v-if="isMSI"
+              v-if="isMSI && (MStore.rule_permission.SoftwareInfo.release === 'O')"
               prop=""
               class="text-right"
               :label="t('release')"
               min-width="100"
             >
               <template #default="scope">
-                <el-button class="btn-info" @click="release(scope, 'XP011_BT')"
-                  v-if="isMSI && (MStore.rule_permission.SoftwareInfo.release === 'O')"
-                  >{{ t('release') }}</el-button
-                >
+                <el-button class="btn-info" @click="release(scope, 'XP011_BT')">
+                {{ t('release') }}
+                </el-button>
               </template>
             </el-table-column>
-            <el-table-column v-if="isMSI" prop="" label="" min-width="100">
+            <el-table-column 
+              v-if="isMSI && (MStore.rule_permission.SoftwareInfo.detail === 'O')" 
+              prop="" 
+              label="" 
+              min-width="100"
+            >
               <template #default="scope">
-                <el-button class="btn-more" @click="detail_info(scope, 'XP011_BT')"
-                  v-if="isMSI && (MStore.rule_permission.SoftwareInfo.detail === 'O')"
-                  ><font-awesome-icon icon="fa-solid fa-ellipsis"
-                /></el-button>
+                <el-button class="btn-more" @click="detail_info(scope, 'XP011_BT')">
+                  <font-awesome-icon icon="fa-solid fa-ellipsis"/>
+                </el-button>
               </template>
             </el-table-column>
           </el-table>

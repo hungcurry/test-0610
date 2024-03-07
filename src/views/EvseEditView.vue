@@ -244,8 +244,8 @@ const fillFullCalendar = () => {
 }
 const overEventHeight = (startTimeStr, endTimeStr) => {
   let rowHeight = 24;
-  let startTime = parseInt(startTimeStr.split(':')[0])*60 + parseInt(startTimeStr.split(':')[1])
-  let endTime = parseInt(endTimeStr.split(':')[0])*60 + parseInt(endTimeStr.split(':')[1])
+  let startTime = parseInt(startTimeStr?.split(':')[0])*60 + parseInt(startTimeStr?.split(':')[1])
+  let endTime = parseInt(endTimeStr?.split(':')[0])*60 + parseInt(endTimeStr?.split(':')[1])
   let eventHeight = (endTime - startTime) / 120 * rowHeight
   if (eventHeight < 5 * rowHeight) {
     return true

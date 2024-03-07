@@ -30,8 +30,7 @@
 |   [Update]                   | O     | O         | O   | X      | X                |  X       |  
 | ***EVSE Detail**             | O     | O         | O   | O      | O                |  X       |  
 |   [Delete]                   | O     | O         | X   | X      | X                |  X       |  
-|   [Edit]                     | O     | O         | O   | O      | O                |  X       |  
-|   [Data_Transfer]            | O     | O         | O   | X      | X                |  X       |  
+|   [Edit]                     | O     | O         | O   | O      | O                |  X       |   
 |   [Charging_Profile]         | O     | O         | O   | O      | O                |  X       |  
 |   [Configuration]            | O     | O         | O   | O      | O                |  X       |  
 |   [Get_Diagnostics]          | O     | O         | O   | O      | O                |  X       |  
@@ -55,10 +54,10 @@
 |   [Save]                     | O     | O         | X   | X      | X                |  X       |  
 
 | -AccountManagement-          | -     | -         | -   | -      | -                |  -       |  
-| **Rfid User**                | O     | O         | O   | O      | O                |  X       |  
+| **Rfid User**                | O     | O         | X   | X      | X                |  X       |  
 |   [Add_User]                 | O     | O         | X   | X      | X                |  X       |  
-|   [User_Detail]              | O     | O         | O   | O      | O                |  X       |  
-| **RfidUser Detail**          | O     | O         | O   | O      | O                |  X       |  
+|   [User_Detail]              | O     | O         | X   | X      | X                |  X       |  
+| **RfidUser Detail**          | O     | O         | X   | X      | X                |  X       |  
 |   [User_Edit]                | O     | O         | X   | X      | X                |  X       |  
 |   [Add_RFID]                 | O     | O         | X   | X      | X                |  X       |  
 |   [Delete_RFID]              | O     | O         | X   | X      | X                |  X       |  
@@ -72,16 +71,16 @@
 | --Advanced Setting-          | -     | -         | -   | -      | -                |  -       |  
 | ***User**                    | O     | O         | O   | O      | O                |  X       |  
 |   [Add_User]                 | O     | O         | X   | X      | X                |  X       |  
-|   [User_Detail]              | O     | O         | O   | O      | O                |  X       |  
+|   [User_Detail]              | O     | O         | O   | O      | O                |  X       | 
 | ***User Detail**             | O     | O         | O   | O      | O                |  X       |  
 |   [Clear]                    | O     | O         | X   | X      | X                |  X       |  
 |   [User_Edit]                | O     | O         | X   | X      | X                |  X       |  
 |   [Card_Details]             | O     | O         | X   | O      | O                |  X       |  
 |   [Device_Detail]            | O     | O         | X   | O      | O                |  X       |  
-|   [Add_RFID]                 | O     | O         | X   | X      | X                |  X       |  
-|   [Edit_RFID]                | O     | O         | X   | X      | X                |  X       |  
-|   [Delete_RFID]              | O     | O         | X   | X      | X                |  X       |  
-|   [Payment]                  | O     | O         | X   | O      | O                |  X       |  
+|   [Home_Device_Details]      | O     | O         | X   | O      | O                |  X       |
+|   [Send_Notificatin]         | O     | O         | X   | O      | X                |  X       |  
+|   [Payment]                  | O     | O         | X   | O      | O                |  X       |
+|   [Home_Session]             | O     | O         | X   | O      | O                |  X       |
 | ***Company**                 | O     | O         | X   | O      | O                |  X       |  
 |   [Add_Company]              | O     | O         | X   | X      | X                |  X       |  
 |   [Detail]                   | O     | O         | X   | X      | X                |  X       |  

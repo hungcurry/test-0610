@@ -286,6 +286,10 @@ const filterRemoteRfid = async() => {
     ],
   }
   let response = await MsiApi.mongoAggregate(queryData)
+
+  if(response.data.result.length === 0 || response.data.result[0]?.rfids.length === 0){
+    ElMessage.error(t(`please_bind_rfid_num`))
+  }
   remote_transaction_data.rfid_list = {}
   remote_transaction_data.rfid_num = undefined
   if (response.data?.result[0]?.rfids) {
@@ -294,7 +298,7 @@ const filterRemoteRfid = async() => {
 }
 let interval = undefined
 let interval1 = undefined
-let retry = 3
+let retry = 3 
 
 const check_uploaded  = async () => {
   let queryData = { database: 'CPO', collection: 'ChargePointInfo', pipelines: [{ $match: {evse_id:evseData.evse_id},},{ $project: { _id: 0 } }]}
@@ -508,7 +512,13 @@ const confirmRemoteTransaction = async() => {
             connector: 1,
             idTag: remote_transaction_data.rfid_num,
           }
-          await MsiApi.remote_start_transaction(sendData)
+          let res = await MsiApi.remote_start_transaction(sendData)
+          if (res.data.message !== null && res.data.message === 'Accepted') {
+            ElMessage.success('Success')
+          }
+          else {
+            ElMessage.error(t('error'))
+          }
         })
       }
     })
@@ -610,7 +620,7 @@ const fillFullCalendar = () => {
   let parkingCount = 0
 
   for (let i=0; i<tariffObj.length; i++) {
-    for (let j=0; j<tariffObj[i].restrictions.day_of_week.length; j++) {
+    for (let j=0; j<tariffObj[i]?.restrictions?.day_of_week?.length; j++) {
       if (tariffObj[i].restrictions.day_of_week[j] === 'MONDAY') daysOfWeek.push('1')
       if (tariffObj[i].restrictions.day_of_week[j] === 'TUESDAY') daysOfWeek.push('2')
       if (tariffObj[i].restrictions.day_of_week[j] === 'WEDNESDAY') daysOfWeek.push('3')
@@ -685,8 +695,8 @@ const fillFullCalendar = () => {
 }
 const overEventHeight = (startTimeStr, endTimeStr) => {
   let rowHeight = 24;
-  let startTime = parseInt(startTimeStr.split(':')[0])*60 + parseInt(startTimeStr.split(':')[1])
-  let endTime = parseInt(endTimeStr.split(':')[0])*60 + parseInt(endTimeStr.split(':')[1])
+  let startTime = parseInt(startTimeStr?.split(':')[0])*60 + parseInt(startTimeStr?.split(':')[1])
+  let endTime = parseInt(endTimeStr?.split(':')[0])*60 + parseInt(endTimeStr?.split(':')[1])
   let eventHeight = (endTime - startTime) / 120 * rowHeight
   if (eventHeight < 5 * rowHeight) {
     return true
@@ -1073,6 +1083,7 @@ onMounted( async () => {
   Object.assign(tariff_elements, tariffData.elements )
   
   tariff_elements.forEach((item)=> {
+    if(!item?.restrictions?.day_of_week) return
     let day_of_week_str = []
     for (const day of item.restrictions.day_of_week) {
       switch (day) {
@@ -1665,14 +1676,26 @@ onUnmounted(() => {
           </el-form-item>
           <el-form-item class="m-auto w-360px mb-24px" :label= "t('rfid_num')" prop="rfid_num" label-width="100px" >
             <el-select v-model="remote_transaction_data.rfid_num" class="w-240px" :placeholder="t('select')" size="large">
-              <el-option v-for="item in remote_transaction_data.rfid_list" :label="item.nickname + ' (' + item.rfid + ')'" :value="item.rfid" />
-            </el-select>
+              <el-option 
+                v-if="Object.keys(remote_transaction_data.rfid_list).length === 0"
+                :label="$t('please_bind_rfid_num')" 
+                :value="$t('please_bind_rfid_num')" 
+              />
+              <el-option 
+                v-else
+                v-for="item in remote_transaction_data.rfid_list" 
+                :key="item.rfid"
+                :label="item.nickname + ' (' + item.rfid + ')'" 
+                :value="item.rfid"
+              />
+            </el-select>   
           </el-form-item>
         </el-form>
       </div>
       <template #footer>
         <span class="dialog-footer flex flex-center">
-          <el-button 
+          <el-button
+            :disabled="Object.keys(remote_transaction_data.rfid_list).length === 0"
             round class="w-48% bg-btn-100 text-white max-w-140px" @click.stop="confirmRemoteTransaction">
             {{ t('confirm') }}
           </el-button>
