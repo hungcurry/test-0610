@@ -346,6 +346,14 @@ onMounted(async () => {
               @selection-change="handleSelectionChange"
               :default-sort="{ prop: 'locationName', order: 'ascending' }"
             >
+            <el-table-column v-if="MStore.permission.isMSI"
+                prop="byCompany_str"
+                :label="t('company')"
+                align="center"
+                :filters="company_filter_item"
+                :filter-method="filterCompany"
+                min-width="200"
+              />
               <el-table-column
                 prop="locationName"
                 :label="t('station')"
@@ -369,14 +377,6 @@ onMounted(async () => {
                 sortable
                 :sort-method="(a, b) => sortFunc(a, b, 'evse_id')"
                 min-width="300"
-              />
-              <el-table-column v-if="MStore.permission.isMSI"
-                prop="byCompany_str"
-                :label="t('company')"
-                align="center"
-                :filters="company_filter_item"
-                :filter-method="filterCompany"
-                min-width="200"
               />
               <el-table-column
                 prop="status"

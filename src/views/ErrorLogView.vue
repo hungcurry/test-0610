@@ -7,7 +7,8 @@ import moment from "moment"
 import  {export_json_to_excel}  from '@/composables/Export2Excel'
 import { useMStore } from "../stores/m_cloud"
 import { useI18n } from "vue-i18n"
-
+import { useRouter } from 'vue-router'
+const router = useRouter()
 const { t } = useI18n()
 const MStore = useMStore()
 const now = new Date()
@@ -174,6 +175,18 @@ const tableFilter = async(filters) => {
   tableRef.value.sort('start_date_local_time', 'ascending')
 }
 
+const detail_info = async (evse_id) => {
+  let queryData = {
+    database: 'OCPI',
+    collection: 'EVSE',
+    pipelines: [
+    { $match: { evse_id: { $eq: evse_id } } },  
+    { $project: { uid: 1 } }],
+  }
+  let response = await MsiApi.mongoAggregate(queryData)
+  router.push({ name: 'evseDetail', query: {  evse_id: response.data.result[0].uid }})
+}
+
 onMounted(async() => {
   let queryData = {
     database: 'CPO',
@@ -256,13 +269,13 @@ onMounted(async() => {
               :filters="company_filter_item"
               min-width="200"
             />
-            <el-table-column
-              prop="evse_id"
-              :label="t('evse_id')"
-              align="center"
-              sortable="custom"
-              min-width="200"
-            />
+            <el-table-column :label="t('evse_id')" align="center" sortable="custom" min-width="200">
+              <template #default="scope">
+                <el-button class="btn-secondary border-0" @click="detail_info(scope.row.evse_id)">
+                  {{ scope.row.evse_id }}
+                </el-button>
+              </template>
+            </el-table-column>
             <el-table-column
               prop="ocpp_errorCode_str"
               :label="t('error_code')"

@@ -222,7 +222,7 @@ onMounted(async () => {
   else {
     let queryData = { database: 'OCPI', collection: 'Location', 
     pipelines: [
-        { $match: { id: { $eq: { "UUID": station_id } } }},
+        { $match: { id: { $eq: { UUID: station_id } } }},
         { $project: { _id: 0, byCompany:0, last_updated:0 } }
       ],
     }

@@ -41,8 +41,12 @@ const login = async () => {
     } else if (response.status === 400 || response.status === 404) {
       ElMessage.error(t('oops_account_or_password_error'))
       return
-    } else {
-      ElMessage.error('Error.')
+    } else if (response.status === 403) {
+      ElMessage.error(t('please_chat_to_administrator'))
+      return
+    }
+    else {
+      ElMessage.error(t('error'))
       return
     }
   }

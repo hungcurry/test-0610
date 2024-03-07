@@ -221,9 +221,9 @@ const getUserPaymentsummary = async () => {
 
 const getSession = async () => {
   try {
-    if (userData[0]?.home_info?.sessions.length) {
+    if (userData[0]?.home_info?.sessions?.length) {
       let userSessionArr = []
-      for (let i = 0; i < userData[0]?.home_info?.sessions.length; i++) {
+      for (let i = 0; i < userData[0]?.home_info?.sessions?.length; i++) {
         userSessionArr.push ({"ObjectId": userData[0]?.home_info?.sessions[i]})
       }
       let queryData = { database: 'OCPI', collection: 'Session', 
@@ -235,8 +235,8 @@ const getSession = async () => {
       if (response.status === 200) {
         userSessionData = response.data.result
         let evse_uidArr = []
-        for (let i = 0; i < userSessionData.length; i++) {
-          evse_uidArr.push ({"UUID": userSessionData[i].evse_uid})
+        for (let i = 0; i < userSessionData?.length; i++) {
+          evse_uidArr.push ({UUID: userSessionData[i].evse_uid})
         }  
         let queryData = { database: 'OCPI', collection: 'EVSE', 
           pipelines: [ 
@@ -434,9 +434,9 @@ const RenderChargePointInfoRenderData = async () => {
       chargePointInfoRenderObj.evse_id = chargePointInfo[i].evse_id
       let create_time = moment(new Date( (new Date(chargePointInfo[i].created_date).getTime()) + ((MStore.timeZoneOffset ) * -60000))).format("YYYY-MM-DD HH:mm:ss")
       chargePointInfoRenderObj.created_date = create_time
-      for ( let i = 0; i < userData[0]?.home_info?.devices?.[0]?.rfids?.length; i++) {
-        chargePointInfoRenderObj.binding_rfid_card += userData[0].home_info.devices[0].rfids[i]
-        if ( i !== userData[0]?.home_info?.devices?.[0]?.rfids?.length -1 )
+      for ( let j = 0; j < userData[0]?.home_info?.devices?.[i]?.rfids?.length; j++) {
+        chargePointInfoRenderObj.binding_rfid_card += userData[0].home_info.devices[i].rfids[j]
+        if ( j !== userData[0]?.home_info?.devices?.[i]?.rfids?.length -1 )
           chargePointInfoRenderObj.binding_rfid_card += ' / '
       }
       chargePointInfoRenderData.push(chargePointInfoRenderObj)

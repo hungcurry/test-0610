@@ -27,7 +27,7 @@ const sortFunc = (obj1, obj2, column) => {
 
 const deleteTariff = async (row) => {
   let queryData = { database: "OCPI", collection: "Connector", pipelines: [
-    { $match: { tariff_ids: {UUID: row.id} }}, { $project: {_id: 1,}}
+    { $match: { tariff_ids: { UUID: row.id} }}, { $project: {_id: 1,}}
   ]}
   let res = await MsiApi.mongoAggregate(queryData)
   let used_connector, evse
@@ -91,7 +91,7 @@ const copyTariff = (scope) => {
     .then(async () => {
       let queryData  = { database: "OCPI", collection: "Tariff", 
       pipelines: [
-        { $match: { id: {$eq: { "UUID" : scope.id} }}},
+        { $match: { id: {$eq: { UUID : scope.id} }}},
         { $project: { _id: 0, } }
       ]}
       isLoading.value = true

@@ -4,9 +4,12 @@ import { ref, reactive, onMounted } from 'vue'
 import { Search } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { useI18n } from "vue-i18n"
+import ApiFunc from '@/composables/ApiFunc'
+const MsiApi = ApiFunc()
 const { t } = useI18n()
 const renderCdrData = reactive([])
 let cdrData = []
+
 
 const isLoading = ref(false)
 
@@ -16,6 +19,13 @@ const renderCdrLayout = async () => {
     for (let i = 0 ; i < cdrData.length; i++) {
         let cdrDataObj = {}
         cdrDataObj.start_date_time = cdrData[i].start_date_time
+        cdrDataObj.end_date_time = cdrData[i].end_date_time
+        cdrDataObj.total_energy = cdrData[i].total_energy
+        cdrDataObj.total_cost = cdrData[i].total_cost.incl_vat
+        cdrDataObj.total_time = cdrData[i].total_time
+        cdrDataObj.last_updated = cdrData[i].last_updated
+        cdrDataObj.charging_periods = cdrData[i].charging_periods.length
+
         renderCdrData.push(cdrDataObj)
     }
   } catch (error) {
@@ -25,6 +35,34 @@ const renderCdrLayout = async () => {
 
 const getCdrData = async () => {
 
+  try {
+    let queryData = { database: 'OCPI', collection: 'CDR',
+    pipelines: [{ $project: { _id: 0} }],
+    // , start_date_time:1, end_date_time:1, total_cost:1
+  }
+    let response = await MsiApi.mongoAggregate(queryData)    
+    if (response.status === 200) {
+      cdrData = response.data.result
+      console.log(cdrData)
+    }
+    else {
+      ElMessage.error(t('error'))
+    }
+  } catch (error) {
+    ElMessage.error(t('error'))
+  }
+
+
+
+
+
+
+
+
+
+  
+  // let response = await MsiApi.mongoAggregate(queryData)
+  // console.log(response)
 }
 
 const cdr_detail = () => {

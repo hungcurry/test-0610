@@ -138,13 +138,15 @@ const RenderUserData = async () => {
     UserDataRender.length = 0
     for (let i = 0; i < UserData.length; i++) {
       let UserDataRenderObj = { first_name:'', last_name:'', email:'', evse_list:'', updated_date_str: '', payment_length: 0,
-                                home_device: 0, evse_list_str: '', evse_list_str_detail: '' }
+                                home_device: 0, evse_list_str: '', evse_list_str_detail: '' , created_date_str:''}
       UserDataRenderObj.first_name = UserData[i].first_name
       UserDataRenderObj.last_name = UserData[i].last_name
       UserDataRenderObj.email = UserData[i].email
 
       let localEndTime = new Date( (new Date(UserData[i].updated_date).getTime()) + ((MStore.timeZoneOffset ) * -60000))
       UserDataRenderObj.updated_date_str= moment(localEndTime).format("YYYY-MM-DD HH:mm:ss")
+      let localEndTime1 = new Date( (new Date(UserData[i].created_date).getTime()) + ((MStore.timeZoneOffset ) * -60000))
+      UserDataRenderObj.created_date_str = moment(localEndTime1).format("YYYY-MM-DD HH:mm:ss")
       if (UserData[i]?.payment_history)
         UserDataRenderObj.payment_length = UserData[i].payment_history.length
       if (UserData[i]?.home_info?.devices?.length)
@@ -171,7 +173,7 @@ const getUserData = async () => {
   let queryData = { database: 'CPO', collection: 'UserData', 
     pipelines: [ 
       { $match: { $and: [{ first_name: {$ne: 'DELETE'} }, { last_name: {$ne: 'DELETE'} }]}},
-      { $project: { _id: 1, first_name: 1, last_name: 1, email: 1, evse_list: 1, payment_history:1, updated_date: 1, home_info:1} }
+      { $project: { _id: 1, first_name: 1, last_name: 1, email: 1, evse_list: 1, payment_history:1, updated_date: 1, home_info:1, created_date:1} }
     ]
   }
   let response = await MsiApi.mongoAggregate(queryData)
@@ -290,6 +292,15 @@ onMounted( async() => {
               align="center"
               sortable
               :sort-method="(a, b) => sortFunc(a, b, 'updated_date_str')"
+              min-width="200"
+            />
+
+            <el-table-column
+              prop="created_date_str"
+              :label="t('created_date')"
+              align="center"
+              sortable
+              :sort-method="(a, b) => sortFunc(a, b, 'created_date_str')"
               min-width="200"
             />
             <el-table-column

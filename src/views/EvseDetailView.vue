@@ -127,7 +127,7 @@ const deleteEvse = () => {
     let evse_id 
     if (locationData.name !== '') {
       let queryData = { database: 'OCPI', collection: 'EVSE',
-                      pipelines: [ { $match: { uid: {"UUID":evseId}}}, { $project: { _id: 1} }],
+                      pipelines: [ { $match: { uid: { UUID: evseId}}}, { $project: { _id: 1} }],
                   }
       let response = await MsiApi.mongoAggregate(queryData)
       evse_id = (response.data.result[0]._id)
@@ -537,7 +537,7 @@ const confirmRemoteTransaction = async() => {
 const getRealTimeEvseInfo = async () => {
   let localStartTime 
   let queryData = { database: "OCPI", collection: "EVSE", 
-      pipelines: [ { $match:  { "uid": {"UUID":evseId}} }, 
+      pipelines: [ { $match:  { uid: { UUID: evseId}} }, 
       { $project: {  byCompany: 0 } }]
     }
   let response = await MsiApi.mongoAggregate(queryData)
@@ -1010,21 +1010,22 @@ onMounted( async () => {
       { $project: {  byCompany11: 0 } }]
     }
   response = await MsiApi.mongoAggregate(queryData)
-  chargePoint_id = response.data.result[0]._id
-  Object.assign(chargePointInfoData,response.data.result[0])
-  hmiInfoData.max_amperage = 0
-  if(chargePointInfoData.hmi !== '') {
-    queryData = { database: "CPO", collection: "HMIControlBoardInfo", 
-      pipelines: [ { $match:  { "_id": { "ObjectId" : chargePointInfoData?.hmi}} }, 
-      { $project: {  byCompany: 0 } }]
+  if (response.data.result.length !== 0) {
+    chargePoint_id = response.data.result[0]._id
+    Object.assign(chargePointInfoData,response.data.result[0])
+    hmiInfoData.max_amperage = 0
+    if(chargePointInfoData.hmi !== '') {
+      queryData = { database: "CPO", collection: "HMIControlBoardInfo", 
+        pipelines: [ { $match:  { "_id": { "ObjectId" : chargePointInfoData?.hmi}} }, 
+        { $project: {  byCompany: 0 } }]
+      }
+      response = await MsiApi.mongoAggregate(queryData)
+
+      Object.assign(hmiInfoData, response.data.result[0])    
+      if (hmiInfoData.minmax_current)
+        hmiInfoData.max_amperage = (hmiInfoData.minmax_current.split(" ").map(hex => parseInt(hex, 16)))[7]
     }
-    response = await MsiApi.mongoAggregate(queryData)
-
-    Object.assign(hmiInfoData, response.data.result[0])    
-    if (hmiInfoData.minmax_current)
-      hmiInfoData.max_amperage = (hmiInfoData.minmax_current.split(" ").map(hex => parseInt(hex, 16)))[7]
   }
-
   queryData = { database: "OCPI", collection: "Location", 
       pipelines: [ { $match: { "evses" : {"$in": [  {"ObjectId" : evseData?._id }]} } }, 
       { $project: {  byCompany: 0 } }]
@@ -1061,7 +1062,7 @@ onMounted( async () => {
   }
 
   queryData = { database: 'OCPI', collection: 'Tariff',
-                      pipelines: [ { $match: { "id": { "UUID" : connectorData.tariff_ids?.[0]}}}, 
+                      pipelines: [ { $match: { id: { UUID: connectorData.tariff_ids?.[0]}}}, 
                       { $project: { _id: 0, byCompany:0, last_updated:0, type:0, id:0, country_code:0, party_id:0} }],
                   }
   response = await MsiApi.mongoAggregate(queryData)
