@@ -1591,7 +1591,7 @@ onMounted(async () => {
               </el-form-item>
 
             </div>
-            <div class="flex justify-between" v-if="env === 'dev' || env === undefined">
+            <div class="flex justify-between">
               <el-form-item class="mb-24px" :label="t('min_parking_duration')">
                 <el-input v-model.number="renderElementDetail.restrictions.min_parking_duration" type="number" class="w-220px" :controls="false" disabled>
                   <template #suffix>
