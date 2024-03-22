@@ -464,7 +464,6 @@ function getElementAtIndex(arr, index) {
 
 const handleEventMouseEnter = (info) => {
   let index = info.event._def.extendedProps.index
-  console.log(index)
   let i = 0 
   let j = 0
   let count = 0;
@@ -624,9 +623,7 @@ const save_tariff = async (formEl) => {
     sendData.id = tariff_id
     ElMessageBox.confirm(t('do_you_want_to_modify'), t('warning'), { confirmButtonText: t('ok'), cancelButtonText: t('cancel'), type: 'warning' })
     .then(async () => {      
-      console.log(sendData)
       let res = await MsiApi.setCollectionData('patch', 'ocpi', sendData)
-      console.log(res)
       if (res.status === 200)
         ElMessage.success(res.data.message)
       else {
@@ -739,15 +736,22 @@ const renderDataToSendData = async () => {
   sendData.country_code = renderTariffData.country_code
   if (renderTariffData.description)
     sendData.custom.description = renderTariffData.description
-  if (renderTariffData.min_price) {
+
+  if (renderTariffData.min_price || renderTariffData.min_price === 0) {
     sendData.min_price = {}
     sendData.min_price.incl_vat = renderTariffData.min_price
     sendData.min_price.excl_vat = renderTariffData.min_price
   }
-  if (renderTariffData.max_price) {
+  else {
+    sendData.min_price = ''
+  }
+  if (renderTariffData.max_price || renderTariffData.max_price === 0) {
     sendData.max_price = {}
     sendData.max_price.incl_vat = renderTariffData.max_price
     sendData.max_price.excl_vat = renderTariffData.min_price
+  }
+  else {
+    sendData.max_price = ''
   }
   
   renderTariffElementsData.forEach((element, index) => {
@@ -982,8 +986,9 @@ const renderTarinffDataLayout = async () => {
   renderTariffData.country_code = tariffData[0].country_code
   renderTariffData.name = tariffData[0].custom?.name
   renderTariffData.currency = tariffData[0].currency
-  if (tariffData[0].min_price?.incl_vat)
+  if (tariffData[0].min_price?.incl_vat || tariffData[0].min_price?.incl_vat === 0) {
     renderTariffData.min_price = tariffData[0].min_price?.incl_vat
+  }
   if (tariffData[0].custom?.description)
     renderTariffData.description = tariffData[0].custom?.description
 }
@@ -1503,7 +1508,7 @@ onMounted(async () => {
                 </el-input>
               </el-form-item>
             </div>
-            <div class="flex justify-between" v-if="env === 'dev' || env === undefined">
+            <div class="flex justify-between">
               <el-form-item class="mb-24px" :label="t('min_parking_duration')">
                 <el-input v-model.number="renderElementDetail.restrictions.min_parking_duration" type="number" class="w-220px" :controls="false" >
                   <template #suffix>

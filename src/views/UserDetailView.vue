@@ -29,7 +29,7 @@ const user_id = route.query.id
 const UserRenderData = reactive({
   first_name: '', last_name: '', email: '', phone: '',
   country: '', language: '', permission: '', updated_date: '',created_date: '',
-  evse_list_id: '', evse_list_id_tooltip: '', paylist: [], device_list: []
+  evse_list_id: '', evse_list_id_tooltip: '', paylist: [], device_list: [], location: []
 })
 const PaymentSummaryRenderData = reactive({ charge_kwh: 0,  cost_str: 0, amount_str: 0, charge_hr: 0, charge_min: 0, charge_sec: 0,})
 const paymentHistoryRenderData = reactive([])
@@ -336,6 +336,15 @@ const RenderUserRenderData = async () => {
           app_version: userData[0].deviceId_list[i].app_version,
         }
         UserRenderData.device_list.push(device_object)
+      }
+    }
+    for (let i = 0; i < userData[0]?.bt_keys?.length; i++) {
+      if (userData[0]?.bt_keys[i]?.LocationId) {
+        for (let j = 0; j < userData[0]?.bt_keys[i]?.Data?.length; j++) {
+          if (userData[0]?.bt_keys[i]?.Data[j]?.Lat === 25.008314163700017)
+            userData[0].bt_keys[i].Data[j].default = true
+          UserRenderData.location.push(userData[0]?.bt_keys[i]?.Data[j])
+        }
       }
     }
   } catch (error) {
@@ -649,8 +658,6 @@ onMounted(async () => {
   await RenderChargePointInfoRenderData()
   await RenderSessionData()
   setTimeout(isLoading_skeleton.value = false , 2000)
-  // console.log('mount', new Date().getTime() - startTime, 'ms');
-
 })
 
 </script>
@@ -743,6 +750,14 @@ onMounted(async () => {
                         v-if="MStore.rule_permission.UserDetail.sendNotification === 'O'"
                         round class="button w-full" @click="layoutVisible.notification = true">{{ t('send_notification') }}</el-button>
                       </div>
+
+                      <div class="md:flex mb-8px">
+                        <span class="info-item min-w-110px">{{ '' }}</span>
+                        <el-button 
+                        v-if="MStore.rule_permission.UserDetail.sendNotification === 'O'"
+                        round class="button w-full" @click="layoutVisible.location = true">{{ t('location') }}</el-button>
+                      </div>
+
                     </div>
                   </div>
                 </div>
@@ -1258,6 +1273,37 @@ onMounted(async () => {
             </span>
           </template>
       </el-dialog>
+
+
+      <el-dialog 
+        v-model="layoutVisible.location" 
+        class="max-w-700px"
+        width="90%"
+        draggable
+      >
+        <template #header="{ titleId, titleClass }">
+          <div class="py-2rem relative bg-blue-100">
+            <h4 :id="titleId" :class="titleClass" class="m-0 text-center text-blue-1200 font-400 text-24px line-height-26px">
+              {{ t('location') }}
+            </h4>
+          </div>
+        </template>
+        <div class="dialog-context pb-24px">
+          <el-table :data="UserRenderData.location">
+            <el-table-column property="Lat" :label="t('Lat')" min-width="100"  />
+            <el-table-column property="Long" :label="t('Long')" min-width="100" />
+            <el-table-column property="default" :label="t('default')" min-width="100" />
+          </el-table>
+        </div>
+        <template #footer>
+            <span class="dialog-footer flex flex-center">
+              <el-button round class="w-48% bg-btn-100 text-white max-w-140px" @click.stop="layoutVisible.location = false">
+                {{ t('cancel') }}
+              </el-button>
+            </span>
+          </template>
+      </el-dialog>
+
 
       <el-dialog 
         v-model="layoutVisible.home_device" 
