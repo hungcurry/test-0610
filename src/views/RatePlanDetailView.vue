@@ -760,14 +760,16 @@ const renderDataToSendData = async () => {
       sendData.elements[index].restrictions = {}
       let elementKeys = Object.keys(element.restrictions)  
       elementKeys.forEach ( (key) => {
-        if (element.restrictions[key] !== null) {
+        if (element.restrictions[key] !== null && element.restrictions[key] !== '') {
           if (key === 'day_of_week')
             return
-          if (key === 'min_duration' || key === 'max_duration' || key === 'min_parking_duration' || key === 'max_parking_duration')
+          if (key === 'min_duration' || key === 'max_duration' || key === 'min_parking_duration' || key === 'max_parking_duration') 
             sendData.elements[index].restrictions[key] = element.restrictions[key] * 60
           else 
             sendData.elements[index].restrictions[key] = element.restrictions[key]
         }
+        else 
+          sendData.elements[index].restrictions[key] = ''
       })
       if( element.restrictions?.day_of_week && element.restrictions?.day_of_week?.length !== 0) {
         sendData.elements[index].restrictions.day_of_week = []
@@ -1012,8 +1014,12 @@ const renderElementLayout = async () => {
       elementKeys.forEach ( (key) => {
         if (key === 'day_of_week')
           return
-        if (key === 'min_duration' || key === 'max_duration' || key === 'min_parking_duration' || key === 'max_parking_duration')
-          renderTariffElementsDataObj.restrictions[key] = element.restrictions[key] / 60
+        if (key === 'min_duration' || key === 'max_duration' || key === 'min_parking_duration' || key === 'max_parking_duration') {
+          if (element.restrictions[key] === '')
+            renderTariffElementsDataObj.restrictions[key] = element.restrictions[key]
+          else 
+            renderTariffElementsDataObj.restrictions[key] = element.restrictions[key] / 60
+        }
         else 
           renderTariffElementsDataObj.restrictions[key] = element.restrictions[key]
       })
