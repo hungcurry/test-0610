@@ -882,16 +882,20 @@ const modifyElement = () => {
     if (renderTariffElementsData[select_element_index].price_components[index] === undefined) {
       renderTariffElementsData[select_element_index].price_components[index] = []
     }
-    renderTariffElementsData[select_element_index].price_components[index].incl_vat = false
     renderTariffElementsData[select_element_index].price_components[index].price = price_component.price
     renderTariffElementsData[select_element_index].price_components[index].step_size = price_component.step_size
     renderTariffElementsData[select_element_index].price_components[index].type = convertTypeString(price_component.type)
     renderTariffElementsData[select_element_index].price_components[index].vat = price_component.vat
-    renderTariffElementsData[select_element_index].price_components[index].price_excl_vat = formatNumber(price_component.price, 4)
-    if (price_component.vat)
+    if (renderElementDetail.price_components[select_element_index].incl_vat === true) {
+      renderTariffElementsData[select_element_index].price_components[index].price_incl_vat = formatNumber((price_component.price ), 4)
+      renderTariffElementsData[select_element_index].price_components[index].price_excl_vat = formatNumber((price_component.price / (1 + price_component.vat/100) ), 4)
+      renderTariffElementsData[select_element_index].price_components[index].price = formatNumber((price_component.price / (1 + price_component.vat/100) ), 4)
+    }
+    else {
       renderTariffElementsData[select_element_index].price_components[index].price_incl_vat = formatNumber((price_component.price * (1 + price_component.vat/100) ), 4)
-    else
-      renderTariffElementsData[select_element_index].price_components[index].price_incl_vat = renderTariffElementsData[select_element_index].price_components[index].price_excl_vat
+      renderTariffElementsData[select_element_index].price_components[index].price_excl_vat = formatNumber((price_component.price  ), 4)
+      renderTariffElementsData[select_element_index].price_components[index].price = formatNumber((price_component.price  ), 4)
+    }
   })
 
   if (displayRestrictions.value === false) {
@@ -1417,7 +1421,7 @@ onMounted(async () => {
 
         <el-form class="max-w-500px m-auto" ref="ruleFormRef1" :model="renderElementDetail" :rules="rules1">
           <div v-for="(item, index) in renderElementDetail.price_components" :key="item">
-             {{ 'Component ' + (index + 1) }} 
+             {{ t('component') + (index + 1) }} 
             <el-button v-if="index > 0" @click="deletePriceComponent(index)"> {{t('delete')}}</el-button>
             <el-form-item class="mb-24px" :label= "t('type')" prop="type">
               <el-select v-model="item.type" placeholder="Select" size="large" class="w-full" @change="seletcType">
@@ -1428,8 +1432,7 @@ onMounted(async () => {
                 <el-radio :label=true size="large">{{ t('price_incl_vat') }}</el-radio>
               </el-radio-group>
               <div>
-              <!-- <div v-if="vat_select === '1'"> -->
-              <el-form-item class="mb-24px" :label="t('price_excl_vat')" prop="price">
+              <el-form-item class="mb-24px" prop="price">
                 <el-input v-model.number="item.price" type='number' :controls="false" class="w-full">
                   <template #prefix>
                     <span>{{ renderTariffData.currency}}</span>

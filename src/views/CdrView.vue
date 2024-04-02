@@ -1,14 +1,31 @@
 <script setup>
 import msi from '@/assets/msi_style'
 import { ref, reactive, onMounted } from 'vue'
-import { Search } from '@element-plus/icons-vue'
+// import { Search } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { useI18n } from "vue-i18n"
 import ApiFunc from '@/composables/ApiFunc'
+import moment from "moment"
+import { useMStore } from "../stores/m_cloud"
+
+const cdr_detail_visible = ref(false) 
+
+const formatNumber = (num, round) => {
+  const formattedNum = num.toFixed(round)
+  const withoutTrailingZeros = formattedNum.replace(/\.?0+$/, '')
+  return parseFloat(withoutTrailingZeros)
+}
+const MStore = useMStore()
+
 const MsiApi = ApiFunc()
 const { t } = useI18n()
 const renderCdrData = reactive([])
+const render_charging_periods = reactive([])
+const render_tariff = reactive([])
 let cdrData = []
+const tariff_name = ref('')
+const tariff_currency = ref('')
+const tariff_min_price = ref('')
 
 
 const isLoading = ref(false)
@@ -16,17 +33,23 @@ const isLoading = ref(false)
 const renderCdrLayout = async () => {
   try {
     renderCdrData.length = 0
-    for (let i = 0 ; i < cdrData.length; i++) {
-        let cdrDataObj = {}
-        cdrDataObj.start_date_time = cdrData[i].start_date_time
-        cdrDataObj.end_date_time = cdrData[i].end_date_time
-        cdrDataObj.total_energy = cdrData[i].total_energy
-        cdrDataObj.total_cost = cdrData[i].total_cost.incl_vat
-        cdrDataObj.total_time = cdrData[i].total_time
-        cdrDataObj.last_updated = cdrData[i].last_updated
-        cdrDataObj.charging_periods = cdrData[i].charging_periods.length
-
-        renderCdrData.push(cdrDataObj)
+    for (const cdrElement of cdrData) {
+      let cdrDataObj = {}
+      let temp = new Date( (new Date(cdrElement.start_date_time).getTime()) + ((MStore.timeZoneOffset ) * -60000))
+      cdrDataObj.start_date_time = (moment(temp).format("YYYY-MM-DD HH:mm:ss"))
+      let temp1 = new Date( (new Date(cdrElement.end_date_time).getTime()) + ((MStore.timeZoneOffset ) * -60000))
+      cdrDataObj.end_date_time = (moment(temp1).format("YYYY-MM-DD HH:mm:ss"))
+      cdrDataObj.total_energy = formatNumber(cdrElement.total_energy, 4)
+      cdrDataObj.total_cost = cdrElement.total_cost.incl_vat
+      cdrDataObj.total_time = cdrElement.total_time
+      cdrDataObj.last_updated = cdrElement.last_updated
+      cdrDataObj.evse_id =  cdrElement.cdr_location.evse_id
+      cdrDataObj.charging_periods_length = cdrElement.charging_periods.length
+      // cdrDataObj.tariff_name = cdrElement.tariffs[0].custom.name
+      cdrDataObj.tariffs = cdrElement.tariffs
+      
+      cdrDataObj.charging_periods = cdrElement.charging_periods
+      renderCdrData.push(cdrDataObj)
     }
   } catch (error) {
     ElMessage.error(t('error'))
@@ -34,7 +57,6 @@ const renderCdrLayout = async () => {
 }
 
 const getCdrData = async () => {
-
   try {
     let queryData = { database: 'OCPI', collection: 'CDR',
     pipelines: [{ $project: { _id: 0} }],
@@ -51,22 +73,55 @@ const getCdrData = async () => {
   } catch (error) {
     ElMessage.error(t('error'))
   }
-
-
-
-
-
-
-
-
-
-  
   // let response = await MsiApi.mongoAggregate(queryData)
   // console.log(response)
 }
 
-const cdr_detail = () => {
+const cdr_detail = (row) => {
+  render_tariff.length = 0
+  render_charging_periods.length = 0
+  cdr_detail_visible.value = true
+  console.log(row)
+  tariff_name.value= row.tariffs[0].custom.name
+  tariff_currency.value = row.tariffs[0]?.currency
+  if (row.tariffs[0]?.min_price?.incl_vat)
+    tariff_min_price.value = row.tariffs[0]?.min_price?.incl_vat
 
+  for (const charging_periods_ele of row.charging_periods ) {
+    const charging_periods_obj = {}
+    let temp = new Date( (new Date(charging_periods_ele.start_date_time).getTime()) + ((MStore.timeZoneOffset ) * -60000))
+    charging_periods_obj.start_date_time = (moment(temp).format("YYYY-MM-DD HH:mm:ss"))
+    charging_periods_obj.dimensions = charging_periods_ele.dimensions
+    render_charging_periods.push(charging_periods_obj)
+  }
+
+
+  for (const tariffs_ele of row.tariffs[0].elements) {
+    console.log(tariffs_ele)
+    
+    const tariff_obj = {}
+    tariff_obj.restrictions_start_time = tariffs_ele.restrictions.start_time
+    tariff_obj.restrictions_end_time = tariffs_ele.restrictions.end_time
+    tariff_obj.restrictions_max_duration = tariffs_ele.restrictions.max_duration
+    tariff_obj.restrictions_min_duration = tariffs_ele.restrictions.min_duration
+    tariff_obj.restrictions_min_current = tariffs_ele.restrictions.min_current
+    tariff_obj.restrictions_max_current = tariffs_ele.restrictions.max_current
+    tariff_obj.restrictions_max_parking_duration = tariffs_ele.restrictions?.max_parking_duration
+    tariff_obj.restrictions_min_parking_duration = tariffs_ele.restrictions?.min_parking_duration
+
+
+    for (const price_component_ele of tariffs_ele.price_components) {
+      price_component_ele.price_excl_vat = formatNumber(price_component_ele.price, 4)
+      if (price_component_ele.vat) {
+        price_component_ele.price_incl_vat = formatNumber(price_component_ele.price * (1 + price_component_ele.vat / 100), 4)
+      }
+      else {
+        price_component_ele.price_incl_vat = price_component_ele.price
+      }
+      tariff_obj.price_components = tariffs_ele.price_components
+    }
+    render_tariff.push(tariff_obj)
+  }
 }
 
 onMounted( async() => {
@@ -81,25 +136,18 @@ onMounted( async() => {
 <template>
   <div class="customer">
     <div class="container lg">
-      <div class="flex justify-between flex-wrap lg:flex-nowrap pt-40px pb-32px">
-        <el-input class="search-input" v-model="search_input" :placeholder="t('search')" @keyup.enter="search">
-          <template #append>
-            <el-button :icon="Search" @click="search" />
-          </template>
-        </el-input>
-      </div>
-
       <div class="overflow-x-auto ">
         <div class="pb-40px mt-80px">
           <el-table ref="tableRef" :data="renderCdrData" class="white-space-nowrap text-primary" v-loading.fullscreen.lock="isLoading"
-            height="calc(100vh - 220px)" style="width: 100%" stripe size="large" :cell-style="msi.tb_cell" :header-cell-style="msi.tb_header_cell">
+            height="calc(100vh - 220px)" style="width: 100%" stripe size="large" :cell-style="msi.tb_cell" :header-cell-style="msi.tb_header_cell"
+            :default-sort="{ prop: 'end_date_time', order: 'descending'}">
             <el-table-column prop="start_date_time" :label="t('start_date_time')" align="center" min-width="150"/>
             <el-table-column prop="end_date_time" :label="t('end_date_time')" align="center" min-width="150"/>
-            <el-table-column prop="charging_periods" :label="t('charging_periods')" align="center" min-width="150"/>
+            <el-table-column prop="evse_id" :label="t('evse_id')" align="center" min-width="150"/>
+            <el-table-column prop="charging_periods_length" :label="t('periods')" align="center" min-width="150"/>
             <el-table-column prop="total_cost" :label="t('total_cost')" align="center" min-width="150"/>
             <el-table-column prop="total_energy" :label="t('total_energy')" align="center" min-width="150"/>
             <el-table-column prop="total_time" :label="t('total_time')" align="center" min-width="150"/>
-            <el-table-column prop="last_updated" :label="t('last_updated')" align="center" min-width="150"/>
             <el-table-column prop="detail" label="Detail" align="center" min-width="150">
               <template #default="scope">
                 <el-button class="btn-more" @click="cdr_detail(scope.row)"> <font-awesome-icon icon="fa-solid fa-ellipsis" /> </el-button>
@@ -109,6 +157,107 @@ onMounted( async() => {
         </div>
       </div>
     </div>
+
+    <el-dialog append-to-body v-model="cdr_detail_visible" width="90%">
+      <template #header="{ titleId, titleClass }">
+        <div class="py-2rem relative bg-blue-100">
+          <h4 :id="titleId" :class="titleClass" class="m-0 text-center text-blue-1200 font-400 text-20px lg:text-24px line-height-26px"          >
+            {{ 'CDR' }}
+          </h4>
+        </div>
+      </template>
+    
+    <h2> {{ 'Tariff : ' + tariff_name + ' / ' + 'Current : ' + tariff_currency +' / ' + 'Min Price :' + tariff_min_price }} </h2>
+      <el-table  ref="tableRef" :data="render_tariff" class="white-space-nowrap text-primary" height="calc(40vh - 250px)"
+            style="width: 100%" stripe size="large" :cell-style="msi.tb_cell" :header-cell-style="msi.tb_header_cell"
+            v-loading.fullscreen.lock="isLoading">
+
+
+            <el-table-column :label="t('type')" prop="price_components" min-width="100">
+                <template #default="scope">
+                  <div v-for="(item, index) in scope.row.price_components" :key="index">
+                    <div v-if="index !== 0" class="v-line2 mt-6px mb-6px"></div>
+                    {{ item.type }}
+                  </div>
+                </template>
+              </el-table-column>
+              <el-table-column :label="t('price_excl_vat')" prop="price_components" min-width="100">
+                <template #default="scope">
+                  <div v-for="(item, index) in scope.row.price_components" :key="index">
+                    <div v-if="index !== 0" class="v-line2 mt-6px mb-6px"></div>
+                    {{ item.price_excl_vat }}
+                  </div>
+                </template>
+              </el-table-column>
+              <el-table-column :label="t('price_incl_vat')" prop="price_components" min-width="100">
+                <template #default="scope">
+                  <div v-for="(item, index) in scope.row.price_components" :key="index">
+                    <div v-if="index !== 0" class="v-line2 mt-6px mb-6px"></div>
+                    {{ item.price_incl_vat }}
+                  </div>
+                </template>
+              </el-table-column>              
+              <el-table-column :label="t('vat')" prop="price_components" min-width="50">
+                <template #default="scope">
+                  <div v-for="(item, index) in scope.row.price_components" :key="index">
+                    <div v-if="index !== 0" class="v-line2 mt-6px mb-6px"></div>
+                    {{ item.vat }}
+                  </div>
+                </template>
+              </el-table-column>
+              <el-table-column :label="t('unit')" prop="price_components" min-width="50" >
+                <template #default="scope">
+                  <div v-for="(item, index) in scope.row.price_components" :key="index">
+                    <div v-if="index !== 0" class="v-line2 mt-6px mb-6px"></div>
+                    {{ item.step_size }}
+                  </div>
+                </template>
+              </el-table-column>     
+
+            <el-table-column prop="restrictions_start_time" :label="t('start_time')" align="center" min-width="100"/>
+            <el-table-column prop="restrictions_end_time" :label="t('end_time')" align="center" min-width="100"/>
+            <el-table-column prop="restrictions_max_duration" :label="t('max_duration')" align="center" min-width="100"/>
+            <el-table-column prop="restrictions_min_duration" :label="t('min_duration')" align="center" min-width="100"/>
+            <el-table-column prop="restrictions_max_current" :label="t('max_current')" align="center" min-width="100"/>
+            <el-table-column prop="restrictions_min_current" :label="t('min_current')" align="center" min-width="100"/>
+            <el-table-column prop="restrictions_max_parking_duration" :label="t('max_parking_duration ')" align="center" min-width="100"/>
+            <el-table-column prop="restrictions_min_parking_duration" :label="t('min_parking_duration ')" align="center" min-width="100"/>
+          </el-table>
+
+    <h2>periods</h2>
+
+          <el-table  ref="tableRef" :data="render_charging_periods" class="white-space-nowrap text-primary" height="calc(40vh - 250px)"
+            style="width: 100%" stripe size="large" :cell-style="msi.tb_cell" :header-cell-style="msi.tb_header_cell"
+            v-loading.fullscreen.lock="isLoading">
+            <el-table-column prop="start_date_time" :label="t('start_time')" align="center" min-width="50"/>
+            
+
+
+
+            <el-table-column :label="t('type')" prop="dimensions" min-width="50" >
+                <template #default="scope">
+                  <div v-for="(item, index) in scope.row.dimensions" :key="index">
+                    <div v-if="index !== 0" class="v-line2 mt-6px mb-6px"></div>
+                    {{ item.type }}
+                  </div>
+                </template>
+              </el-table-column>     
+
+              <el-table-column :label="t('volume')" prop="dimensions" min-width="50" >
+                <template #default="scope">
+                  <div v-for="(item, index) in scope.row.dimensions" :key="index">
+                    <div v-if="index !== 0" class="v-line2 mt-6px mb-6px"></div>
+                    {{ item.volume }}
+                  </div>
+                </template>
+              </el-table-column>   
+
+
+            
+          </el-table>
+
+    </el-dialog>
+    
   </div>
 </template>
 

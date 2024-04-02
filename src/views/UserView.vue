@@ -136,29 +136,29 @@ const addUserDialog = async () => {
 const RenderUserData = async () => {
   try {
     UserDataRender.length = 0
-    for (let i = 0; i < UserData.length; i++) {
+    for (const user_data of UserData) {
       let UserDataRenderObj = { first_name:'', last_name:'', email:'', evse_list:'', updated_date_str: '', payment_length: 0,
                                 home_device: 0, evse_list_str: '', evse_list_str_detail: '' , created_date_str:''}
-      UserDataRenderObj.first_name = UserData[i].first_name
-      UserDataRenderObj.last_name = UserData[i].last_name
-      UserDataRenderObj.email = UserData[i].email
+      UserDataRenderObj.first_name = user_data.first_name
+      UserDataRenderObj.last_name = user_data.last_name
+      UserDataRenderObj.email = user_data.email
 
-      let localEndTime = new Date( (new Date(UserData[i].updated_date).getTime()) + ((MStore.timeZoneOffset ) * -60000))
+      let localEndTime = new Date( (new Date(user_data.updated_date).getTime()) + ((MStore.timeZoneOffset ) * -60000))
       UserDataRenderObj.updated_date_str= moment(localEndTime).format("YYYY-MM-DD HH:mm:ss")
-      let localEndTime1 = new Date( (new Date(UserData[i].created_date).getTime()) + ((MStore.timeZoneOffset ) * -60000))
+      let localEndTime1 = new Date( (new Date(user_data.created_date).getTime()) + ((MStore.timeZoneOffset ) * -60000))
       UserDataRenderObj.created_date_str = moment(localEndTime1).format("YYYY-MM-DD HH:mm:ss")
-      if (UserData[i]?.payment_history)
-        UserDataRenderObj.payment_length = UserData[i].payment_history.length
-      if (UserData[i]?.home_info?.devices?.length)
-        UserDataRenderObj.home_device = UserData[i].home_info.devices.length
-      if (UserData[i]?.evse_list?.length) {
-        UserDataRender.evse_list_str += UserData[i].evse_list[0].evseId 
-        if (UserData[i]?.evse_list?.length > 1) {
-          UserDataRender.evse_list_str += ' / ...'
-          for (let j = 0; j < UserData[i]?.evse_list?.length; j++) {
-            UserDataRender.evse_list_str_detail += UserData[i]?.evse_list[j]?.evseId 
+      if (user_data?.payment_history)
+        UserDataRenderObj.payment_length = user_data.payment_history.length
+      if (user_data?.home_info?.devices?.length)
+        UserDataRenderObj.home_device = user_data.home_info.devices.length
+      if (user_data?.evse_list?.length) {
+        UserDataRenderObj.evse_list_str += user_data.evse_list[0].evseId 
+        if (user_data?.evse_list?.length > 1) {
+          UserDataRenderObj.evse_list_str += ' / ...'
+          for (let j = 0; j < user_data?.evse_list?.length; j++) {
+            UserDataRenderObj.evse_list_str_detail += user_data?.evse_list[j]?.evseId 
             if (j !== UserData?.evse_list?.length - 1)
-              UserDataRender.evse_list_str_detail += ' / '
+              UserDataRenderObj.evse_list_str_detail += ' / '
           }
         }
       }

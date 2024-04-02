@@ -766,6 +766,7 @@ export default {
     time:                                                                                           '時間',
     wh:                                                                                             'Wh',
 
+    component:                                                                                      'Component',
     rate_table:                                                                                     'Rate Table',
     min_parking_duration:                                                                           'Min. Parking Duration (minute)',
     max_parking_duration:                                                                           'Max. Parking Duration (minute)',
