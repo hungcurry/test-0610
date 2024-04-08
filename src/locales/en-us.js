@@ -271,6 +271,7 @@ export default {
     success:                                                                                        'Success',
     the_link_in_the_email_will_expire_in_30_minutes:                                                'The link in the email will expire in 30 minutes.',
     we_will_send_an_email_to_you:                                                                   'We will send an email to you.',
+    engineer_user_has_insufficient_permissions:                                                     'Engineer User has insufficient permissions',
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 //DashboardPage                                                                                                        '                                                                                              -
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -765,12 +766,10 @@ export default {
     restrictions:                                                                                   'Restrictions',
     time:                                                                                           'Time',
     wh:                                                                                             'Wh',
-    
     component:                                                                                      'Component',
     rate_table:                                                                                     'Rate Table',
     min_parking_duration:                                                                           'Min. Parking Duration (minute)',
     max_parking_duration:                                                                           'Max. Parking Duration (minute)',
-
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 //UserPage                                                                                                        '                                                                                              -
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
