@@ -59,6 +59,10 @@ const login = async () => {
   try {
     const response = await MsiApi.checkToken()
     if (response.status === 200) {
+      if(response.data?.permission?.user?.name === 'EngineerUser'){
+        ElMessage.error(t('engineer_user_has_insufficient_permissions'))
+        return
+      }
       if ( ['AdminUser', 'DeveloperUser', 'ViewerUser', 'CustomerServiceUser', 'FAEUser'].includes(response.data?.permission?.user?.name) 
           || response.data?.permission?.user === undefined) {
         if (response.data?.config?.m_cloud?.logged) 
