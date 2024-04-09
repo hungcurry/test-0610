@@ -60,6 +60,7 @@ export default () => {
   }
 
   const checkToken = async () => {
+    config = VueCookies.get('AuthToken')
     const response = await axiosInterface('get', '/member/about')
     return response
   }

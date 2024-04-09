@@ -459,6 +459,7 @@ const SendNotification = async (action) => {
   if (action === 'confirm') {
     let sendData = { users:[userData[0].email], title:NotificationData.title, body:NotificationData.body, data: {route:NotificationData.route}}
     let response = await MsiApi.sendNotification(sendData)
+    if (response?.data?.message === 'Accepted') ElMessage.success(t('success'))
     if (response.status !== 200)
       ElMessage.error(response.data.message)
   }
