@@ -1,7 +1,7 @@
 import VueCookies from 'vue-cookies'
 import axios from 'axios'
 
-let apiServer = 'api10/api'
+let apiServer = 'api10/api3'
 axios.defaults.timeout = 15000
 if (import.meta.env.VITE_API !== undefined) {
   apiServer = import.meta.env.VITE_API

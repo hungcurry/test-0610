@@ -615,9 +615,7 @@ const save_tariff = async (formEl) => {
   if (check_format_success === false) {
     return 
   }
-
   let sendData = await renderDataToSendData()
-  sendData.tariff_alt_text = [{language:'a', text:'a'},{language:'b', text:'b'}] // fix app issue
   sendData.country_code = 'TW'
   if (tariff_id) {
     sendData.id = tariff_id
@@ -734,6 +732,7 @@ const renderDataToSendData = async () => {
   sendData.currency = renderTariffData.currency
   sendData.custom.name = renderTariffData.name
   sendData.country_code = renderTariffData.country_code
+  sendData.tariff_alt_url = renderTariffData.tariff_alt_url
   if (renderTariffData.description)
     sendData.custom.description = renderTariffData.description
 
@@ -742,16 +741,10 @@ const renderDataToSendData = async () => {
     sendData.min_price.incl_vat = renderTariffData.min_price
     sendData.min_price.excl_vat = renderTariffData.min_price
   }
-  else {
-    sendData.min_price = ''
-  }
   if (renderTariffData.max_price || renderTariffData.max_price === 0) {
     sendData.max_price = {}
     sendData.max_price.incl_vat = renderTariffData.max_price
     sendData.max_price.excl_vat = renderTariffData.min_price
-  }
-  else {
-    sendData.max_price = ''
   }
   
   renderTariffElementsData.forEach((element, index) => {
@@ -859,7 +852,7 @@ const createElement = async () => {
     price_componentsObj.price_incl_vat = formatNumber((PriceComponent.price * (1 + PriceComponent.vat/100) ), 4)
     price_componentsObj.type = convertTypeString(PriceComponent.type)
     if ( PriceComponent.type !== "ENERGY") 
-      price_componentsObj.step_size = PriceComponent.step_size
+      price_componentsObj.step_size = PriceComponent.step_size / 60
     else 
       price_componentsObj.step_size = PriceComponent.step_size
     renderTariffElementsDataObj.price_components.push(price_componentsObj)
@@ -886,7 +879,7 @@ const modifyElement = () => {
     renderTariffElementsData[select_element_index].price_components[index].step_size = price_component.step_size
     renderTariffElementsData[select_element_index].price_components[index].type = convertTypeString(price_component.type)
     renderTariffElementsData[select_element_index].price_components[index].vat = price_component.vat
-    if (renderElementDetail.price_components[select_element_index].incl_vat === true) {
+    if (renderElementDetail.price_components[select_element_index]?.incl_vat === true) {
       renderTariffElementsData[select_element_index].price_components[index].price_incl_vat = formatNumber((price_component.price ), 4)
       renderTariffElementsData[select_element_index].price_components[index].price_excl_vat = formatNumber((price_component.price / (1 + price_component.vat/100) ), 4)
       renderTariffElementsData[select_element_index].price_components[index].price = formatNumber((price_component.price / (1 + price_component.vat/100) ), 4)
@@ -954,7 +947,7 @@ const goToEvseDetail = async(detail) => {
 const getTariffData = async () => {
   let queryData = { database: "OCPI", collection: "Tariff", pipelines: [ 
       { $match: { id: { UUID: tariff_id } } }, 
-      { $project: { _id: 0, country_code: 1, custom: 1, elements: 1, id: 1, min_price: 1, currency: 1} }
+      { $project: { _id: 0, country_code: 1, custom: 1, elements: 1, id: 1, min_price: 1, currency: 1, tariff_alt_url: 1} }
     ]}
   let res = await MsiApi.mongoAggregate(queryData)
   
@@ -992,6 +985,7 @@ const renderTarinffDataLayout = async () => {
   renderTariffData.country_code = tariffData[0].country_code
   renderTariffData.name = tariffData[0].custom?.name
   renderTariffData.currency = tariffData[0].currency
+  renderTariffData.tariff_alt_url = tariffData[0].tariff_alt_url
   if (tariffData[0].min_price?.incl_vat || tariffData[0].min_price?.incl_vat === 0) {
     renderTariffData.min_price = tariffData[0].min_price?.incl_vat
   }
@@ -1103,6 +1097,9 @@ onMounted(async () => {
                   </el-form-item>
                   <el-form-item class="mb-24px lg-w-full" :label="t('min_price')">
                     <el-input v-model.number="renderTariffData.min_price"/>
+                  </el-form-item>
+                  <el-form-item v-show="false" class="mb-24px lg-w-full" :label="t('tariff_url')">
+                    <el-input v-model.number="renderTariffData.tariff_alt_url"/>
                   </el-form-item>
                 </el-form>
               </div>

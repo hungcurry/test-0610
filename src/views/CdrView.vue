@@ -97,17 +97,23 @@ const cdr_detail = (row) => {
 
 
   for (const tariffs_ele of row.tariffs[0].elements) {
-    console.log(tariffs_ele)
-    
-    const tariff_obj = {}
-    tariff_obj.restrictions_start_time = tariffs_ele.restrictions.start_time
-    tariff_obj.restrictions_end_time = tariffs_ele.restrictions.end_time
-    tariff_obj.restrictions_max_duration = tariffs_ele.restrictions.max_duration
-    tariff_obj.restrictions_min_duration = tariffs_ele.restrictions.min_duration
-    tariff_obj.restrictions_min_current = tariffs_ele.restrictions.min_current
-    tariff_obj.restrictions_max_current = tariffs_ele.restrictions.max_current
-    tariff_obj.restrictions_max_parking_duration = tariffs_ele.restrictions?.max_parking_duration
-    tariff_obj.restrictions_min_parking_duration = tariffs_ele.restrictions?.min_parking_duration
+    const tariff_obj = { restrictions_start_time:'', restrictions_end_time:'', restrictions_max_duration:'', restrictions_min_duration:'', restrictions_min_current:'',
+                         restrictions_max_current:'', restrictions_max_parking_duration:'',restrictions_min_parking_duration:''
+    }
+    if (Object.hasOwn(tariffs_ele, 'restrictions')) {
+      tariff_obj.restrictions_start_time = tariffs_ele.restrictions?.start_time
+      tariff_obj.restrictions_end_time = tariffs_ele.restrictions?.end_time
+      tariff_obj.restrictions_min_current = tariffs_ele.restrictions?.min_current
+      tariff_obj.restrictions_max_current = tariffs_ele.restrictions?.max_current
+      if ( typeof (tariffs_ele.restrictions?.max_duration) === 'number' )
+        tariff_obj.restrictions_max_duration = tariffs_ele.restrictions?.max_duration / 60
+      if ( typeof (tariffs_ele.restrictions?.min_duration) === 'number'  )
+        tariff_obj.restrictions_min_duration = tariffs_ele.restrictions?.min_duration / 60
+      if ( typeof (tariffs_ele.restrictions?.max_parking_duration) === 'number')
+        tariff_obj.restrictions_max_parking_duration = tariffs_ele.restrictions?.max_parking_duration / 60
+      if ( typeof (tariffs_ele.restrictions?.min_parking_duration) === 'number')
+        tariff_obj.restrictions_min_parking_duration = tariffs_ele.restrictions?.min_parking_duration / 60
+    }
 
 
     for (const price_component_ele of tariffs_ele.price_components) {
@@ -168,7 +174,7 @@ onMounted( async() => {
       </template>
     
     <h2> {{ 'Tariff : ' + tariff_name + ' / ' + 'Current : ' + tariff_currency +' / ' + 'Min Price :' + tariff_min_price }} </h2>
-      <el-table  ref="tableRef" :data="render_tariff" class="white-space-nowrap text-primary" height="calc(40vh - 250px)"
+      <el-table  ref="tableRef" :data="render_tariff" class="white-space-nowrap text-primary" height="calc(30vh )"
             style="width: 100%" stripe size="large" :cell-style="msi.tb_cell" :header-cell-style="msi.tb_header_cell"
             v-loading.fullscreen.lock="isLoading">
 
@@ -226,14 +232,10 @@ onMounted( async() => {
 
     <h2>periods</h2>
 
-          <el-table  ref="tableRef" :data="render_charging_periods" class="white-space-nowrap text-primary" height="calc(40vh - 250px)"
+          <el-table  ref="tableRef" :data="render_charging_periods" class="white-space-nowrap text-primary" height="calc(30vh)"
             style="width: 100%" stripe size="large" :cell-style="msi.tb_cell" :header-cell-style="msi.tb_header_cell"
             v-loading.fullscreen.lock="isLoading">
             <el-table-column prop="start_date_time" :label="t('start_time')" align="center" min-width="50"/>
-            
-
-
-
             <el-table-column :label="t('type')" prop="dimensions" min-width="50" >
                 <template #default="scope">
                   <div v-for="(item, index) in scope.row.dimensions" :key="index">
@@ -251,9 +253,6 @@ onMounted( async() => {
                   </div>
                 </template>
               </el-table-column>   
-
-
-            
           </el-table>
 
     </el-dialog>
