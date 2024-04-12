@@ -540,13 +540,13 @@ const getCompanyData = async() => {
       agreeFee.value = response.data.result[0]?.upgrade_manager?.session_fee?.[0]?.price
     else {
       sessionFee.value = response.data.result[0]?.upgrade_manager?.session_fee?.[0]?.price
-      sessionFee.value = response.data.result[0]?.upgrade_manager?.session_fee?.[0]?.currency
+      currency.value = response.data.result[0]?.upgrade_manager?.session_fee?.[0]?.currency
     }
     if (response.data.result[0]?.upgrade_manager?.session_fee?.[1]?.type === 'AgreeFee')
       agreeFee.value = response.data.result[0]?.upgrade_manager?.session_fee?.[1]?.price
     else {
       sessionFee.value = response.data.result[0]?.upgrade_manager?.session_fee?.[1]?.price
-      sessionFee.value = response.data.result[0]?.upgrade_manager?.session_fee?.[1]?.currency
+      currency.value = response.data.result[0]?.upgrade_manager?.session_fee?.[1]?.currency
     }
     console.log(response.data.result[0]?.upgrade_manager)
     companyId = response.data.result[0]._id

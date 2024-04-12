@@ -59,7 +59,8 @@ const renderCdrLayout = async () => {
 const getCdrData = async () => {
   try {
     let queryData = { database: 'OCPI', collection: 'CDR',
-    pipelines: [{ $project: { _id: 0} }],
+    pipelines: [{ $project: { _id: 0, auth_method:0, country_code:0, credit:0, home_charging_compensation:0, id:0, party_id:0, cdr_token:0, last_updated:0, session_id:0, 
+    } }],
     // , start_date_time:1, end_date_time:1, total_cost:1
   }
     let response = await MsiApi.mongoAggregate(queryData)    
@@ -105,7 +106,8 @@ const cdr_detail = (row) => {
       tariff_obj.restrictions_end_time = tariffs_ele.restrictions?.end_time
       tariff_obj.restrictions_min_current = tariffs_ele.restrictions?.min_current
       tariff_obj.restrictions_max_current = tariffs_ele.restrictions?.max_current
-      if ( typeof (tariffs_ele.restrictions?.max_duration) === 'number' )
+      console.log(tariff_obj)
+      if ( typeof (tariffs_ele.restrictions?.max_duration) === 'number' ) 
         tariff_obj.restrictions_max_duration = tariffs_ele.restrictions?.max_duration / 60
       if ( typeof (tariffs_ele.restrictions?.min_duration) === 'number'  )
         tariff_obj.restrictions_min_duration = tariffs_ele.restrictions?.min_duration / 60
@@ -215,19 +217,24 @@ onMounted( async() => {
                 <template #default="scope">
                   <div v-for="(item, index) in scope.row.price_components" :key="index">
                     <div v-if="index !== 0" class="v-line2 mt-6px mb-6px"></div>
-                    {{ item.step_size }}
+                    <template v-if="item.type === 'ENERGY'">
+                      {{ item.step_size }}
+                    </template>
+                    <template v-else>
+                      {{ item.step_size / 60 }}
+                    </template>
                   </div>
                 </template>
               </el-table-column>     
 
             <el-table-column prop="restrictions_start_time" :label="t('start_time')" align="center" min-width="100"/>
             <el-table-column prop="restrictions_end_time" :label="t('end_time')" align="center" min-width="100"/>
-            <el-table-column prop="restrictions_max_duration" :label="t('max_duration')" align="center" min-width="100"/>
             <el-table-column prop="restrictions_min_duration" :label="t('min_duration')" align="center" min-width="100"/>
-            <el-table-column prop="restrictions_max_current" :label="t('max_current')" align="center" min-width="100"/>
+            <el-table-column prop="restrictions_max_duration" :label="t('max_duration')" align="center" min-width="100"/>
             <el-table-column prop="restrictions_min_current" :label="t('min_current')" align="center" min-width="100"/>
-            <el-table-column prop="restrictions_max_parking_duration" :label="t('max_parking_duration ')" align="center" min-width="100"/>
+            <el-table-column prop="restrictions_max_current" :label="t('max_current')" align="center" min-width="100"/>
             <el-table-column prop="restrictions_min_parking_duration" :label="t('min_parking_duration ')" align="center" min-width="100"/>
+            <el-table-column prop="restrictions_max_parking_duration" :label="t('max_parking_duration ')" align="center" min-width="100"/>
           </el-table>
 
     <h2>periods</h2>

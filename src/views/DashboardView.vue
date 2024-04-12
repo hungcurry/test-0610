@@ -304,7 +304,7 @@ const queryTotalUsedPower = async (select_time1) => {
     let charge_kwh = 0
     response.data.result.forEach((item) => {
       item.operator_types.forEach( (operator_types) => {
-        if (operator_types.type === 'charge') {
+        if (operator_types.type === 'charge' && operator_types.kwh) {
           charge_kwh += operator_types.kwh
         }
       })

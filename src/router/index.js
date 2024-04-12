@@ -32,6 +32,7 @@ import RfidUserDetailView from '@/views/RfidUserDetailView.vue'
 import StationMapView from '@/views/StationMapView.vue'
 import TokenManagementView from '@/views/TokenManagementView.vue'
 import CdrView from '@/views/CdrView.vue'
+import NotFound from '@/views/NotFound.vue'
 import { ElMessage } from 'element-plus'
 import { m_cloud_permission } from '@/composables/permission'
 
@@ -189,6 +190,11 @@ const router = createRouter({
           name: 'tokenManagement',
           component: TokenManagementView
         },
+        {
+          path: '/:catchAll(.*)',
+          name: '404',
+          component: NotFound,
+        },
       ]
     }
   ]
@@ -301,6 +307,7 @@ router.beforeEach(async to => {
   if (toPath === '/program' && MStore.permission.company.name !== 'MSI' ) {
     return '/login'
   }
+  console.log(1234)
 })
 
 export default router

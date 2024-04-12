@@ -428,7 +428,7 @@ onMounted(async () => {
                 :sort-method="(a, b) => sortFunc(a, b, 'hmi_version')"
                 min-width="150"
               />
-              <el-table-column
+              <el-table-column 
                 prop="latest SW"
                 :label="t('latest_sw')"
                 align="center"
@@ -535,6 +535,12 @@ onMounted(async () => {
                   >
                     {{ '●' + scope.row.status_str }}
                   </p>
+                  <p
+                    class="error text-center"
+                    v-else-if="scope.row.status === 'INOPERATIVE'"
+                  >
+                    {{ '●' + scope.row.status_str }}
+                  </p>
                 </template>
               </el-table-column>
               <el-table-column
@@ -547,7 +553,7 @@ onMounted(async () => {
               />
               <el-table-column prop="" :label="t('latest_sw')" align="center" min-width="150">
                 <template #default="scope">
-                  <p v-if="scope.row.hmi_version === swVersion">{{ 'V' }}</p>
+                  <p class="text-center" v-if="scope.row.hmi_version === swVersion">{{ 'V' }}</p>
                 </template>
               </el-table-column>
 
@@ -645,6 +651,12 @@ onMounted(async () => {
                   >
                     {{ '●' + scope.row.status_str }}
                   </p>
+                  <p
+                    class="error text-center"
+                    v-else-if="scope.row.status === 'INOPERATIVE'"
+                  >
+                    {{ '●' + scope.row.status_str }}
+                  </p>
                 </template>
               </el-table-column>
               <el-table-column
@@ -657,7 +669,7 @@ onMounted(async () => {
               />
               <el-table-column prop="" :label="t('latest_sw')" align="center" min-width="150">
                 <template #default="scope">
-                  <p v-if="scope.row.hmi_version === swVersion">{{ 'V' }}</p>
+                  <p class="text-center" v-if="scope.row.hmi_version === swVersion">{{ 'V' }}</p>
                 </template>
               </el-table-column>
 

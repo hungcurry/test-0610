@@ -851,10 +851,7 @@ const createElement = async () => {
     price_componentsObj.price_excl_vat = formatNumber(PriceComponent.price, 4)
     price_componentsObj.price_incl_vat = formatNumber((PriceComponent.price * (1 + PriceComponent.vat/100) ), 4)
     price_componentsObj.type = convertTypeString(PriceComponent.type)
-    if ( PriceComponent.type !== "ENERGY") 
-      price_componentsObj.step_size = PriceComponent.step_size / 60
-    else 
-      price_componentsObj.step_size = PriceComponent.step_size
+    price_componentsObj.step_size = PriceComponent.step_size
     renderTariffElementsDataObj.price_components.push(price_componentsObj)
   })
   renderTariffElementsData.push(renderTariffElementsDataObj)

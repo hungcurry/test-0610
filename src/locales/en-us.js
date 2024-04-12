@@ -1401,7 +1401,6 @@ export default {
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     add_token:                                                                                      'Add Token',
     count:                                                                                          'Count',
-    create_token:                                                                                   'Create Token',
     edit_token:                                                                                     'Edit Token',
     expired_date_time:                                                                              'Expired Date Time',
     token:                                                                                          'Token',

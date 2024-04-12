@@ -33,12 +33,13 @@ const search = () => {
     if (search_input.value !== '') {  
       let tempBuf = []
       for (let i = 0 ; i < renderTokenData.length; i++) {
-        if ( renderTokenData[i].name.toLowerCase().includes(search_input.value.toLowerCase()) || 
-             renderTokenData[i].type.toLowerCase().includes(search_input.value.toLowerCase()) || 
-             renderTokenData[i].token.toLowerCase().includes(search_input.value.toLowerCase()) || 
-             renderTokenData[i].enable.toLowerCase().includes(search_input.value.toLowerCase()) ||
-             renderTokenData[i].count.toLowerCase().includes(search_input.value.toLowerCase()) || 
-             renderTokenData[i].expired_date_time.toLowerCase().includes(search_input.value.toLowerCase())) 
+        if ( renderTokenData[i]?.name?.toLowerCase()?.includes(search_input.value.toLowerCase()) || 
+             renderTokenData[i]?.type?.toLowerCase()?.includes(search_input.value.toLowerCase()) || 
+             renderTokenData[i]?.token?.toLowerCase()?.includes(search_input.value.toLowerCase()) || 
+             renderTokenData[i]?.enable?.toLowerCase()?.includes(search_input.value.toLowerCase()) ||
+             renderTokenData[i]?.count?.toLowerCase()?.includes(search_input.value.toLowerCase()) || 
+             renderTokenData[i]?.expired_date_time?.toLowerCase()?.includes(search_input.value.toLowerCase())
+          ) 
         {
           let renderTokenDataObj = {}
           renderTokenDataObj.name = renderTokenData[i].name
@@ -104,8 +105,10 @@ const renderTokenDataLayout = async () => {
         renderTokenDataObj.name = companyInfoData[i].name
         renderTokenDataObj.type = companyInfoData[i].credentials[j].type
         renderTokenDataObj.token = companyInfoData[i].credentials[j].token
-        renderTokenDataObj.enable = companyInfoData[i].credentials[j].enable.toString()
-        renderTokenDataObj.count = companyInfoData[i].credentials[j].count.toString()
+        if (companyInfoData[i]?.credentials?.[j]?.enable)
+          renderTokenDataObj.enable = companyInfoData[i].credentials[j].enable.toString()
+        if( typeof companyInfoData[i]?.credentials?.[j]?.count === 'number')
+          renderTokenDataObj.count = companyInfoData[i].credentials[j].count.toString()
         let temp = new Date(companyInfoData[i].credentials[j].expired_date_time).getTime() + MStore.timeZoneOffset * -60000
         renderTokenDataObj.expired_date_time = moment(temp).format('YYYY-MM-DD HH:mm:ss')
         renderTokenData.push(renderTokenDataObj)
@@ -127,7 +130,7 @@ const renderCompanyList = async () =>{
 }
 
 const add_token = () => {
-  token_title.value = t('create_token')
+  token_title.value = t('add_token')
   create_mode.value = true
   renderTokenDetailData.enable = false
   renderTokenDetailData.expired_date_time = ''
