@@ -14,9 +14,10 @@ const MStore = useMStore()
 const MsiApi = ApiFunc()
 const router = useRouter()
 const isLoading = ref(false)
-const first_login = ref(false)
+const eula_visible = ref(false)
 const agreeFee = ref(0)
 const sessionFee = ref(0)
+const currency = ref('')
 
 let companyId = null
 let current_date = null
@@ -389,8 +390,6 @@ const confirmAdminUser = (action, del_id) => {
               if (res.status === 200) {
                 await getAdminData()
                 if (AdminData.email === MStore.user_data?.email) {
-                  MStore.user_data.first_name = sendData.first_name
-                  MStore.user_data.last_name = sendData.last_name
                   MStore.permission.active = sendData.permission.active
                   MStore.permission.edit = sendData.permission.edit
                   MStore.permission.user = sendData.permission.user
@@ -420,9 +419,7 @@ const confirmAdminUser = (action, del_id) => {
       ElMessageBox.confirm(t('do_you_want_to_delete'), t('warning'), { confirmButtonText: t('ok'), cancelButtonText: t('cancel'), type: 'warning' })
         .then(async () => {
           isLoading.value = true
-          const params = { role:'admin', id: del_id }
-          let res = await MsiApi.delete_account(params)
-          console.log(res)
+          let res = await MsiApi.delete_account({ role:'admin', id: del_id })
           if (res.data.message === 'Accepted') {
             await getAdminData()
             drawProgram()
@@ -498,10 +495,7 @@ const confirmNewebPay = async(action) => {
     newebDialogVisible.value = false
     ElMessageBox.confirm(t('do_you_want_to_create'), t('warning'), { confirmButtonText: t('ok'), cancelButtonText: t('cancel'), type: 'warning' })
       .then(async () => {
-        let res = null
-        let sendData = {merchantId: neweb_id.value}
-        
-        res = await MsiApi.add_merchant(sendData)
+        const res = await MsiApi.add_merchant(neweb_id.value)
         if (res.status === 200) {
           isLoading.value = true
           document.body.innerHTML += res.data
@@ -525,7 +519,7 @@ const confirmNewebPay = async(action) => {
   }
 }
 const display_eula = () => {
-  first_login.value=true
+  eula_visible.value = true
   language = localStorage.getItem("lang")
 }
 
@@ -542,10 +536,19 @@ const getCompanyData = async() => {
       ],
     }
     response = await MsiApi.mongoAggregate(queryData)
-    if (response.data.result[0]?.upgrade_manager?.session_fee?.[0]?.price)
+    if (response.data.result[0]?.upgrade_manager?.session_fee?.[0]?.type === 'AgreeFee') 
       agreeFee.value = response.data.result[0]?.upgrade_manager?.session_fee?.[0]?.price
-    if (response.data.result[0]?.upgrade_manager?.session_fee?.[1]?.price)
-    sessionFee.value = response.data.result[0]?.upgrade_manager?.session_fee?.[1]?.price
+    else {
+      sessionFee.value = response.data.result[0]?.upgrade_manager?.session_fee?.[0]?.price
+      currency.value = response.data.result[0]?.upgrade_manager?.session_fee?.[0]?.currency
+    }
+    if (response.data.result[0]?.upgrade_manager?.session_fee?.[1]?.type === 'AgreeFee')
+      agreeFee.value = response.data.result[0]?.upgrade_manager?.session_fee?.[1]?.price
+    else {
+      sessionFee.value = response.data.result[0]?.upgrade_manager?.session_fee?.[1]?.price
+      currency.value = response.data.result[0]?.upgrade_manager?.session_fee?.[1]?.currency
+    }
+    console.log(response.data.result[0]?.upgrade_manager)
     companyId = response.data.result[0]._id
     companyData.upgrade_manager = response.data.result[0].upgrade_manager
     companyData.Merchant_ID = response.data.result[0].payment?.merchantId
@@ -969,7 +972,7 @@ onMounted(async () => {
                 <font-awesome-icon icon="fa-regular fa-user" class="w-20px h-20px mr-5px text-blue-1200" />
                 <p class="text-1.8rem text-blue-1200 font-bold">{{ t('admin') }}</p>
               </div>
-              <el-button v-if="MStore.rule_permission.AdminInfo.addAdmin === 'O' || MStore.permission.isCompany" 
+              <el-button v-if="MStore.rule_permission.AdminInfo.addAdmin === 'O'" 
                 round class="button" @click="openAdminUserDialog('add', null)">{{ t('add_admin') }}</el-button>
             </div>
             <div class="overflow-x-auto">
@@ -1044,7 +1047,6 @@ onMounted(async () => {
               <div class="flex">
                 <font-awesome-icon icon="fa-solid fa-coins" class="w-20px h-20px mr-5px text-blue-1200" />
                 <p class="text-1.8rem text-blue-1200 font-bold">{{ t('neweb_pay') }}</p>
-                <!-- <p class="text-1.8rem ml-8px text-blue-1200 font-bold">{{ '( ' + t('Agree Fee ') + agreeFee + ' % / ' + 'Session Fee ' + sessionFee + ' TWD )'}}</p> -->
               </div>
               <el-button round class="button" @click="openNewebDialog" v-if="!companyData.Merchant_ID" >{{ t('create') }}</el-button>
             </div>
@@ -1063,7 +1065,7 @@ onMounted(async () => {
               </div>
               <div class="w-50% min-w-350px flex mb-5px">
                 <p class="w-150px text-blue-1200">{{ t('session_fee') }}</p>
-                <p class="text-blue-1200">{{ sessionFee }} {{ 'TWD' }}</p>
+                <p class="text-blue-1200">{{ sessionFee }} {{ currency }}</p>
               </div>
             </div>
           </div>
@@ -1076,7 +1078,7 @@ onMounted(async () => {
                 <p class="text-1.8rem text-blue-1200 font-bold">{{ t('policy') }}</p>
               </div>
             </div>
-            <a class="text-blue-1200 underline cursor-pointer" @click="display_eula">End User License Agreement</a>
+            <a class="text-blue-1200 underline cursor-pointer" @click="display_eula"> {{ t('user_agreement')}}</a>
           </div>
         </el-col>
       </el-row>
@@ -1351,7 +1353,7 @@ onMounted(async () => {
     </el-dialog>
 
     <el-dialog
-      v-model="first_login"
+      v-model="eula_visible"
       class="max-w-992px h-90% flex-col"
       width="90%"
       destroy-on-close

@@ -26,6 +26,7 @@ const isLoading = ref(false)
 const EvseData = reactive([])
 const EvseConnectData = reactive([])
 const EvseUnConnectData = reactive([])
+const EvseHomeDevice = reactive([])
 const company_filter_item = reactive([])
 const status_filter_item = [
   { text: t('available'), value: 'AVAILABLE' },
@@ -41,14 +42,13 @@ const filterCompany = (value, row) => {
 
 const updateSW = async () => {
   sw_version_visable.value = true
-  let queryData = {
-    database: 'CPO',
-    collection: 'VersionControl',
-    query: { type: 'XP012' },
-  }
-  let response = await MsiApi.mongoQuery(queryData)
-  swVersion.value = response.data.all[0].version
-  let release_note = response.data.all[0].release_note.find(
+  let queryData = { database: 'CPO', collection: 'VersionControl',
+    pipelines: [{ $match: { type: { $eq: 'XP012' } } },
+    { $project: { _id: 0, type:0, release_date:0, "release_note.description": 0,"release_note.update_time": 0} }
+  ]}
+  let response = await MsiApi.mongoAggregate(queryData)
+  swVersion.value = response.data.result[0].version
+  let release_note = response.data.result[0].release_note.find(
     (obj) => obj.version === swVersion.value
   )
   if (release_note) {
@@ -115,21 +115,15 @@ const evseReset = (type) => {
       })
   }
 }
+
 const status_filter = (value, rowData) => {
   return rowData.status === value
 }
+
 const detail_info = async (detail) => {
-  let queryData = {
-    database: 'OCPI',
-    collection: 'Location',
-    query: { evses: { $in: [{ ObjectId: detail._id }] } },
-  }
-  let response = await MsiApi.mongoQuery(queryData)
-  router.push({
-    name: 'evseDetail',
-    query: { station_id: response?.data?.all?.[0]?.id, evse_id: detail.uid },
-  })
+  router.push({ name: 'evseDetail', query: {  evse_id: detail.uid }})
 }
+
 const add_charger = () => {
   if (EvseData.length >= MStore.program.evse && MStore.permission.isMSI === false) {
     ElMessage.error(t('please_confirm_your_subscription_plan'))
@@ -137,6 +131,7 @@ const add_charger = () => {
   }
   router.push({ name: 'evseEdit' })
 }
+
 const edit = () => {
   if (editMode.value === false) {
     editMode.value = true
@@ -146,6 +141,7 @@ const edit = () => {
     edit_button_str.value = 'update_or_restart'
   }
 }
+
 const sortFunc = (obj1, obj2, column) => {
   let at = obj1[column]
   let bt = obj2[column]
@@ -163,7 +159,7 @@ onMounted(async () => {
   if (route.query.page === 'unpaired') {
     activeName.value = '2'
   }
-  let queryData = { database: 'CPO',    collection: 'VersionControl',
+  let queryData = { database: 'CPO', collection: 'VersionControl',
     pipelines: [
     { $match: { type: { $eq: 'XP012' } } },  
     { $project: { _id:0, version:1} }],
@@ -201,7 +197,13 @@ onMounted(async () => {
   let response5 = MsiApi.mongoAggregate(queryData)
   const [result1, result2, result3, result4, result5] = await Promise.all([response1, response2, response3, response4, response5])
 
-  Object.assign(company_filter_item, result1.data.result)
+  let company_filter =  result1.data.result.map(item => {
+    return { text: item.name,value: item._id }
+  })
+  Object.assign(company_filter_item, company_filter)
+
+  let company_list = result1.data.result
+
   let locationData = result2.data.result
   EvseData.length = 0
   Object.assign(EvseData, result3.data.result)
@@ -244,10 +246,14 @@ onMounted(async () => {
       if (EvseData[i].locationName) break
     }
   }
-
   for (let i = 0; i < EvseData.length; i++) {
     if (EvseData[i].locationName === undefined) {
-      EvseUnConnectData.push(EvseData[i])
+      if (EvseData[i].evse_id.startsWith('XP01')) {
+        EvseHomeDevice.push(EvseData[i])
+      }
+      else 
+        EvseUnConnectData.push(EvseData[i])
+      
     } else {
       EvseConnectData.push(EvseData[i])
     }
@@ -271,9 +277,9 @@ onMounted(async () => {
   }
   for (let i = 0; i < EvseData.length; i++) {
     if (EvseData[i].byCompany !== undefined) {
-      for (let j = 0; j < company_filter_item.length; j++) {
-        if (EvseData[i].byCompany === company_filter_item[j]._id) {
-          EvseData[i].byCompany_str = company_filter_item[j].name
+      for (let j = 0; j < company_list.length; j++) {
+        if (EvseData[i].byCompany === company_list[j]._id) {
+          EvseData[i].byCompany_str = company_list[j].name
         }
       }
     }
@@ -290,35 +296,35 @@ onMounted(async () => {
       <div class="pt-40px pb-20px overflow-x-auto">
         <div class="flex lg:justify-end pr-10px">
           <el-button
-            v-if="editMode === true && (MStore.rule_permission.EVSE.update === 'O' || MStore.permission.isCompany)" 
+            v-if="editMode === true && (MStore.rule_permission.EVSE.update === 'O')" 
             class="btn-secondary shrink-0 update-button px-30px box-shadow"
             @click="updateSW"
           >
           {{ t('update_sw') }}
           </el-button>
           <el-button
-            v-if="editMode === true && (MStore.rule_permission.EVSE.reset === 'O' || MStore.permission.isCompany)"
+            v-if="editMode === true && (MStore.rule_permission.EVSE.reset === 'O')"
             class="btn-secondary shrink-0 soft-reset-button px-30px box-shadow"
             @click="evseReset('soft')"
           >
           {{ t('soft_reset') }}
           </el-button>
           <el-button
-            v-if="editMode === true && (MStore.rule_permission.EVSE.reset === 'O' || MStore.permission.isCompany)"
+            v-if="editMode === true && (MStore.rule_permission.EVSE.reset === 'O')"
             class="btn-secondary shrink-0 hard-reset-button px-30px box-shadow"
             @click="evseReset('hard')"
           >
           {{ t('hard_reset') }}
           </el-button>
           <el-button
-            v-if="editMode === false && (MStore.rule_permission.EVSE.addEVSE === 'O' || MStore.permission.isCompany)"
+            v-if="editMode === false && (MStore.rule_permission.EVSE.addEVSE === 'O')"
             class="btn-secondary shrink-0 add-charger px-30px box-shadow"
             @click="add_charger"
           >
           {{ t('add_evse') }}</el-button
           >
           <el-button 
-            v-if="MStore.rule_permission.EVSE.update === 'O' || MStore.rule_permission.EVSE.reset === 'O' || MStore.permission.isCompany"
+            v-if="MStore.rule_permission.EVSE.update === 'O' || MStore.rule_permission.EVSE.reset === 'O'"
             class="btn-secondary shrink-0 edit px-30px box-shadow" @click="edit">
             {{ t(edit_button_str) }}</el-button
           >
@@ -340,6 +346,14 @@ onMounted(async () => {
               @selection-change="handleSelectionChange"
               :default-sort="{ prop: 'locationName', order: 'ascending' }"
             >
+            <el-table-column v-if="MStore.permission.isMSI"
+                prop="byCompany_str"
+                :label="t('company')"
+                align="center"
+                :filters="company_filter_item"
+                :filter-method="filterCompany"
+                min-width="200"
+              />
               <el-table-column
                 prop="locationName"
                 :label="t('station')"
@@ -363,14 +377,6 @@ onMounted(async () => {
                 sortable
                 :sort-method="(a, b) => sortFunc(a, b, 'evse_id')"
                 min-width="300"
-              />
-              <el-table-column v-if="MStore.permission.isMSI"
-                prop="byCompany_str"
-                :label="t('company')"
-                align="center"
-                :filters="company_filter_item"
-                :filter-method="filterCompany"
-                min-width="200"
               />
               <el-table-column
                 prop="status"
@@ -422,7 +428,7 @@ onMounted(async () => {
                 :sort-method="(a, b) => sortFunc(a, b, 'hmi_version')"
                 min-width="150"
               />
-              <el-table-column
+              <el-table-column 
                 prop="latest SW"
                 :label="t('latest_sw')"
                 align="center"
@@ -529,6 +535,12 @@ onMounted(async () => {
                   >
                     {{ '●' + scope.row.status_str }}
                   </p>
+                  <p
+                    class="error text-center"
+                    v-else-if="scope.row.status === 'INOPERATIVE'"
+                  >
+                    {{ '●' + scope.row.status_str }}
+                  </p>
                 </template>
               </el-table-column>
               <el-table-column
@@ -541,7 +553,7 @@ onMounted(async () => {
               />
               <el-table-column prop="" :label="t('latest_sw')" align="center" min-width="150">
                 <template #default="scope">
-                  <p v-if="scope.row.hmi_version === swVersion">{{ 'V' }}</p>
+                  <p class="text-center" v-if="scope.row.hmi_version === swVersion">{{ 'V' }}</p>
                 </template>
               </el-table-column>
 
@@ -569,6 +581,124 @@ onMounted(async () => {
               <el-table-column v-else type="selection" align="center" min-width="150" />
             </el-table>
           </el-tab-pane>
+
+          <el-tab-pane :label="t('home_device')" name="3">
+            <el-table
+              class="evse-table"
+              :data="EvseHomeDevice"
+              style="width: 100%; height: calc(100vh - 260px)"
+              stripe
+              :cell-style="msi.tb_cell"
+              :header-cell-style="msi.tb_header_cell"
+              size="large"
+              v-loading.fullscreen.lock="isLoading"
+              @selection-change="handleSelectionChange"
+            >
+              <el-table-column
+                prop="locationName"
+                :label="t('station')"
+                align="center"
+                sortable
+                :sort-method="(a, b) => sortFunc(a, b, 'locationName')"
+                min-width="150"
+              />
+              <el-table-column
+                prop="floor_level"
+                :label="t('floor_level')"
+                align="center"
+                sortable
+                :sort-method="(a, b) => sortFunc(a, b, 'floor_level')"
+                min-width="150"
+              />
+              <el-table-column
+                prop="evse_id"
+                :label="t('evse_id')"
+                align="center"
+                sortable
+                :sort-method="(a, b) => sortFunc(a, b, 'evse_id')"
+                min-width="300"
+              />
+              <el-table-column
+                prop="status"
+                :label="t('status')"
+                align="center"
+                min-width="150"
+                :filters="status_filter_item"
+                :filter-method="status_filter"
+              >
+                <template #default="scope">
+                  <p
+                    class="available text-center"
+                    v-if="scope.row.status === 'AVAILABLE'"
+                  >
+                    {{ '●' + scope.row.status_str }}
+                  </p>
+                  <p
+                    class="charging text-center"
+                    v-else-if="scope.row.status === 'CHARGING'"
+                  >
+                    {{ '●' + scope.row.status_str }}
+                  </p>
+                  <p
+                    class="offline text-center"
+                    v-else-if="scope.row.status === 'UNKNOWN'"
+                  >
+                    {{ '●' + scope.row.status_str }}
+                  </p>
+                  <p
+                    class="error text-center"
+                    v-else-if="scope.row.status === 'OUTOFORDER'"
+                  >
+                    {{ '●' + scope.row.status_str }}
+                  </p>
+                  <p
+                    class="error text-center"
+                    v-else-if="scope.row.status === 'INOPERATIVE'"
+                  >
+                    {{ '●' + scope.row.status_str }}
+                  </p>
+                </template>
+              </el-table-column>
+              <el-table-column
+                prop="hmi_version"
+                :label="t('sw_ver')"
+                sortable
+                align="center"
+                :sort-method="(a, b) => sortFunc(a, b, 'hmi_version')"
+                min-width="150"
+              />
+              <el-table-column prop="" :label="t('latest_sw')" align="center" min-width="150">
+                <template #default="scope">
+                  <p class="text-center" v-if="scope.row.hmi_version === swVersion">{{ 'V' }}</p>
+                </template>
+              </el-table-column>
+
+              <el-table-column
+                prop="last_updated_str"
+                :label="t('updated_time')"
+                align="center"
+                sortable
+                :sort-method="(a, b) => sortFunc(a, b, 'last_updated_str')"
+                min-width="200"
+              />
+              <el-table-column
+                v-if="editMode === false"
+                prop=""
+                label=""
+                align="center"
+                min-width="150"
+              >
+                <template #default="scope">
+                  <el-button class="btn-more" @click="detail_info(scope.row)">
+                    <font-awesome-icon icon="fa-solid fa-ellipsis" />
+                  </el-button>
+                </template>
+              </el-table-column>
+              <el-table-column v-else type="selection" align="center" min-width="150" />
+            </el-table>
+          </el-tab-pane>
+
+
         </el-tabs>
       </div>
 

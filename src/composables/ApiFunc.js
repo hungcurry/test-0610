@@ -6,9 +6,11 @@ axios.defaults.timeout = 15000
 if (import.meta.env.VITE_API !== undefined) {
   apiServer = import.meta.env.VITE_API_VERSION
 }
-
+let config = VueCookies.get('AuthToken')
 const axiosInterface = async (method, url, data) => {
-  let config = VueCookies.get('AuthToken')
+  if (config === null) {
+    config = VueCookies.get('AuthToken')
+  }
   try {
     let response
     switch (method) {
@@ -22,7 +24,10 @@ const axiosInterface = async (method, url, data) => {
         response = await axios.patch( apiServer + url, data, config)
         break
       case 'delete':
-        response = await axios.delete( apiServer + url, {headers: config, data: data })
+        if (data) 
+          response = await axios.delete( apiServer + url, {headers: config.headers, data: data })
+        else 
+          response = await axios.delete( apiServer + url, config)
         break
     }
     return response
@@ -34,10 +39,19 @@ const axiosInterface = async (method, url, data) => {
 
 export default () => {
 
+  const clearCookies = async () => {
+    config = null
+    VueCookies.remove('AuthToken')
+  }
+
   const getToken = async (data) => {
-    const config = { headers: { 'X-Client-From': 'm-Cloud'}}
-    const response = await axios.post(apiServer + '/member/login', data, config)
-    return response
+    try {
+      const config = { headers: { 'X-Client-From': 'm-Cloud'}}
+      const response = await axios.post(apiServer + '/member/login', data, config)
+      return response      
+    } catch (e) {
+      return e.response
+    }
   }
 
   const setCollectionData = async (method, collection, data) => {
@@ -46,6 +60,7 @@ export default () => {
   }
 
   const checkToken = async () => {
+    config = VueCookies.get('AuthToken')
     const response = await axiosInterface('get', '/member/about')
     return response
   }
@@ -85,31 +100,25 @@ export default () => {
     return response
   }
 
-  const delete_account = async (params) => {
-    const response = await axiosInterface('delete', '/accounts/' + params.id + '?role=' + params.role, '')
+  const delete_account = async ( {id, role}) => {
+    const response = await axiosInterface('delete', '/accounts/' + id + '?role=' + role)
     return response
   }
 
-  const get_user_payment = async (json) => {
+  const get_user_payment = async ({role, id, start_date, end_date}) => {
     let path = '/accounts'
-    if (json.id) {
-      path += ('/' + json.id)
-    }
-    path += ('/payments?role=' + json.role)
-    path += ('&start_date=' + json.start_date)
-    path += ('&end_date=' + json.end_date)
+    if (id) 
+      path += ('/' + id)
+    path += '/payments?role=' + role + '&start_date=' + start_date + '&end_date=' + end_date 
     const response = await axiosInterface('get', path)
     return response
   }
 
-  const get_user_cash = async (json) => {
+  const get_user_cash = async ({role, id, start_date, end_date}) => {
     let path = '/accounts'
-    if (json.id) {
-      path += ('/' + json.id)
-    }
-    path += ('/cashs?role=' + json.role)
-    path += ('&start_date=' + json.start_date)
-    path += ('&end_date=' + json.end_date)
+    if (id) 
+      path += ('/' + id)
+    path += '/cashs?role=' + role + '&start_date=' + start_date + '&end_date=' + end_date
     const response = await axiosInterface('get', path)
     return response
   }
@@ -165,22 +174,17 @@ export default () => {
   }
 
   const add_rfid_data = async (json) => {
-    const response = await axiosInterface('post', '/rfid', json)
+    const response = await axiosInterface('post', '/rfids', json)
     return response
   }
 
   const edit_rfid_data = async (json) => {
-    const response = await axiosInterface('patch', '/rfid', json)
+    const response = await axiosInterface('patch', '/rfids', json)
     return response
   }
 
-  const delete_rfid_data = async (params) => {
-    const response = await axiosInterface('delete', '/rfid?id=' + params.id + '&rfid=' + params.rfid, '')
-    return response
-  }
-
-  const set_rfid_cash = async (json) => {
-    const response = await axiosInterface('patch', '/rfid', json)
+  const delete_rfid_data = async ( {id, rfid}) => {
+    const response = await axiosInterface('delete', '/rfids/' + rfid + '?id=' + id)
     return response
   }
 
@@ -205,27 +209,27 @@ export default () => {
   }
 
   const change_availability = async (json) => {
-    const response = await axiosInterface('post' +'/cp/ocpp/v16/change_availability', json)
+    const response = await axiosInterface('post', '/cp/ocpp/v16/change_availability', json)
     return response
   }
 
-  const get_diagnostics = async (json) => {
-    const response = await axiosInterface('get' + '/cp/ocpp/v16/get_diagnostics' +'?evse_id=' + json.evse_id + '&location=' + json.location)
+  const get_diagnostics = async ( {evse_id, location} ) => {
+    const response = await axiosInterface('get', '/cp/ocpp/v16/get_diagnostics' +'?evse_id=' + evse_id + '&location=' + location)
     return response
   }
    
-  const get_configuration = async (json) => {
-    const response = await axiosInterface('get' + '/cp/ocpp/v16/get_configuration' +'?evse_id=' + json.evse_id)
+  const get_configuration = async (evse_id) => {
+    const response = await axiosInterface('get', '/cp/ocpp/v16/get_configuration' +'?evse_id=' + evse_id)
     return response
   }
 
   const change_configuration = async (json) => {
-    const response = await axiosInterface('post' +'/cp/ocpp/v16/change_configuration', json)
+    const response = await axiosInterface('post', '/cp/ocpp/v16/change_configuration', json)
     return response
   }
 
   const clear_charging_profile = async (json) => {
-    const response = await axiosInterface('post' +'/cp/ocpp/v16/clear_charging_profile', json)
+    const response = await axiosInterface('post', '/cp/ocpp/v16/clear_charging_profile', json)
     return response
   }
 
@@ -234,61 +238,70 @@ export default () => {
     if (chargingRateUnit) {
       path += '&chargingRateUnit=' + chargingRateUnit
     }
-    const response = await axiosInterface('get' + path)
+    const response = await axiosInterface('get',  path)
     return response
   }
 
   const set_charging_profile = async(data) => {
-    const response = await axiosInterface('post' +'/cp/ocpp/v16/set_charging_profile', data)
+    const response = await axiosInterface('post', '/cp/ocpp/v16/set_charging_profile', data)
     return response
   }
 
   const remote_start_transaction = async (data) => {
-    const response = await axiosInterface('post' +'/cp/ocpp/v16/remote_start_transaction', data)
+    const response = await axiosInterface('post', '/cp/ocpp/v16/remote_start_transaction', data)
     return response
   }
 
   const remote_stop_transaction = async (data) => {
-    const response = await axiosInterface('post' +'/cp/ocpp/v16/remote_stop_transaction', data)
+    const response = await axiosInterface('post', '/cp/ocpp/v16/remote_stop_transaction', data)
     return response
   }
   
-  const add_merchant = async (data) => {
-    const response = await axiosInterface('get' + '/payment/newebpay/company/addMerchant' +'?merchantId=' + data.merchantId)
+  const add_merchant = async (merchantId) => {
+    const response = await axiosInterface('get', '/payment/newebpay/company/addMerchant' +'?merchantId=' + merchantId)
     return response
   }
   
   const sendNotification = async (data) => {
-    const response = await axiosInterface('post' +'/cpo/notify/fcm', data)
+    const response = await axiosInterface('post', '/cpo/notify/fcm', data)
     return response
   }
 
   const get_edoc = async(data) => {
     let response = undefined
     if (data.filename)
-      response = await axiosInterface('get' + '/edoc?name=' + data.filename)
+      response = await axiosInterface('get', '/edoc?name=' + data.filename)
     else 
-      response = await axiosInterface('get' + '/edoc')
+      response = await axiosInterface('get', '/edoc')
     return response
   }
 
-  const setToken = async (method, data) => {
-    const companyName = data.name
-    delete data.name
-    const response = await axiosInterface(method + '/cpo/' + companyName + '/token', data)
+
+  const createToken = async (companyName, data) => {
+    const response = await axiosInterface('post', '/cpo/' + companyName + '/token', data)
+    return response
+  }
+
+  const patchToken = async (companyName, data) => {
+    const response = await axiosInterface('patch', '/cpo/' + companyName + '/token', data)
+    return response
+  }
+
+  const deleteToken = async (companyName, data) => {
+    const response = await axiosInterface('delete', '/cpo/' + companyName + '/token', data)
     return response
   }
 
   return {
-    setCollectionData, getToken, checkToken, mongoQuery, mongoAggregate,
+    clearCookies, setCollectionData, getToken, checkToken, mongoQuery, mongoAggregate,
     register_member, get_account_info, get_account_detail, edit_account, delete_account,
     resetPW, reset_evse, updateFw, getTimeZone, getCoordinates, getAddress,
     bind_card, search_bind_card, unregister_bind_card, auth_payment, subscribe_plan, member_modify,
-    forgotPW, add_rfid_data, edit_rfid_data, delete_rfid_data, set_rfid_cash, 
+    forgotPW, add_rfid_data, edit_rfid_data, delete_rfid_data, 
     clear_charging_profile, get_composite_schedule, set_charging_profile,
     get_user_payment, get_user_cash, get_paymentHistory, get_cash, 
     change_availability, get_diagnostics, get_configuration, change_configuration, sendNotification,
     add_merchant, get_edoc, remote_start_transaction, remote_stop_transaction,
-    setToken,
+    createToken, patchToken, deleteToken
   }
 }

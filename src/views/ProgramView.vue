@@ -184,7 +184,7 @@ onMounted(async () => {
     <div class="container lg">
       <div class="flex justify-end flex-wrap lg:flex-nowrap pt-40px pb-32px">
         <el-button 
-          v-if="MStore.rule_permission.Program.addProgram === 'O' || MStore.permission.isCompany"  
+          v-if="MStore.rule_permission.Program.addProgram === 'O'"  
           class="btn-secondary shrink-0 box-shadow" @click="add_program">
           {{t('add_program')}}</el-button
         >
@@ -267,7 +267,7 @@ onMounted(async () => {
           <el-table-column prop="" label="" align="center" min-width="100">
             <template #default="scope">
               <el-button
-                v-if="scope.row.name === 'MSI-Free' && (MStore.rule_permission.Program.detail === 'O' || MStore.permission.isCompany)"
+                v-if="scope.row.name === 'MSI-Free' && (MStore.rule_permission.Program.detail === 'O')"
                 disabled
                 class="btn-more"
                 @click="detail_info(scope)"
@@ -275,7 +275,7 @@ onMounted(async () => {
                 <font-awesome-icon icon="fa-solid fa-ellipsis" />
               </el-button>
               <el-button 
-                v-else-if="MStore.rule_permission.Program.detail === 'O' || MStore.permission.isCompany" @click="detail_info(scope)"
+                v-else-if="MStore.rule_permission.Program.detail === 'O'" @click="detail_info(scope)"
                 class="btn-more" >
                 <font-awesome-icon icon="fa-solid fa-ellipsis" />
               </el-button>
@@ -344,7 +344,7 @@ onMounted(async () => {
           <el-button
             round
             class="w-48% bg-btn-100 text-white max-w-140px"
-            v-if="dialog_title === 'Edit Program'"
+            v-if="dialog_title === t('edit_program')"
             @click="deleteDialog"
             >{{ t('delete') }}</el-button
           >

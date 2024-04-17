@@ -210,8 +210,7 @@ const editUserDialog = (action) => {
       else {
         ElMessageBox.confirm(t('do_you_want_to_delete'), t('warning'), { confirmButtonText: t('ok'), cancelButtonText: t('cancel'), type: 'warning' })
           .then(async () => {
-            const params = { role:'rfid', id: general._id }
-            let res = await MsiApi.delete_account(params)
+            let res = await MsiApi.delete_account({ role:'rfid', id: general._id })
             if (res.data.message === 'Accepted') {
               router.push({ name: 'rfidUser' })
             }
@@ -299,9 +298,9 @@ const updateRfidCash = (type) => {
         type: 'warning',
       })
       .then(async() => {
-        const json = JSON.stringify({ id: general._id, rfid: {rfid: rfidData.rfid.toUpperCase(), cash: Number(cash)} })
-        let res = await MsiApi.set_rfid_cash(json)
-        if (res.data.status === 'Accepted') {
+        const json = JSON.stringify({ id: general._id, role: "rfid", rfids: {rfid: rfidData.rfid.toUpperCase(), cash: Number(cash)} })
+        let res = await MsiApi.edit_rfid_data(json)
+        if (res.status === 200) {
           await getRfidUserData()
           await getTransactionData(null)
           getTransaction_PageData()
@@ -370,7 +369,7 @@ const confirmRfid = (action, index) => {
           if (modify_card_index.value === -1) {
             const json = JSON.stringify({ id: general._id, rfid: {rfid: rfidData.rfid.toUpperCase(), cash: parseInt(rfidData.cash), enable: rfidData.enable, nickname: rfidData.nickname} })
             let res = await MsiApi.add_rfid_data(json)
-            if (res.data.status === 'Accepted') {
+            if (res.status === 201) {
               ElMessage({ type: 'success', message: `${t('add')} ${rfidData.rfid.toUpperCase()} ${t('card_no')}` })
               await getRfidUserData()
               await getTransactionData(null)
@@ -383,9 +382,9 @@ const confirmRfid = (action, index) => {
           }
           // Edit RFID Card
           else {
-            const json = JSON.stringify({ id: general._id, rfid: {rfid: rfidData.rfid.toUpperCase(), enable: rfidData.enable, nickname: rfidData.nickname} })
+            const json = JSON.stringify({ id: general._id, role: "rfid", rfids: {rfid: rfidData.rfid.toUpperCase(), enable: rfidData.enable, nickname: rfidData.nickname} })
             let res = await MsiApi.edit_rfid_data(json)
-            if (res.data.status === 'Accepted') {
+            if (res.status === 200) {
               await getRfidUserData()
             }
             else {
@@ -414,9 +413,8 @@ const confirmRfid = (action, index) => {
       else {
         ElMessageBox.confirm(t('do_you_want_to_delete'), t('warning'), { confirmButtonText: t('ok'), cancelButtonText: t('cancel'), type: 'warning' })
         .then(async () => {
-          const params = { id: general._id, rfid: rfids[modify_card_index.value].rfid }
-          let res = await MsiApi.delete_rfid_data(params)
-          if (res.data.status === 'Accepted') {
+          let res = await MsiApi.delete_rfid_data({ id: general._id, rfid: rfids[modify_card_index.value].rfid })
+          if (res.status === 200) {
             await getRfidUserData()
             await getTransactionData(null)
             getTransaction_PageData()
@@ -505,8 +503,7 @@ const getTransactionData = async(filters) => {
     }
     const startTime = new Date(select_time.value[0].getTime() - MStore.timeZoneOffset * -60000)
     const endTime = new Date(select_time.value[1].getTime() - MStore.timeZoneOffset * -60000)
-    let params = {role: 'rfid', id:  user_id, start_date: startTime, end_date: endTime}
-    let response = await MsiApi.get_user_payment(params)
+    let response = await MsiApi.get_user_payment({role: 'rfid', id:  user_id, start_date: startTime, end_date: endTime})
     paymentData.length = 0
     response.data?.data?.forEach((item) => {
       if (filters === null || filters?.tag.length === 0 || filters?.tag.includes(item?.type)) {   // filters?.tag.some(i => item?.type.includes(i))
@@ -537,7 +534,7 @@ const getTransactionData = async(filters) => {
         paymentData.push(item)
       }
     })
-    response = await MsiApi.get_user_cash(params)
+    response = await MsiApi.get_user_cash({role: 'rfid', id:  user_id, start_date: startTime, end_date: endTime})
     response.data?.data?.forEach((item) => {
       if (filters === null || filters?.tag.length === 0 || filters?.tag.includes(item?.type)) {
         let localTime = new Date(new Date(item.created_date).getTime() + MStore.timeZoneOffset * -60000)
@@ -621,7 +618,7 @@ onUnmounted(() => {
                       />
                       <span class="line-height-24px">{{ t('general_info') }}</span>
                     </div>
-                    <el-button link type="primary" v-if="MStore.rule_permission.RfidUserDetail.userEdit === 'O' || MStore.permission.isCompany" @click="editUser()">
+                    <el-button link type="primary" v-if="MStore.rule_permission.RfidUserDetail.userEdit === 'O'" @click="editUser()">
                       <font-awesome-icon
                         class="text-gray-300 w-32px h-32px"
                         icon="fa-regular fa-pen-to-square"
@@ -752,7 +749,7 @@ onUnmounted(() => {
                     />
                     <span class="line-height-24px">{{ t('rfid') }}</span>
                   </div>
-                  <el-button v-if="MStore.rule_permission.RfidUserDetail.addRFID === 'O' || MStore.permission.isCompany"
+                  <el-button v-if="MStore.rule_permission.RfidUserDetail.addRFID === 'O'"
                     class="button h-32px w-full md:w-150px" round @click="editRfid">
                     <!-- <font-awesome-icon class="mr-8px" icon="fa-solid fa-gear" /> -->
                     {{ t('add_rfid') }}
@@ -771,7 +768,7 @@ onUnmounted(() => {
                         }}</span>
                         <div class="pt-5px pr-16px">
                           <el-button
-                            v-if="MStore.rule_permission.RfidUserDetail.deleteRFID === 'O' || MStore.permission.isCompany"
+                            v-if="MStore.rule_permission.RfidUserDetail.deleteRFID === 'O'"
                             link
                             type="primary"
                             size="large"
@@ -784,7 +781,7 @@ onUnmounted(() => {
                             />
                           </el-button>
                           <el-button
-                            v-if="MStore.rule_permission.RfidUserDetail.editRFID === 'O' || MStore.permission.isCompany"
+                            v-if="MStore.rule_permission.RfidUserDetail.editRFID === 'O'"
                             link
                             type="primary"
                             size="large"

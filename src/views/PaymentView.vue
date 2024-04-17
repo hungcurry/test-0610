@@ -237,13 +237,17 @@ const getPaymentData = async(filters) => {
         let localTime = new Date(new Date(item.created_date).getTime() + MStore.timeZoneOffset * -60000)
         item.created_date_str = moment(localTime).format('YYYY-MM-DD HH:mm:ss')
         if (item.charging_price) {
-          item.charging_energy_str = item.charging_energy.toLocaleString()
           item.charging_price_str = item.charging_price.toLocaleString()
+        }
+        if (item.charging_energy) {
+          item.charging_energy_str = item.charging_energy.toLocaleString()
         }
         if (item.parking_price) {
           item.parking_price_str = item.parking_price.toLocaleString()
         }
-        item.money_str = item.money.toLocaleString()
+        if (item.money) {
+          item.money_str = item.money.toLocaleString()
+        }
         PaymentData.push(item)
       }
     })

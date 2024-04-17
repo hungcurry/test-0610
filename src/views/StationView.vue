@@ -277,7 +277,7 @@ onMounted(async () => {
         {{ display_mode }}</el-button
       >
       <el-button
-        v-if="MStore.rule_permission.Station.addStation === 'O' || MStore.permission.isCompany"  
+        v-if="MStore.rule_permission.Station.addStation === 'O'"  
         class="btn-secondary box-shadow"
         :class="addStationStated"
         @click="add_station"

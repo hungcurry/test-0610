@@ -104,7 +104,7 @@ let interval
 onMounted(async () => {
   const myChart = echarts.init(location_map.value)
   let queryData1 = { "database":"OCPI", "collection":"Location", "pipelines": [ 
-      { $match:  { "id": { "UUID" : station_id} } },
+      { $match:  { id: { UUID: station_id} } },
       { "$lookup": {"from":'EVSE', "localField": "evses", "foreignField": "_id", "as":"EVSES"}},
       { "$lookup": {"from":'Connector', "localField": "EVSES.connectors", "foreignField": "_id", "as":"Connector"}},
       { "$project": { 

@@ -20,6 +20,7 @@ const router = useRouter()
 const AddAdminData = reactive([])
 const UserData = reactive([])
 const user_type = reactive([])
+const company = reactive([])
 const editAdminData = reactive([])
 const AdminData_ref = ref()
 const AdminData_rules = reactive({
@@ -60,7 +61,13 @@ const downloadList = async(action, index) => {
     window.dispatchEvent(new Event('resize'))
   }
   else if (action === 'download') {
-    if (deletionData[index].filename_str === '') return
+    if (deletionData[index].filename_str === '') {
+      ElMessage({
+        message: t('file_not_found'),
+        type: 'error',
+      })
+      return
+    }
     let sendData = {filename: deletionData[index].downloadname}
     let res = await MsiApi.get_edoc(sendData)
     if (res.status === 200) {
@@ -102,7 +109,7 @@ const setPermission = (permission_id) => {
 const detail_info = (detail) => {
   EditAdminFormVisible.value = true
   editAdminData.length = 0
-  Object.assign(editAdminData, UserData[detail.$index])
+  Object.assign(editAdminData, detail.row)
   editAdminData.permission_id = editAdminData?.permission?.user
   editAdminData.permission_edit = editAdminData.permission.edit === 1? true : false
   editAdminData.permission_active = editAdminData.permission.active === true? true : false
@@ -131,8 +138,6 @@ const editAdmin = async (action) => {
                 GetPermission()
                 console.log(await MongoAggregate())
                 if (editAdminData.email === MStore.user_data?.email) {
-                  MStore.user_data.first_name = sendData.first_name
-                  MStore.user_data.last_name = sendData.last_name
                   MStore.permission.active = sendData.permission.active
                   MStore.permission.edit = sendData.permission.edit
                   MStore.permission.user = sendData.permission.user
@@ -155,9 +160,7 @@ const editAdmin = async (action) => {
       EditAdminFormVisible.value = false  
       ElMessageBox.confirm(t('do_you_want_to_delete'), t('warning'), { confirmButtonText: t('ok'), cancelButtonText: t('cancel'), type: 'warning' })
         .then(async () => {
-          const params = { role:'admin', id: editAdminData._id }
-          let res = await MsiApi.delete_account(params)
-
+          const res = await MsiApi.delete_account({ role:'admin', id: editAdminData._id })
           if (res.data.message === 'Accepted') {
             GetPermission()
             console.log(await MongoAggregate())
@@ -381,9 +384,10 @@ onMounted(async () => {
   <div class="customer">
     <div class="container lg">
       <div class="flex flex-justify-end flex-items-baseline flex-wrap lg:flex-nowrap pt-40px pb-32px">
-        <el-dropdown class="mr-12px" trigger="click">
+        <el-dropdown 
+          v-if="MStore?.rule_permission?.Administrator?.downloadList === 'O'"  
+          class="mr-12px" trigger="click">
           <el-button
-            v-if="MStore.rule_permission.Administrator.downloadList === 'O' || MStore.permission.isCompany"
             class="download-btn w-full md:w-auto mt-4 md:mt-0 box-shadow"
             @click="downloadList('get')"
           >
@@ -397,14 +401,15 @@ onMounted(async () => {
           <template #dropdown>
             <el-dropdown-menu>
               <el-dropdown-item v-for="(item, index) in deletionData" :key="item.value" 
-              class="w-200px flex-justify-center" @click="downloadList('download', index)">{{ item.filename_str }}
+              class="w-200px flex-justify-center" @click="downloadList('download', index)">
+              {{ deletionData[index].filename_str === '' ? t('file_not_found')  : item.filename_str }}
               </el-dropdown-item>
             </el-dropdown-menu>
           </template>
         </el-dropdown>
 
         <el-button 
-          v-if="MStore.rule_permission.Administrator.addAdmin === 'O' || MStore.permission.isCompany"
+          v-if="MStore.rule_permission.Administrator.addAdmin === 'O'"
           class="btn-secondary box-shadow" @click="addAdminUser"> {{ t('add_admin') }} </el-button>
       </div>
 
@@ -483,7 +488,7 @@ onMounted(async () => {
             >
               <template #default="scope">
                 <el-button 
-                  v-if="MStore.rule_permission.Administrator.detailAdmin === 'O' || MStore.permission.isCompany"
+                  v-if="MStore.rule_permission.Administrator.detailAdmin === 'O'"
                   class="btn-more" @click="detail_info(scope)"> <font-awesome-icon icon="fa-solid fa-ellipsis" /> </el-button>
               </template>
             </el-table-column>
@@ -538,7 +543,7 @@ onMounted(async () => {
                   size="large"
                   @change="setPermission"
                 >
-                  <el-option v-for="item in user_type" :key="item.value" :label="item.name" :value="item._id" />
+                  <el-option v-for="item in user_type" :key="item.value" :label="item.name_str" :value="item._id" />
                 </el-select>
               </el-form-item>
 
@@ -618,9 +623,21 @@ onMounted(async () => {
                   size="large"
                   @change="setPermission"
                 >
-                  <el-option v-for="item in user_type" :key="item.value" :label="item.name" :value="item._id" />
+                  <el-option v-for="item in user_type" :key="item.value" :label="item.name_str" :value="item._id" />
                 </el-select>
               </el-form-item>
+
+              <!-- <el-form-item class="mb-24px" :label="t('company')" prop="permission_str" v-if="MStore.permission.company.name === 'MSI'">
+                <el-select 
+                  class="el-select" 
+                  v-model="editAdminData.permission_str" 
+                  :placeholder="t('select')" 
+                  size="large"
+                  @change="setPermission"
+                >
+                  <el-option v-for="item in user_type" :key="item.value" :label="item.name" :value="item._id" />
+                </el-select>
+              </el-form-item> -->
 
               <el-form-item class="mb-24px w-4em" :label="t('edit')">
                 <el-switch v-model="editAdminData.permission_edit" />

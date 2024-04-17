@@ -420,7 +420,7 @@ onMounted(async () => {
       </div>
       <div class="flex justify-center mb-44px">
         <el-button class="btn-secondary bg-btn-100 md:mr-44px" @click="cancelChargingProfile"> {{t('cancel')}} </el-button>
-        <el-button v-if="MStore.rule_permission.ChargingProfileDetail.save === 'O' || MStore.permission.isCompany"
+        <el-button v-if="MStore.rule_permission.ChargingProfileDetail.save === 'O'"
         class="btn-secondary" @click="saveChargingProfile()"> {{t('save')}} </el-button>
       </div>
     </div>

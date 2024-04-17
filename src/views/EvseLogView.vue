@@ -54,8 +54,8 @@ const select_date = async () => {
   let queryData = { "database":"OCPI", "collection":"Session", "pipelines": [ 
     {
       "$match": {
-        "$expr":{ "$and" : [ { "$gte" : [ "$start_date_time", { "$dateFromString": {"dateString":select_time.value[0]}}]},
-                              { "$lte" : [ "$start_date_time", { "$dateFromString": {"dateString": select_time.value[1]}}] }
+        "$expr":{ "$and" : [ { "$gte" : [ "$start_date_time", { "$dateFromString": {"dateString": select_time.value[0]}}] },
+                             { "$lte" : [ "$start_date_time", { "$dateFromString": {"dateString": select_time.value[1]}}] }
                             ]}
       }
     },

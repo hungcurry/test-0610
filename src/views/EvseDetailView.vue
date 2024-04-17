@@ -1,5 +1,4 @@
 <script setup>
-import axios from 'axios'
 import { ref, reactive, onMounted, onUnmounted} from 'vue'
 import { useRoute, useRouter} from 'vue-router'
 import ApiFunc from '@/composables/ApiFunc'
@@ -31,6 +30,8 @@ const locationData = reactive([])
 const tariffData = reactive([])
 const tariff_elements = reactive([])
 const activeName = ref('one')
+
+let chargePoint_id = ''
 
 const cp_config_core = {
 AllowOfflineTxForUnknownId: undefined,
@@ -123,25 +124,35 @@ const remote_transaction_rules = reactive({
 const deleteEvse = () => {
   ElMessageBox.confirm(t('do_you_want_to_delete'), t('warning'), {confirmButtonText: t('ok'), cancelButtonText: t('cancel'), type: 'warning'})
   .then(async () => {
-    let sendData = { 'class' : 'EVSE', 'id' : evseId }
-    console.log(await MsiApi.setCollectionData('delete', 'ocpi', sendData))
-
-    sendData = { 'class' : 'Connector', 'id' : connectorData.id }
-    console.log(await MsiApi.setCollectionData('delete', 'ocpi', sendData))
-
-    if(chargePointInfoData.hmi !== '') { 
-      sendData = { 'class' : 'HMIControlBoardInfo', 'pk' : chargePointInfoData.hmi }
-      console.log(await MsiApi.setCollectionData('delete', 'cpo', sendData))
+    let evse_id 
+    if (locationData.name !== '') {
+      let queryData = { database: 'OCPI', collection: 'EVSE',
+                      pipelines: [ { $match: { uid: { UUID: evseId}}}, { $project: { _id: 1} }],
+                  }
+      let response = await MsiApi.mongoAggregate(queryData)
+      evse_id = (response.data.result[0]._id)
     }
-    let evseArr = []
-    for (let i = 0; i < locationData?.evses?.length; i++) {
-      if (locationData.evses[i].uid === evseId) {
-        continue
-      }
-      evseArr.push(locationData.evses[i]._id)
+    let sendData = { class: 'EVSE', id: evseId, status: "REMOVED" }
+    console.log(await MsiApi.setCollectionData('patch', 'ocpi', sendData))
+
+    // sendData = { class : 'Connector', id : connectorData.id }
+    // console.log(await MsiApi.setCollectionData('delete', 'ocpi', sendData))
+
+    if (locationData.name !== '') {
+      let evseArr = locationData.evses
+      evseArr = evseArr.filter(item => item !== evse_id)
+      let sendData1 = { class : 'Location', id: locationData.id, evses : evseArr}
+      console.log(await MsiApi.setCollectionData('patch', 'ocpi', sendData1))
     }
-    let sendData1 = { 'class' : 'Location', 'id': locationData.id, 'evses' : evseArr}
-    console.log(await MsiApi.setCollectionData('patch', 'ocpi', sendData1))
+
+    // if(chargePointInfoData.hmi !== '' && chargePointInfoData.hmi !== null && chargePointInfoData.hmi !== undefined) { 
+    //   sendData = { class : 'HMIControlBoardInfo', pk : chargePointInfoData.hmi }
+    //   console.log(await MsiApi.setCollectionData('delete', 'cpo', sendData))
+    // }
+
+    sendData = { class: 'ChargePointInfo', pk: chargePoint_id, hmi: "" }
+    console.log(await MsiApi.setCollectionData('patch', 'cpo', sendData))
+
 
     router.back(-1)
   })
@@ -275,6 +286,10 @@ const filterRemoteRfid = async() => {
     ],
   }
   let response = await MsiApi.mongoAggregate(queryData)
+
+  if(response.data.result.length === 0 || response.data.result[0]?.rfids.length === 0){
+    ElMessage.error(t(`please_bind_rfid_num`))
+  }
   remote_transaction_data.rfid_list = {}
   remote_transaction_data.rfid_num = undefined
   if (response.data?.result[0]?.rfids) {
@@ -283,14 +298,15 @@ const filterRemoteRfid = async() => {
 }
 let interval = undefined
 let interval1 = undefined
-let retry = 3
+let retry = 3 
 
 const check_uploaded  = async () => {
   let queryData = { database: 'CPO', collection: 'ChargePointInfo', pipelines: [{ $match: {evse_id:evseData.evse_id},},{ $project: { _id: 0 } }]}
   let response = await MsiApi.mongoAggregate(queryData)
-  console.log(response)
   if (response.data.result?.[0]?.ocpp_info?.[0]?.statusNotification?.diagnosticsStatus === "Uploaded") {
-    window.location.href = 'https://storage.googleapis.com/msi-hmi-logs/cs_logs.zip'
+    let evseId_replace = evseData.evse_id.replace(/[^a-zA-Z0-9]/g, '_')
+    let fileName = 'cs_logs_' + evseId_replace
+    window.location.href = 'https://storage.googleapis.com/msi-hmi-logs/' + fileName + '.zip'
     clearInterval(interval)
   }
   else {
@@ -308,11 +324,7 @@ const getDiagnostics = async () => {
   ElMessageBox.confirm(t('do_you_want_to_get_diagnostics'), t('warning'), {confirmButtonText: t('ok'), cancelButtonText: t('cancel'), type: 'warning'})
   .then(async () => {
     
-    let sendData = {
-      evse_id: evseData.evse_id,
-      location: "https://storage.googleapis.com/msi-hmi-logs/",
-    }
-    let response = await MsiApi.get_diagnostics(sendData)
+    let response = await MsiApi.get_diagnostics({ evse_id: evseData.evse_id, location: "https://storage.googleapis.com/msi-hmi-logs/"})
     console.log(response)
     if (response.status === 200) {
       interval = setInterval(check_uploaded, 5000) 
@@ -327,10 +339,8 @@ const getDiagnostics = async () => {
 const getConfiguration = async () => {
   ElMessageBox.confirm(t('do_you_want_to_get_configuration'), t('warning'), {confirmButtonText: t('ok'), cancelButtonText: t('cancel'), type: 'warning'})
   .then(async () => {
-    let sendData = {
-      evse_id: evseData.evse_id,
-    }
-    const response = await MsiApi.get_configuration(sendData)
+    const response = await MsiApi.get_configuration(evseData.evse_id)
+    console.log(123, response)
     if (response.status === 200) {
       cp_config.length = 0
       Object.assign(cp_config, response.data.configurationKey)
@@ -502,7 +512,13 @@ const confirmRemoteTransaction = async() => {
             connector: 1,
             idTag: remote_transaction_data.rfid_num,
           }
-          await MsiApi.remote_start_transaction(sendData)
+          let res = await MsiApi.remote_start_transaction(sendData)
+          if (res.data.message !== null && res.data.message === 'Accepted') {
+            ElMessage.success('Success')
+          }
+          else {
+            ElMessage.error(t('error'))
+          }
         })
       }
     })
@@ -529,10 +545,14 @@ const confirmRemoteTransaction = async() => {
 }
 
 const getRealTimeEvseInfo = async () => {
-  let queryData = { "database":"OCPI", "collection":"EVSE", "query": { "uid": {"UUID":evseId}}}
-  let response = await MsiApi.mongoQuery(queryData)
   let localStartTime 
-  Object.assign(evseData, response.data.all[0]) 
+  let queryData = { database: "OCPI", collection: "EVSE", 
+      pipelines: [ { $match:  { uid: { UUID: evseId}} }, 
+      { $project: {  byCompany: 0 } }]
+    }
+  let response = await MsiApi.mongoAggregate(queryData)
+  Object.assign(evseData, response.data.result[0]) 
+
   let localEndTime =  new Date( (new Date(evseData.last_updated).getTime()) + ((MStore.timeZoneOffset ) * -60000))
   evseData.last_updated_str = (moment(localEndTime).format("YYYY-MM-DD HH:mm:ss"))
   remote_transaction_title.value = t('remote_start')
@@ -600,7 +620,7 @@ const fillFullCalendar = () => {
   let parkingCount = 0
 
   for (let i=0; i<tariffObj.length; i++) {
-    for (let j=0; j<tariffObj[i].restrictions.day_of_week.length; j++) {
+    for (let j=0; j<tariffObj[i]?.restrictions?.day_of_week?.length; j++) {
       if (tariffObj[i].restrictions.day_of_week[j] === 'MONDAY') daysOfWeek.push('1')
       if (tariffObj[i].restrictions.day_of_week[j] === 'TUESDAY') daysOfWeek.push('2')
       if (tariffObj[i].restrictions.day_of_week[j] === 'WEDNESDAY') daysOfWeek.push('3')
@@ -675,8 +695,8 @@ const fillFullCalendar = () => {
 }
 const overEventHeight = (startTimeStr, endTimeStr) => {
   let rowHeight = 24;
-  let startTime = parseInt(startTimeStr.split(':')[0])*60 + parseInt(startTimeStr.split(':')[1])
-  let endTime = parseInt(endTimeStr.split(':')[0])*60 + parseInt(endTimeStr.split(':')[1])
+  let startTime = parseInt(startTimeStr?.split(':')[0])*60 + parseInt(startTimeStr?.split(':')[1])
+  let endTime = parseInt(endTimeStr?.split(':')[0])*60 + parseInt(endTimeStr?.split(':')[1])
   let eventHeight = (endTime - startTime) / 120 * rowHeight
   if (eventHeight < 5 * rowHeight) {
     return true
@@ -977,9 +997,14 @@ onMounted( async () => {
   let queryData
   let response
   let localEndTime
-  queryData = { "database":"OCPI", "collection":"Connector", "query": { "_id": { "ObjectId" : evseData?.connectors?.[0]?._id}}}
-  response = await MsiApi.mongoQuery(queryData)
-  Object.assign(connectorData, response.data.all[0])
+  
+  queryData = { database: "OCPI", collection: "Connector", 
+      pipelines: [ { $match: { "_id": { "ObjectId" : evseData?.connectors?.[0]}} }, 
+      { $project: {  byCompany: 0 } }]
+    }
+  response = await MsiApi.mongoAggregate(queryData)
+
+  Object.assign(connectorData, response.data.result[0])
   if (connectorData.standard === 'IEC_62196_T1') 
     connectorData.type_str = 'Type 1 (J1772)'
   else if (connectorData.standard === 'IEC_62196_T2')
@@ -989,20 +1014,35 @@ onMounted( async () => {
   
   localEndTime =  new Date( (new Date(connectorData.last_updated).getTime()) + ((MStore.timeZoneOffset ) * -60000))
   connectorData.last_updated_str = (moment(localEndTime).format("YYYY-MM-DD HH:mm:ss"))
-  queryData = { "database":"CPO", "collection":"ChargePointInfo", "query": { "evse": { "ObjectId" : evseData?._id}}}
-  response = await MsiApi.mongoQuery(queryData)
-  Object.assign(chargePointInfoData, response.data.all[0])
-  hmiInfoData.max_amperage = 0
-  if(chargePointInfoData.hmi !== '') {
-    queryData = { "database":"CPO", "collection":"HMIControlBoardInfo", "query": { "_id": { "ObjectId" : chargePointInfoData?.hmi}}}    
-    response = await MsiApi.mongoQuery(queryData)
-    Object.assign(hmiInfoData, response.data.all[0])    
-    if (hmiInfoData.minmax_current)
-      hmiInfoData.max_amperage = (hmiInfoData.minmax_current.split(" ").map(hex => parseInt(hex, 16)))[7]
+  
+  queryData = { database: "CPO", collection: "ChargePointInfo", 
+      pipelines: [ { $match: { "evse": { "ObjectId" : evseData?._id}} }, 
+      { $project: {  byCompany11: 0 } }]
+    }
+  response = await MsiApi.mongoAggregate(queryData)
+  if (response.data.result.length !== 0) {
+    chargePoint_id = response.data.result[0]._id
+    Object.assign(chargePointInfoData,response.data.result[0])
+    hmiInfoData.max_amperage = 0
+    if(chargePointInfoData.hmi !== '') {
+      queryData = { database: "CPO", collection: "HMIControlBoardInfo", 
+        pipelines: [ { $match:  { "_id": { "ObjectId" : chargePointInfoData?.hmi}} }, 
+        { $project: {  byCompany: 0 } }]
+      }
+      response = await MsiApi.mongoAggregate(queryData)
+
+      Object.assign(hmiInfoData, response.data.result[0])    
+      if (hmiInfoData.minmax_current)
+        hmiInfoData.max_amperage = (hmiInfoData.minmax_current.split(" ").map(hex => parseInt(hex, 16)))[7]
+    }
   }
-  queryData = { "database":"OCPI", "collection":"Location", "query": {  "evses" : {"$in": [  {"ObjectId" : evseData?._id }]}  }}
-  response = await MsiApi.mongoQuery(queryData)
-  if (response.data.all.length === 0) {
+  queryData = { database: "OCPI", collection: "Location", 
+      pipelines: [ { $match: { "evses" : {"$in": [  {"ObjectId" : evseData?._id }]} } }, 
+      { $project: {  byCompany: 0 } }]
+    }
+  response = await MsiApi.mongoAggregate(queryData)
+
+  if (response.data.result.length === 0) {
     if(locationData.name === undefined)
       locationData.name = ''
     if(locationData.country === undefined)
@@ -1017,8 +1057,9 @@ onMounted( async () => {
       locationData.address1 = ''
   }
   else {
-    Object.assign(locationData, response.data.all[0])
+    Object.assign(locationData, response.data.result[0])
   }
+  console.log(locationData)
   const addr_parts = locationData.address.split('\n')
   const city_parts = locationData.city.split('\n')
   if (addr_parts.length === 2) {
@@ -1029,15 +1070,20 @@ onMounted( async () => {
     locationData.city = city_parts[0]
     locationData.city1 = city_parts[1]
   }
-  queryData = { "database":"OCPI", "collection":"Tariff", "query": { "id": { "UUID" : connectorData.tariff_ids[0]}}}
-  response = await MsiApi.mongoQuery(queryData)
-  Object.assign(tariffData, response.data.all[0])
+
+  queryData = { database: 'OCPI', collection: 'Tariff',
+                      pipelines: [ { $match: { id: { UUID: connectorData.tariff_ids?.[0]}}}, 
+                      { $project: { _id: 0, byCompany:0, last_updated:0, type:0, id:0, country_code:0, party_id:0} }],
+                  }
+  response = await MsiApi.mongoAggregate(queryData)
+  Object.assign(tariffData, response.data.result[0])
   tariffData.name = tariffData.custom?.name
   tariffData.description = tariffData.custom?.description
   
   Object.assign(tariff_elements, tariffData.elements )
   
   tariff_elements.forEach((item)=> {
+    if(!item?.restrictions?.day_of_week) return
     let day_of_week_str = []
     for (const day of item.restrictions.day_of_week) {
       switch (day) {
@@ -1126,26 +1172,26 @@ onUnmounted(() => {
                 <span>{{ locationData.city1 + locationData.address1 }}</span>
               </p>
               <div class="flex justify-end" >
-                <el-button v-if="MStore.rule_permission.EVSEDetail.changeAvailablility === 'O' || MStore.permission.isCompany"
+                <el-button v-if="MStore.rule_permission.EVSEDetail.changeAvailablility === 'O'"
                   type="primary" class="btn-secondary box-shadow delete" @click="changeAvailability"> {{t('change_availability')}} </el-button>
-                  <el-button v-if="MStore.rule_permission.EVSEDetail.delete === 'O' || MStore.permission.isCompany"
+                  <el-button v-if="MStore.rule_permission.EVSEDetail.delete === 'O'"
                   type="primary" class="btn-secondary box-shadow delete" @click="deleteEvse"> {{t('delete')}} </el-button>
-                  <el-button v-if="MStore.rule_permission.EVSEDetail.edit === 'O' || MStore.permission.isCompany"
+                  <el-button v-if="MStore.rule_permission.EVSEDetail.edit === 'O'"
                   type="primary" class="btn-secondary box-shadow edit" @click="edit"> {{t('edit')}} </el-button>
               </div>
               <br>
               <div class="flex justify-end">
-                <!-- <el-button v-if="MStore.rule_permission.EVSEDetail.dataTransfer === 'O' || MStore.permission.isCompany" disabled
+                <!-- <el-button v-if="MStore.rule_permission.EVSEDetail.dataTransfer === 'O'" disabled
                   type="primary" class="btn-secondary box-shadow delete" @click="dataTransfer"> {{t('data_transfer')}} </el-button> -->
-                <el-button v-if="MStore.rule_permission.EVSEDetail.remoteTransaction === 'O' || MStore.permission.isCompany"
+                <el-button v-if="MStore.rule_permission.EVSEDetail.remoteTransaction === 'O'"
                   type="primary" class="btn-secondary box-shadow delete" @click="remoteTransaction"> {{ remote_transaction_title }} </el-button>
-                <el-button v-if="MStore.rule_permission.EVSEDetail.getDiagnostics === 'O' || MStore.permission.isCompany"
+                <el-button v-if="MStore.rule_permission.EVSEDetail.getDiagnostics === 'O'"
                   type="primary" class="btn-secondary box-shadow delete" @click="getDiagnostics"> {{t('get_diagnostics')}} </el-button>
-                <el-button v-if="MStore.rule_permission.EVSEDetail.configuration === 'O' || MStore.permission.isCompany"
+                <el-button v-if="MStore.rule_permission.EVSEDetail.configuration === 'O'"
                   type="primary" class="btn-secondary box-shadow delete" @click="openConfigurationDialog"> {{t('configuration')}} </el-button>
 
                   <el-dropdown class="ml-12px">
-                  <el-button v-if="MStore.rule_permission.EVSEDetail.chargingProfile === 'O' || MStore.permission.isCompany" 
+                  <el-button v-if="MStore.rule_permission.EVSEDetail.chargingProfile === 'O'" 
                     type="primary" class="btn-secondary box-shadow delete"> {{t('charging_profile')}} </el-button>
                   <template #dropdown>
                     <el-dropdown-menu>
@@ -1173,7 +1219,7 @@ onUnmounted(() => {
               <div class="container-data h-full md:px-32px">
                 <!-- <div class="info-item">
                   <p class="info-title w-50%">Charger ID</p>
-                  <p class="info-value w-50% ml-24px">{{ evseData.uid }}</p>
+                  <p class="info-value w-50% ml-24px">{{ !.uid }}</p>
                 </div> -->
                 <div class="info-item">
                   <p class="info-title w-50%"> {{ t('evse_id') }}</p>
@@ -1630,14 +1676,26 @@ onUnmounted(() => {
           </el-form-item>
           <el-form-item class="m-auto w-360px mb-24px" :label= "t('rfid_num')" prop="rfid_num" label-width="100px" >
             <el-select v-model="remote_transaction_data.rfid_num" class="w-240px" :placeholder="t('select')" size="large">
-              <el-option v-for="item in remote_transaction_data.rfid_list" :label="item.nickname + ' (' + item.rfid + ')'" :value="item.rfid" />
-            </el-select>
+              <el-option 
+                v-if="Object.keys(remote_transaction_data.rfid_list).length === 0"
+                :label="$t('please_bind_rfid_num')" 
+                :value="$t('please_bind_rfid_num')" 
+              />
+              <el-option 
+                v-else
+                v-for="item in remote_transaction_data.rfid_list" 
+                :key="item.rfid"
+                :label="item.nickname + ' (' + item.rfid + ')'" 
+                :value="item.rfid"
+              />
+            </el-select>   
           </el-form-item>
         </el-form>
       </div>
       <template #footer>
         <span class="dialog-footer flex flex-center">
-          <el-button 
+          <el-button
+            :disabled="Object.keys(remote_transaction_data.rfid_list).length === 0"
             round class="w-48% bg-btn-100 text-white max-w-140px" @click.stop="confirmRemoteTransaction">
             {{ t('confirm') }}
           </el-button>

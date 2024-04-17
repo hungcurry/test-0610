@@ -239,29 +239,19 @@ const select_date = async () => {
   date_select('customize')
 }
 const date_select = async (select_time) => {
-  let select_time1 = []
-  now = new Date()
-  if (select_time === 'all') {
+  let select_time1 = [now, now]
+  if (select_time === 'all')
     select_time1[0] = new Date(created_date.value)
-    select_time1[1] = now
-  }
-  else if (select_time === 'today') {
+  else if (select_time === 'today') 
     select_time1[0] = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-    select_time1[1] = now
-  }
-  else if (select_time === 'week') {
+  else if (select_time === 'week')
     select_time1[0] = new Date(now.getFullYear(), now.getMonth(), now.getDate() - now.getDay())
-    select_time1[1] = now
-  }
-  else if (select_time === 'month') {
+  else if (select_time === 'month') 
     select_time1[0] = new Date(now.getFullYear(), now.getMonth())
-    select_time1[1] = now
-  }
   else if (select_time === 'customize') {
     select_time1[0] = new Date(selectTime.value[0].getTime())
     select_time1[1] = new Date(selectTime.value[1].getTime())
   }
-  console.log(select_time1)
   customize_start_time.value =  moment(select_time1[0]).format('YYYY-MM-DD HH:mm:ss')
   customize_end_time.value =  moment(select_time1[1]).format('YYYY-MM-DD HH:mm:ss')
   queryTotalUsedTime(select_time1)
@@ -314,7 +304,7 @@ const queryTotalUsedPower = async (select_time1) => {
     let charge_kwh = 0
     response.data.result.forEach((item) => {
       item.operator_types.forEach( (operator_types) => {
-        if (operator_types.type === 'charge') {
+        if (operator_types.type === 'charge' && operator_types.kwh) {
           charge_kwh += operator_types.kwh
         }
       })
@@ -377,7 +367,6 @@ const queryTotalUsedTime = async (select_time1) => {
     charger_time.min = duration.minutes().toString().padStart(2, '0');
     duration = moment.duration(parking_time.sec, 'seconds')
     parking_time.hr = Math.floor(duration.asHours()).toLocaleString()
-    
     parking_time.min = duration.minutes().toString().padStart(2, '0');
     isFetchingTotalUsedTime = false
   }
@@ -426,18 +415,9 @@ const queryTotalUsedTimes = async (select_time1) => {
             RFID: [{ $match: { 'paymethod.method': 'RFID' } }, { $count: 'RFID' }],
             CREDIT: [{ $match: { 'paymethod.method': 'CREDIT' } }, { $count: 'CREDIT' }],
             FREE: [{ $match: { 'paymethod.method': 'FREE' } }, { $count: 'FREE' }],
-            APPLEPAY: [
-              { $match: { 'paymethod.method': 'APPLEPAY' } },
-              { $count: 'APPLEPAY' },
-            ],
-            SAMSUNGPAY: [
-              { $match: { 'paymethod.method': 'SAMSUNGPAY' } },
-              { $count: 'SAMSUNGPAY' },
-            ],
-            GOOGLEPAY: [
-              { $match: { 'paymethod.method': 'GOOGLEPAY' } },
-              { $count: 'GOOGLEPAY' },
-            ],
+            APPLEPAY: [{ $match: { 'paymethod.method': 'APPLEPAY' } }, { $count: 'APPLEPAY' }],
+            SAMSUNGPAY: [ { $match: { 'paymethod.method': 'SAMSUNGPAY' } }, { $count: 'SAMSUNGPAY' }],
+            GOOGLEPAY: [ { $match: { 'paymethod.method': 'GOOGLEPAY' } }, { $count: 'GOOGLEPAY' }],
             totalCount: [{ $group: { _id: null, totalCount: { $sum: 1 } } }],
             income: [ { $match: { currency: { $in: [ "TWD", "USD", "CNY", "JPY", "EUR"] }}},
                       { $group: { _id: "$currency", total: { $sum: "$price" } } } 
@@ -468,21 +448,16 @@ const queryTotalUsedTimes = async (select_time1) => {
     if (response.data.result[0].income.length > 0) {
       totalTWD.value = 0
       for (let i = 0; i < response.data.result[0].income.length; i++){
-        if (response.data.result[0].income[i]._id === 'USD') {
+        if (response.data.result[0].income[i]._id === 'USD') 
           totalTWD.value += response.data.result[0].income[i].total * rate.USD
-        }
-        if (response.data.result[0].income[i]._id === 'CNY') {
+        else if (response.data.result[0].income[i]._id === 'CNY') 
           totalTWD.value += response.data.result[0].income[i].total * rate.CNY
-        }
-        if (response.data.result[0].income[i]._id === 'TWD') {
+        else if (response.data.result[0].income[i]._id === 'TWD') 
           totalTWD.value +=  response.data.result[0].income[i].total * 1
-        }
-        if (response.data.result[0].income[i]._id === 'EUR') {
+        else if (response.data.result[0].income[i]._id === 'EUR') 
           totalTWD.value += response.data.result[0].income[i].total * rate.EUR
-        }
-        if (response.data.result[0].income[i]._id === 'JPY') {
+        else if (response.data.result[0].income[i]._id === 'JPY') 
           totalTWD.value += response.data.result[0].income[i].total * rate.JPY
-        }
         queryData = {
           database: 'CPO',
           collection: 'CompanyInformation',
@@ -680,8 +655,7 @@ const queryLast7dayUsed = async () => {
   power_times_option && power_time_type.setOption(power_times_option)
 }
 
-const queryEvseError = async() =>
-{
+const queryEvseError = async () => {
   let queryData = {
     database: 'OCPI',
     collection: 'Location',
@@ -1031,7 +1005,7 @@ onMounted(async () => {
                   />
                 </el-select>
                 <el-button 
-                  v-if="MStore.rule_permission.Dashboard.payment === 'O' || MStore.permission.isCompany" class="ellipsis ml-8" @click="goto_payment">
+                  v-if="MStore.rule_permission.Dashboard.payment === 'O'" class="ellipsis ml-8" @click="goto_payment">
                   <font-awesome-icon icon="fa-solid fa-ellipsis"/>
                 </el-button>
                 <el-tooltip content="Convert based on the current buying exchange rates from Taiwan Bank." placement="top">

@@ -36,10 +36,13 @@ const updateConfirm = async () => {
 }
 const updateSW = async() => {
   sw_version_visable.value = true
-  let queryData = { "database":"CPO", "collection":"VersionControl", "query": { "type": 'XP012'}}
-  let response = await MsiApi.mongoQuery(queryData)
-  fwVersion.value = response.data.all[0].version
-  let release_note = response.data.all[0].release_note.find(obj => obj.version === fwVersion.value)
+  let queryData = { database: 'CPO', collection: 'VersionControl',
+    pipelines: [{ $match: { type: { $eq: 'XP012' } } },
+    { $project: { _id: 0, type:0, release_date:0, "release_note.description": 0,"release_note.update_time": 0} }
+  ]}
+  let response = await MsiApi.mongoAggregate(queryData)
+  fwVersion.value = response.data.result[0].version
+  let release_note = response.data.result[0].release_note.find(obj => obj.version === fwVersion.value)
   if (release_note) {
     update_file.value = release_note.file
   }
@@ -116,7 +119,7 @@ const goto_map = async () => {
 
 onMounted( async () => {
   let queryData1 = { "database":"OCPI", "collection":"Location", "pipelines": [ 
-  { $match:  { "id": { "UUID" : station_id} } },
+  { $match:  { id: { UUID : station_id} } },
     { "$lookup": {"from":'EVSE', "localField": "evses", "foreignField": "_id", "as":"EVSES"}},
     { "$lookup": {"from":'Connector', "localField": "EVSES.connectors", "foreignField": "_id", "as":"Connector"}},
     { "$project": { 
@@ -250,7 +253,9 @@ onMounted( async () => {
             <div class="flex">
               <span class="station-name text-36px font-bold mr-20px">{{ StationData.name }}</span>
               <font-awesome-icon class="text-secondary w-32px h-32px mt-3px" icon="fa-regular fa-pen-to-square" @click="go_to_station_edit_page() " style="cursor:pointer"/>
-              <el-button v-if="MStore.permission.isMSI === true && MStore.rule_permission.Payment.page === 'O'" class="btn-secondary w-100px update-button" @click="goto_map"> {{ t('map') }} </el-button>
+              <el-button v-if="MStore.permission.isMSI === true && MStore.rule_permission.StationDetail.map === 'O'"
+                class="btn-secondary w-100px update-button ml-10px" @click="goto_map"> {{ t('map') }}
+              </el-button>
             </div>
             <p class="text-20px text-blue-900 ml-24px"> {{ t('last_updated') }} : {{ StationData.last_updated_str }} </p>
           </div>
@@ -324,13 +329,13 @@ onMounted( async () => {
 
     <div class="container lg pb-40px bg-blue-100 flex-grow">
       <div class="flex lg:justify-end pt-24px pb-24px overflow-x-auto">
-        <el-button v-if="editMode === true && (MStore.rule_permission.StationDetail.update === 'O' || MStore.permission.isCompany)" 
+        <el-button v-if="editMode === true && (MStore.rule_permission.StationDetail.update === 'O')" 
         class="btn-secondary shrink-0 update-button px-30px box-shadow" @click="updateSW"> {{ t('update_sw') }} </el-button>
-        <el-button v-if="editMode === true && (MStore.rule_permission.StationDetail.reset === 'O' || MStore.permission.isCompany)" 
+        <el-button v-if="editMode === true && (MStore.rule_permission.StationDetail.reset === 'O')" 
         class="btn-secondary shrink-0 soft-reset-button px-30px box-shadow" @click="evseReset('soft')"> {{ t('soft_reset') }} </el-button>
-        <el-button v-if="editMode === true && (MStore.rule_permission.StationDetail.reset === 'O' || MStore.permission.isCompany)"
+        <el-button v-if="editMode === true && (MStore.rule_permission.StationDetail.reset === 'O')"
         class="btn-secondary shrink-0 hard-reset-button px-30px box-shadow" @click="evseReset('hard')"> {{ t('hard_reset') }} </el-button>
-        <div v-if="MStore.rule_permission.StationDetail.update === 'O' || MStore.rule_permission.StationDetail.reset === 'O' || MStore.permission.isCompany"  > 
+        <div v-if="MStore.rule_permission.StationDetail.update === 'O' || MStore.rule_permission.StationDetail.reset === 'O'"  > 
           <el-button class="btn-secondary shrink-0  px-30px box-shadow" @click="edit_charger" > {{ t(edit_button_str) }}</el-button>
         </div>
       </div>

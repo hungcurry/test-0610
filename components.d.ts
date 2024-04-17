@@ -60,7 +60,6 @@ declare module 'vue' {
     IconTooling: typeof import('./src/components/icons/IconTooling.vue')['default']
     MainContent: typeof import('./src/components/MainContent.vue')['default']
     PasswordModal: typeof import('./src/components/Modal/PasswordModal.vue')['default']
-    PermissItem: typeof import('./src/components/Collapse/PermissItem.vue')['default']
     PrivacyModal: typeof import('./src/components/Modal/PrivacyModal.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']

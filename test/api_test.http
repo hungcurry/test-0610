@@ -347,3 +347,24 @@ Authorization: {{Token}}
 {
     "token": "06e79cb8-5628-4085-b429-f03d89ef2755"
 }
+
+###
+POST https://member.msi.com.tw/api/ygxZaH9cVF3PtD6N
+content-type: application/json
+Accept: application/json
+
+{
+    "username": "9af494e6-c4cb-4cc0-92b0-e897b61a61cd",
+    "key": "NXY8Mdw7ZzpyzKbnHIzHGcwR3ltkABz1AsvL6PFC",
+    "source": "oauth"
+}
+
+###
+POST https://member.msi.com.tw/api/6psbV5BuN7AsNBRV/service-summary
+content-type: application/json
+Accept: application/json
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE3MDU2NTEwNzEsIm5iZiI6MTcwNTY1MTA3MSwiZXhwIjoxNzA1NjU4MjcxLCJkYXRhIjp7InNvdXJjZSI6Ik1TSSBFVlNFIEFQSSIsInVzZXJfbmFtZSI6IjlhZjQ5NGU2LWM0Y2ItNGNjMC05MmIwLWU4OTdiNjFhNjFjZCIsImtleSI6Ik5YWThNZHc3WnpweXpLYm5ISXpIR2N3UjNsdGtBQnoxQXN2TDZQRkMifX0.Cr8YZaKeUvpMhqvKurnd66nZ_iTjx9lgElzLou5x5VA
+
+{
+    "product_sn": "XP01231900002"
+}

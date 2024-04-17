@@ -216,14 +216,20 @@ const convertTimeToHours = (timeString) => {
 }
 
 onMounted(async () => {
-  let jsonData = { "database": "OCPI", "collection": "Location", "query": { "id": { "UUID": station_id } } }
   if (station_id === undefined) {
     edit_title.value = t('add_station')
   }
   else {
-    let response = await MsiApi.mongoQuery(jsonData)
+    let queryData = { database: 'OCPI', collection: 'Location', 
+    pipelines: [
+        { $match: { id: { $eq: { UUID: station_id } } }},
+        { $project: { _id: 0, byCompany:0, last_updated:0 } }
+      ],
+    }
+    let response = await MsiApi.mongoAggregate(queryData)
+    console.log(response)
     StationData.length = 0
-    Object.assign(StationData, response.data.all[0])
+    Object.assign(StationData, response.data.result[0])
     if (StationData?.opening_times?.regular_hours) {
       StationData.opening_times.regular_hours.forEach ( (item) => {
         let hours1 = convertTimeToHours(item.period_begin);
@@ -429,9 +435,9 @@ onMounted(async () => {
       </div>
 
       <div class="flex flex-justify-center pb-40px">
-        <el-button class="btn-secondary bg-btn-100 md:mr-44px" v-if="station_id && (MStore.rule_permission.StationEdit.delete === 'O' || MStore.permission.isCompany)" @click="deleteStation"> {{t('delete') }} </el-button>
+        <el-button class="btn-secondary bg-btn-100 md:mr-44px" v-if="station_id && (MStore.rule_permission.StationEdit.delete === 'O')" @click="deleteStation"> {{t('delete') }} </el-button>
         <el-button class="btn-secondary bg-btn-100 md:mr-44px" @click="backStation"> {{ t('cancel') }}  </el-button>
-        <el-button class="btn-secondary" v-if="MStore.rule_permission.StationEdit.save === 'O' || MStore.permission.isCompany"   @click="saveStation(ruleFormRef)"> {{ t('save') }}  </el-button>
+        <el-button class="btn-secondary" v-if="MStore.rule_permission.StationEdit.save === 'O'" @click="saveStation(ruleFormRef)"> {{ t('save') }}  </el-button>
       </div>
     </div>
   </div>

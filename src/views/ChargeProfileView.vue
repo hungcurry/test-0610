@@ -134,7 +134,7 @@ onMounted(async () => {
   <div class="container lg pb-40px">
     <div class="flex flex-justify-end flex-wrap lg:flex-nowrap pt-40px pb-32px">
       <el-button 
-        v-if="MStore.rule_permission.ChargingProfile.addProfile === 'O' || MStore.permission.isCompany"
+        v-if="MStore.rule_permission.ChargingProfile.addProfile === 'O'"
         class="btn-secondary box-shadow" @click="AddChargingProfile">
         {{ t('add_charging_profile') }}
       </el-button>
@@ -151,12 +151,12 @@ onMounted(async () => {
       <el-table-column prop="" label="" align="center" min-width="120" >
         <template #default="scope">
           <el-button 
-            v-if="MStore.rule_permission.ChargingProfile.deleteProfile === 'O' || MStore.permission.isCompany"
+            v-if="MStore.rule_permission.ChargingProfile.deleteProfile === 'O'"
             link type="primary" size="large" @click="DelChargingProfile(scope.row)" >
             <img src="@/assets/img/tariff_delete1.png" alt="">
           </el-button>
           <el-button 
-            v-if="MStore.rule_permission.ChargingProfile.detail === 'O' || MStore.permission.isCompany"
+            v-if="MStore.rule_permission.ChargingProfile.detail === 'O'"
             link type="primary" size="large" @click="EditChargingProfile(scope.row)" class="edit-btn" >
             <font-awesome-icon icon="fa-regular fa-pen-to-square" />
           </el-button>

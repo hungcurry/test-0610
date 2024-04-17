@@ -110,6 +110,7 @@ export default {
     method:                                                                                         'Method',
     min:                                                                                            'min',
     min_charging_rate:                                                                              'Min Charging Rate',
+    min_current:                                                                                    'Min Current',
     min_price:                                                                                      'Min Price',
     mon:                                                                                            'Mon.',
     name:                                                                                           'Name',
@@ -241,6 +242,7 @@ export default {
     app_member:                                                                                     'App Member',
     by_evse:                                                                                        'By EVSE',
     by_station:                                                                                     'By Station',
+    cdr:                                                                                            'CDR',
     charging_profile:                                                                               'Charging Profile',
     company_cpo:                                                                                    'Company / CPO',
     dashboard:                                                                                      'Dashboard',
@@ -269,6 +271,7 @@ export default {
     success:                                                                                        'Success',
     the_link_in_the_email_will_expire_in_30_minutes:                                                'The link in the email will expire in 30 minutes.',
     we_will_send_an_email_to_you:                                                                   'We will send an email to you.',
+    engineer_user_has_insufficient_permissions:                                                     'Engineer User has insufficient permissions',
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 //DashboardPage                                                                                                        '                                                                                              -
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -417,6 +420,7 @@ export default {
     // update_or_restart:                                                                           'Update or Restart',
     // update_sw:                                                                                   'Update SW',
     // updated_time:                                                                                'Updated Time',
+    map:                                                                                            'Map',
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 //StationEditPage                                                                                                        '                                                                                              -
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -601,6 +605,7 @@ export default {
     profile_name:                                                                                   'Profile name',
     profile_purpose:                                                                                'Profile purpose',
     profile_stack_level:                                                                            'Profile stack level',
+    please_bind_rfid_num:                                                                           'Please bind RFID Num',
     rate:                                                                                           'Rate',
     remote_start:                                                                                   'Remote Start',
     remote_stop:                                                                                    'Remote Stop',
@@ -758,8 +763,13 @@ export default {
     modify:                                                                                         'Modify',
     parking_rate:                                                                                   'Parking Rate',
     rate_profile_details:                                                                           'Rate Profile Details',
+    restrictions:                                                                                   'Restrictions',
     time:                                                                                           'Time',
     wh:                                                                                             'Wh',
+    component:                                                                                      'Component',
+    rate_table:                                                                                     'Rate Table',
+    min_parking_duration:                                                                           'Min. Parking Duration (minute)',
+    max_parking_duration:                                                                           'Max. Parking Duration (minute)',
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 //UserPage                                                                                                        '                                                                                              -
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -779,7 +789,7 @@ export default {
     // updated_date:                                                                                'Updated Date',
     // used_times:                                                                                  'Used Times',
     // warning:                                                                                     'Warning !',
-    send_notification:                                                                              'Send Notification',
+    first_name_last_name_email_time:                                                                'First Name / Last Name / E-mail / Time',
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 //UserDetailPage                                                                                                        '                                                                                              -
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -857,9 +867,11 @@ export default {
     // viewer_user:                                                                                 'Viewer User',
     // warning:                                                                                     'Warning !',
     add:                                                                                            'Add',
+    body:                                                                                           'Body',
     anonymous_user:                                                                                 'Anonymous User',
     app_version:                                                                                    'App Version',
     binding_card:                                                                                   'Binding Card',
+    binding_rfid_card:                                                                              'Binding RFID Card',
     card_number_already_exists:                                                                     'Card number already exists',
     card_number_is_duplicated_with_user:                                                            'Card number is duplicated with user "{user_name}"',
     cash:                                                                                           'Cash',
@@ -867,9 +879,16 @@ export default {
     device:                                                                                         'Device',
     device_details:                                                                                 'Device Details',
     expire_date_YY_MM:                                                                              'Expire Date(YY/MM)',
+    home_device:                                                                                    'Home Device',
+    home_device_details:                                                                            'Home Device Details',
+    home_session:                                                                                   'Home Session',
     member_user:                                                                                    'Member User',
+    notification:                                                                                   'Notification',
     os_version:                                                                                     'OS Version',
     platform:                                                                                       'Platform',
+    route:                                                                                          'Route',
+    send_notification:                                                                              'Send Notification',
+    title:                                                                                          'Title',
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 //CompanyPage                                                                                                        '                                                                                              -
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1280,6 +1299,8 @@ export default {
     EVSEEdit:                                                                                       'EVSE Edit',
     EVSELog:                                                                                        'EVSE Log',
     getDiagnostics:                               	                                                'Get Diagnostics',
+    homeDeviceDetails:                               	                                              'Home Device Details',
+    homeSession:                               	                                                    'Home Session',
     page:                                                                                           'Page',
     Parking:                                                                                        'Parking',
     Payment:                                                                                        'Payment',
@@ -1297,6 +1318,7 @@ export default {
     StationDetail:                                                                                  'Station Detail',
     StationEdit:                                                                                    'Station Edit',
     successfully_modified_permissions:                                                              'Successfully modified permissions',
+    sendNotification:                                                                               'Send Notification',
     there_are_still_fields_not_filled_in:                                                           'There are still fields not filled in',
     update:                                                                                         'Update',
     User:                                                                                           'User',
@@ -1372,17 +1394,16 @@ export default {
     edit_charging_profile:                                                                          'Edit Charging Profile',
     select_date_and_time:                                                                           'Select date and time',
     valid_time:                                                                                     'Valid Time',
+    TokenManagement:                                                                                'TokenManagement',
+    addToken:                                                                                       'Add Token',
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 //TokenManagementPage   
-    add_token:                                                                                      'add_token',
-    token_management:                                                                               'token_management',
-    token:                                                                                          'token',
-    count:                                                                                          'count',
-    expired_date_time:                                                                               'expired_date_time',
-    // token_management:                                                                               'token_management'
-    // token_management:                                                                               'token_management'
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    add_token:                                                                                      'Add Token',
+    count:                                                                                          'Count',
+    edit_token:                                                                                     'Edit Token',
+    expired_date_time:                                                                              'Expired Date Time',
+    token:                                                                                          'Token',
+    token_management:                                                                               'Token Management',
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 }
-
-
-

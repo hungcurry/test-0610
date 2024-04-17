@@ -3,7 +3,6 @@ import ApiFunc from '@/composables/ApiFunc'
 import { ref, watchEffect } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import VueCookies from 'vue-cookies'
 const { t } = useI18n()
 const modalVisible = ref(false)
 const props = defineProps({
@@ -18,9 +17,9 @@ const MsiApi = ApiFunc()
 const router = useRouter()
 const checkState = ref(false)
 
-const closeModal = (state) => {
+const closeModal = async (state) => {
   if (state === false)
-    VueCookies.remove('AuthToken')
+    await MsiApi.clearCookies()
   emit('closeModal', state)
 }
 watchEffect(() => {
