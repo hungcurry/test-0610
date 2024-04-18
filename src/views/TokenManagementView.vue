@@ -210,12 +210,11 @@ const tokenDialogDelete = async () => {
     tokenFormVisible.value = false
     await getCompanyInformation()
     await renderTokenDataLayout()
+    isLoading.value = false
   })
   } catch (error) {
     console.log(error)
     ElMessage.error(t('error'))
-  }
-  finally {
     isLoading.value = false
   }
 }

@@ -613,6 +613,7 @@ const save_tariff = async (formEl) => {
       check_format_success = true
   })
   if (check_format_success === false) {
+    ElMessage.error(t('please_check_required_items'))
     return 
   }
   let sendData = await renderDataToSendData()
@@ -736,15 +737,22 @@ const renderDataToSendData = async () => {
   if (renderTariffData.description)
     sendData.custom.description = renderTariffData.description
 
+    sendData.min_price = sendData.max_price = {}
   if (renderTariffData.min_price || renderTariffData.min_price === 0) {
     sendData.min_price = {}
     sendData.min_price.incl_vat = renderTariffData.min_price
     sendData.min_price.excl_vat = renderTariffData.min_price
   }
+  else {
+    sendData.min_price = ''
+  }
   if (renderTariffData.max_price || renderTariffData.max_price === 0) {
     sendData.max_price = {}
     sendData.max_price.incl_vat = renderTariffData.max_price
     sendData.max_price.excl_vat = renderTariffData.min_price
+  }
+  else {
+    sendData.max_price = ''
   }
   
   renderTariffElementsData.forEach((element, index) => {
@@ -845,11 +853,19 @@ const createElement = async () => {
     renderTariffElementsDataObj.restrictions.max_parking_duration = renderElementDetail.restrictions.max_parking_duration
 
   renderElementDetail.price_components.forEach( (PriceComponent) => {
-    let price_componentsObj = { price:0, step_size:0, type:'', vat:0 }
+    let price_componentsObj = { price:0, step_size:0, type:'', vat:0, incl_vat:false }
     price_componentsObj.vat = PriceComponent.vat
-    price_componentsObj.price = formatNumber(PriceComponent.price, 4)
-    price_componentsObj.price_excl_vat = formatNumber(PriceComponent.price, 4)
-    price_componentsObj.price_incl_vat = formatNumber((PriceComponent.price * (1 + PriceComponent.vat/100) ), 4)
+    price_componentsObj.incl_vat = PriceComponent.incl_vat
+    if (price_componentsObj.incl_vat === true) {
+      price_componentsObj.price_incl_vat = formatNumber((PriceComponent.price ), 4)
+      price_componentsObj.price_excl_vat = formatNumber((PriceComponent.price / (1 + PriceComponent.vat/100) ), 4)
+      price_componentsObj.price = formatNumber((PriceComponent.price / (1 + PriceComponent.vat/100) ), 4)
+    }
+    else {
+      price_componentsObj.price_incl_vat = formatNumber((PriceComponent.price * (1 + PriceComponent.vat/100) ), 4)
+      price_componentsObj.price_excl_vat = formatNumber((PriceComponent.price), 4)
+      price_componentsObj.price = formatNumber((PriceComponent.price), 4)
+    }
     price_componentsObj.type = convertTypeString(PriceComponent.type)
     price_componentsObj.step_size = PriceComponent.step_size
     renderTariffElementsDataObj.price_components.push(price_componentsObj)
@@ -876,7 +892,7 @@ const modifyElement = () => {
     renderTariffElementsData[select_element_index].price_components[index].step_size = price_component.step_size
     renderTariffElementsData[select_element_index].price_components[index].type = convertTypeString(price_component.type)
     renderTariffElementsData[select_element_index].price_components[index].vat = price_component.vat
-    if (renderElementDetail.price_components[select_element_index]?.incl_vat === true) {
+    if (renderElementDetail.price_components[index]?.incl_vat === true) {
       renderTariffElementsData[select_element_index].price_components[index].price_incl_vat = formatNumber((price_component.price ), 4)
       renderTariffElementsData[select_element_index].price_components[index].price_excl_vat = formatNumber((price_component.price / (1 + price_component.vat/100) ), 4)
       renderTariffElementsData[select_element_index].price_components[index].price = formatNumber((price_component.price / (1 + price_component.vat/100) ), 4)

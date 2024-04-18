@@ -30,6 +30,7 @@ const locationData = reactive([])
 const tariffData = reactive([])
 const tariff_elements = reactive([])
 const activeName = ref('one')
+const userEmail = ref('')
 
 let chargePoint_id = ''
 
@@ -1036,6 +1037,14 @@ onMounted( async () => {
         hmiInfoData.max_amperage = (hmiInfoData.minmax_current.split(" ").map(hex => parseInt(hex, 16)))[7]
     }
   }
+  if (evseData?.evse_id?.startsWith('XP01')) {
+    queryData = { database: "CPO", collection: "UserData", 
+    pipelines: [ { $match: { "home_info.devices" : {"$elemMatch" : {"device_id" : { ObjectId : chargePoint_id} } }}}, 
+                  { $project: { _id:0, email: 1 } }]
+    }
+    response = await MsiApi.mongoAggregate(queryData)
+    userEmail.value = response?.data?.result?.[0]?.email
+  }
   queryData = { database: "OCPI", collection: "Location", 
       pipelines: [ { $match: { "evses" : {"$in": [  {"ObjectId" : evseData?._id }]} } }, 
       { $project: {  byCompany: 0 } }]
@@ -1240,6 +1249,10 @@ onUnmounted(() => {
                 <div class="info-item">
                   <p class="info-title w-50%"> {{ t('last_updated') }}</p>
                   <p class="info-value w-50% ml-24px">{{evseData.last_updated_str}}</p>
+                </div>
+                <div class="info-item" v-if="userEmail !== '' && userEmail !== undefined">
+                  <p class="info-title w-50%"> {{ t('e_mail') }}</p>
+                  <p class="info-value w-50% ml-24px">{{userEmail}}</p>
                 </div>
               </div>
             </div >
