@@ -617,6 +617,7 @@ const save_tariff = async (formEl) => {
     return 
   }
   let sendData = await renderDataToSendData()
+  console.log(sendData)
   sendData.country_code = 'TW'
   if (tariff_id) {
     sendData.id = tariff_id
@@ -737,14 +738,14 @@ const renderDataToSendData = async () => {
   if (renderTariffData.description)
     sendData.custom.description = renderTariffData.description
 
-    sendData.min_price = sendData.max_price = {}
   if (renderTariffData.min_price || renderTariffData.min_price === 0) {
     sendData.min_price = {}
     sendData.min_price.incl_vat = renderTariffData.min_price
     sendData.min_price.excl_vat = renderTariffData.min_price
   }
   else {
-    sendData.min_price = ''
+    if (tariff_id)
+      sendData.min_price = ''
   }
   if (renderTariffData.max_price || renderTariffData.max_price === 0) {
     sendData.max_price = {}
@@ -752,7 +753,8 @@ const renderDataToSendData = async () => {
     sendData.max_price.excl_vat = renderTariffData.min_price
   }
   else {
-    sendData.max_price = ''
+    if (tariff_id)
+      sendData.max_price = ''
   }
   
   renderTariffElementsData.forEach((element, index) => {
