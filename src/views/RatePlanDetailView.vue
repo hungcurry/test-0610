@@ -1450,7 +1450,7 @@ onMounted(async () => {
                     <span>{{ renderTariffData.currency}}</span>
                   </template>
                   <template #suffix>
-                    <span v-if="item.type === 'ENERGY'"> {{ '/' + t('kwh') }}</span>
+                    <span v-if="item.type === 'Charging By Energy' || item.type === 'ENERGY'"> {{ '/' + t('kwh') }}</span>
                     <span v-else> {{ '/' + t('hr') }}</span>
                   </template>
                 </el-input>
@@ -1460,7 +1460,7 @@ onMounted(async () => {
                   <el-form-item class="mb-24px" :label="t('unit')" prop="unit">
                     <el-input v-model.number="item.step_size" type="number" class="w-220px" :controls="false" >
                       <template #suffix>
-                        <span v-if="item.type === 'ENERGY'"> {{ '/' + t('wh') }} </span>
+                        <span v-if="item.type === 'Charging By Energy' || item.type === 'ENERGY'"> {{ '/' + t('wh') }} </span>
                         <span v-else> {{ '/' + t('min') }} </span>
                       </template>
                     </el-input>
@@ -1497,7 +1497,7 @@ onMounted(async () => {
                 </el-checkbox-button>
               </el-checkbox-group>
             </el-form-item>
-            <div class="flex justify-between">
+            <!-- <div class="flex justify-between">
               <el-form-item class="mb-24px" :label="t('active_minute')">
                 <el-input v-model.number="renderElementDetail.restrictions.min_duration" type="number" class="w-220px" :controls="false" >
                   <template #suffix>
@@ -1512,7 +1512,7 @@ onMounted(async () => {
                   </template>
                 </el-input>
               </el-form-item>
-            </div>
+            </div> -->
             <div class="flex justify-between">
               <el-form-item class="mb-24px" :label="t('min_current')">
                 <el-input v-model.number="renderElementDetail.restrictions.min_current" type="number" class="w-220px" :controls="false" >
@@ -1584,7 +1584,7 @@ onMounted(async () => {
                 </el-checkbox-button>
               </el-checkbox-group>
             </el-form-item>
-            <div class="flex justify-between">
+            <!-- <div class="flex justify-between">
               <el-form-item class="mb-24px" :label="t('active_minute')" disabled>
                 <el-input v-model.number="renderElementDetail.restrictions.min_duration" type="number" class="w-220px" :controls="false" disabled>
                   <template #suffix>
@@ -1599,7 +1599,7 @@ onMounted(async () => {
                   </template>
                 </el-input>
               </el-form-item>
-            </div>
+            </div> -->
             <div class="flex justify-between">
               <el-form-item class="mb-24px" :label="t('min_current')">
                 <el-input v-model.number="renderElementDetail.restrictions.min_current" type="number" class="w-220px" :controls="false" disabled>

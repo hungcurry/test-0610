@@ -21,6 +21,9 @@ const token_title= ref('')
 const search_input = ref('')
 const rendercompanyList = reactive([])
 const renderTokenData = reactive([])
+
+const defaultTime1 = new Date(2000, 1, 1, 23, 59, 59) // '12:00:00'
+
 const renderTokenDetailData = reactive({count: 0, enable: false, expired_date_time: '', name: '', token: '', type: 'AISKU'})
 const token_rules = reactive({
   name: [ { required: true, message: t('the_item_is_required'), trigger: 'blur' }],
@@ -330,7 +333,9 @@ onMounted( async() => {
               </el-form-item>
               <el-form-item class="mb-24px" :label="t('expired_date_time')" prop="expired_date_time">
                 <div class="block">
-                  <el-date-picker v-model="renderTokenDetailData.expired_date_time" type="datetime" placeholder="Select date and time"/>
+                  <el-date-picker 
+                  :default-time="defaultTime1"
+                  v-model="renderTokenDetailData.expired_date_time" type="datetime" placeholder="Select date and time"/>
                 </div>
               </el-form-item>
             </el-form>

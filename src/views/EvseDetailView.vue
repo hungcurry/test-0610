@@ -1408,8 +1408,8 @@ onUnmounted(() => {
                     <el-table-column prop="step_size_str" :label="t('unit')" min-width="80" align="center"/>
                     <el-table-column prop="restrictions.start_time" :label="t('start_time')" min-width="120" align="center"/>
                     <el-table-column prop="restrictions.end_time" :label="t('end_time')" min-width="120" align="center"/>
-                    <el-table-column prop="restrictions_min_duration_str" :label="t('active_minute')" min-width="120" align="center"/>
-                    <el-table-column prop="restrictions_max_duration_str" :label="t('deactivate_minute')" min-width="150" align="center"/>
+                    <!-- <el-table-column prop="restrictions_min_duration_str" :label="t('active_minute')" min-width="120" align="center"/> -->
+                    <!-- <el-table-column prop="restrictions_max_duration_str" :label="t('deactivate_minute')" min-width="150" align="center"/> -->
                     <el-table-column prop="restrictions.day_of_week_str" :label="t('day_of_week')" min-width="200" align="center"/>
                   </el-table>
                   
