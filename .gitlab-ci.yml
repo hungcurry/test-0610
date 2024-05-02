@@ -35,8 +35,8 @@ deploy-dev:
     - gcloud auth activate-service-account --key-file=gke-key-file
     - gcloud container clusters get-credentials $KUBE_CLUSTER --zone=$ARTIFACT_REGISTRY_REGION --project=$KUBE_PROJECT
     - kubectl config set-context --current --namespace=$KUBE_NAMESPACE
-    - kubectl set image deployment/$REPOSITORY_NAME $REPOSITORY_NAME-$KUBE_NAMESPACE=$GCP_IMAGE:latest -n $KUBE_NAMESPACE
-    - kubectl set image deployment/$REPOSITORY_NAME $REPOSITORY_NAME-$KUBE_NAMESPACE=$GCP_IMAGE -n $KUBE_NAMESPACE
+    - kubectl set image deployment/$REPOSITORY_NAME $REPOSITORY_NAME-$REPOSITORY_ENV=$GCP_IMAGE:latest
+    - kubectl set image deployment/$REPOSITORY_NAME $REPOSITORY_NAME-$REPOSITORY_ENV=$GCP_IMAGE
   retry: 2
   environment:
     name: $CI_COMMIT_BRANCH
@@ -76,9 +76,9 @@ deploy-test-stage:
     - cat $GCP_GKE_SERVICE_ACCOUNT_STAGING > gke-key-file
     - gcloud auth activate-service-account --key-file=gke-key-file
     - gcloud container clusters get-credentials $KUBE_CLUSTER --zone=$ARTIFACT_REGISTRY_REGION --project=$KUBE_PROJECT
-    - kubectl config set-context --current --namespace=$KUBE_NAMESPACE
-    - kubectl set image deployment/$REPOSITORY_NAME $REPOSITORY_NAME-$KUBE_NAMESPACE=$GCP_IMAGE:latest -n $KUBE_NAMESPACE
-    - kubectl set image deployment/$REPOSITORY_NAME $REPOSITORY_NAME-$KUBE_NAMESPACE=$GCP_IMAGE -n $KUBE_NAMESPACE
+    - kubectl config set-context --current --namespace=test
+    - kubectl set image deployment/$REPOSITORY_NAME-$REPOSITORY_ENV $REPOSITORY_NAME-$REPOSITORY_ENV=$GCP_IMAGE:latest
+    - kubectl set image deployment/$REPOSITORY_NAME-$REPOSITORY_ENV $REPOSITORY_NAME-$REPOSITORY_ENV=$GCP_IMAGE
   retry: 2
   environment:
     name: $CI_COMMIT_BRANCH
