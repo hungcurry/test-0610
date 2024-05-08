@@ -924,8 +924,8 @@ onMounted(async () => {
                         min-width="120"
                         align="center"
                       />
-                      <el-table-column prop="restrictions_min_duration_str" :label="t('active_minute')" min-width="170" align="center"/>
-                      <el-table-column prop="restrictions_max_duration_str" :label="t('deactivate_minute')" min-width="200" align="center"/>
+                      <!-- <el-table-column prop="restrictions_min_duration_str" :label="t('active_minute')" min-width="170" align="center"/>
+                      <el-table-column prop="restrictions_max_duration_str" :label="t('deactivate_minute')" min-width="200" align="center"/> -->
                   
                       <el-table-column
                         prop="restrictions.day_of_week_str"

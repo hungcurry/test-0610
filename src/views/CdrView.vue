@@ -9,7 +9,13 @@ import moment from "moment"
 import { useMStore } from "../stores/m_cloud"
 
 const cdr_detail_visible = ref(false) 
-
+const now = new Date()
+const select_time = ref([ new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0), new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59)])
+const defaultTime = ref([new Date(2000, 1, 1, 0, 0, 0), new Date(2000, 1, 1, 23, 59, 59)])
+const select_date = async() => {
+  await getCdrData()
+  await renderCdrLayout()  
+}
 const formatNumber = (num, round) => {
   const formattedNum = num.toFixed(round)
   const withoutTrailingZeros = formattedNum.replace(/\.?0+$/, '')
@@ -57,16 +63,31 @@ const renderCdrLayout = async () => {
 }
 
 const getCdrData = async () => {
+  if (select_time.value == null) {
+      return
+  }
   try {
+    if (select_time.value?.[1] == undefined) {
+      select_time.value[1] = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59)
+    }
     let queryData = { database: 'OCPI', collection: 'CDR',
-    pipelines: [{ $project: { _id: 0, auth_method:0, country_code:0, credit:0, home_charging_compensation:0, id:0, party_id:0, cdr_token:0, last_updated:0, session_id:0, 
-    } }],
-    // , start_date_time:1, end_date_time:1, total_cost:1
+    pipelines: [
+      {
+        "$match": {
+          "$expr": {
+            "$and": [
+              { "$gte": ["$start_date_time", { "$dateFromString": { "dateString": select_time.value?.[0] } }] },
+              { "$lte": ["$start_date_time", { "$dateFromString": { "dateString": select_time.value?.[1] } }] }]
+          }
+        }
+      },
+      { $project: { _id: 0, "cdr_location.evse_id" : 1, charging_periods:1, total_cost:1, total_energy:1, total_time:1, total_parking_time:1,
+        start_date_time:1, end_date_time:1, tariffs:1,
+      } }],
   }
     let response = await MsiApi.mongoAggregate(queryData)    
     if (response.status === 200) {
       cdrData = response.data.result
-      console.log(cdrData)
     }
     else {
       ElMessage.error(t('error'))
@@ -74,15 +95,12 @@ const getCdrData = async () => {
   } catch (error) {
     ElMessage.error(t('error'))
   }
-  // let response = await MsiApi.mongoAggregate(queryData)
-  // console.log(response)
 }
 
 const cdr_detail = (row) => {
   render_tariff.length = 0
   render_charging_periods.length = 0
   cdr_detail_visible.value = true
-  console.log(row)
   tariff_name.value= row.tariffs[0].custom.name
   tariff_currency.value = row.tariffs[0]?.currency
   if (row.tariffs[0]?.min_price?.incl_vat)
@@ -106,11 +124,10 @@ const cdr_detail = (row) => {
       tariff_obj.restrictions_end_time = tariffs_ele.restrictions?.end_time
       tariff_obj.restrictions_min_current = tariffs_ele.restrictions?.min_current
       tariff_obj.restrictions_max_current = tariffs_ele.restrictions?.max_current
-      console.log(tariff_obj)
-      if ( typeof (tariffs_ele.restrictions?.max_duration) === 'number' ) 
-        tariff_obj.restrictions_max_duration = tariffs_ele.restrictions?.max_duration / 60
-      if ( typeof (tariffs_ele.restrictions?.min_duration) === 'number'  )
-        tariff_obj.restrictions_min_duration = tariffs_ele.restrictions?.min_duration / 60
+      // if ( typeof (tariffs_ele.restrictions?.max_duration) === 'number' ) 
+      //   tariff_obj.restrictions_max_duration = tariffs_ele.restrictions?.max_duration / 60
+      // if ( typeof (tariffs_ele.restrictions?.min_duration) === 'number'  )
+      //   tariff_obj.restrictions_min_duration = tariffs_ele.restrictions?.min_duration / 60
       if ( typeof (tariffs_ele.restrictions?.max_parking_duration) === 'number')
         tariff_obj.restrictions_max_parking_duration = tariffs_ele.restrictions?.max_parking_duration / 60
       if ( typeof (tariffs_ele.restrictions?.min_parking_duration) === 'number')
@@ -145,7 +162,20 @@ onMounted( async() => {
   <div class="customer">
     <div class="container lg">
       <div class="overflow-x-auto ">
-        <div class="pb-40px mt-80px">
+        <div class="pb-40px mt-40px">
+          <div class="date-picker w-full blue-1100">
+          <el-date-picker 
+            v-model="select_time" 
+            class="mr-16px rounded-full"
+            type="datetimerange" 
+            range-separator="-"
+            :prefix-icon="Calendar"
+            :start-placeholder="t('start_date')" 
+            :end-placeholder="t('end_date')" 
+            @change="select_date()"
+            :default-time="defaultTime" 
+            />
+        </div>
           <el-table ref="tableRef" :data="renderCdrData" class="white-space-nowrap text-primary" v-loading.fullscreen.lock="isLoading"
             height="calc(100vh - 220px)" style="width: 100%" stripe size="large" :cell-style="msi.tb_cell" :header-cell-style="msi.tb_header_cell"
             :default-sort="{ prop: 'end_date_time', order: 'descending'}">
@@ -229,8 +259,8 @@ onMounted( async() => {
 
             <el-table-column prop="restrictions_start_time" :label="t('start_time')" align="center" min-width="100"/>
             <el-table-column prop="restrictions_end_time" :label="t('end_time')" align="center" min-width="100"/>
-            <el-table-column prop="restrictions_min_duration" :label="t('min_duration')" align="center" min-width="100"/>
-            <el-table-column prop="restrictions_max_duration" :label="t('max_duration')" align="center" min-width="100"/>
+            <!-- <el-table-column prop="restrictions_min_duration" :label="t('min_duration')" align="center" min-width="100"/>
+            <el-table-column prop="restrictions_max_duration" :label="t('max_duration')" align="center" min-width="100"/> -->
             <el-table-column prop="restrictions_min_current" :label="t('min_current')" align="center" min-width="100"/>
             <el-table-column prop="restrictions_max_current" :label="t('max_current')" align="center" min-width="100"/>
             <el-table-column prop="restrictions_min_parking_duration" :label="t('min_parking_duration ')" align="center" min-width="100"/>
@@ -242,7 +272,7 @@ onMounted( async() => {
           <el-table  ref="tableRef" :data="render_charging_periods" class="white-space-nowrap text-primary" height="calc(30vh)"
             style="width: 100%" stripe size="large" :cell-style="msi.tb_cell" :header-cell-style="msi.tb_header_cell"
             v-loading.fullscreen.lock="isLoading">
-            <el-table-column prop="start_date_time" :label="t('start_time')" align="center" min-width="50"/>
+            <el-table-column prop="start_date_time" :label="t('start_time')"  min-width="50"/>
             <el-table-column :label="t('type')" prop="dimensions" min-width="50" >
                 <template #default="scope">
                   <div v-for="(item, index) in scope.row.dimensions" :key="index">

@@ -79,7 +79,6 @@ const deleteTariff = async (row) => {
 }
 
 const editTariff = (row) => {
-  console.log(row)
   router.push({ name: 'ratePlanDetail', query: {id: row.id} })
 }
 

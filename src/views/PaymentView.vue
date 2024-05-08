@@ -206,7 +206,7 @@ const topupTableFilter = async(filters) => {
 
 const getPaymentData = async(filters) => {
   try {
-    if (selectTime.value === null) {
+    if (selectTime.value == null) {
       return
     }
     const startTime = new Date(selectTime.value[0].getTime() - MStore.timeZoneOffset * -60000)
