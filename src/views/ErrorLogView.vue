@@ -61,7 +61,7 @@ const select_date = async() => {
 }
 
 const getEVSEOCPPLogs = async() => {
-  if (select_time.value?.[1] === undefined) {
+  if (select_time.value?.[1] == undefined) {
     select_time.value[1] = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59)
   }
   let queryData = {

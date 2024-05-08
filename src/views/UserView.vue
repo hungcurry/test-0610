@@ -55,7 +55,8 @@ const search = async () => {
         pipelines: [
           { 
             $addFields: { 
-              updated_date_str: { $dateToString: { format: '%Y-%m-%d %H:%M:%S', date: { $dateFromString: { dateString: { $toString: '$updated_date'}}}, timezone: timezone}}
+              updated_date_str: { $dateToString: { format: '%Y-%m-%d %H:%M:%S', date: { $dateFromString: { dateString: { $toString: '$created_date'}}}, timezone: timezone}},
+              created_date_str: { $dateToString: { format: '%Y-%m-%d %H:%M:%S', date: { $dateFromString: { dateString: { $toString: '$updated_date'}}}, timezone: timezone}}
             }
           },
           { 
@@ -64,12 +65,13 @@ const search = async () => {
                 { $or: [ { first_name: { $regex: search_input.value, $options: "i"}},
                          { last_name: { $regex: search_input.value, $options: "i"}},
                          { email: { $regex: search_input.value, $options: "i"}},
+                         { created_date_str: { $regex: search_input.value, $options: "i"}},
                          { updated_date_str: { $regex: search_input.value, $options: "i" }}]
                 }
               ]
             }
           },
-          { $project: { _id: 1, first_name: 1, last_name: 1, email: 1, evse_list: 1, payment_history:1, updated_date: 1,  home_info:1} }
+          { $project: { _id: 1, first_name: 1, last_name: 1, email: 1, evse_list: 1, payment_history:1, updated_date: 1, created_date: 1, home_info:1} }
         ]
       }
       let response = await MsiApi.mongoAggregate(queryData)

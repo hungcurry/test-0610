@@ -12,7 +12,6 @@
     "build:prod": "vite build --mode prod",
     "build:test": "vite build --mode test",
     "build:dev": "vite build --mode dev",
-    "build:demo": "vite build --mode demo",
     "build:stg": "vite build --mode stg"
   },
   "dependencies": {
