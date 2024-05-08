@@ -613,9 +613,11 @@ const save_tariff = async (formEl) => {
       check_format_success = true
   })
   if (check_format_success === false) {
+    ElMessage.error(t('please_check_required_items'))
     return 
   }
   let sendData = await renderDataToSendData()
+  console.log(sendData)
   sendData.country_code = 'TW'
   if (tariff_id) {
     sendData.id = tariff_id
@@ -741,10 +743,18 @@ const renderDataToSendData = async () => {
     sendData.min_price.incl_vat = renderTariffData.min_price
     sendData.min_price.excl_vat = renderTariffData.min_price
   }
+  else {
+    if (tariff_id)
+      sendData.min_price = ''
+  }
   if (renderTariffData.max_price || renderTariffData.max_price === 0) {
     sendData.max_price = {}
     sendData.max_price.incl_vat = renderTariffData.max_price
     sendData.max_price.excl_vat = renderTariffData.min_price
+  }
+  else {
+    if (tariff_id)
+      sendData.max_price = ''
   }
   
   renderTariffElementsData.forEach((element, index) => {
@@ -845,11 +855,19 @@ const createElement = async () => {
     renderTariffElementsDataObj.restrictions.max_parking_duration = renderElementDetail.restrictions.max_parking_duration
 
   renderElementDetail.price_components.forEach( (PriceComponent) => {
-    let price_componentsObj = { price:0, step_size:0, type:'', vat:0 }
+    let price_componentsObj = { price:0, step_size:0, type:'', vat:0, incl_vat:false }
     price_componentsObj.vat = PriceComponent.vat
-    price_componentsObj.price = formatNumber(PriceComponent.price, 4)
-    price_componentsObj.price_excl_vat = formatNumber(PriceComponent.price, 4)
-    price_componentsObj.price_incl_vat = formatNumber((PriceComponent.price * (1 + PriceComponent.vat/100) ), 4)
+    price_componentsObj.incl_vat = PriceComponent.incl_vat
+    if (price_componentsObj.incl_vat === true) {
+      price_componentsObj.price_incl_vat = formatNumber((PriceComponent.price ), 4)
+      price_componentsObj.price_excl_vat = formatNumber((PriceComponent.price / (1 + PriceComponent.vat/100) ), 4)
+      price_componentsObj.price = formatNumber((PriceComponent.price / (1 + PriceComponent.vat/100) ), 4)
+    }
+    else {
+      price_componentsObj.price_incl_vat = formatNumber((PriceComponent.price * (1 + PriceComponent.vat/100) ), 4)
+      price_componentsObj.price_excl_vat = formatNumber((PriceComponent.price), 4)
+      price_componentsObj.price = formatNumber((PriceComponent.price), 4)
+    }
     price_componentsObj.type = convertTypeString(PriceComponent.type)
     price_componentsObj.step_size = PriceComponent.step_size
     renderTariffElementsDataObj.price_components.push(price_componentsObj)
@@ -876,7 +894,7 @@ const modifyElement = () => {
     renderTariffElementsData[select_element_index].price_components[index].step_size = price_component.step_size
     renderTariffElementsData[select_element_index].price_components[index].type = convertTypeString(price_component.type)
     renderTariffElementsData[select_element_index].price_components[index].vat = price_component.vat
-    if (renderElementDetail.price_components[select_element_index]?.incl_vat === true) {
+    if (renderElementDetail.price_components[index]?.incl_vat === true) {
       renderTariffElementsData[select_element_index].price_components[index].price_incl_vat = formatNumber((price_component.price ), 4)
       renderTariffElementsData[select_element_index].price_components[index].price_excl_vat = formatNumber((price_component.price / (1 + price_component.vat/100) ), 4)
       renderTariffElementsData[select_element_index].price_components[index].price = formatNumber((price_component.price / (1 + price_component.vat/100) ), 4)
@@ -1432,7 +1450,7 @@ onMounted(async () => {
                     <span>{{ renderTariffData.currency}}</span>
                   </template>
                   <template #suffix>
-                    <span v-if="item.type === 'ENERGY'"> {{ '/' + t('kwh') }}</span>
+                    <span v-if="item.type === 'Charging By Energy' || item.type === 'ENERGY'"> {{ '/' + t('kwh') }}</span>
                     <span v-else> {{ '/' + t('hr') }}</span>
                   </template>
                 </el-input>
@@ -1442,7 +1460,7 @@ onMounted(async () => {
                   <el-form-item class="mb-24px" :label="t('unit')" prop="unit">
                     <el-input v-model.number="item.step_size" type="number" class="w-220px" :controls="false" >
                       <template #suffix>
-                        <span v-if="item.type === 'ENERGY'"> {{ '/' + t('wh') }} </span>
+                        <span v-if="item.type === 'Charging By Energy' || item.type === 'ENERGY'"> {{ '/' + t('wh') }} </span>
                         <span v-else> {{ '/' + t('min') }} </span>
                       </template>
                     </el-input>
@@ -1479,7 +1497,7 @@ onMounted(async () => {
                 </el-checkbox-button>
               </el-checkbox-group>
             </el-form-item>
-            <div class="flex justify-between">
+            <!-- <div class="flex justify-between">
               <el-form-item class="mb-24px" :label="t('active_minute')">
                 <el-input v-model.number="renderElementDetail.restrictions.min_duration" type="number" class="w-220px" :controls="false" >
                   <template #suffix>
@@ -1494,7 +1512,7 @@ onMounted(async () => {
                   </template>
                 </el-input>
               </el-form-item>
-            </div>
+            </div> -->
             <div class="flex justify-between">
               <el-form-item class="mb-24px" :label="t('min_current')">
                 <el-input v-model.number="renderElementDetail.restrictions.min_current" type="number" class="w-220px" :controls="false" >
@@ -1566,7 +1584,7 @@ onMounted(async () => {
                 </el-checkbox-button>
               </el-checkbox-group>
             </el-form-item>
-            <div class="flex justify-between">
+            <!-- <div class="flex justify-between">
               <el-form-item class="mb-24px" :label="t('active_minute')" disabled>
                 <el-input v-model.number="renderElementDetail.restrictions.min_duration" type="number" class="w-220px" :controls="false" disabled>
                   <template #suffix>
@@ -1581,7 +1599,7 @@ onMounted(async () => {
                   </template>
                 </el-input>
               </el-form-item>
-            </div>
+            </div> -->
             <div class="flex justify-between">
               <el-form-item class="mb-24px" :label="t('min_current')">
                 <el-input v-model.number="renderElementDetail.restrictions.min_current" type="number" class="w-220px" :controls="false" disabled>

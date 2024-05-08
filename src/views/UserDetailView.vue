@@ -26,6 +26,12 @@ const router = useRouter()
 const company = MStore?.permission?.company?.name
 const user_id = route.query.id
 
+
+const getAddr = async (a) => {
+  const ttt = await MsiApi.getAddress(a.Lat,a.Long)
+  console.log(ttt.data.data.results[0].formatted_address)
+}
+
 const UserRenderData = reactive({
   first_name: '', last_name: '', email: '', phone: '',
   country: '', language: '', permission: '', updated_date: '',created_date: '',
@@ -65,7 +71,11 @@ const rfidData_rules = reactive({
 })
 const isLoading_skeleton = ref(true)
 const now = new Date()
-const defaultTime = [new Date(2000, 0, 1, 0, 0, 0), new Date(2000, 1, 1, 23, 59, 59)]
+const defaultTime = [
+  new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0),
+  new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59),
+]
+
 const select_time = ref([ new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0), new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59)])
 
 const convertPaymethodStr = (item) => {
@@ -147,14 +157,14 @@ const getUserPermission = async () => {
   }
 }
 const getUserPaymentHistory = async () => {
+  if (select_time.value == null) {
+      return
+    }
   try {
     if (userData[0]?.payment_history?.length) {
       let UserPaymentHistoryArray = []
       for(let i = 0; i < userData[0].payment_history.length; i++) {
         UserPaymentHistoryArray.push( {"ObjectId":userData[0].payment_history[i]}  )
-      }
-      if (!select_time.value ) {
-        select_time.value = ([ new Date(2000, 0, 1, 0, 0, 0), new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59)])
       }
       
       let queryData = { database: 'CPO', collection: 'PaymentHistory', 
@@ -1290,10 +1300,22 @@ onMounted(async () => {
           </div>
         </template>
         <div class="dialog-context pb-24px">
-          <el-table :data="UserRenderData.location">
-            <el-table-column property="Lat" :label="t('Lat')" min-width="100"  />
-            <el-table-column property="Long" :label="t('Long')" min-width="100" />
-            <el-table-column property="default" :label="t('default')" min-width="100" />
+          <el-table :data="UserRenderData.location" @cell-dblclick="getAddr">
+            <el-table-column property="Lat" :label="t('latitude')" min-width="100"  />
+            <el-table-column property="Long" :label="t('longitude')" min-width="100" />
+            <el-table-column  property="default" :label="t('default')" min-width="100" />
+
+
+<!-- 
+            <el-table-column prop="" label="Addr" align="center" min-width="50">
+
+              <template #default="scope">
+                <el-button class="btn-more" @click="getAddr(scope.row.Lat, scope.row.Long)"> <font-awesome-icon icon="fa-solid fa-ellipsis" /> </el-button>
+              </template>
+              
+            </el-table-column> -->
+
+
           </el-table>
         </div>
         <template #footer>

@@ -368,3 +368,38 @@ Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE3MDU2NTEwN
 {
     "product_sn": "XP01231900002"
 }
+
+###
+GET https://mconnect.msi.com/?user=bXNpOm1zaTEyMw==AAAAAAAA
+content-type: application/json
+Accept: application/json
+Authorization: bXNpOm1zaTEyMw==AAAAAAAA
+# Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE3MDU2NTEwNzEsIm5iZiI6MTcwNTY1MTA3MSwiZXhwIjoxNzA1NjU4MjcxLCJkYXRhIjp7InNvdXJjZSI6Ik1TSSBFVlNFIEFQSSIsInVzZXJfbmFtZSI6IjlhZjQ5NGU2LWM0Y2ItNGNjMC05MmIwLWU4OTdiNjFhNjFjZCIsImtleSI6Ik5YWThNZHc3WnpweXpLYm5ISXpIR2N3UjNsdGtBQnoxQXN2TDZQRkMifX0.Cr8YZaKeUvpMhqvKurnd66nZ_iTjx9lgElzLou5x5VA
+
+###
+POST https://mconnect.msi.com/maxcurrent
+content-type: application/json
+Authorization: bXNpOm1zaTEyMw==
+
+{
+    "gun_id": 1,
+    "current": 32
+}
+
+### 
+POST https://mconnect.msi.com/operatingmode
+content-type: application/json
+Authorization: bXNpOm1zaTEyMw==
+
+{
+    "mode": "evlife_offline"
+}
+
+###
+POST https://mconnect.msi.com/rfidlock
+content-type: application/json
+Authorization: bXNpOm1zaTEyMw==
+
+{
+    "lock_time": 100
+}

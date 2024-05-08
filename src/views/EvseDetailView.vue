@@ -30,6 +30,7 @@ const locationData = reactive([])
 const tariffData = reactive([])
 const tariff_elements = reactive([])
 const activeName = ref('one')
+const userEmail = ref('')
 
 let chargePoint_id = ''
 
@@ -1036,6 +1037,14 @@ onMounted( async () => {
         hmiInfoData.max_amperage = (hmiInfoData.minmax_current.split(" ").map(hex => parseInt(hex, 16)))[7]
     }
   }
+  if (evseData?.evse_id?.startsWith('XP01')) {
+    queryData = { database: "CPO", collection: "UserData", 
+    pipelines: [ { $match: { "home_info.devices" : {"$elemMatch" : {"device_id" : { ObjectId : chargePoint_id} } }}}, 
+                  { $project: { _id:0, email: 1 } }]
+    }
+    response = await MsiApi.mongoAggregate(queryData)
+    userEmail.value = response?.data?.result?.[0]?.email
+  }
   queryData = { database: "OCPI", collection: "Location", 
       pipelines: [ { $match: { "evses" : {"$in": [  {"ObjectId" : evseData?._id }]} } }, 
       { $project: {  byCompany: 0 } }]
@@ -1241,6 +1250,10 @@ onUnmounted(() => {
                   <p class="info-title w-50%"> {{ t('last_updated') }}</p>
                   <p class="info-value w-50% ml-24px">{{evseData.last_updated_str}}</p>
                 </div>
+                <div class="info-item" v-if="userEmail !== '' && userEmail !== undefined">
+                  <p class="info-title w-50%"> {{ t('e_mail') }}</p>
+                  <p class="info-value w-50% ml-24px">{{userEmail}}</p>
+                </div>
               </div>
             </div >
           </el-col>
@@ -1395,8 +1408,8 @@ onUnmounted(() => {
                     <el-table-column prop="step_size_str" :label="t('unit')" min-width="80" align="center"/>
                     <el-table-column prop="restrictions.start_time" :label="t('start_time')" min-width="120" align="center"/>
                     <el-table-column prop="restrictions.end_time" :label="t('end_time')" min-width="120" align="center"/>
-                    <el-table-column prop="restrictions_min_duration_str" :label="t('active_minute')" min-width="120" align="center"/>
-                    <el-table-column prop="restrictions_max_duration_str" :label="t('deactivate_minute')" min-width="150" align="center"/>
+                    <!-- <el-table-column prop="restrictions_min_duration_str" :label="t('active_minute')" min-width="120" align="center"/> -->
+                    <!-- <el-table-column prop="restrictions_max_duration_str" :label="t('deactivate_minute')" min-width="150" align="center"/> -->
                     <el-table-column prop="restrictions.day_of_week_str" :label="t('day_of_week')" min-width="200" align="center"/>
                   </el-table>
                   
