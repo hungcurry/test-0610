@@ -269,7 +269,7 @@ export default () => {
 
   const get_edoc = async(data) => {
     let response = undefined
-    if (data.filename)
+    if (data.filename) 
       response = await axiosInterface('get', '/edoc?name=' + data.filename)
     else 
       response = await axiosInterface('get', '/edoc')
