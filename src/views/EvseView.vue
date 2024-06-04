@@ -153,12 +153,9 @@ const sortFunc = (obj1, obj2, column) => {
     return -1
   }
 }
-onMounted(async () => {
-  const startTime = new Date().getTime()
+
+const refreshPage = async () => {
   isLoading.value = true
-  if (route.query.page === 'unpaired') {
-    activeName.value = '2'
-  }
   let queryData = { database: 'CPO', collection: 'VersionControl',
     pipelines: [
     { $match: { type: { $eq: 'XP012' } } },  
@@ -206,6 +203,10 @@ onMounted(async () => {
 
   let locationData = result2.data.result
   EvseData.length = 0
+  EvseHomeDevice.length = 0
+  EvseUnConnectData.length = 0
+  EvseConnectData.length = 0
+
   Object.assign(EvseData, result3.data.result)
   let chargePointInfoData = result4.data.result
   let hmiInfoData = result5.data.result
@@ -284,9 +285,12 @@ onMounted(async () => {
       }
     }
   }
-  const endTime = new Date().getTime()
-  const elapsedTime = endTime - startTime;
-  console.log('mount', elapsedTime, 'ms');
+}
+onMounted(async () => {
+  if (route.query.page === 'unpaired') {
+    activeName.value = '2'
+  }
+  await refreshPage()
 })
 </script>
 
@@ -327,6 +331,11 @@ onMounted(async () => {
             v-if="MStore.rule_permission.EVSE.update === 'O' || MStore.rule_permission.EVSE.reset === 'O'"
             class="btn-secondary shrink-0 edit px-30px box-shadow" @click="edit">
             {{ t(edit_button_str) }}</el-button
+          >
+          <el-button 
+            v-if="MStore.rule_permission.EVSE.update === 'O' || MStore.rule_permission.EVSE.reset === 'O'"
+            class="btn-secondary shrink-0 edit px-30px box-shadow" @click="refreshPage">
+            {{ t('Refresh') }}</el-button
           >
         </div>
       </div>
@@ -479,22 +488,6 @@ onMounted(async () => {
               @selection-change="handleSelectionChange"
             >
               <el-table-column
-                prop="locationName"
-                :label="t('station')"
-                align="center"
-                sortable
-                :sort-method="(a, b) => sortFunc(a, b, 'locationName')"
-                min-width="150"
-              />
-              <el-table-column
-                prop="floor_level"
-                :label="t('floor_level')"
-                align="center"
-                sortable
-                :sort-method="(a, b) => sortFunc(a, b, 'floor_level')"
-                min-width="150"
-              />
-              <el-table-column
                 prop="evse_id"
                 :label="t('evse_id')"
                 align="center"
@@ -594,22 +587,6 @@ onMounted(async () => {
               v-loading.fullscreen.lock="isLoading"
               @selection-change="handleSelectionChange"
             >
-              <el-table-column
-                prop="locationName"
-                :label="t('station')"
-                align="center"
-                sortable
-                :sort-method="(a, b) => sortFunc(a, b, 'locationName')"
-                min-width="150"
-              />
-              <el-table-column
-                prop="floor_level"
-                :label="t('floor_level')"
-                align="center"
-                sortable
-                :sort-method="(a, b) => sortFunc(a, b, 'floor_level')"
-                min-width="150"
-              />
               <el-table-column
                 prop="evse_id"
                 :label="t('evse_id')"
