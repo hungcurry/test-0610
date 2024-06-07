@@ -46,7 +46,6 @@ build-push-test-stage:
     - "m-Cloud"
   stage: docker-push
   only:
-
     - test
     - stage
   variables:
