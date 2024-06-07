@@ -1,0 +1,84 @@
+stages:
+  - docker-push
+  - deploy
+
+build-push:
+  tags:
+    - "m-Cloud"
+  stage: docker-push
+  only:
+    - develop
+  variables:
+    GCP_IMAGE: $ARTIFACT_REGISTRY_REGION-docker.pkg.dev/$KUBE_PROJECT/registry/$KUBE_NAMESPACE/$REPOSITORY_NAME
+  script:
+    - cat $GCP_SERVICE_ACCOUNT_DEVELOP | docker login -u _json_key --password-stdin https://$ARTIFACT_REGISTRY_REGION-docker.pkg.dev
+    - docker build
+      -f Dockerfile.$REPOSITORY_ENV
+      -t $GCP_IMAGE:$CI_COMMIT_SHORT_SHA -t $GCP_IMAGE:latest .
+    - docker push $GCP_IMAGE:$CI_COMMIT_SHORT_SHA
+    - docker push $GCP_IMAGE:latest
+  retry: 2
+  environment:
+    name: $CI_COMMIT_BRANCH
+
+deploy-dev:
+  image: google/cloud-sdk
+  stage: deploy
+  tags:
+    - "m-Cloud"
+  only:
+    - develop
+  variables:
+    GCP_IMAGE: $ARTIFACT_REGISTRY_REGION-docker.pkg.dev/$KUBE_PROJECT/registry/$KUBE_NAMESPACE/$REPOSITORY_NAME
+  script:
+    - cat $GCP_GKE_SERVICE_ACCOUNT_DEV > gke-key-file
+    - gcloud auth activate-service-account --key-file=gke-key-file
+    - gcloud container clusters get-credentials $KUBE_CLUSTER --zone=$ARTIFACT_REGISTRY_REGION --project=$KUBE_PROJECT
+    - kubectl config set-context --current --namespace=$KUBE_NAMESPACE
+    - kubectl set image deployment/$REPOSITORY_NAME $REPOSITORY_NAME-$REPOSITORY_ENV=$GCP_IMAGE:latest
+    - kubectl set image deployment/$REPOSITORY_NAME $REPOSITORY_NAME-$REPOSITORY_ENV=$GCP_IMAGE
+  retry: 2
+  environment:
+    name: $CI_COMMIT_BRANCH
+
+build-push-test-stage:
+  tags:
+    - "m-Cloud"
+  stage: docker-push
+  only:
+
+    - test
+    - stage
+  variables:
+    GCP_IMAGE: $ARTIFACT_REGISTRY_REGION-docker.pkg.dev/$KUBE_PROJECT/registry/$KUBE_NAMESPACE/$REPOSITORY_NAME
+  script:
+    - cat $GCP_SERVICE_ACCOUNT_STAGING | docker login -u _json_key --password-stdin https://$ARTIFACT_REGISTRY_REGION-docker.pkg.dev
+    - docker build
+      -f Dockerfile.$REPOSITORY_ENV
+      -t $GCP_IMAGE:$CI_COMMIT_SHORT_SHA -t $GCP_IMAGE:latest .
+    - docker push $GCP_IMAGE:$CI_COMMIT_SHORT_SHA
+    - docker push $GCP_IMAGE:latest
+  retry: 2
+  environment:
+    name: $CI_COMMIT_BRANCH
+
+deploy-test-stage:
+  image: google/cloud-sdk
+  stage: deploy
+  tags:
+    - "m-Cloud"
+  only:
+    - test
+    - stage
+  variables:
+    GCP_IMAGE: $ARTIFACT_REGISTRY_REGION-docker.pkg.dev/$KUBE_PROJECT/registry/$KUBE_NAMESPACE/$REPOSITORY_NAME
+  script:
+    - cat $GCP_GKE_SERVICE_ACCOUNT_STAGING > gke-key-file
+    - gcloud auth activate-service-account --key-file=gke-key-file
+    - gcloud container clusters get-credentials $KUBE_CLUSTER --zone=$ARTIFACT_REGISTRY_REGION --project=$KUBE_PROJECT
+    - kubectl config set-context --current --namespace=test
+    - kubectl set image deployment/$REPOSITORY_NAME-$REPOSITORY_ENV $REPOSITORY_NAME-$REPOSITORY_ENV=$GCP_IMAGE:latest
+    - kubectl set image deployment/$REPOSITORY_NAME-$REPOSITORY_ENV $REPOSITORY_NAME-$REPOSITORY_ENV=$GCP_IMAGE
+  retry: 2
+  environment:
+    name: $CI_COMMIT_BRANCH

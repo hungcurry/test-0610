@@ -39,7 +39,7 @@ import {
 const app = createApp(App)
 
 /* global APP_VERSION */
-app.config.globalProperties.APP_VERSION = APP_VERSION
+app.config.globalProperties.APP_VERSION = import.meta.env.VITE_VERSION;
 app.use(createPinia())
 app.use(router)
 app.use(i18n)

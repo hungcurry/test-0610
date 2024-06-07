@@ -1,10 +1,10 @@
 import VueCookies from 'vue-cookies'
 import axios from 'axios'
 
-let apiServer = 'api10/api3'
+let apiServer = '/api3'
 axios.defaults.timeout = 15000
 if (import.meta.env.VITE_API !== undefined) {
-  apiServer = import.meta.env.VITE_API
+  apiServer = import.meta.env.VITE_API_VERSION
 }
 let config = VueCookies.get('AuthToken')
 const axiosInterface = async (method, url, data) => {
