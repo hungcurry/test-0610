@@ -314,6 +314,7 @@ export default {
     income:                                                                                         'Income',
     member:                                                                                         'Member',
     power_kwh:                                                                                      'Power (kWh)',
+    paid:                                                                                           'Paid',
     qr_pay:                                                                                         'QR-Pay',
     real_time_status:                                                                               'Real Time Status',
     station_type_of_usage:                                                                          'Station Type of Usage',
@@ -1415,5 +1416,4 @@ export default {
     total_time:                                                                                     'Total Time',
     total_energy:                                                                                   'Total Energy',
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 }

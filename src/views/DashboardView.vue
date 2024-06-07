@@ -30,6 +30,7 @@ const dropdownRef = ref()
 const customize_start_time = ref()
 const customize_end_time = ref()
 const created_date = ref(moment((new Date(MStore.permission.company.created_date).getTime()) + ((MStore.timeZoneOffset ) * -60000)).format('YYYY-MM-DD HH:mm:ss'))
+const monthRef = ref(null)
 let isKeepDatePicker = undefined
 let isFetchingTotalUsedPower = false
 let isFetchingTotalUsedTime = false
@@ -801,6 +802,7 @@ const onMountedFlow = () => {
 
 onMounted(async () => {
   onMountedFlow()
+  if(monthRef.value) monthRef.value.ref.focus()
 })
 // watchEffect(() => {
 //   onMountedFlow()
@@ -879,7 +881,7 @@ onMounted(async () => {
             <el-button
               type="primary"
               round
-              class="btn-primary"
+              class="btn-primary primary-extra"
               @click="date_select('all')"
             >
             {{t('all')}}
@@ -887,7 +889,7 @@ onMounted(async () => {
             <el-button
               type="primary"
               round
-              class="btn-primary"
+              class="btn-primary primary-extra"
               @click="date_select('today')"
             >
             {{t('today')}}
@@ -895,7 +897,7 @@ onMounted(async () => {
             <el-button
               type="primary"
               round
-              class="btn-primary"
+              class="btn-primary primary-extra"
               @click="date_select('week')"
             >
             {{t('this_week')}}
@@ -903,7 +905,8 @@ onMounted(async () => {
             <el-button
               type="primary"
               round
-              class="btn-primary"
+              ref="monthRef"
+              class="btn-primary primary-extra"
               @click="date_select('month')"
             >
             {{t('this_month')}}
@@ -912,7 +915,7 @@ onMounted(async () => {
               <el-button
                 type="primary"
                 round
-                class="btn-primary ml-12px"
+                class="btn-primary primary-extra ml-12px"
               >
               {{t('duration_dashboard')}}
               </el-button>
@@ -1036,6 +1039,7 @@ onMounted(async () => {
                 <span class="text-24px mr-8px">{{t('kwh')}}</span>
               </div>
             </div>
+            <p class="title text-center">{{t('paid')}}</p>
           </div>
           <div class="customers flex-col card-rounded box-shadow">
             <div class="evse-title flex items-center pb-16px md:pb-20px">
@@ -1202,6 +1206,9 @@ onMounted(async () => {
     background-color: var(--blue-1000);
     border-radius: 2rem;
   }
+  .el-button {
+    --el-button-outline-color: transparent;
+  }
 }
 // control bottom block scrollbar
 .card-container {
@@ -1227,5 +1234,14 @@ onMounted(async () => {
   .el-range-separator {
     color: white;
   }
+}
+.primary-extra {
+  background-color: var(--blue-400);
+  border:0;
+  outline:0;
+}
+button:focus,
+button:focus-visible {
+  background-color: var(--secondary) !important;
 }
 </style>

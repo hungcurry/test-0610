@@ -251,7 +251,7 @@ onMounted( async() => {
 
 <template>
   <div class="customer">
-    <div class="container lg">
+    <div class="container lg pb-40px">
 
       <div class="flex justify-between flex-wrap lg:flex-nowrap pt-40px pb-32px">
         <el-input class="search-input" v-model="search_input" :placeholder="t('search')" @keyup.enter="search">
@@ -265,38 +265,36 @@ onMounted( async() => {
         </el-button>
       </div>
       
-      <div class="overflow-x-auto ">
-        <div class="pb-40px mt-80px">
-          <el-table
-            ref="tableRef"
-            :data="renderTokenData"
-            class="white-space-nowrap text-primary"
-            height="calc(100vh - 220px)"
-            style="width: 100%"
-            stripe
-            size="large"
-            :cell-style="msi.tb_cell"
-            :header-cell-style="msi.tb_header_cell"
-            v-loading.fullscreen.lock="isLoading"
-          >
-            <el-table-column prop="name" :label="t('company')" align="center" min-width="150"/>
-            <el-table-column prop="type" :label="t('type')" align="center" min-width="150"/>
-            <el-table-column prop="token" :label="t('token')" align="center" min-width="150"/>
-            <el-table-column prop="enable" :label="t('enable')" align="center" min-width="150"/>
-            <el-table-column prop="count" :label="t('count')" align="center" min-width="150"/>
-            <el-table-column prop="expired_date_time" :label="t('expired_date_time')" align="center" min-width="150"/>
-            <el-table-column prop="detail" label="" align="center" min-width="150">
-              <template #default="scope">
-                <el-button class="btn-more"
-                v-if="MStore.rule_permission.TokenManagement.detail === 'O'"
-                @click="token_detail(scope.row)">
-                  <font-awesome-icon icon="fa-solid fa-ellipsis" />
-                </el-button>
-              </template>
-            </el-table-column>
-          </el-table>
-        </div>
-        
+      <div class="overflow-x-auto">
+        <el-table
+          ref="tableRef"
+          :data="renderTokenData"
+          class="white-space-nowrap text-primary"
+          height="calc(100vh - 220px)"
+          style="width: 100%"
+          stripe
+          size="large"
+          :cell-style="msi.tb_cell"
+          :header-cell-style="msi.tb_header_cell"
+          v-loading.fullscreen.lock="isLoading"
+        >
+          <el-table-column prop="name" :label="t('company')" align="center" min-width="150"/>
+          <el-table-column prop="type" :label="t('type')" align="center" min-width="150"/>
+          <el-table-column prop="token" :label="t('token')" align="center" min-width="150"/>
+          <el-table-column prop="enable" :label="t('enable')" align="center" min-width="150"/>
+          <el-table-column prop="count" :label="t('count')" align="center" min-width="150"/>
+          <el-table-column prop="expired_date_time" :label="t('expired_date_time')" align="center" min-width="150"/>
+          <el-table-column prop="detail" label="" align="center" min-width="150">
+            <template #default="scope">
+              <el-button class="btn-more"
+              v-if="MStore.rule_permission.TokenManagement.detail === 'O'"
+              @click="token_detail(scope.row)">
+                <font-awesome-icon icon="fa-solid fa-ellipsis" />
+              </el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+
         <el-dialog v-model="tokenFormVisible"  class="max-w-600px" :show-close="true" width="90%" destroy-on-close center>
           <template #header="{ titleId, titleClass }">
             <div class="py-2rem relative bg-blue-100">
